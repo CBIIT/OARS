@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.Extensions.Configuration;
 using TheradexPortal.Data;
+using TheradexPortal.Data.PowerBI;
+using TheradexPortal.Data.PowerBI.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,8 +11,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<WeatherForecastService>();
+builder.Services.AddSingleton<AadService>();
+builder.Services.AddSingleton<PbiEmbedService>();
+builder.Services.AddScoped<PbiInterop>();
+
+// Loading appsettings.json in C# Model classes
+builder.Services.Configure<PowerBI>(builder.Configuration.GetSection("PowerBI"));
 
 var app = builder.Build();
+
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

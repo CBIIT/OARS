@@ -1,34 +1,25 @@
 {
-  "iisSettings": {
-    "windowsAuthentication": false,
-    "anonymousAuthentication": true,
-    "iisExpress": {
-      "applicationUrl": "http://localhost:42188",
-      "sslPort": 0
-    }
-  },
+
   "profiles": {
     "TheradexPortal": {
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "POWERBI_CREDENTIALS": "{\"AuthenticationMode\":\"ServicePrincipal\",\"AuthorityUri\":\"https://login.microsoftonline.com/organizations/\",\"Scope\":[\"https://analysis.windows.net/powerbi/api/.default\"],\"ClientId\":\"\",\"TenantId\":\"\",\"ClientSecret\":\"\"}"
       },
       "applicationUrl": "http://localhost:5193",
       "dotnetRunMessages": true
-    },
-    "IIS Express": {
-      "commandName": "IISExpress",
-      "launchBrowser": true,
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
     },
     "Docker": {
       "commandName": "Docker",
       "launchBrowser": true,
       "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
-      "publishAllPorts": true
+      "publishAllPorts": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "POWERBI_CREDENTIALS": "{\"AuthenticationMode\":\"ServicePrincipal\",\"AuthorityUri\":\"https://login.microsoftonline.com/organizations/\",\"Scope\":[\"https://analysis.windows.net/powerbi/api/.default\"],\"ClientId\":\"\",\"TenantId\":\"\",\"ClientSecret\":\"\"}"
+      }
     }
   }
 }

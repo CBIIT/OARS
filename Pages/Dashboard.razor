@@ -1,0 +1,25 @@
+﻿@page "/dashboard"
+
+@using System.Net.Http
+@using System.Threading.Tasks
+@using TheradexPortal.Data
+@using TheradexPortal.Data.PowerBI
+
+@inject PbiInterop pbiInterop
+
+
+<h3>PowerBI Embedded</h3>
+<div @ref="@PowerBIElement" style="width:100%;height:600px;max-width: 2000px" />
+
+
+@code {
+    private ElementReference PowerBIElement;
+    protected override async Task
+    OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await pbiInterop.EmbedReportJS("MainDashboard", PowerBIElement);
+        }
+    }
+}
