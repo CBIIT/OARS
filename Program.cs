@@ -1,6 +1,12 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Newtonsoft.Json;
+using System.Text.Json;
 using TheradexPortal.Data;
 using TheradexPortal.Data.PowerBI;
 using TheradexPortal.Data.PowerBI.Models;
@@ -18,8 +24,60 @@ builder.Services.AddScoped<PbiInterop>();
 // Loading appsettings.json in C# Model classes
 builder.Services.Configure<PowerBI>(builder.Configuration.GetSection("PowerBI"));
 
+// Configure Cognito auth
+var sessionCookieLifetime = builder.Configuration.GetValue("SessionCookieLifetimeMinutes", 60);
+
+var cognitoString = Environment.GetEnvironmentVariable("COGNITO_CONFIG");
+if (string.IsNullOrEmpty(cognitoString))
+    throw new Exception("Missing Congnito configuration");
+
+dynamic cognitoConfig = JsonConvert.DeserializeObject<dynamic>(cognitoString);
+
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+})
+.AddCookie(options => {
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(sessionCookieLifetime);
+})
+.AddOpenIdConnect(options =>
+{
+    options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+
+    options.Authority = cognitoConfig.Authority;
+    options.ClientId = cognitoConfig.ClientId;
+    options.ClientSecret = cognitoConfig.ClientSecret;
+
+    options.ResponseType = OpenIdConnectResponseType.Code;
+    options.SaveTokens = false;
+    options.GetClaimsFromUserInfoEndpoint = true;
+    options.Scope.Add("openid");
+    options.Scope.Add("profile");
+    options.Scope.Add("email");
+
+});
+
+//Require authentication for entire application
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+});
+
+builder.Services.AddHttpContextAccessor();
+
+
 var app = builder.Build();
 
+// Force HTTPS context for use behind load balancer
+app.Use((context, next) =>
+{
+    context.Request.Scheme = "https";
+    return next(context);
+});
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -27,10 +85,11 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Error");
 }
 
-
 app.UseStaticFiles();
-
 app.UseRouting();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");

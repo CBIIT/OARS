@@ -11,6 +11,10 @@ namespace TheradexPortal.Data.PowerBI.Models
 
             // Report Id for which Embed token needs to be generated
             public string ReportId { get; set; }
+
+            public bool UseRowLevelSecurity { get; set; } = true;
+
+            public string[]? IdentityRoles { get; set; }
         }
     }
 }

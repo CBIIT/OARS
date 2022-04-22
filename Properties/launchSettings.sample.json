@@ -6,7 +6,8 @@
       "launchBrowser": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "POWERBI_CREDENTIALS": "{\"AuthenticationMode\":\"ServicePrincipal\",\"AuthorityUri\":\"https://login.microsoftonline.com/organizations/\",\"Scope\":[\"https://analysis.windows.net/powerbi/api/.default\"],\"ClientId\":\"\",\"TenantId\":\"\",\"ClientSecret\":\"\"}"
+        "POWERBI_CREDENTIALS": "{\"AuthenticationMode\":\"ServicePrincipal\",\"AuthorityUri\":\"https://login.microsoftonline.com/organizations/\",\"Scope\":[\"https://analysis.windows.net/powerbi/api/.default\"],\"ClientId\":\"\",\"TenantId\":\"\",\"ClientSecret\":\"\"}",
+        "COGNITO_CONFIG": "{\"Authority\": \"\",\"ClientId\": \"\",\"ClientSecret\": \"\"}"
       },
       "applicationUrl": "http://localhost:5193",
       "dotnetRunMessages": true
@@ -18,7 +19,8 @@
       "publishAllPorts": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "POWERBI_CREDENTIALS": "{\"AuthenticationMode\":\"ServicePrincipal\",\"AuthorityUri\":\"https://login.microsoftonline.com/organizations/\",\"Scope\":[\"https://analysis.windows.net/powerbi/api/.default\"],\"ClientId\":\"\",\"TenantId\":\"\",\"ClientSecret\":\"\"}"
+        "POWERBI_CREDENTIALS": "{\"AuthenticationMode\":\"ServicePrincipal\",\"AuthorityUri\":\"https://login.microsoftonline.com/organizations/\",\"Scope\":[\"https://analysis.windows.net/powerbi/api/.default\"],\"ClientId\":\"\",\"TenantId\":\"\",\"ClientSecret\":\"\"}",
+        "COGNITO_CONFIG": "{\"Authority\": \"\",\"ClientId\": \"\",\"ClientSecret\": \"\"}"
       }
     }
   }

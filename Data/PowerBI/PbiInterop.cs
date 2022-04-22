@@ -1,8 +1,10 @@
 ﻿namespace TheradexPortal.Data.PowerBI
 {
     using Microsoft.AspNetCore.Components;
+    using Microsoft.AspNetCore.Components.Authorization;
     using Microsoft.Extensions.Options;
     using Microsoft.JSInterop;
+    using System.Security.Claims;
     using TheradexPortal.Data.PowerBI.Models;
 
     public class PbiInterop
@@ -10,15 +12,18 @@
         private readonly IJSRuntime js;
         private readonly PbiEmbedService pbiEmbedService;
         private readonly IOptions<PowerBI> powerBiConfig;
+        private readonly IHttpContextAccessor httpContextAccessor;
 
         public PbiInterop(
             IJSRuntime js,
             PbiEmbedService pbiEmbedService,
-            IOptions<PowerBI> powerBiConfig)
+            IOptions<PowerBI> powerBiConfig,
+            IHttpContextAccessor httpContextAccessor)
         {
             this.js = js;
             this.pbiEmbedService = pbiEmbedService;
             this.powerBiConfig = powerBiConfig;
+            this.httpContextAccessor = httpContextAccessor; 
         }
 
         /// <summary>
@@ -33,7 +38,19 @@
             if(reportConfig == null)
                 throw new ArgumentException($"Could not find configured report ${reportName}");
 
-            var embedParams = pbiEmbedService.GetEmbedParams(new Guid(reportConfig.WorkspaceId), new Guid(reportConfig.ReportId));
+            var userEmail = httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Email)?.Value;
+            if(string.IsNullOrEmpty(userEmail))
+                throw new ArgumentNullException("Email address not found");
+
+            EmbedParams embedParams;
+            if(reportConfig.UseRowLevelSecurity)
+            {
+                embedParams = pbiEmbedService.GetEmbedParams(new Guid(reportConfig.WorkspaceId), new Guid(reportConfig.ReportId), userEmail, reportConfig.IdentityRoles);
+            }
+            else
+            {
+                embedParams = pbiEmbedService.GetEmbedParams(new Guid(reportConfig.WorkspaceId), new Guid(reportConfig.ReportId));
+            }
 
             await js.InvokeVoidAsync(
                 "PowerBIEmbed.showReport",
