@@ -23,17 +23,10 @@ builder.Services.AddScoped<PbiInterop>();
 
 // Loading appsettings.json in C# Model classes
 builder.Services.Configure<PowerBI>(builder.Configuration.GetSection("PowerBI"));
+builder.Services.Configure<AzureAd>(builder.Configuration.GetSection("PowerBICredentials"));
 
 // Configure Cognito auth
 var sessionCookieLifetime = builder.Configuration.GetValue("SessionCookieLifetimeMinutes", 60);
-
-var cognitoString = Environment.GetEnvironmentVariable("COGNITO_CONFIG");
-if (string.IsNullOrEmpty(cognitoString))
-    throw new Exception("Missing Congnito configuration");
-
-dynamic cognitoConfig = JsonConvert.DeserializeObject<dynamic>(cognitoString);
-
-
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -46,9 +39,9 @@ builder.Services.AddAuthentication(options =>
 {
     options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 
-    options.Authority = cognitoConfig.Authority;
-    options.ClientId = cognitoConfig.ClientId;
-    options.ClientSecret = cognitoConfig.ClientSecret;
+    options.Authority = builder.Configuration.GetValue<string>("CognitoConfig:Authority");
+    options.ClientId = builder.Configuration.GetValue<string>("CognitoConfig:ClientId");
+    options.ClientSecret = builder.Configuration.GetValue<string>("CognitoConfig:ClientSecret");
 
     options.ResponseType = OpenIdConnectResponseType.Code;
     options.SaveTokens = false;

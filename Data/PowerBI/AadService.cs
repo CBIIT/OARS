@@ -10,13 +10,11 @@
 
     public class AadService
     {
-        private readonly AzureAd? azureAd;
+        private readonly IOptions<AzureAd> azureAd;
 
         public AadService(IOptions<AzureAd> azureAd)
         {
-            var azureCredsString = Environment.GetEnvironmentVariable("POWERBI_CREDENTIALS");
-            if (!string.IsNullOrWhiteSpace(azureCredsString))
-                this.azureAd = JsonSerializer.Deserialize<AzureAd>(azureCredsString);
+            this.azureAd = azureAd;
         }
 
         /// <summary>
@@ -31,29 +29,29 @@
             }
 
             AuthenticationResult authenticationResult = null;
-            if (azureAd.AuthenticationMode.Equals("masteruser", StringComparison.InvariantCultureIgnoreCase))
+            if (azureAd.Value.AuthenticationMode.Equals("masteruser", StringComparison.InvariantCultureIgnoreCase))
             {
                 // Create a public client to authorize the app with the AAD app
-                IPublicClientApplication clientApp = PublicClientApplicationBuilder.Create(azureAd.ClientId).WithAuthority(azureAd.AuthorityUri).Build();
+                IPublicClientApplication clientApp = PublicClientApplicationBuilder.Create(azureAd.Value.ClientId).WithAuthority(azureAd.Value.AuthorityUri).Build();
                 var userAccounts = clientApp.GetAccountsAsync().Result;
                 // Retrieve Access token from cache if available
-                authenticationResult = clientApp.AcquireTokenSilent(azureAd.Scope, userAccounts.FirstOrDefault()).ExecuteAsync().Result;
+                authenticationResult = clientApp.AcquireTokenSilent(azureAd.Value.Scope, userAccounts.FirstOrDefault()).ExecuteAsync().Result;
             }
 
             // Service Principal auth is the recommended by Microsoft to achieve App Owns Data Power BI embedding
-            else if (azureAd.AuthenticationMode.Equals("serviceprincipal", StringComparison.InvariantCultureIgnoreCase))
+            else if (azureAd.Value.AuthenticationMode.Equals("serviceprincipal", StringComparison.InvariantCultureIgnoreCase))
             {
                 // For app only authentication, we need the specific tenant id in the authority url
-                var tenantSpecificUrl = azureAd.AuthorityUri.Replace("organizations", azureAd.TenantId);
+                var tenantSpecificUrl = azureAd.Value.AuthorityUri.Replace("organizations", azureAd.Value.TenantId);
 
                 // Create a confidential client to authorize the app with the AAD app
                 IConfidentialClientApplication clientApp = ConfidentialClientApplicationBuilder
-                                                                                .Create(azureAd.ClientId)
-                                                                                .WithClientSecret(azureAd.ClientSecret)
+                                                                                .Create(azureAd.Value.ClientId)
+                                                                                .WithClientSecret(azureAd.Value.ClientSecret)
                                                                                 .WithAuthority(tenantSpecificUrl)
                                                                                 .Build();
                 // Make a client call if Access token is not available in cache
-                authenticationResult = clientApp.AcquireTokenForClient(azureAd.Scope).ExecuteAsync().Result;
+                authenticationResult = clientApp.AcquireTokenForClient(azureAd.Value.Scope).ExecuteAsync().Result;
             }
 
             return authenticationResult.AccessToken;
