@@ -52,14 +52,6 @@ builder.Services.AddAuthentication(options =>
 
 });
 
-//Require authentication for entire application
-builder.Services.AddAuthorization(options =>
-{
-    options.FallbackPolicy = new AuthorizationPolicyBuilder()
-        .RequireAuthenticatedUser()
-        .Build();
-});
-
 builder.Services.AddHttpContextAccessor();
 
 

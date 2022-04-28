@@ -1,0 +1,36 @@
+﻿@page "/login"
+
+@attribute [AllowAnonymous]
+@layout PublicLayout
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+
+<div class="position-absolute top-50 start-50 translate-middle">
+    <button type="button" class="btn btn-primary btn-lg" @onclick="RedirectToLoginHelper">Login</button>
+</div>
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? redirectUri { get; set; }
+
+    protected override async void OnInitialized()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user != null && user.Identity.IsAuthenticated)
+        {
+            Navigation.NavigateTo(string.IsNullOrWhiteSpace(redirectUri) ? "/" : redirectUri, true, true);
+        }    
+    }
+
+    private async void RedirectToLoginHelper()
+    {
+        var queryParams = new Dictionary<string, object?>();
+        queryParams.Add("redirectUri", redirectUri);
+
+        Navigation.NavigateTo(Navigation.GetUriWithQueryParameters("auth/login", queryParams), true);   
+    }
+}
