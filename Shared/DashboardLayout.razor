@@ -1,0 +1,45 @@
+﻿@inherits LayoutComponentBase
+
+<Layout>
+    <LayoutHeader>
+        <Bar Breakpoint="Breakpoint.Desktop"
+             Background="Background.Light">
+            <BarBrand>
+               <Figure>
+                    <FigureImage Class="max-h-12" Source="img/theradex-logo.png" AlternateText="Theradex Oncology" />
+                </Figure>
+            </BarBrand>
+            <BarMenu>
+                <BarEnd>
+                    <BarItem>
+                        <BarLink To="/home">Home</BarLink> 
+                    </BarItem>
+                    <BarItem>
+                        <BarLink To="#home">About Us</BarLink>
+                    </BarItem>
+                    <BarItem>
+                        <BarLink To="#home">Contact Us</BarLink>
+                    </BarItem>
+                    <BarItem>
+                        <BarLink To="#home">Support</BarLink>
+                    </BarItem>
+                    <BarItem>
+                        <Button Color="Color.Secondary" Type="ButtonType.Link" To="/profile">
+                            <Icon Class="mr-2" Name="IconName.User" />
+                            My Profile
+                        </Button>
+                        <Button Color="Color.Primary" Type="ButtonType.Link" To="#logout">Logout</Button>
+                    </BarItem>
+                </BarEnd>
+            </BarMenu>
+        </Bar>
+    </LayoutHeader>
+    <LayoutContent>
+        @Body
+    </LayoutContent>
+    <LayoutFooter>
+        <Div Class="m-4" Position="Position.Absolute.Bottom.Is0.Start.Is50.Translate.MiddleX">
+            <p>© 2023 Theradex Oncology. All rights reserved.</p>
+        </Div>
+    </LayoutFooter>
+</Layout>

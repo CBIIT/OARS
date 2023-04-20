@@ -1,18 +1,3 @@
 ﻿@inherits LayoutComponentBase
 
-<PageTitle>Theradex Portal</PageTitle>
-
-<AuthorizeView>
-    <Authorized>
-        <NavMenu />
-        <main>
-            <div class="container-fluid py-3 px-3 px-lg-5">
-                @Body
-            </div>
-        </main>
-    </Authorized>
-    <NotAuthorized>
-        <RedirectToLogin />
-    </NotAuthorized>
-</AuthorizeView>
-
+<main> @Body </main>

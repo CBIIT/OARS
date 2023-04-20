@@ -1,39 +1,63 @@
 ﻿@page "/login"
+@layout LoginLayout
 
-@attribute [AllowAnonymous]
-@layout PublicLayout
-
-@inject AuthenticationStateProvider AuthenticationStateProvider
-@inject NavigationManager Navigation
-
-<div class="text-center" style="margin-top: 10vh">
-    <div class="mb-5">
-        <img src="/img/theradex-logo.png" />
-    </div>
-    <button type="button" class="btn btn-primary btn-lg" @onclick="RedirectToLoginHelper">Login</button>
-</div>
+<Container Position="Position.Absolute.Top.Is50.Start.Is50.Translate.Middle">
+    <Row>
+        <Column ColumnSize="ColumnSize.Is4.Is4.WithOffset">
+            <Card>
+                <CardBody>
+                    <CardTitle Size="5">
+                        Web Reporting 3.0
+                    </CardTitle>
+                </CardBody>
+                <CardBody>
+                    <Validations @ref="@loginValidationsRef" Mode="ValidationMode.Manual" ValidateOnLoad="false">
+                        <Validation Validator="ValidationRule.IsEmail">
+                            <Field>
+                                <FieldLabel>Email</FieldLabel>
+                                <TextEdit @bind-Text="@email" Placeholder="Enter email">
+                                    <Feedback>
+                                        <ValidationError>Invalid Email</ValidationError>
+                                    </Feedback>
+                                </TextEdit>
+                            </Field>
+                        </Validation>
+                        <Validation Validator="ValidationRule.IsNotEmpty">
+                            <Field>
+                                <FieldLabel>Password</FieldLabel>
+                                <TextEdit @bind-Text="@password" Placeholder="Enter password" />
+                            </Field>
+                        </Validation>
+                        <Link To="/forgotpassword">Forgot Password</Link>
+                    </Validations>
+                </CardBody>
+                <CardBody>
+                    <Div Class="mb-2" Flex="Flex.JustifyContent.Center">
+                        <Button Flex="Flex.JustifyContent.Center" Block Color="Color.Info" Clicked="@OnLoginClicked">Sign In</Button>
+                    </Div>
+                    <Div Class="mt-2" Flex="Flex.JustifyContent.Center">
+                        <Button Flex="Flex.JustifyContent.Center" Block Color="Color.Primary" Type="ButtonType.Link"  To="/newuser">New User</Button>
+                    </Div>
+                </CardBody>
+            </Card>
+        </Column>
+    </Row>
+</Container>
 
 @code {
-    [Parameter]
-    [SupplyParameterFromQuery]
-    public string? redirectUri { get; set; }
+    Validations? loginValidationsRef;
 
-    protected override async void OnInitialized()
+    private string? email;
+    private string? password;
+
+    async Task OnLoginClicked()
     {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-
-        if (user != null && user.Identity.IsAuthenticated)
+        //redirect to theradex login
+        if (await loginValidationsRef.ValidateAll())
         {
-            Navigation.NavigateTo(string.IsNullOrWhiteSpace(redirectUri) ? "/" : redirectUri, true, true);
-        }    
-    }
+            // do the real login here
 
-    private async void RedirectToLoginHelper()
-    {
-        var queryParams = new Dictionary<string, object?>();
-        queryParams.Add("redirectUri", redirectUri);
-
-        Navigation.NavigateTo(Navigation.GetUriWithQueryParameters("auth/login", queryParams), true);   
+            await loginValidationsRef.ClearAll();
+        }
     }
 }

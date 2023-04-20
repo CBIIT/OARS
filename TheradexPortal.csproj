@@ -10,6 +10,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="Pages\AuthHelpers\Login.cshtml" />
+    <Content Remove="Pages\AuthHelpers\Logout.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Pages\AuthHelpers\Login.cshtml" />
+    <Compile Include="Pages\AuthHelpers\Logout.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Blazorise.Icons.FontAwesome" Version="1.2.2" />
+    <PackageReference Include="Blazorise.Tailwind" Version="1.2.2" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="6.0.4" />
     <PackageReference Include="Microsoft.Identity.Client" Version="4.43.0" />
     <PackageReference Include="Microsoft.PowerBI.Api" Version="4.5.0" />
