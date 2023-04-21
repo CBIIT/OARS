@@ -4,16 +4,16 @@ phases:
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
-      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      - aws ecr get-login-password --region $ECR_REGION | docker login --username AWS --password-stdin $REPOSITORY_URI
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - IMAGE_TAG=${COMMIT_HASH:=latest}
   build:
     commands:
       - echo Build started on `date`
-      - echo Building the Docker image... 
-      - echo COMMENT the . in the docker build specifies that the dockerfile is in the current directory
-      - docker build -t $REPOSITORY_URI:latest .
-      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
+      - echo Loading the Docker image... 
+      - docker load --input web-reporting-image.tar
+      - docker tag web-reporting:latest $REPOSITORY_URI:latest
+      - docker tag web-reporting:latest $REPOSITORY_URI:$IMAGE_TAG
   post_build:
     commands:
       - echo Build completed on `date`

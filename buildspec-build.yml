@@ -1,0 +1,16 @@
+﻿version: 0.2
+
+phases:
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the Docker image... 
+      - echo COMMENT the . in the docker build specifies that the dockerfile is in the current directory
+      - docker build -t web-reporting:latest .
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Writing image file...
+      - docker save web-reporting:latest -o web-reporting-image.tar
+artifacts:
+    files: web-reporting-image.tar
