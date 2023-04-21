@@ -12,18 +12,6 @@
                 </CardBody>
                 <CardBody>
                     <Validations @ref="@newUserValidationsRef" Mode="ValidationMode.Manual" ValidateOnLoad="false">
-                        <Validation Validator="ValidationRule.IsNotEmpty">
-                            <Field>
-                                <FieldLabel>First Name</FieldLabel>
-                                <TextEdit @bind-Text="@firstName" Placeholder="Enter first name" />
-                            </Field>
-                        </Validation>
-                        <Validation Validator="ValidationRule.IsNotEmpty">
-                            <Field>
-                                <FieldLabel>Last Name</FieldLabel>
-                                <TextEdit @bind-Text="@lastName" Placeholder="Enter last name" />
-                            </Field>
-                        </Validation>
                         <Validation Validator="ValidationRule.IsEmail">
                             <Field>
                                 <FieldLabel>Email</FieldLabel>
@@ -63,9 +51,7 @@
     private string? email;
     private string? password;
     private string? confirmPassword;
-    private string? firstName;
-    private string? lastName;
-    private string? phone;
+
     private async Task OnValidSubmit()
     {
         //create a new user
@@ -73,15 +59,6 @@
         //{
         //    Email = email,
         //    Password = password,
-        //    FirstName = firstName,
-        //    LastName = lastName,
-        //    Phone = phone,
-        //    Company = company,
-        //    Address = address,
-        //    City = city,
-        //    State = state,
-        //    Zip = zip,
-        //    Country = country
         //};
     }
 }

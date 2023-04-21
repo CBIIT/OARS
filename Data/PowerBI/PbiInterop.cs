@@ -38,7 +38,7 @@
             if(reportConfig == null)
                 throw new ArgumentException($"Could not find configured report ${reportName}");
 
-            var userEmail = httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Email)?.Value;
+            var userEmail = "jbidwell@innovativesol.com"; //httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Email)?.Value;
             if(string.IsNullOrEmpty(userEmail))
                 throw new ArgumentNullException("Email address not found");
 
