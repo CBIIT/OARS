@@ -13,4 +13,6 @@ phases:
       - echo Writing image file...
       - docker save web-reporting:latest -o web-reporting-image.tar
 artifacts:
-    files: web-reporting-image.tar
+    files: 
+      - web-reporting-image.tar
+      - buildspec-push.yml
