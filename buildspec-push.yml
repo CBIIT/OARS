@@ -20,10 +20,16 @@ phases:
       - echo Pushing the Docker images...
       - docker push $REPOSITORY_URI:latest
       - docker push $REPOSITORY_URI:$IMAGE_TAG
-      - echo Writing image definitions file...
+      - echo Writing image definitions files...
+      - sed 's#APPLICATION#'$APP_NAME'#g' template-appspec.yaml > appspec.yaml
+      - sed 's#APPLICATION#'$APP_NAME'#g' template-taskdef.json | sed 's#TASK_EXEC_ROLE#'$TASK_ARN'#g' | sed 's#fargate-task-definition#'$AWS_ACCOUNT'#g' > taskdef.json 
       - printf '{"ImageURI":"%s"}' "$REPOSITORY_URI:$IMAGE_TAG" > imageDetail.json
 artifacts:
     files: 
+      - appspec.yaml
+      - taskdef.json 
       - imageDetail.json
       - web-reporting-image.tar
+      - template-appspec.yaml
+      - template-taskdef.json
       - buildspec-push.yml
