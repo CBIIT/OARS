@@ -11,9 +11,12 @@ phases:
     commands:
       - echo Build started on `date`
       - echo Loading the Docker image... 
-      - docker load --input web-reporting-image.tar
-      - docker tag web-reporting:latest $REPOSITORY_URI:latest
-      - docker tag web-reporting:latest $REPOSITORY_URI:$IMAGE_TAG
+      - $S3_FILE_URI="$(cat s3-file-uri.txt)"
+      - aws s3 cp $S3_FILE_URI .
+      - $S3_FILE_NAME="$(cat s3-file-name.txt)"
+      - docker load --input $S3_FILE_NAME
+      - docker tag $S3_FILE_NAME:latest $REPOSITORY_URI:latest
+      - docker tag $S3_FILE_NAME:latest $REPOSITORY_URI:$IMAGE_TAG
   post_build:
     commands:
       - echo Build completed on `date`
@@ -30,7 +33,8 @@ artifacts:
       - appspec.yaml
       - taskdef.json 
       - imageDetail.json
-      - web-reporting-image.tar
+      - s3-file-uri.txt
+      - s3-file-name.txt 
       - template-appspec.yaml
       - template-taskdef.json
       - buildspec-push.yml

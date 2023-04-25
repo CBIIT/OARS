@@ -11,10 +11,20 @@ phases:
     commands:
       - echo Build completed on `date`
       - echo Writing image file...
-      - docker save web-reporting:latest -o web-reporting-image.tar
+      - S3_FILE_NAME="$(openssl rand -hex 4)"
+      - echo S3_FILE_NAME
+      - echo $S3_FILE_NAME
+      - S3_FILE_KEY="$APP_NAME/web-reporting-image/$S3_FILE_NAME"
+      - echo S3_FILE_KEY
+      - echo $S3_FILE_KEY
+      - docker save web-reporting:latest -o $S3_FILE_NAME
+      - aws s3 cp $S3_FILE_NAME s3://$ARTIFACT_BUCKET_NAME/$S3_FILE_KEY
+      - echo "s3://$ARTIFACT_BUCKET_NAME/$S3_FILE_KEY" > s3-file-uri.txt
+      - echo $S3_FILE_NAME > s3-file-name.txt 
 artifacts:
     files: 
-      - web-reporting-image.tar
+      - s3-file-uri.txt
+      - s3-file-name.txt 
       - buildspec-push.yml
       - template-appspec.yaml
       - template-taskdef.json
