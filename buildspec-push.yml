@@ -21,6 +21,7 @@ phases:
       - docker push $REPOSITORY_URI:latest
       - docker push $REPOSITORY_URI:$IMAGE_TAG
       - echo Writing image definitions files...
+      - sed
       - sed "s#APPLICATION#$APP_NAME#g" template-appspec.yaml > appspec.yaml
       - sed "s#APPLICATION#$APP_NAME#g" template-taskdef.json | sed "s#TASK_EXEC_ROLE#$AWS_ACCOUNT#g" | sed "s#fargate-task-definition#$AWS_ACCOUNT#g" > taskdef.json 
       - printf '{"ImageURI":"%s"}' "$REPOSITORY_URI:$IMAGE_TAG" > imageDetail.json
