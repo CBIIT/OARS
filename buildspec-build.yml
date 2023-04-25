@@ -16,3 +16,5 @@ artifacts:
     files: 
       - web-reporting-image.tar
       - buildspec-push.yml
+      - template-appspec.yaml
+      - template-taskdef.json
