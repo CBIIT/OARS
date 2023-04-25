@@ -11,9 +11,9 @@ phases:
     commands:
       - echo Build started on `date`
       - echo Loading the Docker image... 
-      - $S3_FILE_URI="$(cat s3-file-uri.txt)"
+      - S3_FILE_URI="$(cat s3-file-uri.txt)"
       - aws s3 cp $S3_FILE_URI .
-      - $S3_FILE_NAME="$(cat s3-file-name.txt)"
+      - S3_FILE_NAME="$(cat s3-file-name.txt)"
       - docker load --input $S3_FILE_NAME
       - docker tag $S3_FILE_NAME:latest $REPOSITORY_URI:latest
       - docker tag $S3_FILE_NAME:latest $REPOSITORY_URI:$IMAGE_TAG
