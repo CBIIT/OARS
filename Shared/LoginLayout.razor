@@ -9,14 +9,24 @@
                     <FigureImage Class="max-h-12" Source="img/theradex-logo.png" AlternateText="Theradex Oncology" />
                 </Figure>
             </BarBrand>
+            <BarItem></BarItem>
         </Bar>
     </LayoutHeader>
     <LayoutContent>
         @Body
     </LayoutContent>
     <LayoutFooter>
+        <Div Class="py-16 px-4">
+            <hr style="border-width:1px;border-color:darkgray;">
+        </Div>
+        <Div Class="m-4" Position="Position.Absolute.Bottom.Is0.Start.Is0">
+            <Button Size="Size.Small" Color="Color.Danger" Type="ButtonType.Link" To="#">Help</Button>
+        </Div>
         <Div Class="m-4" Position="Position.Absolute.Bottom.Is0.Start.Is50.Translate.MiddleX">
-            <p>© 2023 Theradex Oncology. All rights reserved.</p>
+            <p>© 2023 Theradex Oncology. All rights reserved. | <a href="">Privacy Policy</a> | <a href="">Cookie Policy</a></p>
+        </Div>
+        <Div Class="m-4" Position="Position.Absolute.Bottom.Is0.End.Is0">
+            <a href="https://www.linkedin.com/company/theradex">Connect with us  <Icon Name="@("fab fa-linkedin")" IconSize="IconSize.Large" /></a>
         </Div>
     </LayoutFooter>
 </Layout>
