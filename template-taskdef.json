@@ -9,7 +9,7 @@
             "logDriver": "awslogs",
             "options": 
             { 
-               "awslogs-group" : "/ecs/Service",
+               "awslogs-group" : "/ecs/service-name",
                "awslogs-region": "us-east-1",
                "awslogs-create-group": "true",
                "awslogs-stream-prefix": "ecs"
@@ -26,7 +26,7 @@
       }
    ],
    "cpu": "256",
-   "family": "fargate-task-definition",
+   "family": "service-name",
    "memory": "512",
    "networkMode": "awsvpc",
    "requiresCompatibilities": [ 
