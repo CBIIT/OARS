@@ -1,0 +1,46 @@
+﻿version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region $ECR_REGION | docker login --username AWS --password-stdin $REPOSITORY_URI
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - IMAGE_TAG=${COMMIT_HASH:=latest}
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Loading the Docker image... 
+      - S3_FILE_URI="$(cat s3-file-uri.txt)"
+      - aws s3 cp $S3_FILE_URI .
+      - S3_FILE_NAME="$(cat s3-file-name.txt)"
+      - docker load --input $S3_FILE_NAME
+      - docker tag web-reporting:latest $REPOSITORY_URI:latest
+      - docker tag web-reporting:latest $REPOSITORY_URI:$IMAGE_TAG
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker images...
+      - docker push $REPOSITORY_URI:latest
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - echo Writing image definitions files...
+      - ls -l
+      - sed "s#APPLICATION#$APP_NAME#g" template-appspec.yaml > appspec.yaml
+      - >- 
+        sed "s#APPLICATION#$APP_NAME#g" template-taskdef.json | 
+        sed "s#TASK_EXEC_ROLE#$TASK_ROLE_ARN#g" | 
+        sed "s#service-name#$ECS_SERVICE_NAME#g" | 
+        sed "s#slog-group#$LOG_GROUP#g"  | 
+        sed "s#slog-group-prefix#$ECS_SERVICE_NAME#g" 
+        > taskdef.json 
+      - printf '{"ImageURI":"%s"}' "$REPOSITORY_URI:$IMAGE_TAG" > imageDetail.json
+artifacts:
+    files: 
+      - appspec.yaml
+      - taskdef.json 
+      - imageDetail.json
+      - s3-file-uri.txt
+      - s3-file-name.txt 
+      - template-appspec.yaml
+      - template-taskdef.json
+      - buildspec-push.yml
