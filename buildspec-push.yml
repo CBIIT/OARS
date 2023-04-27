@@ -26,6 +26,13 @@ phases:
       - echo Writing image definitions files...
       - ls -l
       - sed "s#APPLICATION#$APP_NAME#g" template-appspec.yaml > appspec.yaml
+      - >- 
+        sed "s#APPLICATION#$APP_NAME#g" template-taskdef.json | 
+        sed "s#TASK_EXEC_ROLE#$TASK_ROLE_ARN#g" | 
+        sed "s#service-name#$ECS_SERVICE_NAME#g" | 
+        sed "s#log-group#$LOG_GROUP#g"  | 
+        sed "s#log-group-prefix#$ECS_SERVICE_NAME#g" 
+        > taskdef.json 
       - printf '{"ImageURI":"%s"}' "$REPOSITORY_URI:$IMAGE_TAG" > imageDetail.json
 artifacts:
     files: 
@@ -35,4 +42,5 @@ artifacts:
       - s3-file-uri.txt
       - s3-file-name.txt 
       - template-appspec.yaml
+      - template-taskdef.json
       - buildspec-push.yml
