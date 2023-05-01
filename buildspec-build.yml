@@ -26,6 +26,3 @@ artifacts:
       - s3-file-uri.txt
       - s3-file-name.txt 
       - buildspec-push.yml
-      - template-appspec.yaml
-      - template-taskdef.json
-      - taskdef.json
