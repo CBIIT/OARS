@@ -34,11 +34,13 @@ phases:
         sed "s#log-group#$LOG_GROUP#g"  
         > taskdef.json 
       - printf '{"ImageURI":"%s"}' "$REPOSITORY_URI:$IMAGE_TAG" > imageDetail.json
+      - printf '[{"name":"web","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
 artifacts:
     files: 
       - appspec.yaml
       - taskdef.json 
       - imageDetail.json
+      - imagedefinitions.json
       - s3-file-uri.txt
       - s3-file-name.txt 
       - template-appspec.yaml
