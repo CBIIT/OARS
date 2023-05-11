@@ -29,6 +29,7 @@ namespace TheradexPortal.Data
 
         //Register Models
         public DbSet<User> Users { get; set; }
+
     }
 
 }

@@ -14,6 +14,7 @@ using Blazorise;
 using Blazorise.Tailwind;
 using Blazorise.Icons.FontAwesome;
 using Microsoft.EntityFrameworkCore;
+using TheradexPortal.Data.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,7 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<AadService>();
 builder.Services.AddSingleton<PbiEmbedService>();
 builder.Services.AddScoped<PbiInterop>();
+builder.Services.AddSingleton<UserService>();
 
 // Add Blazorise and Tailwind UI
 builder.Services.AddBlazorise();
