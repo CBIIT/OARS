@@ -13,7 +13,8 @@ using TheradexPortal.Data.PowerBI.Models;
 using Blazorise;
 using Blazorise.Tailwind;
 using Blazorise.Icons.FontAwesome;
-
+using Microsoft.EntityFrameworkCore;
+using TheradexPortal.Data.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,7 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<AadService>();
 builder.Services.AddSingleton<PbiEmbedService>();
 builder.Services.AddScoped<PbiInterop>();
+builder.Services.AddSingleton<UserService>();
 
 // Add Blazorise and Tailwind UI
 builder.Services.AddBlazorise();
@@ -32,6 +34,11 @@ builder.Services.AddFontAwesomeIcons();
 // Loading appsettings.json in C# Model classes
 builder.Services.Configure<PowerBI>(builder.Configuration.GetSection("PowerBI"));
 builder.Services.Configure<AzureAd>(builder.Configuration.GetSection("PowerBICredentials"));
+
+// Load DB context
+builder.Services.AddDbContextFactory<WrDbContext>(opt =>
+    opt.UseOracle(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 
 // Configure Cognito auth
 //var sessionCookieLifetime = builder.Configuration.GetValue("SessionCookieLifetimeMinutes", 60);

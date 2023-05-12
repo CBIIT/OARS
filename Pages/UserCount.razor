@@ -1,0 +1,16 @@
+﻿@page "/usercount"
+
+@using TheradexPortal.Data.Services;
+
+@inject UserService UserService;
+
+<h3>UserCount</h3>
+<p>Number of users: @userCount </p>
+
+@code {
+    private int userCount = 0;
+    protected override async Task OnInitializedAsync()
+    {
+        userCount = await UserService.GetUserCountAsync();
+    }
+}
