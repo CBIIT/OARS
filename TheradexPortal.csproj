@@ -9,6 +9,14 @@
     <UserSecretsId>70f66a44-95c5-4b02-8a0b-2f12192bd93f</UserSecretsId>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <NoWarn>1701;1702;80001</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <NoWarn>1701;1702;80001</NoWarn>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Remove="SQL Scripts\**" />
     <Content Remove="SQL Scripts\**" />
@@ -39,6 +47,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Migrations\" />
     <Folder Include="Pages\StudyGrid\" />
     <Folder Include="wwwroot\js\" />
   </ItemGroup>
