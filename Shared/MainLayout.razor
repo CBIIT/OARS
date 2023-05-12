@@ -1,3 +1,76 @@
 ﻿@inherits LayoutComponentBase
 
-<main> @Body </main>
+<Layout>
+    <LayoutHeader>
+        <Bar Background="Background.Light">
+            <BarBrand>
+                <Figure>
+                    <FigureImage Class="max-h-10" Source="img/theradex-logo.png" AlternateText="Theradex Oncology" />
+                </Figure>
+            </BarBrand>
+            <BarEnd>
+                <BarItem>
+                    <BarLink To="#Notifications">
+                        <Icon Name="IconName.ExclamationCircle" IconSize="IconSize.Large" />
+                    </BarLink>
+                </BarItem>
+                <BarItem>
+                    <BarLink To="#Notifications">
+                        <Icon Name="IconName.InfoCircle" IconSize="IconSize.Large" />
+                    </BarLink>
+                </BarItem>
+                <BarItem>
+                    <BarLink To="#Profile">
+                        <Icon Name="IconName.UserCircle" IconSize="IconSize.Large" />
+                    </BarLink>
+                </BarItem>
+            </BarEnd>
+        </Bar>
+    </LayoutHeader>
+    <LayoutContent>
+        <Tabs RenderMode="TabsRenderMode.LazyLoad" SelectedTab="tab1">
+            <Items>
+                <Tab Name="tab1">Tab 1</Tab>
+                <Tab Name="tab2">Tab 2</Tab>
+            </Items>
+            <Content>
+                <TabPanel Name="tab1">
+                    <Tabs RenderMode="TabsRenderMode.LazyLoad" SelectedTab="tab1">
+                        <Items>
+                            <Tab Name="tab3">Tab 3</Tab>
+                            <Tab Name="tab4">Tab 4</Tab>
+                        </Items>
+                        <Content>
+                            <TabPanel Name="tab3">
+                                @Body
+                            </TabPanel>
+                            <TabPanel Name="tab4">
+                                I am tab 4
+                            </TabPanel>
+                        </Content>
+                    </Tabs>
+                </TabPanel>
+                <TabPanel Name="tab2">
+                    I am a different tab.
+                </TabPanel>
+            </Content>
+        </Tabs>
+    </LayoutContent>
+    <LayoutFooter>
+        <Footer />
+    </LayoutFooter>
+</Layout>
+
+<!--<AuthorizeView>
+    <Authorized>
+        <NavMenu />
+        <main>
+            <div class="container-fluid py-3 px-3 px-lg-5">
+                @Body
+            </div>
+        </main>
+    </Authorized>
+    <NotAuthorized>
+        <RedirectToLogin />
+    </NotAuthorized>
+</AuthorizeView>-->
