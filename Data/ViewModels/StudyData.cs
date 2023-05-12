@@ -1,4 +1,4 @@
-﻿namespace TheradexPortal.Data.Models
+﻿namespace TheradexPortal.Data.ViewModels
 {
     public class StudyData
     {

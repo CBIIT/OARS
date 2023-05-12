@@ -25,6 +25,7 @@ builder.Services.AddSingleton<AadService>();
 builder.Services.AddSingleton<PbiEmbedService>();
 builder.Services.AddScoped<PbiInterop>();
 builder.Services.AddSingleton<UserService>();
+builder.Services.AddSingleton<StudyService>();
 
 // Add Blazorise and Tailwind UI
 builder.Services.AddBlazorise();
