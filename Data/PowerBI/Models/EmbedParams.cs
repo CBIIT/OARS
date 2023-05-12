@@ -13,5 +13,7 @@ namespace TheradexPortal.Data.PowerBI.Models
 
         // Embed Token for the Power BI report
         public EmbedToken EmbedToken { get; set; }
+
+        public string Settings { get; set; }
     }
 }

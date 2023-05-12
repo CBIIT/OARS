@@ -10,8 +10,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="SQL Scripts\**" />
+    <Content Remove="SQL Scripts\**" />
+    <EmbeddedResource Remove="SQL Scripts\**" />
+    <None Remove="SQL Scripts\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Remove="Pages\AuthHelpers\Login.cshtml" />
     <Content Remove="Pages\AuthHelpers\Logout.cshtml" />
+    <Content Remove="Pages\StudyGrid\StudyGrid.razor" />
     <Content Remove="Pages\StudyGrid\StudyGridComponent.razor" />
   </ItemGroup>
 

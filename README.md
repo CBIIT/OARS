@@ -20,9 +20,6 @@ dotnet user-secrets set "Secret:Name" "12345"
     - "PowerBICredentials:TenantId"
     - "PowerBICredentials:ClientSecret"
     - "PowerBICredentials:ClientId"
-    - "CognitoConfig:ClientSecret"
-    - "CognitoConfig:ClientId"
-    - "CognitoConfig:Authority"
 
 ### Run Application
 ```

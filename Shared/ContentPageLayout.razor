@@ -1,0 +1,82 @@
+﻿@inherits LayoutComponentBase
+
+<Layout>
+    <LayoutHeader>
+        <Bar
+             Background="Background.Light">
+            <BarBrand>
+                <Figure>
+                    <FigureImage Class="max-h-10" Source="img/theradex-logo.png" AlternateText="Theradex Oncology" />
+                </Figure>
+            </BarBrand>
+            <BarEnd>
+                <BarItem>
+                    <BarLink To="#Notifications">
+                        <Icon Name="IconName.ExclamationCircle" IconSize="IconSize.Large" />
+                    </BarLink>
+                </BarItem>
+                <BarItem>
+                    <BarLink To="#Notifications">
+                        <Icon Name="IconName.InfoCircle" IconSize="IconSize.Large" />
+                    </BarLink>
+                </BarItem>
+                <BarItem>
+                    <BarLink To="#Profile">
+                        <Icon Name="IconName.UserCircle" IconSize="IconSize.Large" />
+                    </BarLink>
+                </BarItem>
+            </BarEnd>
+        </Bar>
+    </LayoutHeader>
+    <LayoutContent>
+        <Tabs RenderMode="TabsRenderMode.LazyLoad" SelectedTab="tab1">
+            <Items>
+                <Tab Name="tab1">Tab 1</Tab>
+                <Tab Name="tab2">Tab 2</Tab>
+            </Items>
+            <Content>
+                <TabPanel Name="tab1">
+                    <Tabs RenderMode="TabsRenderMode.LazyLoad" SelectedTab="tab1">
+                        <Items>
+                            <Tab Name="tab3">Tab 3</Tab>
+                            <Tab Name="tab4">Tab 4</Tab>
+                        </Items>
+                        <Content>
+                            <TabPanel Name="tab3">
+                                @Body
+                            </TabPanel>
+                            <TabPanel Name="tab4">
+                                I am tab 4
+                            </TabPanel>
+                        </Content>
+                    </Tabs>
+                </TabPanel>
+                <TabPanel Name="tab2">
+                    I am a different tab.
+                </TabPanel>
+            </Content>
+        </Tabs>
+    </LayoutContent>
+    <LayoutFooter>
+        <Div Class="py-4 px-4">
+            <hr style="border-width:1px;border-color:darkgray;">
+        </Div>
+        <Div Class="flex flex-wrap items-center justify-between mx-auto">
+            <Div Class="ml-4 mb-2">
+                <Button Size="Size.Small" Color="Color.Danger" Type="ButtonType.Link" To="#">Help</Button>
+            </Div>
+            <Div Class="mb-4">
+                <p>
+                    © 2023 Theradex Oncology. All rights reserved. |
+                    <Link To="">Privacy Policy</Link> |
+                    <Link To="">Cookie Policy</Link>
+                </p>
+            </Div>
+            <Div Class="mb-4 mr-4">
+                <Link To="https://www.linkedin.com/company/theradex">
+                Connect with us <Icon VerticalAlignment="VerticalAlignment.TextBottom" Name="@("fab fa-linkedin")" IconSize="IconSize.Large" />
+                </Link>
+            </Div>
+        </Div>
+    </LayoutFooter>
+</Layout>
