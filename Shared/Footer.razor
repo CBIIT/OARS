@@ -1,15 +1,19 @@
-﻿<Div Class="py-16 px-4">
-    <hr style="border-width:1px;border-color:darkgray;">
+﻿<Div Class="px-4">
+    <hr style="border-width:1px;border-color:gray;">
 </Div>
-<Div Class="m-4" Position="Position.Absolute.Bottom.Is0.Start.Is0">
-    <Button Size="Size.Small" Color="Color.Danger" Type="ButtonType.Link" To="#">Help</Button>
+<Div Class="w-full p-4 md:flex md:items-center md:justify-between">
+    <Div Class="w-1/4">
+        <Button Size="Size.Small" Color="Color.Danger" Type="ButtonType.Link" To="#">Help</Button>
+    </Div>
+    <Span Class="w-2/4 text-md text-gray-500 sm:text-center dark:text-gray-400">
+        © 2023 <a href="https://theradex.com/" class="hover:underline">Theradex Oncology</a>. All Rights Reserved. | <a href="#" class="hover:underline">Privacy Policy</a> | <a href="#" class="hover:underline">Cookie Policy</a>
+    </Span>
+    <Div Class="w-1/4 text-right mt-3 text-md font-medium text-gray-500 dark:text-gray-400 sm:mt-0">
+        <a href="https://www.linkedin.com/company/theradex" class="hover:underline">Connect with us <Icon Name="@("fab fa-linkedin")" IconSize="IconSize.Large" /></a>
+    </Div>
+    
 </Div>
-<Div Class="m-4" Position="Position.Absolute.Bottom.Is0.Start.Is50.Translate.MiddleX">
-    <p>© 2023 Theradex Oncology. All rights reserved. | <a href="">Privacy Policy</a> | <a href="">Cookie Policy</a></p>
-</Div>
-<Div Class="m-4" Position="Position.Absolute.Bottom.Is0.End.Is0">
-    <a href="https://www.linkedin.com/company/theradex">Connect with us  <Icon Name="@("fab fa-linkedin")" IconSize="IconSize.Large" /></a>
-</Div>
+
 
 @code {
 

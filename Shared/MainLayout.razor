@@ -35,23 +35,10 @@
             </Items>
             <Content>
                 <TabPanel Name="tab1">
-                    <Tabs RenderMode="TabsRenderMode.LazyLoad" SelectedTab="tab1">
-                        <Items>
-                            <Tab Name="tab3">Tab 3</Tab>
-                            <Tab Name="tab4">Tab 4</Tab>
-                        </Items>
-                        <Content>
-                            <TabPanel Name="tab3">
-                                @Body
-                            </TabPanel>
-                            <TabPanel Name="tab4">
-                                I am tab 4
-                            </TabPanel>
-                        </Content>
-                    </Tabs>
+                    @Body
                 </TabPanel>
                 <TabPanel Name="tab2">
-                    I am a different tab.
+                    <p>Tab 2 content</p>
                 </TabPanel>
             </Content>
         </Tabs>

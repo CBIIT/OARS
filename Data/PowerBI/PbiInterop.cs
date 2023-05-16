@@ -2,12 +2,16 @@
 {
     using Microsoft.AspNetCore.Components;
     using Microsoft.AspNetCore.Components.Authorization;
+    using Microsoft.EntityFrameworkCore.Migrations.Operations.Builders;
+    using Microsoft.Extensions.FileProviders;
     using Microsoft.Extensions.Options;
     using Microsoft.Identity.Client;
     using Microsoft.JSInterop;
+    using Newtonsoft.Json.Linq;
     using System.Diagnostics.Eventing.Reader;
     using System.Security.Claims;
     using TheradexPortal.Data.PowerBI.Models;
+    using static TheradexPortal.Data.PowerBI.Models.PowerBI;
 
     public class PbiInterop
     {
@@ -62,36 +66,6 @@
                 embedParams.EmbedReport[0].ReportId.ToString()
             ); 
         }
-        /*
-        public async ValueTask EmbedReportJS(string reportName, ElementReference reportContainer)
-        {
-            var reportConfig = powerBiConfig.Value.Reports.FirstOrDefault(r => r.Key == reportName).Value;
-            if (reportConfig == null)
-                throw new ArgumentException($"Could not find configured report ${reportName}");
-
-            var userEmail = "jbidwell@innovativesol.com"; //httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Email)?.Value;
-            if (string.IsNullOrEmpty(userEmail))
-                throw new ArgumentNullException("Email address not found");
-
-            EmbedParams embedParams;
-            if (reportConfig.UseRowLevelSecurity)
-            {
-                embedParams = pbiEmbedService.GetEmbedParams(new Guid(reportConfig.WorkspaceId), new Guid(reportConfig.ReportId), userEmail, reportConfig.IdentityRoles);
-            }
-            else
-            {
-                embedParams = pbiEmbedService.GetEmbedParams(new Guid(reportConfig.WorkspaceId), new Guid(reportConfig.ReportId));
-            }
-
-            await js.InvokeVoidAsync(
-                "PowerBIEmbed.showReport",
-                reportContainer,
-                embedParams.Type,
-                embedParams.EmbedToken.Token,
-                embedParams.EmbedReport[0].EmbedUrl,
-                embedParams.EmbedReport[0].ReportId.ToString()
-            );
-        }*/
 
         public async ValueTask bootstrapBookmarkEmbedContainer(ElementReference reportContainer)
         {
@@ -101,5 +75,34 @@
                 "Report"
             );
         }
-    }
+
+        public async ValueTask embedCustomLayoutReportJS(string reportName, ElementReference reportContainer)
+        {
+                var reportConfig = powerBiConfig.Value.Reports.FirstOrDefault(r => r.Key == reportName).Value;
+                if (reportConfig == null)
+                    throw new ArgumentException($"Could not find configured report ${reportName}");
+
+                var userEmail = "jmcdonald@theradex.com"; //httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Email)?.Value;
+                if (string.IsNullOrEmpty(userEmail))
+                    throw new ArgumentNullException("Email address not found");
+
+                EmbedParams embedParams;
+                if (reportConfig.UseRowLevelSecurity)
+                {
+                    embedParams = pbiEmbedService.GetEmbedParams(new Guid(reportConfig.WorkspaceId), new Guid(reportConfig.ReportId), userEmail, reportConfig.IdentityRoles);
+                }
+                else
+                {
+                    embedParams = pbiEmbedService.GetEmbedParams(new Guid(reportConfig.WorkspaceId), new Guid(reportConfig.ReportId));
+                }
+
+                await js.InvokeVoidAsync(
+                    "PowerBIEmbed.load",
+                    reportContainer,
+                    embedParams.EmbedToken.Token,
+                    embedParams.EmbedReport[0].EmbedUrl,
+                    embedParams.EmbedReport[0].ReportId.ToString()
+                );
+            }
+        }
 }
