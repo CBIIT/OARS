@@ -1,26 +1,25 @@
 ﻿@page "/studygrid"
 @using TheradexPortal.Data.Models
 @using TheradexPortal.Data
+@using TheradexPortal.Data.Services;
 
 @inject StudyService studyService
 
-<DataGrid TItem="StudyData.Study"
+<DataGrid TItem="Protocol"
             Data="@studyList"
             @bind-SelectedRow="@selectedStudy"
             SelectionMode="DataGridSelectionMode.Multiple"
-            @bind-SelectedRows="selectedStudies"
+            @bind-SelectedRows="@selectedStudies"
             Responsive
-            RowSelectable = "RowSelectableHandler"
-            DetailRowTrigger="@((e) => e.Item.StudyId == selectedStudy?.StudyId)"            
             >
         
         <DataGridMultiSelectColumn Width="30px"> </DataGridMultiSelectColumn>
         <DataGridCommandColumn />
-        <DataGridColumn Field="@nameof(StudyData.Study.StudyId)" Caption="Study ID" />
-        <DataGridColumn Field="@nameof(StudyData.Study.PrimaryAgent)" Caption="Primary Agent" />
+        <DataGridColumn Field="@nameof(Protocol.StudyId)" Caption="Study ID" />
+        @* <DataGridColumn Field="@nameof(StudyData.Study.PrimaryAgent)" Caption="Primary Agent" />
         <DataGridColumn Field="@nameof(StudyData.Study.SecondaryAgent)" Caption="Secondary Agent" />
-        <DataGridColumn Field="@nameof(StudyData.Study.Other)" Caption="Other" />
-        <DataGridColumn Field="@nameof(StudyData.Study.Title)" Caption="Title" />
+        <DataGridColumn Field="@nameof(Protocol.Other)" Caption="Other" />*@
+    <DataGridColumn Field="@nameof(Protocol.Protocol_Title)" Caption="Title" />
         
         @*<DetailRowTemplate>
             @{
@@ -45,20 +44,16 @@
 </DataGrid>
 
 @code {
-    [Inject]
-
-    public StudyData? StudyData { get; set; }
-    private List<StudyData.Study>? studyList;
-    private StudyData.Study? selectedStudy;
-    private List<StudyData.Study>? selectedStudies;
+    private IList<Protocol> studyList;
+    private Protocol selectedStudy;
+    private List<Protocol> selectedStudies;
 
     protected override async Task OnInitializedAsync()
     {
-        studyList = await StudyData.GetStudyList();
-        await base.OnInitiaizedAsync();
+        studyList = await studyService.GetAllProtocolsAsync();
     }
 
-    private bool RowSelectableHandler(RowSelectableEventArgs<StudyData.Study> rowSelectableEventArgs)
+    private bool RowSelectableHandler(RowSelectableEventArgs<Protocol> rowSelectableEventArgs)
     => rowSelectableEventArgs.SelectReason is not DataGridSelectReason.RowClick;
 
     // checkbox

@@ -1,5 +1,10 @@
-﻿namespace TheradexPortal.Data.Models
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace TheradexPortal.Data.Models
 {
+    [Table("PROTOCOL", Schema = "WRDB")]
+    [Keyless]
     public class Protocol
     {
         //not unique - can have same study id for different statuses
