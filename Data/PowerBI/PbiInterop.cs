@@ -7,6 +7,7 @@
     using Microsoft.Extensions.Options;
     using Microsoft.Identity.Client;
     using Microsoft.JSInterop;
+    using Microsoft.PowerBI.Api.Models;
     using Newtonsoft.Json.Linq;
     using System.Diagnostics.Eventing.Reader;
     using System.Security.Claims;
@@ -19,6 +20,7 @@
         private readonly PbiEmbedService pbiEmbedService;
         private readonly IOptions<PowerBI> powerBiConfig;
         private readonly IHttpContextAccessor httpContextAccessor;
+        private IJSObjectReference? module;
 
         public PbiInterop(
             IJSRuntime js,
@@ -38,8 +40,9 @@
         /// <param name="reportName">Configured report name from appsettings PowerBi.Reports</param>
         /// <param name="reportContainer">Reference to embedded report container</param>
         /// <returns></returns>
-        public async ValueTask EmbedReportJS(string reportName, ElementReference reportContainer)
+        public async ValueTask<IJSObjectReference> EmbedReportJS(DotNetObjectReference<TheradexPortal.Pages.Dashboard>? obj, string reportName, ElementReference reportContainer)
         {
+            module = await js.InvokeAsync<IJSObjectReference>("import", "./js/powerbi-embed.js");
             var reportConfig = powerBiConfig.Value.Reports.FirstOrDefault(r => r.Key == reportName).Value;
             if(reportConfig == null)
                 throw new ArgumentException($"Could not find configured report ${reportName}");
@@ -58,13 +61,18 @@
                 embedParams = pbiEmbedService.GetEmbedParams(new Guid(reportConfig.WorkspaceId), new Guid(reportConfig.ReportId));
             }
 
-            await js.InvokeVoidAsync(
-                "PowerBIEmbed.showReport",
+            var report = await module.InvokeAsync<IJSObjectReference>(
+                "initReport",
+                obj,
                 reportContainer,
                 embedParams.EmbedToken.Token,
                 embedParams.EmbedReport[0].EmbedUrl,
-                embedParams.EmbedReport[0].ReportId.ToString()
-            ); 
+                embedParams.EmbedReport[0].ReportId.ToString(),
+                "ReportSection",
+                new string[] { "aa9e6f7833a06a40c297", "3dfea830056db635a1c2" }
+            );
+
+            return report;
         }
 
         public async ValueTask bootstrapBookmarkEmbedContainer(ElementReference reportContainer)

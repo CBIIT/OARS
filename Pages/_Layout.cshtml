@@ -45,7 +45,7 @@
                     }
                 };
                 // Embed the report and display it within the div container.
-                powerbi.embed(reportContainer, config);
+                window.embeddedReport = powerbi.embed(reportContainer, config);
             },
         };
     </script>

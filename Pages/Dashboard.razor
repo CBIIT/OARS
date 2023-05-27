@@ -13,11 +13,21 @@
 
 @code {
     private ElementReference PowerBIElement;
+    private DotNetObjectReference<Dashboard>? objRef;
+    private IJSObjectReference? report;
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
-        {           
-            await pbiInterop.EmbedReportJS("MainDashboard", PowerBIElement);
+        {    
+            objRef = DotNetObjectReference.Create(this);
+            report = await pbiInterop.EmbedReportJS(objRef, "MainDashboard", PowerBIElement);
         }
     }
-}
+
+    [JSInvokable]
+    public async void OnLoad()
+    {
+        await report.InvokeVoidAsync("renderSlicers");
+    }
+}?

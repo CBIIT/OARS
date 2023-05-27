@@ -50,7 +50,6 @@
   <ItemGroup>
     <Folder Include="Migrations\" />
     <Folder Include="Pages\StudyGrid\" />
-    <Folder Include="wwwroot\js\" />
   </ItemGroup>
 
 </Project>
