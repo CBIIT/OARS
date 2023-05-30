@@ -6,28 +6,23 @@
 @using TheradexPortal.Data
 @using TheradexPortal.Data.PowerBI
 
-@inject PbiInterop pbiInterop
 
-<div @ref="@PowerBIElement" style="width:100%;height:80vh" />
+<Tabs RenderMode="TabsRenderMode.LazyLoad" SelectedTab="tab1">
+    <Items>
+        <Tab Name="tab1">Custom Layout</Tab>
+        <Tab Name="tab2">Full Report</Tab>
+    </Items>
+    <Content>
+        <TabPanel Name="tab1">
+            <PowerBiCustomLayout />
+        </TabPanel>
+        <TabPanel Name="tab2">
+            <PowerBiFullReport />
+        </TabPanel>
+    </Content>
+</Tabs>
 
 
 @code {
-    private ElementReference PowerBIElement;
-    private DotNetObjectReference<Dashboard>? objRef;
-    private IJSObjectReference? report;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {    
-            objRef = DotNetObjectReference.Create(this);
-            report = await pbiInterop.EmbedReportJS(objRef, "MainDashboard", PowerBIElement);
-        }
-    }
-
-    [JSInvokable]
-    public async void OnLoad()
-    {
-        await report.InvokeVoidAsync("renderSlicers");
-    }
 }?

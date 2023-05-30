@@ -7,12 +7,12 @@ const LAYOUT = {
 
 const models = window['powerbi-client'].models;
 
-function initReport(dotnetRef, reportContainer, accessToken, embedUrl, embedReportId, embedPageId, embedVisualIds) {
+function initCustomLayoutReport(dotnetRef, reportContainer, accessToken, embedUrl, embedReportId, embedPageId, embedVisualIds) {
     let report = new PowerBiEmbed(dotnetRef, reportContainer, accessToken, embedUrl, embedReportId, embedPageId, embedVisualIds);
     return report;
 }
 
-function embedFullReport (reportContainer, accessToken, embedUrl, embedReportId) {
+function embedFullReport(reportContainer, accessToken, embedUrl, embedReportId) {
     var config = {
         type: 'report',
         tokenType: models.TokenType.Embed,
@@ -25,8 +25,7 @@ function embedFullReport (reportContainer, accessToken, embedUrl, embedReportId)
             navContentPaneEnabled: true
         }
     };
-    // Embed the report and display it within the div container.
-    window.embeddedReport = powerbi.embed(reportContainer, config);
+    return powerbi.embed(reportContainer, config);
 }
 
 class PowerBiEmbed {
@@ -96,7 +95,7 @@ class PowerBiEmbed {
         }
     
         let rows = Math.ceil(this.embedVisualIds.length / columns);
-        let reportHeight = Math.max(0, (rows * visualHeight) + (rows + 1) * LAYOUT.MARGIN);
+        let reportHeight = Math.max(0, (rows * visualHeight) + LAYOUT.SLICER_HEIGHT + (rows + 2) * LAYOUT.MARGIN);
         return {
             reportWidth,
             reportHeight,
@@ -190,4 +189,4 @@ class PowerBiEmbed {
     }
 }
 
-export { initReport, embedFullReport, PowerBiEmbed }
+export { initCustomLayoutReport, embedFullReport, PowerBiEmbed }
