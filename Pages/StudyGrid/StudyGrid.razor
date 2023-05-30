@@ -102,15 +102,15 @@
                 <TableBody>
                     <TableRow>
                         <TableRowHeader>Study ID</TableRowHeader>
-                        <TableRowCell>@nameof(overviewProtocol.Study_Id)</TableRowCell>
+                        <TableRowCell>@(overviewProtocol.Study_Id)</TableRowCell>
                     </TableRow>
                     <TableRow>
                         <TableRowHeader>Title</TableRowHeader>
-                        <TableRowCell>@nameof(overviewProtocol.Protocol_Title)</TableRowCell>
+                        <TableRowCell>@(overviewProtocol.Protocol_Title)</TableRowCell>
                     </TableRow>
                     <TableRow>
                         <TableRowHeader>Primary Investigator</TableRowHeader>
-                        <TableRowCell>@nameof(overviewProtocol.Investigator)</TableRowCell>
+                        <TableRowCell>@(overviewProtocol.Investigator)</TableRowCell>
                     </TableRow>
                     <TableRow>
                         <TableRowHeader>Monitoring Method</TableRowHeader>
@@ -153,7 +153,7 @@
     private IReadOnlyList<DateTime>? selectedDates;
     private Modal? modalRef;
     private Modal? overviewRef;
-    private Protocol overviewProtocol;
+    private Protocol overviewProtocol = new Protocol();
     // get studies for grid
     protected override async Task OnInitializedAsync()
     {
