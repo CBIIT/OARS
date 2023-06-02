@@ -1,0 +1,43 @@
+﻿@using System.Net.Http
+@using System.Threading.Tasks
+@using TheradexPortal.Data
+@using TheradexPortal.Data.PowerBI
+
+@inject PbiInterop pbiInterop
+
+<div @ref="@PowerBIElement" style="width:100%;height:80vh" />
+
+
+@code {
+    private ElementReference PowerBIElement;
+    private DotNetObjectReference<PowerBiCustomLayout>? objRef;
+    private IJSObjectReference? report;
+    private bool isLoaded = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            objRef = DotNetObjectReference.Create(this);
+            report = await pbiInterop.EmbedReportJS(objRef, "MainDashboard", PowerBIElement);
+        }
+    }
+
+    [JSInvokable]
+    public async void OnLoad()
+    {
+        isLoaded = true;
+        if (report != null)
+        {
+            await report.InvokeVoidAsync("renderSlicers");
+        }
+    }
+
+    public async Task Update()
+    {
+        if (report != null)
+        {
+            await report.InvokeVoidAsync("renderVisuals");
+        }
+    }
+}

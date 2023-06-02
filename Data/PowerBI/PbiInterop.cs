@@ -7,6 +7,7 @@
     using Microsoft.Extensions.Options;
     using Microsoft.Identity.Client;
     using Microsoft.JSInterop;
+    using Microsoft.PowerBI.Api.Models;
     using Newtonsoft.Json.Linq;
     using System.Diagnostics.Eventing.Reader;
     using System.Security.Claims;
@@ -19,6 +20,7 @@
         private readonly PbiEmbedService pbiEmbedService;
         private readonly IOptions<PowerBI> powerBiConfig;
         private readonly IHttpContextAccessor httpContextAccessor;
+        private IJSObjectReference? module;
 
         public PbiInterop(
             IJSRuntime js,
@@ -38,8 +40,9 @@
         /// <param name="reportName">Configured report name from appsettings PowerBi.Reports</param>
         /// <param name="reportContainer">Reference to embedded report container</param>
         /// <returns></returns>
-        public async ValueTask EmbedReportJS(string reportName, ElementReference reportContainer)
+        public async ValueTask<IJSObjectReference> EmbedReportJS(DotNetObjectReference<TheradexPortal.Shared.PowerBiCustomLayout>? obj, string reportName, ElementReference reportContainer)
         {
+            module = await js.InvokeAsync<IJSObjectReference>("import", "./js/powerbi-embed.js");
             var reportConfig = powerBiConfig.Value.Reports.FirstOrDefault(r => r.Key == reportName).Value;
             if(reportConfig == null)
                 throw new ArgumentException($"Could not find configured report ${reportName}");
@@ -58,51 +61,50 @@
                 embedParams = pbiEmbedService.GetEmbedParams(new Guid(reportConfig.WorkspaceId), new Guid(reportConfig.ReportId));
             }
 
-            await js.InvokeVoidAsync(
-                "PowerBIEmbed.showReport",
+            var report = await module.InvokeAsync<IJSObjectReference>(
+                "initCustomLayoutReport",
+                obj,
+                reportContainer,
+                embedParams.EmbedToken.Token,
+                embedParams.EmbedReport[0].EmbedUrl,
+                embedParams.EmbedReport[0].ReportId.ToString(),
+                "ReportSection",
+                new string[] { "c757252567009efc0c00", "78de3054a74528cc3ca0" } //TODO pull from DB
+            );
+
+            return report;
+        }
+
+        public async ValueTask<IJSObjectReference> EmbedFullReportJS(string reportName, ElementReference reportContainer)
+        {
+            module = await js.InvokeAsync<IJSObjectReference>("import", "./js/powerbi-embed.js");
+            var reportConfig = powerBiConfig.Value.Reports.FirstOrDefault(r => r.Key == reportName).Value;
+            if (reportConfig == null)
+                throw new ArgumentException($"Could not find configured report ${reportName}");
+
+            var userEmail = "jbidwell@innovativesol.com"; //httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(userEmail))
+                throw new ArgumentNullException("Email address not found");
+
+            EmbedParams embedParams;
+            if (reportConfig.UseRowLevelSecurity)
+            {
+                embedParams = pbiEmbedService.GetEmbedParams(new Guid(reportConfig.WorkspaceId), new Guid(reportConfig.ReportId), userEmail, reportConfig.IdentityRoles);
+            }
+            else
+            {
+                embedParams = pbiEmbedService.GetEmbedParams(new Guid(reportConfig.WorkspaceId), new Guid(reportConfig.ReportId));
+            }
+
+            var report = await module.InvokeAsync<IJSObjectReference>(
+                "embedFullReport",                
                 reportContainer,
                 embedParams.EmbedToken.Token,
                 embedParams.EmbedReport[0].EmbedUrl,
                 embedParams.EmbedReport[0].ReportId.ToString()
-            ); 
-        }
-
-        public async ValueTask bootstrapBookmarkEmbedContainer(ElementReference reportContainer)
-        {
-            await js.InvokeVoidAsync(
-                "PowerBIEmbed.bootstrap",
-                reportContainer,
-                "Report"
             );
+
+            return report;
         }
-
-        public async ValueTask embedCustomLayoutReportJS(string reportName, ElementReference reportContainer)
-        {
-                var reportConfig = powerBiConfig.Value.Reports.FirstOrDefault(r => r.Key == reportName).Value;
-                if (reportConfig == null)
-                    throw new ArgumentException($"Could not find configured report ${reportName}");
-
-                var userEmail = "jmcdonald@theradex.com"; //httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Email)?.Value;
-                if (string.IsNullOrEmpty(userEmail))
-                    throw new ArgumentNullException("Email address not found");
-
-                EmbedParams embedParams;
-                if (reportConfig.UseRowLevelSecurity)
-                {
-                    embedParams = pbiEmbedService.GetEmbedParams(new Guid(reportConfig.WorkspaceId), new Guid(reportConfig.ReportId), userEmail, reportConfig.IdentityRoles);
-                }
-                else
-                {
-                    embedParams = pbiEmbedService.GetEmbedParams(new Guid(reportConfig.WorkspaceId), new Guid(reportConfig.ReportId));
-                }
-
-                await js.InvokeVoidAsync(
-                    "PowerBIEmbed.load",
-                    reportContainer,
-                    embedParams.EmbedToken.Token,
-                    embedParams.EmbedReport[0].EmbedUrl,
-                    embedParams.EmbedReport[0].ReportId.ToString()
-                );
-            }
-        }
+    }
 }

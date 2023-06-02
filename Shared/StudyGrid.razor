@@ -8,10 +8,10 @@
 @inject IJSRuntime jsRuntime
 
 
-<DataGrid TItem="Protocol"
+<DataGrid TItem="Protocol" class="bg-light"
             Data="@studyList"
             SelectionMode="DataGridSelectionMode.Multiple"
-            @bind-SelectedRows="@selectedStudies"
+            SelectedRows="@selectedStudies"
             Responsive
             Filterable
             Striped
@@ -141,6 +141,9 @@
 </Modal>
 
     @code {
+    [Parameter]
+    public Action<List<Protocol>?>? OnSave { get; set; }
+
     private IList<Protocol>? studyList;
     private List<Protocol>? selectedStudies;
     private IReadOnlyList<DateTime?> selectedDates;
@@ -150,6 +153,26 @@
     protected override async Task OnInitializedAsync()
     {
         studyList = await studyService.GetAllProtocolsAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // apply filters from localstorage
+            // TODO load selection from database
+            string? json = await jsRuntime.InvokeAsync<string>("localStorage.getItem", "selectedStudies");
+            if (json != null)
+            {
+                var storedProtocols = JsonConvert.DeserializeObject<List<Protocol>>(json);
+                if (storedProtocols != null)
+                {
+                    var ids = storedProtocols.Select(x => x.Study_Id).ToList();
+                    selectedStudies = studyList.Where(x => ids.Contains(x.Study_Id)).ToList();
+                    StateHasChanged();
+                }
+            }
+        }
     }
 
     // filter by dates
@@ -166,11 +189,18 @@
     private bool RowSelectableHandler(RowSelectableEventArgs<Protocol> rowSelectableEventArgs)
     => rowSelectableEventArgs.SelectReason is not DataGridSelectReason.RowClick;
 
-    private void Save()
+    private async void Save()
     {
+        // TODO save selection to database
         string json = JsonConvert.SerializeObject(selectedStudies, Formatting.Indented);
         Console.WriteLine(json);
-        jsRuntime.InvokeVoidAsync("localStorage.setItem", "selectedStudies", json);
+        await jsRuntime.InvokeVoidAsync("localStorage.setItem", "selectedStudies", json);
+
+        // Notify calling component
+        if(OnSave != null)
+        {
+            OnSave.Invoke(selectedStudies);
+        }
     }
 
     private Task OnOverviewClicked(Protocol p)
@@ -179,6 +209,7 @@
         overviewProtocol = p;
         return overviewRef.Show();
     }
+
 
     // checkbox X
     // study id X

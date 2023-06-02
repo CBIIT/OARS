@@ -4,20 +4,80 @@
 @using System.Net.Http
 @using System.Threading.Tasks
 @using TheradexPortal.Data
+@using TheradexPortal.Data.Models;
 @using TheradexPortal.Data.PowerBI
 
-@inject PbiInterop pbiInterop
 
-<div @ref="@PowerBIElement" style="width:100%;height:80vh" />
+<Tabs RenderMode="TabsRenderMode.LazyReload" SelectedTab="@selectedTab" SelectedTabChanged="@OnSelectedTabChanged">
+    <Items>
+        <Tab Name="studies">My Studies</Tab>
+        <Tab Name="tab1">Custom Layout</Tab>
+        <Tab Name="tab2">Full Report</Tab>
+    </Items>
+    <Content>
+        <TabPanel Name="studies" class="bg-transparent">
+            <StudyGrid />
+        </TabPanel>
+        <TabPanel Name="tab1" class="bg-transparent">
+            <Button Color="Color.Secondary" Clicked="@ShowFilters">Show Filters</Button>
+            <Divider class="my-4" />
+            <PowerBiCustomLayout @ref="customReportRef"/>
+        </TabPanel>
+        <TabPanel Name="tab2" class="bg-transparent">
+            <Button Color="Color.Secondary" Clicked="@ShowFilters">Show Filters</Button>
+            <Divider class="my-4"/>
+            <PowerBiFullReport @ref="fullReportRef"/>
+        </TabPanel>
+    </Content>
+</Tabs>
+
+<Modal @ref="modalRef">
+    <ModalContent Centered Size="ModalSize.ExtraLarge">
+        <ModalBody>
+            <StudyGrid OnSave="@HideFilters"/>
+        </ModalBody>
+    </ModalContent>
+</Modal>
 
 
-@code {
-    private ElementReference PowerBIElement;
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    @code {
+
+    private Modal? modalRef;
+    private PowerBiCustomLayout? customReportRef;
+    private PowerBiFullReport? fullReportRef;
+    private string selectedTab = "studies";
+
+    private Task OnSelectedTabChanged( string name )
     {
-        if (firstRender)
-        {           
-            await pbiInterop.EmbedReportJS("MainDashboard", PowerBIElement);
+        selectedTab = name;
+        return Task.CompletedTask;
+    }
+
+    private async Task ShowFilters()
+    {
+        if (modalRef != null)
+        {
+            await modalRef.Show();
+        }
+        
+    }
+
+    // hide modal
+    private async void HideFilters(List<Protocol>? selectedStudies)
+    {
+        if (selectedTab == "tab1" && customReportRef != null)
+        {
+            await customReportRef.Update();
+        }
+
+        if (selectedTab == "tab2" &&fullReportRef != null)
+        {
+            await fullReportRef.Update();
+        }
+
+        if(modalRef != null)
+        {
+            await modalRef.Hide();
         }
     }
 }
