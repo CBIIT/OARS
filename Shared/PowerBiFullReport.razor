@@ -17,7 +17,15 @@
     {
         if (firstRender)
         {
-            report = await pbiInterop.EmbedFullReportJS("MainDashboard", PowerBIElement);
+            report = await pbiInterop.EmbedFullReportJS("FullReport", PowerBIElement);
         }
     }
-}?
+
+    public async Task Update()
+    {
+        if (report != null)
+        {
+            await pbiInterop.EmbedFullReportJS("FullReport", PowerBIElement);
+        }
+    }
+}

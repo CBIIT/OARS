@@ -32,4 +32,12 @@
             await report.InvokeVoidAsync("renderSlicers");
         }
     }
-}?
+
+    public async Task Update()
+    {
+        if (report != null)
+        {
+            await report.InvokeVoidAsync("renderVisuals");
+        }
+    }
+}

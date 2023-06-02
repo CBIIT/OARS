@@ -69,7 +69,7 @@
                 embedParams.EmbedReport[0].EmbedUrl,
                 embedParams.EmbedReport[0].ReportId.ToString(),
                 "ReportSection",
-                new string[] { "aa9e6f7833a06a40c297", "3dfea830056db635a1c2" }
+                new string[] { "c757252567009efc0c00", "78de3054a74528cc3ca0" } //TODO pull from DB
             );
 
             return report;

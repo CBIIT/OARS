@@ -13,6 +13,15 @@ function initCustomLayoutReport(dotnetRef, reportContainer, accessToken, embedUr
 }
 
 function embedFullReport(reportContainer, accessToken, embedUrl, embedReportId) {
+    // Get study filter from local storage
+    let filterData = localStorage.getItem('selectedStudies');
+    let filterStudyIds = [];
+    if (filterData) {
+        let studies = JSON.parse(filterData);
+        filterStudyIds = studies.map((s) => s.Study_Id);
+    }
+
+
     var config = {
         type: 'report',
         tokenType: models.TokenType.Embed,
@@ -23,9 +32,23 @@ function embedFullReport(reportContainer, accessToken, embedUrl, embedReportId) 
         settings: {
             filterPaneEnabled: true,
             navContentPaneEnabled: true
-        }
+        },
+        filters: [
+            {
+                $schema: 'http://powerbi.com/product/schema#basic',
+                target: {
+                    table: 'IFA_TEST_AND_RESULTS', //TODO update table name - should be consistent across all visuals/pages
+                    column: 'STUDYID'
+                },
+                operator: 'In',
+                filterType: models.FilterType.BasicFilter,
+                values: filterStudyIds
+            }
+        ]
     };
-    return powerbi.embed(reportContainer, config);
+    let report = powerbi.embed(reportContainer, config);
+    window.fullReport = report;
+    return report;
 }
 
 class PowerBiEmbed {
@@ -38,6 +61,11 @@ class PowerBiEmbed {
         this.embedPageId = embedPageId;
         this.embedVisualIds = embedVisualIds;
         this.embedSlicerIds = [];
+        this.filterStudyIds = [];
+
+        // Get study filter from local storage
+        this.getFilters();
+        
 
         this.report = powerbi.embed(reportContainer, this.getConfig());
         this.report.on('loaded', function() {
@@ -45,7 +73,9 @@ class PowerBiEmbed {
             window.powerBiEmbed.onLoad();
         });
         window.powerBiEmbed = this;
-        window.addEventListener("resize", this.renderVisuals.bind(this));
+        window.addEventListener("resize", debounce(function () {
+            this.renderVisuals();
+        }.bind(this), 500));
     }
 
     async renderSlicers() {
@@ -56,7 +86,30 @@ class PowerBiEmbed {
     }
 
     async renderVisuals() {
+        console.log('rerendering');
+        this.getFilters();
         await this.report.updateSettings(this.getSettings());
+        await this.report.updateFilters(models.FiltersOperations.Replace, [
+            {
+                $schema: 'http://powerbi.com/product/schema#basic',
+                target: {
+                    table: 'TSO500_TESTS_AND_RESULTS', //TODO update table name - should be consistent across all visuals/pages
+                    column: 'STUDY_ID'
+                },
+                operator: 'In',
+                filterType: models.FilterType.BasicFilter,
+                values: this.filterStudyIds
+            }
+        ])
+    }
+
+    getFilters() {
+        let filterData = localStorage.getItem('selectedStudies');
+        if (filterData) {
+            let studies = JSON.parse(filterData);
+            this.filterStudyIds = studies.map((s) => s.Study_Id);
+            console.log(this.filterStudyIds);
+        }
     }
 
     getConfig() {
@@ -67,7 +120,19 @@ class PowerBiEmbed {
             embedUrl: this.embedUrl,
             id: this.embedReportId,
             permissions: models.Permissions.View,
-            settings: this.getSettings()
+            settings: this.getSettings(),
+            filters: [
+                {
+                    $schema: 'http://powerbi.com/product/schema#basic',
+                    target: {
+                        table: 'TSO500_TESTS_AND_RESULTS', //TODO update table name - should be consistent across all visuals/pages
+                        column: 'STUDY_ID'
+                    },
+                    operator: 'In',
+                    filterType: models.FilterType.BasicFilter,
+                    values: this.filterStudyIds
+                }
+            ]
         }
     }
 
@@ -136,7 +201,7 @@ class PowerBiEmbed {
         });
 
         x = LAYOUT.MARGIN;
-        y += LAYOUT.SLICER_HEIGHT + LAYOUT.MARGIN;
+        y += LAYOUT.MARGIN;
 
         this.embedVisualIds.forEach(function (visualId) {
             visualsLayout[visualId] = {
@@ -187,6 +252,16 @@ class PowerBiEmbed {
         };
         return settings
     }
+}
+
+function debounce(callback, delay) {
+    let timerId;
+    return function (...args) {
+        clearTimeout(timerId);
+        timerId = setTimeout(() => {
+            callback.apply(this, args);
+        }, delay);
+    };
 }
 
 export { initCustomLayoutReport, embedFullReport, PowerBiEmbed }
