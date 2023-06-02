@@ -2,13 +2,9 @@
 
 namespace TheradexPortal.Data.Services
 {
-    public class UserService
+    public class UserService : BaseService
     {
-        private WrDbContext context;
-        public UserService(IDbContextFactory<WrDbContext> dbFactory)
-        {
-            context = dbFactory.CreateDbContext();
-        }
+        public UserService(IDbContextFactory<WrDbContext> dbFactory) : base(dbFactory) { }
 
         public async Task<int> GetUserCountAsync()
         {

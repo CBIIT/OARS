@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics;
@@ -30,7 +31,6 @@ namespace TheradexPortal.Data
         //Register Models
         public DbSet<User> Users { get; set; }
         public DbSet<Protocol> Protocols { get; set; }
-
     }
 
 }

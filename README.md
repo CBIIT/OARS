@@ -20,6 +20,7 @@ dotnet user-secrets set "Secret:Name" "12345"
     - "PowerBICredentials:TenantId"
     - "PowerBICredentials:ClientSecret"
     - "PowerBICredentials:ClientId"
+    - "ConnectionStrings:DefaultConnection"
 
 ### Run Application
 ```
