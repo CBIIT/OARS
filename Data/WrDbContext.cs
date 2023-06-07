@@ -31,6 +31,13 @@ namespace TheradexPortal.Data
         //Register Models
         public DbSet<User> Users { get; set; }
         public DbSet<Protocol> Protocols { get; set; }
+        public DbSet<Dashboard> Dashboards { get; set; }
+        public DbSet<Report> Reports { get; set; } 
+        public DbSet<Visual> Visuals { get; set; }
+        public DbSet<Role> Roles { get; set; }
+        public DbSet<Role_Visual> Role_Visuals { get; set; }
+        public DbSet<User_Role> User_Roles { get; set; }
+
     }
 
 }
