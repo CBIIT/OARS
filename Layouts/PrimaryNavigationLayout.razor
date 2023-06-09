@@ -1,50 +1,52 @@
 ﻿@inherits LayoutComponentBase
 
-<Layout Style="background-image: url('img/Exploration_Pattern2_Bold.jpg'); background-size:cover;">
-    <LayoutHeader>
-        <Bar Breakpoint="Breakpoint.Desktop" NavigationBreakpoint="Breakpoint.Desktop" Background="Background.Light" Class="nci-navbar px-4">
-            <BarBrand>
-                <Image Source="img/theradex-logo.png" AlternateText="Theradex Oncology" />
-            </BarBrand>
-            <BarToggler />
-            <BarMenu>
-                <BarStart Display="Display.None.OnDesktop">
-                    <PrimaryNav />
+<Div Class="nci-main-wrapper">
+    <Layout Class="nci-main-layout">
+        <LayoutHeader>
+            <Bar Breakpoint="Breakpoint.Desktop" NavigationBreakpoint="Breakpoint.Desktop" Background="Background.Light" Class="nci-navbar px-4">
+                <BarBrand>
+                    <Image Source="img/theradex-logo.png" AlternateText="Theradex Oncology" />
+                </BarBrand>
+                <BarToggler />
+                <BarMenu>
+                    <BarStart Display="Display.None.OnDesktop">
+                        <PrimaryNav />
+                    </BarStart>
+                    <BarEnd>
+                        <BarItem>
+                            <BarLink To="#Notifications">
+                                <Icon Name="IconName.ExclamationCircle" IconSize="IconSize.Large" />
+                            </BarLink>
+                        </BarItem>
+                        <BarItem>
+                            <BarLink To="#Notifications">
+                                <Icon Name="IconName.InfoCircle" IconSize="IconSize.Large" />
+                            </BarLink>
+                        </BarItem>
+                        <BarItem>
+                            <BarLink To="#Profile">
+                                <Icon Name="IconName.UserCircle" IconSize="IconSize.Large" />
+                            </BarLink>
+                        </BarItem>
+                    </BarEnd>
+                </BarMenu>
+            </Bar>
+            <Bar Breakpoint="Breakpoint.Desktop" Display="Display.None.Block.OnDesktop"  Background="Background.White" Class="px-4 nci-dashboard-navbar">
+                <BarStart>
+                    <PrimaryNav RenderButtons/>
                 </BarStart>
-                <BarEnd>
-                    <BarItem>
-                        <BarLink To="#Notifications">
-                            <Icon Name="IconName.ExclamationCircle" IconSize="IconSize.Large" />
-                        </BarLink>
-                    </BarItem>
-                    <BarItem>
-                        <BarLink To="#Notifications">
-                            <Icon Name="IconName.InfoCircle" IconSize="IconSize.Large" />
-                        </BarLink>
-                    </BarItem>
-                    <BarItem>
-                        <BarLink To="#Profile">
-                            <Icon Name="IconName.UserCircle" IconSize="IconSize.Large" />
-                        </BarLink>
-                    </BarItem>
-                </BarEnd>
-            </BarMenu>
-        </Bar>
-        <Bar Breakpoint="Breakpoint.Desktop" Display="Display.None.Block.OnDesktop"  Background="Background.White" Class="px-4 nci-dashboard-navbar">
-            <BarStart>
-                <PrimaryNav RenderButtons/>
-            </BarStart>
-        </Bar>
-        <Divider Class="mt-1 mb-0"/>
+            </Bar>
+            <Divider Class="mt-1 mb-0"/>
 
-    </LayoutHeader>
-    <LayoutContent>
-        @Body
-    </LayoutContent>
-    <LayoutFooter>
-        <Footer />
-    </LayoutFooter>
-</Layout>
+        </LayoutHeader>
+        <LayoutContent >
+            @Body
+        </LayoutContent>
+        <LayoutFooter>
+            <Footer />
+        </LayoutFooter>
+    </Layout>
+</Div>
 
 <!--<AuthorizeView>
     <Authorized>
