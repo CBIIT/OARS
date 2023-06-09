@@ -1,0 +1,33 @@
+﻿<Div Class="nci-secondary-nav">
+<Bar Mode="BarMode.VerticalInline"
+    CollapseMode="BarCollapseMode.Small"
+    ThemeContrast="ThemeContrast.Light"
+    @bind-Visible=IsVisible
+    Background="Background.Light">
+    <BarMenu>
+        <BarStart>
+            <BarItem>
+                <BarLink @onclick="ToggleNavbar">
+                    <BarIcon IconName="IconName.ArrowRight" />
+                </BarLink>
+            </BarItem>
+            <BarItem>
+                <BarLink To="#home">
+                    <BarIcon IconName="IconName.Dashboard" />
+                    Home
+                </BarLink>
+            </BarItem>
+
+        </BarStart>
+    </BarMenu>
+</Bar>
+</Div>
+
+@code {
+    private bool IsVisible = false;
+
+    protected void ToggleNavbar()
+    {
+        IsVisible = !IsVisible;
+    }
+}

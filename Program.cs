@@ -11,7 +11,7 @@ using TheradexPortal.Data;
 using TheradexPortal.Data.PowerBI;
 using TheradexPortal.Data.PowerBI.Models;
 using Blazorise;
-using Blazorise.Tailwind;
+using Blazorise.Bootstrap5;
 using Blazorise.Icons.FontAwesome;
 using Microsoft.EntityFrameworkCore;
 using TheradexPortal.Data.Services;
@@ -26,11 +26,16 @@ builder.Services.AddSingleton<PbiEmbedService>();
 builder.Services.AddScoped<PbiInterop>();
 builder.Services.AddSingleton<UserService>();
 builder.Services.AddSingleton<StudyService>();
+builder.Services.AddSingleton<DashboardService>();
 
 // Add Blazorise and Tailwind UI
-builder.Services.AddBlazorise();
-builder.Services.AddTailwindProviders();
-builder.Services.AddFontAwesomeIcons();
+builder.Services
+    .AddBlazorise(options =>
+    {
+        options.Immediate = true;
+    })
+    .AddBootstrap5Providers()
+    .AddFontAwesomeIcons();
 
 // Loading appsettings.json in C# Model classes
 builder.Services.Configure<PowerBI>(builder.Configuration.GetSection("PowerBI"));

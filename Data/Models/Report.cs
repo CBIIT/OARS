@@ -1,13 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Xml.Linq;
 
 namespace TheradexPortal.Data.Models
 {
     [Table("WRREPORT", Schema = "WRUSER")]
-    [Keyless]
     public class Report
     {
+        [Key]
         public int WRReportId { get; set; }
         public string? Name { get; set; }
         public string? Description { get; set; }
@@ -18,6 +19,8 @@ namespace TheradexPortal.Data.Models
         public Boolean Is_Full_Page { get; set; }
         public string? Custom_Page_Path { get; set; }
         public string? PowerBI_Page_Name { get; set; }
+
+        public Dashboard? Dashboard { get; init; }
 
     }
 }

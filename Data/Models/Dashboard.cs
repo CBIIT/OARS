@@ -17,5 +17,7 @@ namespace TheradexPortal.Data.Models
         public DateTime? Update_Date { get; set; }
         public string? Custom_Page_Path { get; set; }
         public string? PowerBI_Report_Id { get; set; }
+
+        public ICollection<Report> Reports { get; } = new List<Report>();
     }
 }

@@ -1,3 +1,26 @@
+/* Navbar Overrides */
+
+.nci-navbar .navbar-brand img{
+    height: 50px;
+}
+
+.nci-dashboard-navbar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+}
+
+.nci-dashboard-navbar .nav-item .active .btn {
+    background-color: var(--b-theme-primary);
+    color: var(--b-theme-white);
+}
+
+.nci-secondary-nav {
+    --b-vertical-bar-small-width: 50px;
+    --b-vertical-bar-width: 150px
+}
+
+
+/* Blazor Debugging */
 #blazor-error-ui {
     background: lightyellow;
     bottom: 0;

@@ -1,0 +1,51 @@
+﻿@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services;
+
+@inject DashboardService DashboardService;
+
+
+    <BarItem>
+        <BarLink Match="Match.Prefix" To="/studies">
+        @if (RenderButtons)
+        {
+            <Button Color="Color.Primary" Outline Class="text-nowrap">My Studies</Button>
+        }
+        else
+        {
+            <Span>My Studies</Span>
+        }
+    </BarLink>
+</BarItem>
+
+@foreach(var dashboard in dashboards)
+{
+    <BarItem>
+        <BarLink To="@GetLink(dashboard)">
+            @if (RenderButtons)
+            {
+                <Button Color="Color.Primary" Outline Class="text-nowrap">@dashboard.Name</Button>
+            }
+            else
+            {
+                <Span>@dashboard.Name</Span>
+            }
+        </BarLink>
+    </BarItem>
+}
+
+@code {
+    [Parameter]
+    public bool RenderButtons { get; set; } = false;
+    private IList<Dashboard> dashboards = new List<Dashboard>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        dashboards = await DashboardService.GetAllDashboardsAsync();
+        Console.WriteLine(dashboards);
+    }
+
+    protected string GetLink(Dashboard dashboard)
+    {
+        return $"/dashboard#{dashboard.WRDashboardId}";
+    }
+}

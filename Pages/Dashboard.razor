@@ -1,35 +1,21 @@
 ﻿@page "/dashboard"
-@layout MainLayout
+@layout SecondaryNavLayout
 
 @using System.Net.Http
 @using System.Threading.Tasks
-@using TheradexPortal.Data
+@using TheradexPortal.Data;
 @using TheradexPortal.Data.Models;
-@using TheradexPortal.Data.PowerBI
+@using TheradexPortal.Data.PowerBI;
 
 
-<!--<Tabs RenderMode="TabsRenderMode.LazyReload" SelectedTab="@selectedTab" SelectedTabChanged="@OnSelectedTabChanged">
-    <Items>
-        <Tab Name="studies">My Studies</Tab>
-        <Tab Name="tab1">Custom Layout</Tab>
-        <Tab Name="tab2">Full Report</Tab>
-    </Items>
-    <Content>
-        <TabPanel Name="studies" class="bg-transparent">
-            <StudyGrid />
-        </TabPanel>
-        <TabPanel Name="tab1" class="bg-transparent">
-            <Button Color="Color.Secondary" Clicked="@ShowFilters">Show Filters</Button>
-            <Divider class="my-4" />
-            <PowerBiCustomLayout @ref="customReportRef"/>
-        </TabPanel>
-        <TabPanel Name="tab2" class="bg-transparent">
-            <Button Color="Color.Secondary" Clicked="@ShowFilters">Show Filters</Button>
-            <Divider class="my-4"/>
-            <PowerBiFullReport @ref="fullReportRef"/>
-        </TabPanel>
-    </Content>
-</Tabs>-->
+<LayoutSider>
+    <SecondaryNav />
+</LayoutSider>
+<LayoutContent>
+    <Container Fluid Class="mt-2">
+        <PowerBiCustomLayout />
+    </Container>
+</LayoutContent>
 
 <Modal @ref="modalRef">
     <ModalContent Centered Size="ModalSize.ExtraLarge">
@@ -40,7 +26,7 @@
 </Modal>
 
 
-    @code {
+@code {
 
     private Modal? modalRef;
     private PowerBiCustomLayout? customReportRef;
