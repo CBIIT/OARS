@@ -4,13 +4,10 @@
 @using Newtonsoft.Json
 @using Microsoft.JSInterop;
 
-@inject StudyService studyService
-@inject IJSRuntime jsRuntime
-
 <Row>
     <Column ColumnSize="ColumnSize.IsFull">
         <DataGrid TItem="Protocol"
-                    Class="bg-light"
+                    Class=""
                     Data="@studyList"
                     SelectionMode="DataGridSelectionMode.Multiple"
                     SelectedRows="@selectedStudies"
@@ -116,8 +113,11 @@
 </Modal>
 
     @code {
-    [Parameter]
-    public Action<List<Protocol>?>? OnSave { get; set; }
+    [Inject] StudyService StudyService { get; set; }
+    [Inject] IJSRuntime JsRuntime { get; set; }
+    [Inject] INotificationService? NotificationService { get; set; }
+
+    [Parameter] public Action<List<Protocol>?>? OnSave { get; set; }
 
     private IList<Protocol>? studyList;
     private List<Protocol>? selectedStudies;
@@ -127,7 +127,7 @@
     // get studies for grid
     protected override async Task OnInitializedAsync()
     {
-        studyList = await studyService.GetAllProtocolsAsync();
+        studyList = await StudyService.GetAllProtocolsAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -136,7 +136,7 @@
         {
             // apply filters from localstorage
             // TODO load selection from database
-            string? json = await jsRuntime.InvokeAsync<string>("localStorage.getItem", "selectedStudies");
+            string? json = await JsRuntime.InvokeAsync<string>("localStorage.getItem", "selectedStudies");
             if (json != null)
             {
                 var storedProtocols = JsonConvert.DeserializeObject<List<Protocol>>(json);
@@ -169,7 +169,13 @@
         // TODO save selection to database
         string json = JsonConvert.SerializeObject(selectedStudies, Formatting.Indented);
         Console.WriteLine(json);
-        await jsRuntime.InvokeVoidAsync("localStorage.setItem", "selectedStudies", json);
+        await JsRuntime.InvokeVoidAsync("localStorage.setItem", "selectedStudies", json);
+
+        // Notify user
+        if(NotificationService != null)
+        {
+            await NotificationService.Success("Studies Updated");
+        }
 
         // Notify calling component
         if(OnSave != null)
