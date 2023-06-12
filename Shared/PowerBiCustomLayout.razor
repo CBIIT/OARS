@@ -1,43 +1,93 @@
 ﻿@using System.Net.Http
 @using System.Threading.Tasks
+@using Microsoft.Extensions.Options;
 @using TheradexPortal.Data
+@using TheradexPortal.Data.Models;
 @using TheradexPortal.Data.PowerBI
+@using TheradexPortal.Data.PowerBI.Models;
+@using TheradexPortal.Data.Services;
 
-@inject PbiInterop pbiInterop
-
-<div @ref="@PowerBIElement" style="width:100%;height:80vh" />
+<div @ref="@pbiElement" class="pbi-embed-container" />
 
 
 @code {
-    private ElementReference PowerBIElement;
+    [Inject] private IJSRuntime js { get; set; } = null!;
+    [Inject] private IOptions<PowerBI> powerBiConfig { get; set; } = null!;
+    [Inject] private PbiEmbedService pbiEmbedService { get; set; } = null!;
+    [Inject] private DashboardService dashboardService { get; set; } = null!;
+
+    [Parameter] public Dashboard? Dashboard { get; set; }
+    [Parameter] public Report? Report {get; set;}
+    [CascadingParameter] LoadingIndicator loadingIndicator { get; set; } = null!;
+
+    private IList<Visual> visuals = new List<Visual>();
+    private IList<Visual> slicers = new List<Visual>();
+    private ElementReference pbiElement;
+    private IJSObjectReference? pbiEmbedModule;
+    private IJSObjectReference? reportRef;
     private DotNetObjectReference<PowerBiCustomLayout>? objRef;
-    private IJSObjectReference? report;
-    private bool isLoaded = false;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        await loadingIndicator.Show();
+        pbiEmbedModule = await js.InvokeAsync<IJSObjectReference>("import", "./js/powerbi-embed.js");
+        objRef = DotNetObjectReference.Create(this);
+        if (Report != null)
         {
-            objRef = DotNetObjectReference.Create(this);
-            report = await pbiInterop.EmbedReportJS(objRef, "MainDashboard", PowerBIElement);
+            // TODO - Filter by user
+            var allVisuals = await dashboardService.GetAllVisualsByReportIdAsync(Report.WRReportId);
+            visuals = allVisuals.Where(v => v.Visual_Type != WrConstants.PBI_VISUAL_TYPE_SLIICER).ToList();
+            slicers = allVisuals.Where(v => v.Visual_Type == WrConstants.PBI_VISUAL_TYPE_SLIICER).ToList();
         }
+        await EmbedReportJS();
     }
 
     [JSInvokable]
     public async void OnLoad()
     {
-        isLoaded = true;
-        if (report != null)
+        if (reportRef != null)
         {
-            await report.InvokeVoidAsync("renderSlicers");
+            //await reportRef.InvokeVoidAsync("renderSlicers");
+            await loadingIndicator.Hide();
         }
     }
 
     public async Task Update()
     {
-        if (report != null)
+        if (reportRef != null)
         {
-            await report.InvokeVoidAsync("renderVisuals");
+            await reportRef.InvokeVoidAsync("renderVisuals");
         }
+    }
+
+    public async Task EmbedReportJS()
+    {
+        // TODO - get email from current user
+        var userEmail = "jbidwell@innovativesol.com"; //httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Email)?.Value;
+        if (string.IsNullOrEmpty(userEmail))
+            throw new ArgumentNullException("Email address not found");
+
+        EmbedParams embedParams;
+        if (powerBiConfig.Value.UseRowLevelSecurity)
+        {
+            embedParams = pbiEmbedService.GetEmbedParams(new Guid(powerBiConfig.Value.WorkspaceId), new Guid(Dashboard.PowerBI_Report_Id), userEmail, powerBiConfig.Value.IdentityRoles);
+        }
+        else
+        {
+            embedParams = pbiEmbedService.GetEmbedParams(new Guid(powerBiConfig.Value.WorkspaceId), new Guid(Dashboard.PowerBI_Report_Id));
+        }
+
+        reportRef = await pbiEmbedModule.InvokeAsync<IJSObjectReference>(
+            "initCustomLayoutReport",
+            objRef,
+            pbiElement,
+            embedParams.EmbedToken.Token,
+            WrConstants.PBI_STUDY_FILTER_TARGETS.ToArray(),
+            embedParams.EmbedReport[0].EmbedUrl,
+            embedParams.EmbedReport[0].ReportId.ToString(),
+            Report.PowerBI_Page_Name,
+            visuals.Select(v => v.PowerBI_Visual_Id).ToArray(),
+            slicers.Select(s => s.PowerBI_Visual_Id).ToArray()
+        );
     }
 }

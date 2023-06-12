@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics;
@@ -16,6 +18,8 @@ namespace TheradexPortal.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            var converter = new BoolToStringConverter("n","Y");
+
             foreach (var entity in modelBuilder.Model.GetEntityTypes())
             {
                 var table = entity.GetTableName();
@@ -24,6 +28,10 @@ namespace TheradexPortal.Data
                 foreach (var property in entity.GetProperties())
                 {
                     property.SetColumnName(property.Name.ToUpper());
+                    if(property.ClrType.Name == "bool" || property.ClrType.Name == "Boolean")
+                    {
+                        property.SetValueConverter(converter);
+                    }
                 }
             }
         }

@@ -7,109 +7,81 @@ const LAYOUT = {
 
 const models = window['powerbi-client'].models;
 
-function initCustomLayoutReport(dotnetRef, reportContainer, accessToken, embedUrl, embedReportId, embedPageId, embedVisualIds) {
-    let report = new PowerBiEmbed(dotnetRef, reportContainer, accessToken, embedUrl, embedReportId, embedPageId, embedVisualIds);
-    return report;
-}
-
-function embedFullReport(reportContainer, accessToken, embedUrl, embedReportId) {
-    // Get study filter from local storage
-    let filterData = localStorage.getItem('selectedStudies');
-    let filterStudyIds = [];
-    if (filterData) {
-        let studies = JSON.parse(filterData);
-        filterStudyIds = studies.map((s) => s.Study_Id);
-    }
-
-
-    var config = {
-        type: 'report',
-        tokenType: models.TokenType.Embed,
-        accessToken: accessToken,
-        embedUrl: embedUrl,
-        id: embedReportId,
-        permissions: models.Permissions.All,
-        settings: {
-            filterPaneEnabled: true,
-            navContentPaneEnabled: true
-        },
-        filters: [
-            {
-                $schema: 'http://powerbi.com/product/schema#basic',
-                target: {
-                    table: 'IFA_TEST_AND_RESULTS', //TODO update table name - should be consistent across all visuals/pages
-                    column: 'STUDYID'
-                },
-                operator: 'In',
-                filterType: models.FilterType.BasicFilter,
-                values: filterStudyIds
-            }
-        ]
-    };
-    let report = powerbi.embed(reportContainer, config);
-    window.fullReport = report;
+// Wrap class init in a function call - Blazor interop cannot instantiate new classes directly
+function initCustomLayoutReport(dotnetRef, reportContainer, accessToken, embedUrl, embedReportId, embedPageId, embedVisualIds, embedSlicerIds) {
+    let report = new PowerBiEmbed(dotnetRef, reportContainer, accessToken, embedUrl, embedReportId, embedPageId, embedVisualIds, embedSlicerIds);
     return report;
 }
 
 class PowerBiEmbed {
-    constructor(dotnetRef, reportContainer, accessToken, embedUrl, embedReportId, embedPageId, embedVisualIds) {
+    constructor(dotnetRef, reportContainer, accessToken, filterTargets, embedUrl, embedReportId, embedPageId, embedVisualIds, embedSlicerIds) {
         this.dotnetRef = dotnetRef;
         this.reportContainer = reportContainer;
         this.accessToken = accessToken;
+        this.filterTargets = filterTargets;
         this.embedUrl = embedUrl;
         this.embedReportId = embedReportId;
         this.embedPageId = embedPageId;
-        this.embedVisualIds = embedVisualIds;
-        this.embedSlicerIds = [];
+        this.embedVisualIds = embedVisualIds ?? [];
+        this.embedSlicerIds = embedSlicerIds ?? [];
         this.filterStudyIds = [];
 
         // Get study filter from local storage
-        this.getFilters();
-        
+        this.loadFilterData();
 
+        // Embed report
         this.report = powerbi.embed(reportContainer, this.getConfig());
+
+        // Add event handlers
+        // Update component state on load
         this.report.on('loaded', function() {
-            console.log('Loaded');
-            window.powerBiEmbed.onLoad();
-        });
-        window.powerBiEmbed = this;
-        window.addEventListener("resize", debounce(function () {
+            this.onLoad();
+        }.bind(this));
+
+        window.powerBiEmbed = this; // TODO - remove temp debugging
+
+        // Rerender on window resize, with debounce
+        if (window.wrPbiResizeHandler) {
+            window.removeEventListener("resize", window.wrPbiResizeHandler);
+        }
+        window.wrPbiResizeHandler = window.addEventListener("resize", debounce(function () {
             this.renderVisuals();
         }.bind(this), 500));
     }
 
-    async renderSlicers() {
-        let page = await this.report.getPageByName(this.embedPageId);
-        let slicers = await page.getSlicers();
-        this.embedSlicerIds = slicers.map((s) => s.name)
-        this.renderVisuals();
-    }
-
     async renderVisuals() {
-        console.log('rerendering');
-        this.getFilters();
+        console.log('rerender');
+        this.loadFilterData();
         await this.report.updateSettings(this.getSettings());
-        await this.report.updateFilters(models.FiltersOperations.Replace, [
-            {
-                $schema: 'http://powerbi.com/product/schema#basic',
-                target: {
-                    table: 'TSO500_TESTS_AND_RESULTS', //TODO update table name - should be consistent across all visuals/pages
-                    column: 'STUDY_ID'
-                },
-                operator: 'In',
-                filterType: models.FilterType.BasicFilter,
-                values: this.filterStudyIds
-            }
-        ])
+        await this.report.updateFilters(models.FiltersOperations.Replace, this.getFilters())
     }
 
-    getFilters() {
+    loadFilterData() {
         let filterData = localStorage.getItem('selectedStudies');
         if (filterData) {
             let studies = JSON.parse(filterData);
             this.filterStudyIds = studies.map((s) => s.Study_Id);
-            console.log(this.filterStudyIds);
         }
+    }
+
+    getFilters() {
+        let filters = [];
+        if (this.filterStudyIds && this.filterStudyIds.length > 0) {
+            for (const target of this.filterTargets) {
+                filters.push({
+                    $schema: 'http://powerbi.com/product/schema#basic',
+                    target: {
+                        table: target.table,
+                        column: target.column
+                    },
+                    operator: 'In',
+                    filterType: models.FilterType.Basic,
+                    values: this.filterStudyIds
+                })
+            }
+        }
+        console.log(filters);
+        return filters;
     }
 
     getConfig() {
@@ -120,23 +92,14 @@ class PowerBiEmbed {
             embedUrl: this.embedUrl,
             id: this.embedReportId,
             permissions: models.Permissions.View,
+            pageName: this.embedPageId,
             settings: this.getSettings(),
-            filters: [
-                {
-                    $schema: 'http://powerbi.com/product/schema#basic',
-                    target: {
-                        table: 'TSO500_TESTS_AND_RESULTS', //TODO update table name - should be consistent across all visuals/pages
-                        column: 'STUDY_ID'
-                    },
-                    operator: 'In',
-                    filterType: models.FilterType.BasicFilter,
-                    values: this.filterStudyIds
-                }
-            ]
+            filters: this.getFilters()
         }
     }
 
     onLoad() {
+        //this.displayVisualInfo(); // TODO - remove temp debugging
         this.dotnetRef.invokeMethodAsync('OnLoad');
     }
 
@@ -155,12 +118,13 @@ class PowerBiEmbed {
         let visualWidth = visualsTotalWidth / columns;
         let slicerWidth = (visualWidth / 2) - (LAYOUT.MARGIN / 2);
         let visualHeight = visualWidth * LAYOUT.VISUAL_ASPECT_RATIO;
-        if (columns === 1) {
-            visualHeight /= 2;
-        }
+        //if (columns === 1) {
+        //    visualHeight /= 2;
+        //}
     
         let rows = Math.ceil(this.embedVisualIds.length / columns);
         let reportHeight = Math.max(0, (rows * visualHeight) + LAYOUT.SLICER_HEIGHT + (rows + 2) * LAYOUT.MARGIN);
+        this.reportContainer.style.height = reportHeight + "px";
         return {
             reportWidth,
             reportHeight,
@@ -252,6 +216,21 @@ class PowerBiEmbed {
         };
         return settings
     }
+
+    // Output page and visual ids to aid with manual data entry
+    // TODO - remove when admin is implemented
+    async displayVisualInfo() {
+        const pages = await this.report.getPages()
+        const reportFilters = await this.report.getFilters();
+        console.log(reportFilters);
+        pages.forEach(async (page) => {
+            console.log(page);
+            const visuals = await page.getVisuals();
+            console.log(visuals);
+            const filter = await page.getFilters();
+            console.log(filter);
+        });
+    }
 }
 
 function debounce(callback, delay) {
@@ -264,4 +243,4 @@ function debounce(callback, delay) {
     };
 }
 
-export { initCustomLayoutReport, embedFullReport, PowerBiEmbed }
+export { initCustomLayoutReport, PowerBiEmbed }

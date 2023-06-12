@@ -4,7 +4,7 @@
 @using Newtonsoft.Json
 @using Microsoft.JSInterop;
 
-<Row>
+<Row Background="Background.Light">
     <Column ColumnSize="ColumnSize.IsFull">
         <DataGrid TItem="Protocol"
                     Class=""
@@ -15,7 +15,10 @@
                     Filterable
                     Striped
                     ShowPager
-                    PageSize="10"
+                    FixedHeader
+                    FixedHeaderDataGridHeight="calc(100vh - 350px)"
+                    FixedHeaderDataGridMaxHeight="calc(100vh - 350px)"
+                    PageSize="25"
                     CommandMode="DataGridCommandMode.ButtonRow">
                 <DataGridColumns>
                     <DataGridMultiSelectColumn Width="30px"> </DataGridMultiSelectColumn>
@@ -34,12 +37,9 @@
                                 }
                             }
                         </DisplayTemplate>
-                        <FilterTemplate>
-                            <DatePicker @bind-Dates="selectedDates" TValue="DateTime?" InputMode="DateInputMode.Date" SelectionMode="DateInputSelectionMode.Range" />
-                        </FilterTemplate>
                     </DataGridDateColumn>
                     <DataGridColumn Field="@nameof(Protocol.Current_Status)" Caption="Protocol Status" />
-                    <DataGridColumn Field="@nameof(Protocol.Study_Id)" Sortable="false" Filterable="false" Caption="Overview" Width="120px">
+                    <DataGridColumn Field="@nameof(Protocol.Study_Id)" Sortable="false" Filterable="false" Width="120px">
                         <DisplayTemplate>
                             <Button Color="Color.Info" Clicked="@(()=>OnOverviewClicked(context as Protocol))">
                                 Overview

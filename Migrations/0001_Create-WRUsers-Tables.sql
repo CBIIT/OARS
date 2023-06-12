@@ -169,6 +169,7 @@ CREATE TABLE WRUSER.WRReport (
 	Description VARCHAR2(250) NULL,
 	DashboardId NUMBER NOT NULL,
 	Display_Order NUMBER NOT NULL,
+	Display_Icon_Name VARCHAR2(250) NULL,
 	Create_Date TIMESTAMP NULL,
 	Update_Date TIMESTAMP NULL,
 	Is_Full_Page CHAR(1) NOT NULL,

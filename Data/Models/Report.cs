@@ -14,9 +14,10 @@ namespace TheradexPortal.Data.Models
         public string? Description { get; set; }
         public int DashboardId { get; set; }
         public int Display_Order { get; set; }
+        public string? Display_Icon_Name { get; set; }
         public DateTime? Create_Date { get; set; }
         public DateTime? Update_Date { get; set; }
-        public Boolean Is_Full_Page { get; set; }
+        public bool Is_Full_Page { get; set; }
         public string? Custom_Page_Path { get; set; }
         public string? PowerBI_Page_Name { get; set; }
 

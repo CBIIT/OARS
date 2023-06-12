@@ -14,6 +14,11 @@
     color: var(--b-theme-white);
 }
 
+.nci-secondary-nav .b-bar-item .active {
+    background-color: var(--b-theme-primary) !important;
+    color: var(--b-theme-white) !important;
+}
+
 .nci-secondary-nav {
     --b-vertical-bar-small-width: 50px;
     --b-vertical-bar-width: 150px
@@ -41,6 +46,12 @@
 
 .nci-main-layout {
     position: relative;
+}
+
+/* PBI Embed */
+.pbi-embed-container {
+    width: 100%;
+    height: calc(100vh - 350px);
 }
 
 /* Blazor Debugging */
