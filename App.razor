@@ -5,7 +5,8 @@
             <Found Context="routeData">
                 <AuthorizeRouteView RouteData=@routeData DefaultLayout="@typeof(MainLayout)">
                     <NotAuthorized>
-                        <RedirectToLogin />
+                        <!--RedirectToLogin /-->
+                        Not Authorized  - App.razor
                     </NotAuthorized>
                     <Authorizing>
                         Authorizing...
@@ -14,7 +15,7 @@
             </Found>
             <NotFound>
                 <PageTitle>Not found</PageTitle>
-                <LayoutView Layout="@typeof(MainLayout)">
+                <LayoutView Layout="@typeof(LoginLayout)">
                     <p role="alert">Sorry, there's nothing at this address.</p>
                 </LayoutView>
             </NotFound>

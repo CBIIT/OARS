@@ -69,19 +69,19 @@ builder.Services.AddAuthentication(authOptions =>
     oidcOptions.TokenValidationParameters.ValidateIssuer = false;
     oidcOptions.TokenValidationParameters.NameClaimType = "name";
     //oidcOptions.RequireHttpsMetadata = false;
-}).AddCookie();
+//}).AddCookie();
 /*}).AddCookie(options =>
 {
     //options.Cookie.SameSite = SameSiteMode.Strict;
     //options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
 */
-/*
+
 }).AddCookie(options =>
 {
     options.Cookie.SameSite = SameSiteMode.None;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-});*/
+});
 
 // Configure Cognito auth
 //var sessionCookieLifetime = builder.Configuration.GetValue("SessionCookieLifetimeMinutes", 60);
@@ -116,9 +116,10 @@ builder.Services.AddHttpContextAccessor();
 var app = builder.Build();
 
 // Force HTTPS context for use behind load balancer
+
 app.Use((context, next) =>
 {
-    context.Request.Scheme = "http";
+    context.Request.Scheme = "https";
     return next(context);
 });
 

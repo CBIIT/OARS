@@ -39,27 +39,7 @@
 </Layout>
     </Authorized>
         <NotAuthorized>
-            <RedirectToLogin />
+            <TheradexPortal.Pages.Public.Landing />
         </NotAuthorized>
     </AuthorizeView>
 </CascadingAuthenticationState>
-
-<!--
-<CascadingAuthenticationState>
-    <AuthorizeView>
-        <Authorized>
-            <main>
-                <div Class="top-row px-4">
-                    <LoginDisplay />
-                </div>
-                <div class="container-fluid py-3 px-3 px-lg-5">
-                    @Body
-                </div>
-            </main>
-        </Authorized>
-        <NotAuthorized>
-            <RedirectToLogin />
-        </NotAuthorized>
-    </AuthorizeView>
-</CascadingAuthenticationState>
--->

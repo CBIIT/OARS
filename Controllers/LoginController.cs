@@ -15,6 +15,7 @@ namespace TheradexPortal.Controllers
                 return LocalRedirect(redirectUri);
             }
 
+            //return null;
             return Challenge();
         }
 

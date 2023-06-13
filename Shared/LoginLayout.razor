@@ -28,3 +28,24 @@
         </NotAuthorized>
     </AuthorizeView>
 </CascadingAuthenticationState>
+<!--
+<CascadingAuthenticationState>
+    <AuthorizeView>
+        <Authorized>
+            Already authorized....
+        </Authorized>
+        <NotAuthorized>
+            Not Authorized - Login Layout
+            @Body
+        </NotAuthorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>
+-->
+@code {
+    [Inject] public NavigationManager Navigation { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+    }
+}
