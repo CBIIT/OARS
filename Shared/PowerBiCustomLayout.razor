@@ -7,6 +7,8 @@
 @using TheradexPortal.Data.PowerBI.Models;
 @using TheradexPortal.Data.Services;
 
+@implements IAsyncDisposable;
+
 <div @ref="@pbiElement" class="pbi-embed-container" />
 
 
@@ -15,6 +17,7 @@
     [Inject] private IOptions<PowerBI> powerBiConfig { get; set; } = null!;
     [Inject] private PbiEmbedService pbiEmbedService { get; set; } = null!;
     [Inject] private DashboardService dashboardService { get; set; } = null!;
+    [Inject] INotificationService notificationService { get; set; } = null!;
 
     [Parameter] public Dashboard? Dashboard { get; set; }
     [Parameter] public Report? Report {get; set;}
@@ -47,16 +50,22 @@
     {
         if (reportRef != null)
         {
-            //await reportRef.InvokeVoidAsync("renderSlicers");
             await loadingIndicator.Hide();
         }
+    }
+
+    [JSInvokable]
+    public async void OnEmbedError(IJSObjectReference error)
+    {
+        await loadingIndicator.Hide();
+        await notificationService.Error("Please reload the page to try again.", "Error Loading Report");
     }
 
     public async Task Update()
     {
         if (reportRef != null)
         {
-            await reportRef.InvokeVoidAsync("renderVisuals");
+            await reportRef.InvokeVoidAsync("updateFilters");
         }
     }
 
@@ -89,5 +98,13 @@
             visuals.Select(v => v.PowerBI_Visual_Id).ToArray(),
             slicers.Select(s => s.PowerBI_Visual_Id).ToArray()
         );
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        pbiEmbedModule?.InvokeVoidAsync("cleanupResizeListener");
+        pbiEmbedModule?.DisposeAsync();
+        reportRef?.DisposeAsync();
+        objRef?.Dispose();
     }
 }

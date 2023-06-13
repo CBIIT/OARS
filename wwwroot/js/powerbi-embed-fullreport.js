@@ -11,18 +11,20 @@ function embedFullReport(reportContainer, accessToken, filterTargets, embedUrl, 
 
     // Build filter object
     let filters = [];
-    filterTargets.forEach((target) => {
-        filters.push({
-            $schema: 'http://powerbi.com/product/schema#basic',
-            target: {
-                table: target.table,
-                column: target.column
-            },
-            operator: 'In',
-            filterType: models.FilterType.BasicFilter,
-            values: filterStudyIds
-        })
-    });
+    if (filterStudyIds && filterStudyIds.length > 0) {
+        filterTargets.forEach((target) => {
+            filters.push({
+                $schema: 'http://powerbi.com/product/schema#basic',
+                target: {
+                    table: target.table,
+                    column: target.column
+                },
+                operator: 'In',
+                filterType: models.FilterType.BasicFilter,
+                values: filterStudyIds
+            })
+        });
+    }
     console.log(filters);
 
     // Build config
@@ -33,9 +35,11 @@ function embedFullReport(reportContainer, accessToken, filterTargets, embedUrl, 
         embedUrl: embedUrl,
         id: embedReportId,
         permissions: models.Permissions.All,
+        background: models.BackgroundType.Transparent,
         settings: {
-            filterPaneEnabled: true,
-            navContentPaneEnabled: true
+            filterPaneEnabled: false,
+            navContentPaneEnabled: false,
+            background: models.BackgroundType.Transparent
         },
         filters: filters
     };

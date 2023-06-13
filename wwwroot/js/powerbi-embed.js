@@ -8,8 +8,8 @@ const LAYOUT = {
 const models = window['powerbi-client'].models;
 
 // Wrap class init in a function call - Blazor interop cannot instantiate new classes directly
-function initCustomLayoutReport(dotnetRef, reportContainer, accessToken, embedUrl, embedReportId, embedPageId, embedVisualIds, embedSlicerIds) {
-    let report = new PowerBiEmbed(dotnetRef, reportContainer, accessToken, embedUrl, embedReportId, embedPageId, embedVisualIds, embedSlicerIds);
+function initCustomLayoutReport(dotnetRef, reportContainer, accessToken, filterTargets, embedUrl, embedReportId, embedPageId, embedVisualIds, embedSlicerIds) {
+    let report = new PowerBiEmbed(dotnetRef, reportContainer, accessToken, filterTargets, embedUrl, embedReportId, embedPageId, embedVisualIds, embedSlicerIds);
     return report;
 }
 
@@ -38,22 +38,42 @@ class PowerBiEmbed {
             this.onLoad();
         }.bind(this));
 
+        this.report.on('error', function (event) {
+            this.onError(event.detail);
+        }.bind(this));
+
         window.powerBiEmbed = this; // TODO - remove temp debugging
 
         // Rerender on window resize, with debounce
         if (window.wrPbiResizeHandler) {
             window.removeEventListener("resize", window.wrPbiResizeHandler);
+            window.wrPbiResizeHandler = undefined;
         }
-        window.wrPbiResizeHandler = window.addEventListener("resize", debounce(function () {
+        window.wrPbiResizeHandler = debounce(function () {
             this.renderVisuals();
-        }.bind(this), 500));
+        }.bind(this), 1000);
+        window.addEventListener("resize", window.wrPbiResizeHandler);
     }
 
     async renderVisuals() {
-        console.log('rerender');
-        this.loadFilterData();
-        await this.report.updateSettings(this.getSettings());
-        await this.report.updateFilters(models.FiltersOperations.Replace, this.getFilters())
+        try {
+            await this.report.updateSettings(this.getSettings());
+        } catch (error) {
+            this.onError(error);
+        }
+    }
+
+    async updateFilters() {
+        try {
+            this.loadFilterData();
+            if (this.filterStudyIds && this.filterStudyIds.length > 0) {
+                await this.report.updateFilters(models.FiltersOperations.Replace, this.getFilters());
+            } else {
+                await this.report.updateFilters(models.FiltersOperations.RemoveAll);
+            }
+        } catch (error) {
+            this.onError(error);
+        }
     }
 
     loadFilterData() {
@@ -61,6 +81,8 @@ class PowerBiEmbed {
         if (filterData) {
             let studies = JSON.parse(filterData);
             this.filterStudyIds = studies.map((s) => s.Study_Id);
+        } else {
+            this.filterStudyIds = [];
         }
     }
 
@@ -80,7 +102,6 @@ class PowerBiEmbed {
                 })
             }
         }
-        console.log(filters);
         return filters;
     }
 
@@ -99,8 +120,13 @@ class PowerBiEmbed {
     }
 
     onLoad() {
-        //this.displayVisualInfo(); // TODO - remove temp debugging
+        this.displayVisualInfo(); // TODO - remove temp debugging
         this.dotnetRef.invokeMethodAsync('OnLoad');
+    }
+
+    onError(error) {
+        console.log(error);
+        this.dotnetRef.invokeMethodAsync('OnEmbedError', error);
     }
 
     getLayoutParams() {
@@ -118,9 +144,6 @@ class PowerBiEmbed {
         let visualWidth = visualsTotalWidth / columns;
         let slicerWidth = (visualWidth / 2) - (LAYOUT.MARGIN / 2);
         let visualHeight = visualWidth * LAYOUT.VISUAL_ASPECT_RATIO;
-        //if (columns === 1) {
-        //    visualHeight /= 2;
-        //}
     
         let rows = Math.ceil(this.embedVisualIds.length / columns);
         let reportHeight = Math.max(0, (rows * visualHeight) + LAYOUT.SLICER_HEIGHT + (rows + 2) * LAYOUT.MARGIN);
@@ -144,6 +167,13 @@ class PowerBiEmbed {
     
         let visualsLayout = {};
         this.embedSlicerIds.forEach(function (slicerId) {
+            // Reset at end of row
+            if (x + layoutParams.slicerWidth > layoutParams.reportWidth) {
+                console.log('end of row', x, layoutParams.slicerWidth, layoutParams.reportWidth)
+                x = LAYOUT.MARGIN;
+                y += LAYOUT.SLICER_HEIGHT + LAYOUT.MARGIN;
+            }
+
             visualsLayout[slicerId] = {
                 x: x,
                 y: y,
@@ -157,17 +187,22 @@ class PowerBiEmbed {
             // Calculating (x,y) position for the next visual
             x += layoutParams.slicerWidth + LAYOUT.MARGIN;
     
-            // Reset at end of row
-            if (x + layoutParams.slicerWidth > layoutParams.reportWidth) {
-                x = LAYOUT.MARGIN;
-                y += LAYOUT.SLICER_HEIGHT + LAYOUT.MARGIN;
-            }
         });
+
+        if (this.embedSlicerIds.length > 0) {
+            y += LAYOUT.SLICER_HEIGHT + LAYOUT.MARGIN;
+        }
 
         x = LAYOUT.MARGIN;
         y += LAYOUT.MARGIN;
 
         this.embedVisualIds.forEach(function (visualId) {
+            // Reset at end of row
+            if (x + layoutParams.visualWidth > layoutParams.reportWidth) {
+                x = LAYOUT.MARGIN;
+                y += layoutParams.visualHeight + LAYOUT.MARGIN;
+            }
+
             visualsLayout[visualId] = {
                 x: x,
                 y: y,
@@ -179,13 +214,7 @@ class PowerBiEmbed {
             };
     
             // Calculating (x,y) position for the next visual
-            x += layoutParams.visualWidth + LAYOUT.MARGIN;
-    
-            // Reset at end of row
-            if (x + layoutParams.visualWidth > layoutParams.reportWidth) {
-                x = LAYOUT.MARGIN;
-                y += layoutParams.visualHeight + LAYOUT.MARGIN;
-            }
+            x += layoutParams.visualWidth + LAYOUT.MARGIN;        
         });
     
         // Page default - hide any visuals not included
@@ -222,13 +251,13 @@ class PowerBiEmbed {
     async displayVisualInfo() {
         const pages = await this.report.getPages()
         const reportFilters = await this.report.getFilters();
-        console.log(reportFilters);
-        pages.forEach(async (page) => {
-            console.log(page);
+        console.log('Report Filters', reportFilters);
+        pages.forEach(async (page, idx) => {
+            console.log('Page ' + idx, page);
             const visuals = await page.getVisuals();
-            console.log(visuals);
+            console.log('Visuals Page ' + idx, visuals);
             const filter = await page.getFilters();
-            console.log(filter);
+            console.log('Page Filters ' + idx, filter);
         });
     }
 }
@@ -243,4 +272,11 @@ function debounce(callback, delay) {
     };
 }
 
-export { initCustomLayoutReport, PowerBiEmbed }
+function cleanupResizeListener() {
+    if (window.wrPbiResizeHandler) {
+        window.removeEventListener("resize", window.wrPbiResizeHandler);
+        window.wrPbiResizeHandler = undefined;
+    }
+}
+
+export { initCustomLayoutReport, cleanupResizeListener, PowerBiEmbed }

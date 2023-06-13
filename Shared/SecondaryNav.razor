@@ -11,7 +11,8 @@
         <BarStart>
             <BarItem>
                 <BarLink @onclick="ToggleNavbar">
-                    <BarIcon IconName="IconName.ArrowRight" />
+                    <BarIcon IconName="@(IsVisible ? IconName.ArrowLeft : IconName.ArrowRight)" />
+                    Hide
                 </BarLink>
             </BarItem>
             @if(Actions.Count > 0)

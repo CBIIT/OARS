@@ -113,11 +113,11 @@
 </Modal>
 
     @code {
-    [Inject] StudyService StudyService { get; set; }
-    [Inject] IJSRuntime JsRuntime { get; set; }
-    [Inject] INotificationService? NotificationService { get; set; }
+    [Inject] StudyService studyService { get; set; } = null!;
+    [Inject] IJSRuntime jsRuntime { get; set; }
+    [Inject] INotificationService? notificationService { get; set; } = null!;
 
-    [Parameter] public Action<List<Protocol>?>? OnSave { get; set; }
+    [Parameter] public Action<List<Protocol>?>? OnSave { get; set; } = null!;
 
     private IList<Protocol>? studyList;
     private List<Protocol>? selectedStudies;
@@ -127,7 +127,7 @@
     // get studies for grid
     protected override async Task OnInitializedAsync()
     {
-        studyList = await StudyService.GetAllProtocolsAsync();
+        studyList = await studyService.GetAllProtocolsAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -136,7 +136,7 @@
         {
             // apply filters from localstorage
             // TODO load selection from database
-            string? json = await JsRuntime.InvokeAsync<string>("localStorage.getItem", "selectedStudies");
+            string? json = await jsRuntime.InvokeAsync<string>("localStorage.getItem", "selectedStudies");
             if (json != null)
             {
                 var storedProtocols = JsonConvert.DeserializeObject<List<Protocol>>(json);
@@ -169,12 +169,12 @@
         // TODO save selection to database
         string json = JsonConvert.SerializeObject(selectedStudies, Formatting.Indented);
         Console.WriteLine(json);
-        await JsRuntime.InvokeVoidAsync("localStorage.setItem", "selectedStudies", json);
+        await jsRuntime.InvokeVoidAsync("localStorage.setItem", "selectedStudies", json);
 
         // Notify user
-        if(NotificationService != null)
+        if(notificationService != null)
         {
-            await NotificationService.Success("Studies Updated");
+            await notificationService.Success("Studies Updated");
         }
 
         // Notify calling component
