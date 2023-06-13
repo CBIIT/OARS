@@ -1,21 +1,30 @@
 ﻿@inherits LayoutComponentBase
 
-<Layout Style="background-image: url('img/Exploration_Pattern2_Bold.jpg'); background-size:cover;">
-    <LayoutHeader>
-        <Bar Breakpoint="Breakpoint.Desktop"
-             Background="Background.Light">
-            <BarBrand>
-               <Figure>
-                    <FigureImage Class="max-h-12" Source="img/theradex-logo.png" AlternateText="Theradex Oncology" />
-                </Figure>
-            </BarBrand>
-            <BarItem></BarItem>
-        </Bar>
-    </LayoutHeader>
-    <LayoutContent>
-        @Body
-    </LayoutContent>
-    <LayoutFooter>
-        <Footer />
-    </LayoutFooter>
-</Layout>
+<CascadingAuthenticationState>
+    <AuthorizeView>
+        <Authorized>
+            Already authorized....
+        </Authorized>
+        <NotAuthorized>
+            <Layout Style="background-image: url('img/Exploration_Pattern2_Bold.jpg'); background-size:cover;">
+                <LayoutHeader>
+                    <Bar Breakpoint="Breakpoint.Desktop"
+                         Background="Background.Light">
+                        <BarBrand>
+                           <Figure>
+                                <FigureImage Class="max-h-12" Source="img/theradex-logo.png" AlternateText="Theradex Oncology" />
+                            </Figure>
+                        </BarBrand>
+                        <BarItem></BarItem>
+                    </Bar>
+                </LayoutHeader>
+                <LayoutContent>
+                    @Body
+                </LayoutContent>
+                <LayoutFooter>
+                    <Footer />
+                </LayoutFooter>
+            </Layout>
+        </NotAuthorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>

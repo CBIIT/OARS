@@ -40,6 +40,48 @@ builder.Services.Configure<AzureAd>(builder.Configuration.GetSection("PowerBICre
 builder.Services.AddDbContextFactory<WrDbContext>(opt =>
     opt.UseOracle(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+/*
+builder.Services.Configure<CookiePolicyOptions>(options =>
+{
+    // This lambda determines whether user consent for non-essential cookies is needed for a given request.
+    //options.CheckConsentNeeded = context => true;
+    //options.MinimumSameSitePolicy = SameSiteMode.None;
+    options.Secure = CookieSecurePolicy.Always;
+});*/
+
+// Okta authentication
+builder.Services.AddAuthentication(authOptions =>
+{
+    authOptions.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    authOptions.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    authOptions.DefaultSignOutScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    authOptions.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+}).AddOpenIdConnect(oidcOptions =>
+{
+    oidcOptions.ClientId = builder.Configuration["Okta:ClientId"];
+    oidcOptions.ClientSecret = builder.Configuration["Okta:ClientSecret"];
+    oidcOptions.CallbackPath = "/authorization-code/callback";
+    oidcOptions.Authority = builder.Configuration["Okta:Issuer"];
+    oidcOptions.ResponseType = "code";
+    oidcOptions.SaveTokens = true;
+    oidcOptions.Scope.Add("openid");
+    oidcOptions.Scope.Add("profile");
+    oidcOptions.TokenValidationParameters.ValidateIssuer = false;
+    oidcOptions.TokenValidationParameters.NameClaimType = "name";
+    //oidcOptions.RequireHttpsMetadata = false;
+}).AddCookie();
+/*}).AddCookie(options =>
+{
+    //options.Cookie.SameSite = SameSiteMode.Strict;
+    //options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+});
+*/
+/*
+}).AddCookie(options =>
+{
+    options.Cookie.SameSite = SameSiteMode.None;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+});*/
 
 // Configure Cognito auth
 //var sessionCookieLifetime = builder.Configuration.GetValue("SessionCookieLifetimeMinutes", 60);
@@ -76,7 +118,7 @@ var app = builder.Build();
 // Force HTTPS context for use behind load balancer
 app.Use((context, next) =>
 {
-    context.Request.Scheme = "https";
+    context.Request.Scheme = "http";
     return next(context);
 });
 
@@ -86,12 +128,19 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Error");
 }
 
+/*
+app.UseCookiePolicy(new CookiePolicyOptions()
+{
+    MinimumSameSitePolicy = SameSiteMode.Strict
+}) ;*/
+
 app.UseStaticFiles();
 app.UseRouting();
 
-//app.UseAuthentication();
-//app.UseAuthorization();
+app.UseAuthentication();
+app.UseAuthorization();
 
+app.MapControllers();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 

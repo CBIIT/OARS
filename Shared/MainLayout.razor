@@ -1,5 +1,7 @@
 ﻿@inherits LayoutComponentBase
-
+<CascadingAuthenticationState>
+    <AuthorizeView>
+        <Authorized>
 <Layout Style="background-image: url('img/Exploration_Pattern2_Bold.jpg'); background-size:cover;">
     <LayoutHeader>
         <Bar Background="Background.Light">
@@ -33,18 +35,31 @@
     <LayoutFooter>
         <Footer />
     </LayoutFooter>
-</Layout>
 
-<!--<AuthorizeView>
-    <Authorized>
-        <NavMenu />
-        <main>
-            <div class="container-fluid py-3 px-3 px-lg-5">
-                @Body
-            </div>
-        </main>
+</Layout>
     </Authorized>
-    <NotAuthorized>
-        <RedirectToLogin />
-    </NotAuthorized>
-</AuthorizeView>-->
+        <NotAuthorized>
+            <RedirectToLogin />
+        </NotAuthorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>
+
+<!--
+<CascadingAuthenticationState>
+    <AuthorizeView>
+        <Authorized>
+            <main>
+                <div Class="top-row px-4">
+                    <LoginDisplay />
+                </div>
+                <div class="container-fluid py-3 px-3 px-lg-5">
+                    @Body
+                </div>
+            </main>
+        </Authorized>
+        <NotAuthorized>
+            <RedirectToLogin />
+        </NotAuthorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>
+-->
