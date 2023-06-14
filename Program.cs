@@ -119,7 +119,7 @@ var app = builder.Build();
 
 app.Use((context, next) =>
 {
-    context.Request.Scheme = "http";
+    context.Request.Scheme = "https";
     return next(context);
 });
 
