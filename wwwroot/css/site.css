@@ -1,3 +1,60 @@
+/* Navbar Overrides */
+
+.nci-navbar .navbar-brand img{
+    height: 50px;
+}
+
+.nci-dashboard-navbar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+}
+
+.nci-dashboard-navbar .nav-item .active .btn {
+    background-color: var(--b-theme-primary);
+    color: var(--b-theme-white);
+}
+
+.nci-secondary-nav .b-bar-item .active {
+    background-color: var(--b-theme-primary) !important;
+    color: var(--b-theme-white) !important;
+}
+
+.nci-secondary-nav {
+    --b-vertical-bar-small-width: 50px;
+    --b-vertical-bar-width: 200px
+}
+
+/* Background Image */
+.nci-main-wrapper {
+    position: relative;
+}
+
+    .nci-main-wrapper:before {
+        content: ' ';
+        display: block;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0.6;
+        background-image: url('/img/Exploration_Pattern2_Bold.jpg');
+        background-repeat: no-repeat;
+        background-position: 50% 0;
+        background-size: cover;
+    }
+
+.nci-main-layout {
+    position: relative;
+}
+
+/* PBI Embed */
+.pbi-embed-container {
+    width: 100%;
+    height: calc(100vh - 350px);
+}
+
+/* Blazor Debugging */
 #blazor-error-ui {
     background: lightyellow;
     bottom: 0;
