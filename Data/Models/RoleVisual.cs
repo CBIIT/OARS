@@ -4,13 +4,14 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TheradexPortal.Data.Models
 {
-    [Table("WRROLE", Schema = "WRUSER")]
-    public class Role
+    [Table("WRROLE_VISUAL", Schema = "WRUSER")]
+    public class RoleVisual
     {
         [Key]
+        [Column("WRole_VISUAL_ID")]
+        public int WRRoleVisualId { get; set; }
         public int RoleId { get; set; }
-        [Column("Role_Name")]
-        public string? RoleName { get; set; }
+        public int VisualId { get; set; }
         [Column("Create_Date")]
         public DateTime? CreateDate { get; set; }
         [Column("Update_Date")]

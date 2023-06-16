@@ -23,13 +23,13 @@
                 <DataGridColumns>
                     <DataGridMultiSelectColumn Width="30px"> </DataGridMultiSelectColumn>
                     <DataGridCommandColumn />
-                    <DataGridColumn Field="@nameof(Protocol.Study_Id)" Caption="Study ID"/>
-                    <DataGridColumn Field="@nameof(Protocol.Study_Drug)" Caption="Primary Agent" />
-                    <DataGridColumn Field="@nameof(Protocol.Protocol_Title)" Caption="Title" />
-                    <DataGridDateColumn Field="@nameof(Protocol.Activation_DT)" Caption="Activation Date">
+                    <DataGridColumn Field="@nameof(Protocol.StudyId)" Caption="Study ID"/>
+                    <DataGridColumn Field="@nameof(Protocol.StudyDrug)" Caption="Primary Agent" />
+                    <DataGridColumn Field="@nameof(Protocol.ProtocolTitle)" Caption="Title" />
+                    <DataGridDateColumn Field="@nameof(Protocol.ActivationDT)" Caption="Activation Date">
                         <DisplayTemplate>
                             @{
-                                var date = (context as Protocol)?.Activation_DT;
+                                var date = (context as Protocol)?.ActivationDT;
 
                                 if (date != null)
                                 {
@@ -38,8 +38,8 @@
                             }
                         </DisplayTemplate>
                     </DataGridDateColumn>
-                    <DataGridColumn Field="@nameof(Protocol.Current_Status)" Caption="Protocol Status" />
-                    <DataGridColumn Field="@nameof(Protocol.Study_Id)" Sortable="false" Filterable="false" Width="120px">
+                    <DataGridColumn Field="@nameof(Protocol.CurrentStatus)" Caption="Protocol Status" />
+                    <DataGridColumn Field="@nameof(Protocol.StudyId)" Sortable="false" Filterable="false" Width="120px">
                         <DisplayTemplate>
                             <Button Color="Color.Info" Clicked="@(()=>OnOverviewClicked(context as Protocol))">
                                 Overview
@@ -67,11 +67,11 @@
                 <TableBody>
                     <TableRow>
                         <TableRowHeader>Study ID</TableRowHeader>
-                        <TableRowCell>@(overviewProtocol.Study_Id)</TableRowCell>
+                        <TableRowCell>@(overviewProtocol.StudyId)</TableRowCell>
                     </TableRow>
                     <TableRow>
                         <TableRowHeader>Title</TableRowHeader>
-                        <TableRowCell>@(overviewProtocol.Protocol_Title)</TableRowCell>
+                        <TableRowCell>@(overviewProtocol.ProtocolTitle)</TableRowCell>
                     </TableRow>
                     <TableRow>
                         <TableRowHeader>Primary Investigator</TableRowHeader>
@@ -79,7 +79,7 @@
                     </TableRow>
                     <TableRow>
                         <TableRowHeader>Monitoring Method</TableRowHeader>
-                        <TableRowCell>@(overviewProtocol.Monitoring_Method)</TableRowCell>
+                        <TableRowCell>@(overviewProtocol.MonitoringMethod)</TableRowCell>
                     </TableRow>
                     <TableRow>
                         <TableRowHeader>Accrual (Screening/Intervention/Other)</TableRowHeader>
@@ -142,8 +142,8 @@
                 var storedProtocols = JsonConvert.DeserializeObject<List<Protocol>>(json);
                 if (storedProtocols != null)
                 {
-                    var ids = storedProtocols.Select(x => x.Study_Id).ToList();
-                    selectedStudies = studyList.Where(x => ids.Contains(x.Study_Id)).ToList();
+                    var ids = storedProtocols.Select(x => x.StudyId).ToList();
+                    selectedStudies = studyList.Where(x => ids.Contains(x.StudyId)).ToList();
                     StateHasChanged();
                 }
             }
@@ -153,7 +153,7 @@
     // filter by dates
     private Task FilterByDates() 
     {
-        studyList = studyList.Where(x => selectedDates.Contains(x.Activation_DT)).ToList();
+        studyList = studyList.Where(x => selectedDates.Contains(x.ActivationDT)).ToList();
         return Task.CompletedTask;
     }
 

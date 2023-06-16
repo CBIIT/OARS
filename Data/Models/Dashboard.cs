@@ -12,11 +12,16 @@ namespace TheradexPortal.Data.Models
         public int WRDashboardId { get; set; }
         public string? Name { get; set; }
         public string? Description { get; set; }
-        public int Display_Order { get; set; }
-        public DateTime? Create_Date { get; set; }
-        public DateTime? Update_Date { get; set; }
-        public string? Custom_Page_Path { get; set; }
-        public string? PowerBI_Report_Id { get; set; }
+        [Column("Display_Order")]
+        public int DisplayOrder { get; set; }
+        [Column("Create_Date")]
+        public DateTime? CreateDate { get; set; }
+        [Column("Update_Date")]
+        public DateTime? UpdateDate { get; set; }
+        [Column("Custom_Page_Path")]
+        public string? CustomPagePath { get; set; }
+        [Column("PowerBI_Report_Id")]
+        public string? PowerBIReportId { get; set; }
 
         public ICollection<Report> Reports { get; } = new List<Report>();
     }

@@ -9,7 +9,7 @@ namespace TheradexPortal.Data.Services
 
         public async Task<IList<Dashboard>> GetAllDashboardsAsync()
         {
-            return await context.Dashboards.OrderBy(d => d.Display_Order).ToListAsync();
+            return await context.Dashboards.OrderBy(d => d.DisplayOrder).ToListAsync();
         }
 
         public async Task<Dashboard?> GetDashboardByIdAsync(int id)
@@ -19,13 +19,13 @@ namespace TheradexPortal.Data.Services
 
         public async Task<IList<Report>> GetAllReportsByDashboardIdAsync(int id)
         {
-            var list =  await context.Reports.Where(r => r.DashboardId == id).OrderBy(r => r.Display_Order).ToListAsync();
+            var list =  await context.Reports.Where(r => r.DashboardId == id).OrderBy(r => r.DisplayOrder).ToListAsync();
             return list;
         }
 
         public async Task<IList<Visual>> GetAllVisualsByReportIdAsync(int id)
         {
-            var list = await context.Visuals.Where(v => v.Report_Id == id).OrderBy(v => v.Display_Order).ToListAsync();
+            var list = await context.Visuals.Where(v => v.ReportId == id).OrderBy(v => v.DisplayOrder).ToListAsync();
             return list;
         }
     }
