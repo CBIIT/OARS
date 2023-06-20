@@ -15,6 +15,10 @@ using Blazorise.Tailwind;
 using Blazorise.Icons.FontAwesome;
 using Microsoft.EntityFrameworkCore;
 using TheradexPortal.Data.Services;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using TheradexPortal.Data.Static;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,7 +29,9 @@ builder.Services.AddSingleton<AadService>();
 builder.Services.AddSingleton<PbiEmbedService>();
 builder.Services.AddScoped<PbiInterop>();
 builder.Services.AddSingleton<UserService>();
+builder.Services.AddSingleton<UserRoleService>();
 builder.Services.AddSingleton<StudyService>();
+//builder.Services.AddIdentity<IdentityUser<IUser>>()
 
 // Add Blazorise and Tailwind UI
 builder.Services.AddBlazorise();
@@ -49,6 +55,45 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
     options.Secure = CookieSecurePolicy.Always;
 });*/
 
+var onTokenValidated = (TokenValidatedContext context) =>
+{
+    if (context is null || context.Principal is null || context.Principal.Identity is null)
+        return Task.CompletedTask;
+
+
+    // Add custom claims to the identity
+    var claimsIdentity = (ClaimsIdentity)context.Principal.Identity;
+
+
+    var userService = context.HttpContext.RequestServices.GetRequiredService<UserService>();
+    var userRoleService = context.HttpContext.RequestServices.GetRequiredService<UserRoleService>();
+
+    var email = context.Principal.Identity.Name;
+    //var user = await userService.GetUserByEmailAsync(email);
+    var userIsRegistered = false;
+    //claimsIdentity.add
+    //if (user is not null)
+    //{
+    //    userIsRegistered = true;
+    //}
+    claimsIdentity.AddClaim(new Claim(WRClaimType.Registered, userIsRegistered.ToString()));
+
+    //var userRoles = await userRoleService.GetUserRolesByUserIdAsync(user.UserId);
+    var isAdmin = false;
+    //for(var role in userRoles)
+    //{
+    //    claimsIdentity.AddClaim(new Claim(WRClaimType.Role, role.RoleName));
+    //    if (role.IsAdmin)
+    //    {
+    //        isAdmin = true;
+    //    }
+    //}
+    claimsIdentity.AddClaim(new Claim(WRClaimType.IsAdmin, isAdmin.ToString()));
+
+    return Task.CompletedTask;
+
+};
+
 // Okta authentication
 builder.Services.AddAuthentication(authOptions =>
 {
@@ -68,8 +113,13 @@ builder.Services.AddAuthentication(authOptions =>
     oidcOptions.Scope.Add("profile");
     oidcOptions.TokenValidationParameters.ValidateIssuer = false;
     oidcOptions.TokenValidationParameters.NameClaimType = "name";
+    oidcOptions.Events = new OpenIdConnectEvents
+    {        
+        OnTokenValidated = onTokenValidated
+    };
     //oidcOptions.RequireHttpsMetadata = false;
-}).AddCookie();
+})
+.AddCookie();
 /*}).AddCookie(options =>
 {
     //options.Cookie.SameSite = SameSiteMode.Strict;
