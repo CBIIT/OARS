@@ -1,0 +1,28 @@
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Xml.Linq;
+
+namespace TheradexPortal.Data.Models
+{
+    [Table("WRDASHBOARD", Schema = "WRUSER")]
+    public class Dashboard
+    {
+        [Key]
+        public int WRDashboardId { get; set; }
+        public string? Name { get; set; }
+        public string? Description { get; set; }
+        [Column("Display_Order")]
+        public int DisplayOrder { get; set; }
+        [Column("Create_Date")]
+        public DateTime? CreateDate { get; set; }
+        [Column("Update_Date")]
+        public DateTime? UpdateDate { get; set; }
+        [Column("Custom_Page_Path")]
+        public string? CustomPagePath { get; set; }
+        [Column("PowerBI_Report_Id")]
+        public string? PowerBIReportId { get; set; }
+
+        public ICollection<Report> Reports { get; } = new List<Report>();
+    }
+}

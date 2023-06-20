@@ -1,0 +1,20 @@
+﻿@inherits LayoutComponentBase
+
+<Div Class="nci-main-wrapper">
+    <Layout Class="nci-main-layout">
+        <LayoutHeader>
+            <Bar Breakpoint="Breakpoint.None" Background="Background.Light" Class="nci-navbar px-4">
+                <BarBrand>
+                    <Image Source="img/theradex-logo.png" AlternateText="Theradex Oncology" />
+                </BarBrand>
+                <BarItem></BarItem>
+            </Bar>
+        </LayoutHeader>
+        <LayoutContent>
+            @Body
+        </LayoutContent>
+        <LayoutFooter>
+            <Footer />
+        </LayoutFooter>
+    </Layout>
+</Div>

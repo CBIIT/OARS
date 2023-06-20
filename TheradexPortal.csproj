@@ -36,9 +36,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Blazorise.Bootstrap5" Version="1.2.3" />
+    <PackageReference Include="Blazorise.Components" Version="1.2.3" />
     <PackageReference Include="Blazorise.DataGrid" Version="1.2.2" />
     <PackageReference Include="Blazorise.Icons.FontAwesome" Version="1.2.2" />
-    <PackageReference Include="Blazorise.Tailwind" Version="1.2.2" />
+    <PackageReference Include="Blazorise.LoadingIndicator" Version="1.2.3" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="6.0.4" />
     <PackageReference Include="Microsoft.Identity.Client" Version="4.43.0" />
     <PackageReference Include="Microsoft.PowerBI.Api" Version="4.5.0" />
@@ -50,7 +52,6 @@
 
   <ItemGroup>
     <Folder Include="Migrations\" />
-    <Folder Include="wwwroot\js\" />
   </ItemGroup>
 
 </Project>

@@ -8,90 +8,124 @@ namespace TheradexPortal.Data.Models
     public class Protocol
     {
         //unique index
-        public string? Study_Id { get; set; } 
+        [Column("Study_Id")]
+        public string? StudyId { get; set; } 
 
         public string? Institution { get; set; }
 
         public string? Nickname { get; set; }
+        [Column("CTEP_Code")]
+        public string? CTEPCode { get; set; }
 
-        public string? CTEP_Code { get; set; }
+        [Column("Lead_Organization")]
+        public string? LeadOrganization { get; set; }
 
-        public string? Lead_Organization { get; set; }
+        [Column("Multi_Institute")]
+        public string? MultiInstitute { get; set; }
 
-        public string? Multi_Institute { get; set; }
+        [Column("Local_Protocol_Number")]
+        public string? LocalProtocolNumber { get; set; }
 
-        public string? Local_Protocol_Number { get; set; }
+        [Column("Processing_Batch")]
+        public string? ProcessingBatch { get; set; }
 
-        public string? Processing_Batch { get; set; }
-
-        public string? Protocol_Title { get; set; }
+        [Column("Protocol_Title")]
+        public string? ProtocolTitle { get; set; }
 
         public string? Investigator { get; set; }
 
-        public string? Study_Drug { get; set; }
+        [Column("Study_Drug")]
+        public string? StudyDrug { get; set; }
 
-        public string? Study_Drug_ID { get; set; }
+        [Column("Study_Drug_ID")]
+        public string? StudyDrugID { get; set; }
 
         public string? Phase { get; set; }
 
-        public string? Protocol_Treatment_Desc { get; set; }
+        [Column("Protocol_Treatment_Desc")]
+        public string? ProtocolTreatmentDesc { get; set; }
 
-        public string? Performance_Status_Scale { get; set; }
+        [Column("Performance_Status_Scale")]
+        public string? PerformanceStatusScale { get; set; }
 
-        public string? Toxicity_Scale { get; set; }
+        [Column("Toxicity_Scale")]
+        public string? ToxicityScale { get; set; }
 
-        public string? Toxicity_Dictionary_ID { get; set; }
+        [Column("Toxicity_Dictionary_ID")]
+        public string? ToxicityDictionaryID { get; set; }
 
-        public string? Database_Generation { get; set; }
+        [Column("Database_Generation")]
+        public string? DatabaseGeneration { get; set; }
 
-        public string? Data_Source { get; set; }
+        [Column("Data_Source")]
+        public string? DataSource { get; set; }
 
-        public string? Monitoring_Method { get; set; }
+        [Column("Monitoring_Method")]
+        public string? MonitoringMethod { get; set; }
 
         public string? CDASH { get; set; }
 
         public string? STS { get; set; }
 
-        public string? Informed_Consent { get; set; }
+        [Column("Informed_Consent")]
+        public string? InformedConsent { get; set; }
 
-        public DateTime? IRB_Approval_DT { get; set; }
+        [Column("IRB_Approval_DT")]
+        public DateTime? IRBApprovalDT { get; set; }
 
-        public DateTime? NCI_Approval_DT { get; set; }
+        [Column("NCI_Approval_DT")]
+        public DateTime? NCIApprovalDT { get; set; }
 
-        public DateTime? Activation_DT { get; set; }
-        
-        public DateTime? Closed_To_Accrual_DT { get; set; }
+        [Column("Activation_DT")]
+        public DateTime? ActivationDT { get; set; }
 
-        public DateTime? All_Pts_Off_Study_DT { get; set; }
+        [Column("Closed_To_Accrual_DT")]
+        public DateTime? ClosedToAccrualDT { get; set; }
 
-        public DateTime? Completed_DT { get; set; }
+        [Column("All_Pts_Off_Study_DT")]
+        public DateTime? AllPtsOffStudyDT { get; set; }
 
-        public DateTime? Archived_DT { get; set; }
+        [Column("Completed_DT")]
+        public DateTime? CompletedDT { get; set; }
 
-        public string? Disease_1 { get; set; }
+        [Column("Archived_DT")]
+        public DateTime? ArchivedDT { get; set; }
 
-        public string? Disease_2 { get; set; }
+        [Column("Disease_1")]
+        public string? Disease1 { get; set; }
 
-        public string? Disease_3 { get; set; }
+        [Column("Disease_2")]
+        public string? Disease2 { get; set; }
 
-        public string? Lab_Units { get; set; }
+        [Column("Disease_3")]
+        public string? Disease3 { get; set; }
 
-        public string? CTCAE_Version_Lab_Toxes { get; set; }
+        [Column("Lab_Units")]
+        public string? LabUnits { get; set; }
 
-        public string? Solid_Leukemia_Both { get; set; }
+        [Column("CTCAE_Version_Lab_Toxes")]
+        public string? CTCAEVersionLabToxes { get; set; }
 
-        public string? Follow_Up_Period { get; set; }
+        [Column("Solid_Leukemia_Both")]
+        public string? SolidLeukemiaBoth { get; set; }
 
-        public string? Disease_Code_Required { get; set; }
+        [Column("Follow_Up_Period")]
+        public string? FollowUpPeriod { get; set; }
+
+        [Column("Disease_Code_Required")]
+        public string? DiseaseCodeRequired { get; set; }
 
         public string? Database { get; set; }
 
-        public string? Current_Status { get; set; }
-        
+        [Column("Current_Status")]
+        public string? CurrentStatus { get; set; }
+
         // what does this mean now that entries are unique per study?
-        public DateTime Effective_DT { get; set; }
+        [Column("Effective_DT")]
+        public DateTime EffectiveDT { get; set; }
 
         //primary key, unique
-        public string? PR_Record_Id { get; set; } 
+        [Column("PR_Record_Id")]
+        public string? PRRecordId { get; set; } 
     }
 }
