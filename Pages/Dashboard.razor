@@ -25,7 +25,7 @@ else
     </LayoutSider>
     <LayoutContent>
         <Container Fluid Class="mt-2">
-            @if(report != null && report.Is_Full_Page)
+            @if(report != null && report.IsFullPage)
             {
                 <PowerBiFullReport Dashboard="dashboard" Report="report" @ref="fullReportRef" />
             }
@@ -123,12 +123,12 @@ else
     {
         if (report != null)
         {
-            if (!report.Is_Full_Page && customReportRef != null)
+            if (!report.IsFullPage && customReportRef != null)
             {
                 await customReportRef.Update();
             }
 
-            if (report.Is_Full_Page && fullReportRef != null)
+            if (report.IsFullPage && fullReportRef != null)
             {
                 await fullReportRef.Update();
             }

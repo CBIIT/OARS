@@ -39,8 +39,8 @@
         {
             // TODO - Filter by user
             var allVisuals = await dashboardService.GetAllVisualsByReportIdAsync(Report.WRReportId);
-            visuals = allVisuals.Where(v => v.Visual_Type != WrConstants.PBI_VISUAL_TYPE_SLIICER).ToList();
-            slicers = allVisuals.Where(v => v.Visual_Type == WrConstants.PBI_VISUAL_TYPE_SLIICER).ToList();
+            visuals = allVisuals.Where(v => v.VisualType != WrConstants.PBI_VISUAL_TYPE_SLIICER).ToList();
+            slicers = allVisuals.Where(v => v.VisualType == WrConstants.PBI_VISUAL_TYPE_SLIICER).ToList();
         }
         await EmbedReportJS();
     }
@@ -79,11 +79,11 @@
         EmbedParams embedParams;
         if (powerBiConfig.Value.UseRowLevelSecurity)
         {
-            embedParams = pbiEmbedService.GetEmbedParams(new Guid(powerBiConfig.Value.WorkspaceId), new Guid(Dashboard.PowerBI_Report_Id), userEmail, powerBiConfig.Value.IdentityRoles);
+            embedParams = pbiEmbedService.GetEmbedParams(new Guid(powerBiConfig.Value.WorkspaceId), new Guid(Dashboard.PowerBIReportId), userEmail, powerBiConfig.Value.IdentityRoles);
         }
         else
         {
-            embedParams = pbiEmbedService.GetEmbedParams(new Guid(powerBiConfig.Value.WorkspaceId), new Guid(Dashboard.PowerBI_Report_Id));
+            embedParams = pbiEmbedService.GetEmbedParams(new Guid(powerBiConfig.Value.WorkspaceId), new Guid(Dashboard.PowerBIReportId));
         }
 
         reportRef = await pbiEmbedModule.InvokeAsync<IJSObjectReference>(
@@ -94,9 +94,9 @@
             WrConstants.PBI_STUDY_FILTER_TARGETS.ToArray(),
             embedParams.EmbedReport[0].EmbedUrl,
             embedParams.EmbedReport[0].ReportId.ToString(),
-            Report.PowerBI_Page_Name,
-            visuals.Select(v => v.PowerBI_Visual_Id).ToArray(),
-            slicers.Select(s => s.PowerBI_Visual_Id).ToArray()
+            Report.PowerBIPageName,
+            visuals.Select(v => v.PowerBIVisualId).ToArray(),
+            slicers.Select(s => s.PowerBIVisualId).ToArray()
         );
     }
 

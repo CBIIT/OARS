@@ -13,13 +13,20 @@ namespace TheradexPortal.Data.Models
         public string? Name { get; set; }
         public string? Description { get; set; }
         public int DashboardId { get; set; }
-        public int Display_Order { get; set; }
-        public string? Display_Icon_Name { get; set; }
-        public DateTime? Create_Date { get; set; }
-        public DateTime? Update_Date { get; set; }
-        public bool Is_Full_Page { get; set; }
-        public string? Custom_Page_Path { get; set; }
-        public string? PowerBI_Page_Name { get; set; }
+        [Column("Display_Order")]
+        public int DisplayOrder { get; set; }
+        [Column("Display_Icon_Name")]
+        public string? DisplayIconName { get; set; }
+        [Column("Create_Date")]
+        public DateTime? CreateDate { get; set; }
+        [Column("Update_Date")]
+        public DateTime? UpdateDate { get; set; }
+        [Column("Is_Full_Page")]
+        public bool IsFullPage { get; set; }
+        [Column("Custom_Page_Path")]
+        public string? CustomPagePath { get; set; }
+        [Column("PowerBI_Page_Name")]
+        public string? PowerBIPageName { get; set; }
 
         public Dashboard? Dashboard { get; init; }
 

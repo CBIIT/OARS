@@ -45,7 +45,7 @@
             {
                 <BarItem>
                         <BarLink To="@GetReportLink(report)">
-                        <BarIcon IconName="report.Display_Icon_Name ?? defaultIcon" />
+                        <BarIcon IconName="report.DisplayIconName ?? defaultIcon" />
                         @report.Name
                     </BarLink>
                 </BarItem>
@@ -77,9 +77,9 @@
 
     protected string GetReportLink(Report report)
     {
-        if(report.Custom_Page_Path != null)
+        if(report.CustomPagePath != null)
         {
-            return report.Custom_Page_Path;
+            return report.CustomPagePath;
         }
         else
         {

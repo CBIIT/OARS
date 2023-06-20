@@ -27,7 +27,8 @@ namespace TheradexPortal.Data
                     entity.SetTableName(table.ToUpper());
                 foreach (var property in entity.GetProperties())
                 {
-                    property.SetColumnName(property.Name.ToUpper());
+                    var colName = property.GetColumnName();
+                    property.SetColumnName(colName.ToUpper());
                     if(property.ClrType.Name == "bool" || property.ClrType.Name == "Boolean")
                     {
                         property.SetValueConverter(converter);
@@ -43,8 +44,8 @@ namespace TheradexPortal.Data
         public DbSet<Report> Reports { get; set; } 
         public DbSet<Visual> Visuals { get; set; }
         public DbSet<Role> Roles { get; set; }
-        public DbSet<Role_Visual> Role_Visuals { get; set; }
-        public DbSet<User_Role> User_Roles { get; set; }
+        public DbSet<RoleVisual> Role_Visuals { get; set; }
+        public DbSet<UserRole> User_Roles { get; set; }
 
     }
 

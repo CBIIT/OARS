@@ -1,21 +1,31 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TheradexPortal.Data.Models
 {
     [Table("WRVISUAL", Schema = "WRUSER")]
-    [Keyless]
     public class Visual
     {
+        [Key]
         public int WRVisualId { get; set; }
-        public string? Visual_Name { get; set; }
-        public string? Visual_Description { get; set; }
-        public int Report_Id { get; set; }
-        public string? Page_Name { get; set; }
-        public string? PowerBI_Visual_Id { get; set; }
-        public DateTime? Create_Date { get; set; }
-        public DateTime? Update_Date { get; set; }
-        public string? Visual_Type { get; set; }
-        public int? Display_Order { get; set; }
+        [Column("Visual_Name")]
+        public string? VisualName { get; set; }
+        [Column("Visual_Description")]
+        public string? VisualDescription { get; set; }
+        [Column("Report_Id")]
+        public int ReportId { get; set; }
+        [Column("Page_Name")]
+        public string? PageName { get; set; }
+        [Column("PowerBI_Visual_Id")]
+        public string? PowerBIVisualId { get; set; }
+        [Column("Create_Date")]
+        public DateTime? CreateDate { get; set; }
+        [Column("Update_Date")]
+        public DateTime? UpdateDate { get; set; }
+        [Column("Visual_Type")]
+        public string? VisualType { get; set; }
+        [Column("Display_Order")]
+        public int? DisplayOrder { get; set; }
     }
 }
