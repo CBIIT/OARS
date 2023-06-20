@@ -1,18 +1,16 @@
-﻿<Div Class="px-4">
-    <hr style="border-width:1px;border-color:gray;">
-</Div>
-<Div Class="w-full p-4 md:flex md:items-center md:justify-between">
-    <Div Class="w-1/4">
-        <Button Size="Size.Small" Color="Color.Danger" Type="ButtonType.Link" To="#">Help</Button>
+﻿
+<Container Fluid Background="Background.Light">
+    <Divider />
+    <Div Flex="Flex.JustifyContent.Between.AlignItems.Center" Class="py-4">
+        <Button Size="Size.Small" Color="Color.Secondary" Class="mx-4" Type="ButtonType.Link" To="#">Help</Button>
+        <Paragraph Class="">
+            © 2023 <a href="https://theradex.com/" class="hover:underline">Theradex Oncology</a>. All Rights Reserved. | <a href="#" class="hover:underline">Privacy Policy</a> | <a href="#" class="hover:underline">Cookie Policy</a>
+        </Paragraph>
+        <Paragraph Class="mx-4">
+            <a href="https://www.linkedin.com/company/theradex" class="hover:underline">Connect with us <Icon Name="@("fab fa-linkedin")" IconSize="IconSize.Large" /></a>
+        </Paragraph>
     </Div>
-    <Span Class="w-2/4 text-md text-gray-500 sm:text-center dark:text-gray-400">
-        © 2023 <a href="https://theradex.com/" class="hover:underline">Theradex Oncology</a>. All Rights Reserved. | <a href="#" class="hover:underline">Privacy Policy</a> | <a href="#" class="hover:underline">Cookie Policy</a>
-    </Span>
-    <Div Class="w-1/4 text-right mt-3 text-md font-medium text-gray-500 dark:text-gray-400 sm:mt-0">
-        <a href="https://www.linkedin.com/company/theradex" class="hover:underline">Connect with us <Icon Name="@("fab fa-linkedin")" IconSize="IconSize.Large" /></a>
-    </Div>
-    
-</Div>
+</Container>
 
 
 @code {
