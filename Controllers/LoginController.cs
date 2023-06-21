@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace TheradexPortal.Controllers
 {
@@ -12,6 +13,9 @@ namespace TheradexPortal.Controllers
 
             if (User.Identity.IsAuthenticated)
             {
+                // Get and store the login to pull the email address
+                Claim emailClaim = ((ClaimsIdentity)User.Identity).Claims.Where(c => c.Type == "preferred_username").FirstOrDefault();
+                
                 return LocalRedirect(redirectUri);
             }
 
@@ -28,6 +32,7 @@ namespace TheradexPortal.Controllers
             {
                 return LocalRedirect(redirectUri);
             }
+            Response.Redirect("https://theradexbeta.oktapreview.com/logout");
 
             await HttpContext.SignOutAsync();
 

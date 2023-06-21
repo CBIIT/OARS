@@ -15,6 +15,9 @@ using Blazorise.Tailwind;
 using Blazorise.Icons.FontAwesome;
 using Microsoft.EntityFrameworkCore;
 using TheradexPortal.Data.Services;
+using ITfoxtec.Identity.Saml2;
+using ITfoxtec.Identity.Saml2.Schemas.Metadata;
+using ITfoxtec.Identity.Saml2.MvcCore.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,6 +53,7 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
 });*/
 
 // Okta authentication
+
 builder.Services.AddAuthentication(authOptions =>
 {
     authOptions.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -70,6 +74,7 @@ builder.Services.AddAuthentication(authOptions =>
     oidcOptions.TokenValidationParameters.NameClaimType = "name";
     //oidcOptions.RequireHttpsMetadata = false;
 }).AddCookie();
+
 /*}).AddCookie(options =>
 {
     //options.Cookie.SameSite = SameSiteMode.Strict;
@@ -109,7 +114,26 @@ builder.Services.AddAuthentication(authOptions =>
 //    options.Scope.Add("email");
 
 //});
+builder.Services.Configure<Saml2Configuration>(builder.Configuration.GetSection("Saml2"));
 
+builder.Services.Configure<Saml2Configuration>(saml2Configuration =>
+{
+    saml2Configuration.AllowedAudienceUris.Add(saml2Configuration.Issuer);
+
+    var entityDescriptor = new EntityDescriptor();
+    entityDescriptor.ReadIdPSsoDescriptorFromUrl(new Uri(builder.Configuration["Saml2:IdPMetadata"]));
+    if (entityDescriptor.IdPSsoDescriptor != null)
+    {
+        saml2Configuration.SingleSignOnDestination = entityDescriptor.IdPSsoDescriptor.SingleSignOnServices.First().Location;
+        saml2Configuration.SignatureValidationCertificates.AddRange(entityDescriptor.IdPSsoDescriptor.SigningCertificates);
+    }
+    else
+    {
+        throw new Exception("IdPSsoDescriptor not loaded from metadata.");
+    }
+});
+
+builder.Services.AddSaml2();
 builder.Services.AddHttpContextAccessor();
 
 
@@ -137,9 +161,19 @@ app.UseCookiePolicy(new CookiePolicyOptions()
 
 app.UseStaticFiles();
 app.UseRouting();
+app.UseSaml2();
 
-app.UseAuthentication();
+//app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapRazorPages();
+
+    endpoints.MapControllerRoute(
+        name: "default",
+        pattern: "{controller=Home}/{action=Index}/{id?}");
+});
 
 app.MapControllers();
 app.MapBlazorHub();
