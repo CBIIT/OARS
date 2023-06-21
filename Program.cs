@@ -11,10 +11,18 @@ using TheradexPortal.Data;
 using TheradexPortal.Data.PowerBI;
 using TheradexPortal.Data.PowerBI.Models;
 using Blazorise;
-using Blazorise.Tailwind;
+using Blazorise.Bootstrap5;
 using Blazorise.Icons.FontAwesome;
 using Microsoft.EntityFrameworkCore;
 using TheradexPortal.Data.Services;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using TheradexPortal.Data.Static;
+using Microsoft.AspNetCore.Identity;
+using TheradexPortal.Data.Models;
+using TheradexPortal.Data.Identity;
+using TheradexPortal.Data.Services.Abstract;
+using TheradexPortal.Data.PowerBI.Abstract;
 using ITfoxtec.Identity.Saml2;
 using ITfoxtec.Identity.Saml2.Schemas.Metadata;
 using ITfoxtec.Identity.Saml2.MvcCore.Configuration;
@@ -24,16 +32,21 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddSingleton<AadService>();
-builder.Services.AddSingleton<PbiEmbedService>();
-builder.Services.AddScoped<PbiInterop>();
-builder.Services.AddSingleton<UserService>();
-builder.Services.AddSingleton<StudyService>();
+builder.Services.AddSingleton<IAadService, AadService>();
+builder.Services.AddSingleton<IPbiEmbedService, PbiEmbedService>();
+builder.Services.AddSingleton<IUserService, UserService>();
+builder.Services.AddSingleton<IUserRoleService, UserRoleService>();
+builder.Services.AddSingleton<IStudyService, StudyService>();
+builder.Services.AddSingleton<IDashboardService, DashboardService>(); 
 
 // Add Blazorise and Tailwind UI
-builder.Services.AddBlazorise();
-builder.Services.AddTailwindProviders();
-builder.Services.AddFontAwesomeIcons();
+builder.Services
+    .AddBlazorise(options =>
+    {
+        options.Immediate = true;
+    })
+    .AddBootstrap5Providers()
+    .AddFontAwesomeIcons();
 
 // Loading appsettings.json in C# Model classes
 builder.Services.Configure<PowerBI>(builder.Configuration.GetSection("PowerBI"));
@@ -51,6 +64,54 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
     //options.MinimumSameSitePolicy = SameSiteMode.None;
     options.Secure = CookieSecurePolicy.Always;
 });*/
+
+var onTokenValidated = async (TokenValidatedContext context) =>
+{
+    if (context is null || context.Principal is null || context.Principal.Identity is null)
+        return Task.CompletedTask;
+
+
+    // Add custom claims to the identity
+    var claimsIdentity = (ClaimsIdentity)context.Principal.Identity;
+
+
+    var userService = context.HttpContext.RequestServices.GetRequiredService<IUserService>();
+    var userRoleService = context.HttpContext.RequestServices.GetRequiredService<IUserRoleService>();
+
+    var userIsRegistered = false;
+    var email = context.Principal.Identity.Name;
+    if (email is null)
+    {
+        claimsIdentity.AddClaim(new Claim(WRClaimType.Registered, userIsRegistered.ToString()));
+        return Task.CompletedTask;
+    }
+
+    var user = await userService.GetUserByEmailAsync(email);
+    if (user is null)
+    {
+        claimsIdentity.AddClaim(new Claim(WRClaimType.Registered, userIsRegistered.ToString()));
+        return Task.CompletedTask;
+    }
+    userIsRegistered = true;
+
+    claimsIdentity.AddClaim(new Claim(WRClaimType.Registered, userIsRegistered.ToString()));
+    claimsIdentity.AddClaim(new Claim(WRClaimType.UserId, user.UserId.ToString()));
+
+    var userRoles = await userRoleService.GetUserRolesAsync(user.UserId);
+    var isAdmin = false;
+    foreach(var role in userRoles)
+    {        
+        claimsIdentity.AddClaim(new Claim(WRClaimType.Role, role.RoleName));
+        if (role.IsAdmin)
+        {
+            isAdmin = true;
+        }
+    }
+    claimsIdentity.AddClaim(new Claim(WRClaimType.IsAdmin, isAdmin.ToString()));
+
+    return Task.CompletedTask;
+
+};
 
 // Okta authentication
 
@@ -72,9 +133,13 @@ builder.Services.AddAuthentication(authOptions =>
     oidcOptions.Scope.Add("profile");
     oidcOptions.TokenValidationParameters.ValidateIssuer = false;
     oidcOptions.TokenValidationParameters.NameClaimType = "name";
+    oidcOptions.Events = new OpenIdConnectEvents
+    {        
+        OnTokenValidated = onTokenValidated
+    };
     //oidcOptions.RequireHttpsMetadata = false;
-}).AddCookie();
-
+})
+.AddCookie();
 /*}).AddCookie(options =>
 {
     //options.Cookie.SameSite = SameSiteMode.Strict;

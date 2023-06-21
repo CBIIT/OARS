@@ -16,10 +16,11 @@
             <NotFound>
                 <PageTitle>Not found</PageTitle>
                 <LayoutView Layout="@typeof(LoginLayout)">
-                    <p role="alert">Sorry, there's nothing at this address.</p>
+                    <NotFound />
                 </LayoutView>
             </NotFound>
         </Router>
+        <NotificationProvider />
     </Blazorise.ThemeProvider>
     </CascadingAuthenticationState>
 </CascadingValue>
@@ -28,17 +29,13 @@
     private Theme theme = new Theme
     {
         ColorOptions = new ThemeColorOptions {
-            Primary = "#FFFFFF", // white
-            Secondary = "#FA8D29", // orange
-            Info = "#6A93BF", // blue
-            Danger = "#E32726", // red
-            Warning = "#FDBf48", // yellow
-            Success = "#809F5D", // green
-            Light = "#D1D2D4", // light gray
-            Dark = "#5858B", // dark gray (text color)
-            // Gray = "#9d9fa1"
-            // Black = "#000000"
-            // other
+            Primary = "#FA8D29",
+            Secondary = "#E32726",
+            Info = "#6A93BF",
+            Danger = "#E32726",
+            Warning = "#FDBf48",
+            Success = "#809F5D",
+            Light = "#D1D2D4"
         }
     };
 

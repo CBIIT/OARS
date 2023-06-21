@@ -6,9 +6,10 @@
     using System.Linq;
     using System.Security;
     using System.Text.Json;
+    using TheradexPortal.Data.PowerBI.Abstract;
     using TheradexPortal.Data.PowerBI.Models;
 
-    public class AadService
+    public class AadService : IAadService
     {
         private readonly IOptions<AzureAd> azureAd;
 
@@ -28,7 +29,7 @@
                 throw new ArgumentNullException("Missing PowerBI credentials");
             }
 
-            AuthenticationResult authenticationResult = null;
+            AuthenticationResult? authenticationResult = null;
             if (azureAd.Value.AuthenticationMode.Equals("masteruser", StringComparison.InvariantCultureIgnoreCase))
             {
                 // Create a public client to authorize the app with the AAD app
@@ -52,6 +53,11 @@
                                                                                 .Build();
                 // Make a client call if Access token is not available in cache
                 authenticationResult = clientApp.AcquireTokenForClient(azureAd.Value.Scope).ExecuteAsync().Result;
+            }
+
+            if (authenticationResult == null)
+            {
+                throw new InvalidOperationException("Failed to authenticate with Power BI");
             }
 
             return authenticationResult.AccessToken;

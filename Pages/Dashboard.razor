@@ -1,36 +1,41 @@
-﻿@page "/"
-@page "/dashboard"
-@layout MainLayout
+﻿@attribute [Route(WrConstants.DASHBOARD_PAGE_PATH + "/{dashboardid:int}/{reportid:int?}")]
+@layout SecondaryNavLayout
 
 @using System.Net.Http
 @using System.Threading.Tasks
-@using TheradexPortal.Data
+@using TheradexPortal.Data;
 @using TheradexPortal.Data.Models;
-@using TheradexPortal.Data.PowerBI
+@using TheradexPortal.Data.PowerBI.Abstract;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.ViewModels;
 
-
-<Tabs RenderMode="TabsRenderMode.LazyReload" SelectedTab="@selectedTab" SelectedTabChanged="@OnSelectedTabChanged">
-    <Items>
-        <Tab Name="studies">My Studies</Tab>
-        <Tab Name="tab1">Custom Layout</Tab>
-        <Tab Name="tab2">Full Report</Tab>
-    </Items>
-    <Content>
-        <TabPanel Name="studies" class="bg-transparent">
-            <StudyGrid />
-        </TabPanel>
-        <TabPanel Name="tab1" class="bg-transparent">
-            <Button Color="Color.Secondary" Clicked="@ShowFilters">Show Filters</Button>
-            <Divider class="my-4" />
-            <PowerBiCustomLayout @ref="customReportRef"/>
-        </TabPanel>
-        <TabPanel Name="tab2" class="bg-transparent">
-            <Button Color="Color.Secondary" Clicked="@ShowFilters">Show Filters</Button>
-            <Divider class="my-4"/>
-            <PowerBiFullReport @ref="fullReportRef"/>
-        </TabPanel>
-    </Content>
-</Tabs>
+@if(notFound)
+{
+    <LayoutContent>
+        <Container Fluid Class="mt-2 text-center">
+            <NotFound />
+        </Container>
+    </LayoutContent>
+}
+else
+{
+    <PageTitle>@dashboard!.Name</PageTitle>
+    <LayoutSider>
+        <SecondaryNav Actions="Actions" Reports="allReports" />
+    </LayoutSider>
+    <LayoutContent>
+        <Container Fluid Class="mt-2">
+            @if(report != null && report.IsFullPage)
+            {
+                <PowerBiFullReport Dashboard="dashboard" Report="report" @ref="fullReportRef" />
+            }
+            else if(report != null)
+            {
+                <PowerBiCustomLayout Dashboard="dashboard" Report="report" @ref="customReportRef" />
+            }
+        </Container>
+    </LayoutContent>
+}
 
 <Modal @ref="modalRef">
     <ModalContent Centered Size="ModalSize.ExtraLarge">
@@ -41,39 +46,92 @@
 </Modal>
 
 
-    @code {
+@code {
+    [Inject] private IDashboardService dashboardService { get; set; } = null!;
+    [Inject] private NavigationManager navigation {get; set; } = null!;
 
+    [Parameter] public int DashboardId { get; set; }
+    [Parameter] public int ReportId { get; set; }
+
+    private bool notFound = false;
     private Modal? modalRef;
     private PowerBiCustomLayout? customReportRef;
     private PowerBiFullReport? fullReportRef;
-    private string selectedTab = "studies";
 
-    private Task OnSelectedTabChanged( string name )
+    private TheradexPortal.Data.Models.Dashboard? dashboard;
+    private IList<Report> allReports = new List<Report>();
+    private Report? report;
+
+    private IList<SecondaryNavAction> Actions => new List<SecondaryNavAction>
     {
-        selectedTab = name;
-        return Task.CompletedTask;
+        new SecondaryNavAction
+        {
+            IconName = IconName.Filter,
+            Label = "Filters",
+            OnClick = ShowFilters
+        }
+    };
+
+    protected override async Task OnParametersSetAsync()
+    {
+        notFound = false;
+        dashboard = await dashboardService.GetDashboardByIdAsync(DashboardId);
+        if(dashboard == null)
+        {
+            notFound = true;
+            return;
+        }
+
+        allReports = await dashboardService.GetAllReportsByDashboardIdAsync(DashboardId);
+
+        if (ReportId == 0)
+        {
+            report = allReports.FirstOrDefault();
+            if(report == null)
+            {
+                notFound = true;
+                return;
+            }
+            navigation.NavigateTo($"{WrConstants.DASHBOARD_PAGE_PATH}/{dashboard.WRDashboardId}/{report.WRReportId}", new NavigationOptions
+            {
+                ReplaceHistoryEntry = true
+            });
+        }
+        else
+        {
+            report = allReports.FirstOrDefault(r => r.WRReportId == ReportId);
+            if (report == null)
+            {
+                notFound = true;
+                return;
+            }
+        }
     }
 
-    private async Task ShowFilters()
+    // Show modal
+    private async void ShowFilters()
     {
         if (modalRef != null)
         {
             await modalRef.Show();
         }
-        
+
     }
 
-    // hide modal
+    // Re-render report components and hide modal
     private async void HideFilters(List<Protocol>? selectedStudies)
     {
-        if (selectedTab == "tab1" && customReportRef != null)
+        if (report != null)
         {
-            await customReportRef.Update();
-        }
+            if (!report.IsFullPage && customReportRef != null)
+            {
+                await customReportRef.Update();
+            }
 
-        if (selectedTab == "tab2" &&fullReportRef != null)
-        {
-            await fullReportRef.Update();
+            if (report.IsFullPage && fullReportRef != null)
+            {
+                await fullReportRef.Update();
+            }
         }
 
         if(modalRef != null)

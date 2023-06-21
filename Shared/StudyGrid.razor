@@ -3,85 +3,58 @@
 @using TheradexPortal.Data.Services
 @using Newtonsoft.Json
 @using Microsoft.JSInterop;
+@using TheradexPortal.Data.Services.Abstract;
 
-@inject StudyService studyService
-@inject IJSRuntime jsRuntime
+<Row Background="Background.Light">
+    <Column ColumnSize="ColumnSize.IsFull">
+        <DataGrid TItem="Protocol"
+                    Class=""
+                    Data="@studyList"
+                    SelectionMode="DataGridSelectionMode.Multiple"
+                    SelectedRows="@selectedStudies"
+                    Responsive
+                    Filterable
+                    Striped
+                    ShowPager
+                    FixedHeader
+                    FixedHeaderDataGridHeight="calc(100vh - 350px)"
+                    FixedHeaderDataGridMaxHeight="calc(100vh - 350px)"
+                    PageSize="25"
+                    CommandMode="DataGridCommandMode.ButtonRow">
+                <DataGridColumns>
+                    <DataGridMultiSelectColumn Width="30px"> </DataGridMultiSelectColumn>
+                    <DataGridCommandColumn />
+                    <DataGridColumn Field="@nameof(Protocol.StudyId)" Caption="Study ID"/>
+                    <DataGridColumn Field="@nameof(Protocol.StudyDrug)" Caption="Primary Agent" />
+                    <DataGridColumn Field="@nameof(Protocol.ProtocolTitle)" Caption="Title" />
+                    <DataGridDateColumn Field="@nameof(Protocol.ActivationDT)" Caption="Activation Date">
+                        <DisplayTemplate>
+                            @{
+                                var date = (context as Protocol)?.ActivationDT;
 
+                                if (date != null)
+                                {
+                                    @(date.Value.ToShortDateString())
+                                }
+                            }
+                        </DisplayTemplate>
+                    </DataGridDateColumn>
+                    <DataGridColumn Field="@nameof(Protocol.CurrentStatus)" Caption="Protocol Status" />
+                    <DataGridColumn Field="@nameof(Protocol.StudyId)" Sortable="false" Filterable="false" Width="120px">
+                        <DisplayTemplate>
+                            <Button Color="Color.Info" Clicked="@(()=>OnOverviewClicked(context as Protocol))">
+                                Overview
+                            </Button>
+                        </DisplayTemplate>
+                    </DataGridColumn>
+                </DataGridColumns>
+            <ButtonRowTemplate>
+                <Button Color="Color.Primary" Clicked="@Save">Save Studies</Button>
+            </ButtonRowTemplate>
 
-<DataGrid TItem="Protocol" class="bg-light"
-            Data="@studyList"
-            SelectionMode="DataGridSelectionMode.Multiple"
-            SelectedRows="@selectedStudies"
-            Responsive
-            Filterable
-            Striped
-            FixedHeader
-            FixedHeaderDataGridMaxHeight="500px"
-            ShowPager
-            PageSize="5"
-            PagerPosition="DataGridPagerPosition.Top"
-            PagerOptions="new(){ ButtonSize=Size.Small }">
-        <DataGridColumns>
-            <DataGridMultiSelectColumn Width="30px"> </DataGridMultiSelectColumn>
-            <DataGridCommandColumn />
-            <DataGridColumn Field="@nameof(Protocol.Study_Id)" Caption="Study ID" Filterable="false"/>
-            <DataGridColumn Field="@nameof(Protocol.Study_Drug)" Caption="Primary Agent" />
-            <DataGridColumn Field="@nameof(Protocol.Protocol_Title)" Caption="Title" />
-            <DataGridDateColumn Field="@nameof(Protocol.Activation_DT)" Caption="Activation Date">
-                <DisplayTemplate>
-                    @{
-                        var date = (context as Protocol)?.Activation_DT;
-
-                        if (date != null)
-                        {
-                            @(date.Value.ToShortDateString())
-                        }
-                    }
-                </DisplayTemplate>
-                <FilterTemplate>
-                    <DatePicker @bind-Dates="selectedDates" TValue="DateTime?" InputMode="DateInputMode.Date" SelectionMode="DateInputSelectionMode.Range" />
-                </FilterTemplate>
-            </DataGridDateColumn>
-            <DataGridColumn Field="@nameof(Protocol.Current_Status)" Caption="Protocol Status" />
-            <DataGridColumn Field="@nameof(Protocol.Study_Id)" Sortable="false" Filterable="false" Caption="Overview" Width="120px">
-                <DisplayTemplate>
-                    <Button Color="Color.Primary" Clicked="@(()=>OnOverviewClicked(context as Protocol))">
-                        Overview
-                    </Button>
-                </DisplayTemplate>
-            </DataGridColumn>
-        </DataGridColumns>
-                    
-        <PageButtonTemplate>
-            <Span TextColor="TextColor.Success">
-                @context.PageNumber
-            </Span>
-        </PageButtonTemplate>
-        <NextPageButtonTemplate><Icon Name="IconName.StepForward" TextColor="TextColor.Success" /></NextPageButtonTemplate>
-        <PreviousPageButtonTemplate><Icon Name="IconName.StepBackward" TextColor="TextColor.Success" /></PreviousPageButtonTemplate>
-        <LastPageButtonTemplate><Icon Name="IconName.Forward" TextColor="TextColor.Success" /></LastPageButtonTemplate>
-        <FirstPageButtonTemplate><Icon Name="IconName.Backward" TextColor="TextColor.Success" /></FirstPageButtonTemplate>
-        <TotalItemsTemplate><Badge Color="Color.Success">@context.TotalItems total items</Badge></TotalItemsTemplate>
-        <TotalItemsShortTemplate><Badge Color="Color.Success">@context.TotalItems</Badge></TotalItemsShortTemplate>
-        <PageSelectorTemplate>
-            <Select TextColor="TextColor.Success" @bind-SelectedValue="@context.CurrentPage" Size="Size.Small">
-                @for ( int i = context.FirstVisiblePage; i <= context.LastVisiblePage; ++i )
-                {
-                    var pageNumber = i;
-                    <SelectItem Value="@pageNumber">@pageNumber</SelectItem>
-                }
-            </Select>
-        </PageSelectorTemplate>
-        <PageSizesTemplate>
-            <Select TextColor="TextColor.Success" @bind-SelectedValue="@context.CurrentPageSize" Size="Size.Small">
-                @foreach (var curPageSize in context.PageSizes)
-                {
-                    <SelectItem Value="@curPageSize">@curPageSize</SelectItem>
-                }
-            </Select>
-        </PageSizesTemplate>
-</DataGrid>
-<Button Color="Color.Secondary" Clicked="@Save">Load Selections</Button>
+        </DataGrid>
+    </Column>
+</Row>
 
 
 <Modal @ref="overviewRef">
@@ -95,11 +68,11 @@
                 <TableBody>
                     <TableRow>
                         <TableRowHeader>Study ID</TableRowHeader>
-                        <TableRowCell>@(overviewProtocol.Study_Id)</TableRowCell>
+                        <TableRowCell>@(overviewProtocol.StudyId)</TableRowCell>
                     </TableRow>
                     <TableRow>
                         <TableRowHeader>Title</TableRowHeader>
-                        <TableRowCell>@(overviewProtocol.Protocol_Title)</TableRowCell>
+                        <TableRowCell>@(overviewProtocol.ProtocolTitle)</TableRowCell>
                     </TableRow>
                     <TableRow>
                         <TableRowHeader>Primary Investigator</TableRowHeader>
@@ -107,7 +80,7 @@
                     </TableRow>
                     <TableRow>
                         <TableRowHeader>Monitoring Method</TableRowHeader>
-                        <TableRowCell>@(overviewProtocol.Monitoring_Method)</TableRowCell>
+                        <TableRowCell>@(overviewProtocol.MonitoringMethod)</TableRowCell>
                     </TableRow>
                     <TableRow>
                         <TableRowHeader>Accrual (Screening/Intervention/Other)</TableRowHeader>
@@ -141,8 +114,11 @@
 </Modal>
 
     @code {
-    [Parameter]
-    public Action<List<Protocol>?>? OnSave { get; set; }
+    [Inject] IStudyService studyService { get; set; } = null!;
+    [Inject] IJSRuntime jsRuntime { get; set; }
+    [Inject] INotificationService? notificationService { get; set; } = null!;
+
+    [Parameter] public Action<List<Protocol>?>? OnSave { get; set; } = null!;
 
     private IList<Protocol>? studyList;
     private List<Protocol>? selectedStudies;
@@ -167,8 +143,8 @@
                 var storedProtocols = JsonConvert.DeserializeObject<List<Protocol>>(json);
                 if (storedProtocols != null)
                 {
-                    var ids = storedProtocols.Select(x => x.Study_Id).ToList();
-                    selectedStudies = studyList.Where(x => ids.Contains(x.Study_Id)).ToList();
+                    var ids = storedProtocols.Select(x => x.StudyId).ToList();
+                    selectedStudies = studyList.Where(x => ids.Contains(x.StudyId)).ToList();
                     StateHasChanged();
                 }
             }
@@ -178,7 +154,7 @@
     // filter by dates
     private Task FilterByDates() 
     {
-        studyList = studyList.Where(x => selectedDates.Contains(x.Activation_DT)).ToList();
+        studyList = studyList.Where(x => selectedDates.Contains(x.ActivationDT)).ToList();
         return Task.CompletedTask;
     }
 
@@ -195,6 +171,12 @@
         string json = JsonConvert.SerializeObject(selectedStudies, Formatting.Indented);
         Console.WriteLine(json);
         await jsRuntime.InvokeVoidAsync("localStorage.setItem", "selectedStudies", json);
+
+        // Notify user
+        if(notificationService != null)
+        {
+            await notificationService.Success("Studies Updated");
+        }
 
         // Notify calling component
         if(OnSave != null)
