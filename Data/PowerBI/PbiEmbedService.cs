@@ -8,9 +8,10 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Runtime.InteropServices;
+    using TheradexPortal.Data.PowerBI.Abstract;
     using TheradexPortal.Data.PowerBI.Models;
 
-    public class PbiEmbedService
+    public class PbiEmbedService : IPbiEmbedService
     {
         private readonly AadService aadService;
         private readonly string urlPowerBiServiceApiRoot = "https://api.powerbi.com";

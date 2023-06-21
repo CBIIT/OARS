@@ -4,6 +4,7 @@
 @using TheradexPortal.Data
 @using TheradexPortal.Data.Models;
 @using TheradexPortal.Data.PowerBI
+@using TheradexPortal.Data.PowerBI.Abstract;
 @using TheradexPortal.Data.PowerBI.Models;
 
 <div @ref="@pbiElement" class="pbi-embed-container" />
@@ -12,7 +13,7 @@
 @code {
     [Inject] private IJSRuntime js { get; set; } = null!;
     [Inject] private IOptions<PowerBI> powerBiConfig { get; set; } = null!;
-    [Inject] private PbiEmbedService pbiEmbedService { get; set; } = null!;
+    [Inject] private IPbiEmbedService pbiEmbedService { get; set; } = null!;
 
     [Parameter] public Dashboard? Dashboard { get; set; }
     [Parameter] public Report? Report {get; set; }

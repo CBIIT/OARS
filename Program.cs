@@ -19,19 +19,22 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using TheradexPortal.Data.Static;
 using Microsoft.AspNetCore.Identity;
+using TheradexPortal.Data.Models;
+using TheradexPortal.Data.Identity;
+using TheradexPortal.Data.Services.Abstract;
+using TheradexPortal.Data.PowerBI.Abstract;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddSingleton<AadService>();
-builder.Services.AddSingleton<PbiEmbedService>();
-builder.Services.AddSingleton<UserService>();
-builder.Services.AddSingleton<UserRoleService>();
-builder.Services.AddSingleton<StudyService>();
-//builder.Services.AddIdentity<IdentityUser<IUser>>()
-builder.Services.AddSingleton<DashboardService>();
+builder.Services.AddSingleton<IAadService, AadService>();
+builder.Services.AddSingleton<IPbiEmbedService, PbiEmbedService>();
+builder.Services.AddSingleton<IUserService, UserService>();
+builder.Services.AddSingleton<IUserRoleService, UserRoleService>();
+builder.Services.AddSingleton<IStudyService, StudyService>();
+builder.Services.AddSingleton<IDashboardService, DashboardService>(); 
 
 // Add Blazorise and Tailwind UI
 builder.Services
@@ -59,7 +62,7 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
     options.Secure = CookieSecurePolicy.Always;
 });*/
 
-var onTokenValidated = (TokenValidatedContext context) =>
+var onTokenValidated = async (TokenValidatedContext context) =>
 {
     if (context is null || context.Principal is null || context.Principal.Identity is null)
         return Task.CompletedTask;
@@ -69,29 +72,38 @@ var onTokenValidated = (TokenValidatedContext context) =>
     var claimsIdentity = (ClaimsIdentity)context.Principal.Identity;
 
 
-    var userService = context.HttpContext.RequestServices.GetRequiredService<UserService>();
-    var userRoleService = context.HttpContext.RequestServices.GetRequiredService<UserRoleService>();
+    var userService = context.HttpContext.RequestServices.GetRequiredService<IUserService>();
+    var userRoleService = context.HttpContext.RequestServices.GetRequiredService<IUserRoleService>();
 
-    var email = context.Principal.Identity.Name;
-    //var user = await userService.GetUserByEmailAsync(email);
     var userIsRegistered = false;
-    //claimsIdentity.add
-    //if (user is not null)
-    //{
-    //    userIsRegistered = true;
-    //}
-    claimsIdentity.AddClaim(new Claim(WRClaimType.Registered, userIsRegistered.ToString()));
+    var email = context.Principal.Identity.Name;
+    if (email is null)
+    {
+        claimsIdentity.AddClaim(new Claim(WRClaimType.Registered, userIsRegistered.ToString()));
+        return Task.CompletedTask;
+    }
 
-    //var userRoles = await userRoleService.GetUserRolesByUserIdAsync(user.UserId);
+    var user = await userService.GetUserByEmailAsync(email);
+    if (user is null)
+    {
+        claimsIdentity.AddClaim(new Claim(WRClaimType.Registered, userIsRegistered.ToString()));
+        return Task.CompletedTask;
+    }
+    userIsRegistered = true;
+
+    claimsIdentity.AddClaim(new Claim(WRClaimType.Registered, userIsRegistered.ToString()));
+    claimsIdentity.AddClaim(new Claim(WRClaimType.UserId, user.UserId.ToString()));
+
+    var userRoles = await userRoleService.GetUserRolesAsync(user.UserId);
     var isAdmin = false;
-    //for(var role in userRoles)
-    //{
-    //    claimsIdentity.AddClaim(new Claim(WRClaimType.Role, role.RoleName));
-    //    if (role.IsAdmin)
-    //    {
-    //        isAdmin = true;
-    //    }
-    //}
+    foreach(var role in userRoles)
+    {        
+        claimsIdentity.AddClaim(new Claim(WRClaimType.Role, role.RoleName));
+        if (role.IsAdmin)
+        {
+            isAdmin = true;
+        }
+    }
     claimsIdentity.AddClaim(new Claim(WRClaimType.IsAdmin, isAdmin.ToString()));
 
     return Task.CompletedTask;
@@ -166,8 +178,17 @@ builder.Services.AddAuthentication(authOptions =>
 
 builder.Services.AddHttpContextAccessor();
 
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Admin", policy => policy.RequireClaim(WRClaimType.IsAdmin, "true"));
+});
 
 var app = builder.Build();
+
+app.Use(async (context, next) =>
+{
+    await next();
+});
 
 // Force HTTPS context for use behind load balancer
 app.Use((context, next) =>

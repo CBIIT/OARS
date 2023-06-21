@@ -12,14 +12,26 @@ namespace TheradexPortal.Data.Models
         public int WRUserRoleId { get; set; }
         public int UserId { get; set; }
         public int RoleId { get; set; }
-        [Column("Is_Admin")]
-        public Boolean IsAdmin { get; set; }
         [Column("Expiration_Date")]
         public DateTime? ExpirationDate { get; set; }
         [Column("Create_Date")]
         public DateTime? CreateDate { get; set; }
         [Column("Update_Date")]
         public DateTime? UpdateDate { get; set; }
+
+        [ForeignKey(nameof(UserId))]
+        public User User { get; set; }
+        [ForeignKey(nameof(RoleId))]
+        public Role Role { get; set; }
+
+        public UserRole()
+        {
+            CreateDate = DateTime.Now;
+            UpdateDate = DateTime.Now;
+
+            User = new User();
+            Role = new Role();
+        }
 
     }
 }
