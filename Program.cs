@@ -79,7 +79,19 @@ var onTokenValidated = async (TokenValidatedContext context) =>
     var userRoleService = context.HttpContext.RequestServices.GetRequiredService<IUserRoleService>();
 
     var userIsRegistered = false;
-    var email = context.Principal.Identity.Name;
+
+    if (claimsIdentity.Claims is null)
+    {
+        claimsIdentity.AddClaim(new Claim(WRClaimType.Registered, userIsRegistered.ToString()));
+        return Task.CompletedTask;
+    }
+    Claim emailClaim = (claimsIdentity).Claims.Where(c => c.Type == "preferred_username").FirstOrDefault();
+    if (emailClaim is null)
+    {
+        claimsIdentity.AddClaim(new Claim(WRClaimType.Registered, userIsRegistered.ToString()));
+        return Task.CompletedTask;
+    }
+    var email = emailClaim.Value;
     if (email is null)
     {
         claimsIdentity.AddClaim(new Claim(WRClaimType.Registered, userIsRegistered.ToString()));
@@ -102,10 +114,10 @@ var onTokenValidated = async (TokenValidatedContext context) =>
     foreach(var role in userRoles)
     {        
         claimsIdentity.AddClaim(new Claim(WRClaimType.Role, role.RoleName));
-        if (role.IsAdmin)
-        {
-            isAdmin = true;
-        }
+        //if (role.IsAdmin)
+        //{
+        //    isAdmin = true;
+        //}
     }
     claimsIdentity.AddClaim(new Claim(WRClaimType.IsAdmin, isAdmin.ToString()));
 
