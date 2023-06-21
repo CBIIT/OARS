@@ -178,10 +178,6 @@ builder.Services.AddAuthentication(authOptions =>
 
 builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("Admin", policy => policy.RequireClaim(WRClaimType.IsAdmin, "true"));
-});
 
 var app = builder.Build();
 

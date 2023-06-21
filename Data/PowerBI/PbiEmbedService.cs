@@ -13,10 +13,10 @@
 
     public class PbiEmbedService : IPbiEmbedService
     {
-        private readonly AadService aadService;
+        private readonly IAadService aadService;
         private readonly string urlPowerBiServiceApiRoot = "https://api.powerbi.com";
 
-        public PbiEmbedService(AadService aadService)
+        public PbiEmbedService(IAadService aadService)
         {
             this.aadService = aadService;
         }
