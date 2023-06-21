@@ -34,6 +34,9 @@
                                                 <Icon Name="IconName.UserCircle" IconSize="IconSize.Large" />
                                             </BarLink>
                                         </BarItem>
+                                        <BarItem>
+                                            <Button Flex="Flex.JustifyContent.Center" Block Color="Color.Secondary" Clicked="@OnButtonClicked">Logout</Button>
+                                        </BarItem>
                                     </BarEnd>
                                 </BarMenu>
                             </Bar>
@@ -73,4 +76,12 @@
 
 @code {
     private Bar? sidebar;
+    [Inject] public NavigationManager Navigation { get; set; }
+
+    Task OnButtonClicked()
+    {
+        Navigation.NavigateTo($"Signout", true);
+
+        return Task.CompletedTask;
+    }
 }

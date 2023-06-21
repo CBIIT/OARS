@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -9,7 +10,8 @@ namespace TheradexPortal.Controllers
         [HttpGet("Login")]
         public IActionResult Login([FromQuery] string returnUrl)
         {
-            var redirectUri = returnUrl is null ? Url.Content("~/") : "/" + returnUrl;
+            var redirectUri = returnUrl is null ? Url.Content("~/Studies") : "/" + returnUrl;
+            //var redirectUri = returnUrl is null ? Url.Content("~/") : "/Studies";
 
             if (User.Identity.IsAuthenticated)
             {
@@ -23,8 +25,8 @@ namespace TheradexPortal.Controllers
             return Challenge();
         }
 
-        [HttpGet("Logout")]
-        public async Task<ActionResult> Logout([FromQuery] string returnUrl)
+        [HttpGet("Signout")]
+        public async Task<ActionResult> Signout([FromQuery] string returnUrl)
         {
             var redirectUri = returnUrl is null ? Url.Content("~/") : "/" + returnUrl;
 
@@ -32,11 +34,13 @@ namespace TheradexPortal.Controllers
             {
                 return LocalRedirect(redirectUri);
             }
-            Response.Redirect("https://theradexbeta.oktapreview.com/logout");
 
-            await HttpContext.SignOutAsync();
-
-            return LocalRedirect(redirectUri);
+            return SignOut(new AuthenticationProperties() { RedirectUri = Url.Content("~/") },
+                new[]
+                {
+                    Okta.AspNetCore.OktaDefaults.MvcAuthenticationScheme,
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                });
         }
     }
 }

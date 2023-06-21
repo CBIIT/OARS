@@ -56,15 +56,6 @@ builder.Services.Configure<AzureAd>(builder.Configuration.GetSection("PowerBICre
 builder.Services.AddDbContextFactory<WrDbContext>(opt =>
     opt.UseOracle(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-/*
-builder.Services.Configure<CookiePolicyOptions>(options =>
-{
-    // This lambda determines whether user consent for non-essential cookies is needed for a given request.
-    //options.CheckConsentNeeded = context => true;
-    //options.MinimumSameSitePolicy = SameSiteMode.None;
-    options.Secure = CookieSecurePolicy.Always;
-});*/
-
 var onTokenValidated = async (TokenValidatedContext context) =>
 {
     if (context is null || context.Principal is null || context.Principal.Identity is null)
@@ -138,6 +129,7 @@ builder.Services.AddAuthentication(authOptions =>
     oidcOptions.ClientId = builder.Configuration["Okta:ClientId"];
     oidcOptions.ClientSecret = builder.Configuration["Okta:ClientSecret"];
     oidcOptions.CallbackPath = "/authorization-code/callback";
+    //oidcOptions.SignedOutRedirectUri = "/landing";
     oidcOptions.Authority = builder.Configuration["Okta:Issuer"];
     oidcOptions.ResponseType = "code";
     oidcOptions.SaveTokens = true;
@@ -149,48 +141,9 @@ builder.Services.AddAuthentication(authOptions =>
     {        
         OnTokenValidated = onTokenValidated
     };
-    //oidcOptions.RequireHttpsMetadata = false;
 })
 .AddCookie();
-/*}).AddCookie(options =>
-{
-    //options.Cookie.SameSite = SameSiteMode.Strict;
-    //options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-});
-*/
-/*
-}).AddCookie(options =>
-{
-    options.Cookie.SameSite = SameSiteMode.None;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-});*/
 
-// Configure Cognito auth
-//var sessionCookieLifetime = builder.Configuration.GetValue("SessionCookieLifetimeMinutes", 60);
-//builder.Services.AddAuthentication(options =>
-//{
-//    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-//    options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
-//})
-//.AddCookie(options => {
-//    options.ExpireTimeSpan = TimeSpan.FromMinutes(sessionCookieLifetime);
-//})
-//.AddOpenIdConnect(options =>
-//{
-//    options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-
-//    options.Authority = builder.Configuration.GetValue<string>("CognitoConfig:Authority");
-//    options.ClientId = builder.Configuration.GetValue<string>("CognitoConfig:ClientId");
-//    options.ClientSecret = builder.Configuration.GetValue<string>("CognitoConfig:ClientSecret");
-
-//    options.ResponseType = OpenIdConnectResponseType.Code;
-//    options.SaveTokens = false;
-//    options.GetClaimsFromUserInfoEndpoint = true;
-//    options.Scope.Add("openid");
-//    options.Scope.Add("profile");
-//    options.Scope.Add("email");
-
-//});
 builder.Services.Configure<Saml2Configuration>(builder.Configuration.GetSection("Saml2"));
 
 builder.Services.Configure<Saml2Configuration>(saml2Configuration =>
@@ -230,17 +183,11 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Error");
 }
 
-/*
-app.UseCookiePolicy(new CookiePolicyOptions()
-{
-    MinimumSameSitePolicy = SameSiteMode.Strict
-}) ;*/
-
 app.UseStaticFiles();
 app.UseRouting();
 app.UseSaml2();
 
-//app.UseAuthentication();
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseEndpoints(endpoints =>
