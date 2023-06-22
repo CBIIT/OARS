@@ -7,7 +7,7 @@ namespace TheradexPortal.Controllers
 {
     public class LoginController : Controller
     {
-        [HttpGet("Login")]
+        [HttpGet("login")]
         public IActionResult Login([FromQuery] string returnUrl)
         {
             var redirectUri = returnUrl is null ? Url.Content("~/Studies") : "/" + returnUrl;
@@ -25,7 +25,7 @@ namespace TheradexPortal.Controllers
             return Challenge();
         }
 
-        [HttpGet("Signout")]
+        [HttpGet("signout")]
         public async Task<ActionResult> Signout([FromQuery] string returnUrl)
         {
             var redirectUri = returnUrl is null ? Url.Content("~/") : "/" + returnUrl;
