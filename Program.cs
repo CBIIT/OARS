@@ -15,17 +15,29 @@ using Blazorise.Bootstrap5;
 using Blazorise.Icons.FontAwesome;
 using Microsoft.EntityFrameworkCore;
 using TheradexPortal.Data.Services;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using TheradexPortal.Data.Static;
+using Microsoft.AspNetCore.Identity;
+using TheradexPortal.Data.Models;
+using TheradexPortal.Data.Identity;
+using TheradexPortal.Data.Services.Abstract;
+using TheradexPortal.Data.PowerBI.Abstract;
+using ITfoxtec.Identity.Saml2;
+using ITfoxtec.Identity.Saml2.Schemas.Metadata;
+using ITfoxtec.Identity.Saml2.MvcCore.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddSingleton<AadService>();
-builder.Services.AddSingleton<PbiEmbedService>();
-builder.Services.AddSingleton<UserService>();
-builder.Services.AddSingleton<StudyService>();
-builder.Services.AddSingleton<DashboardService>();
+builder.Services.AddSingleton<IAadService, AadService>();
+builder.Services.AddSingleton<IPbiEmbedService, PbiEmbedService>();
+builder.Services.AddSingleton<IUserService, UserService>();
+builder.Services.AddSingleton<IUserRoleService, UserRoleService>();
+builder.Services.AddSingleton<IStudyService, StudyService>();
+builder.Services.AddSingleton<IDashboardService, DashboardService>(); 
 
 // Add Blazorise and Tailwind UI
 builder.Services
@@ -44,40 +56,121 @@ builder.Services.Configure<AzureAd>(builder.Configuration.GetSection("PowerBICre
 builder.Services.AddDbContextFactory<WrDbContext>(opt =>
     opt.UseOracle(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+var onTokenValidated = async (TokenValidatedContext context) =>
+{
+    if (context is null || context.Principal is null || context.Principal.Identity is null)
+        return Task.CompletedTask;
 
-// Configure Cognito auth
-//var sessionCookieLifetime = builder.Configuration.GetValue("SessionCookieLifetimeMinutes", 60);
-//builder.Services.AddAuthentication(options =>
-//{
-//    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-//    options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
-//})
-//.AddCookie(options => {
-//    options.ExpireTimeSpan = TimeSpan.FromMinutes(sessionCookieLifetime);
-//})
-//.AddOpenIdConnect(options =>
-//{
-//    options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 
-//    options.Authority = builder.Configuration.GetValue<string>("CognitoConfig:Authority");
-//    options.ClientId = builder.Configuration.GetValue<string>("CognitoConfig:ClientId");
-//    options.ClientSecret = builder.Configuration.GetValue<string>("CognitoConfig:ClientSecret");
+    // Add custom claims to the identity
+    var claimsIdentity = (ClaimsIdentity)context.Principal.Identity;
 
-//    options.ResponseType = OpenIdConnectResponseType.Code;
-//    options.SaveTokens = false;
-//    options.GetClaimsFromUserInfoEndpoint = true;
-//    options.Scope.Add("openid");
-//    options.Scope.Add("profile");
-//    options.Scope.Add("email");
 
-//});
+    var userService = context.HttpContext.RequestServices.GetRequiredService<IUserService>();
+    var userRoleService = context.HttpContext.RequestServices.GetRequiredService<IUserRoleService>();
 
+    var userIsRegistered = false;
+
+    if (claimsIdentity.Claims is null)
+    {
+        claimsIdentity.AddClaim(new Claim(WRClaimType.Registered, userIsRegistered.ToString()));
+        return Task.CompletedTask;
+    }
+    Claim emailClaim = (claimsIdentity).Claims.Where(c => c.Type == "preferred_username").FirstOrDefault();
+    if (emailClaim is null)
+    {
+        claimsIdentity.AddClaim(new Claim(WRClaimType.Registered, userIsRegistered.ToString()));
+        return Task.CompletedTask;
+    }
+    var email = emailClaim.Value;
+    if (email is null)
+    {
+        claimsIdentity.AddClaim(new Claim(WRClaimType.Registered, userIsRegistered.ToString()));
+        return Task.CompletedTask;
+    }
+
+    var user = await userService.GetUserByEmailAsync(email);
+    if (user is null)
+    {
+        claimsIdentity.AddClaim(new Claim(WRClaimType.Registered, userIsRegistered.ToString()));
+        return Task.CompletedTask;
+    }
+    userIsRegistered = true;
+
+    claimsIdentity.AddClaim(new Claim(WRClaimType.Registered, userIsRegistered.ToString()));
+    claimsIdentity.AddClaim(new Claim(WRClaimType.UserId, user.UserId.ToString()));
+
+    var userRoles = await userRoleService.GetUserRolesAsync(user.UserId);
+    var isAdmin = false;
+    foreach(var role in userRoles)
+    {        
+        claimsIdentity.AddClaim(new Claim(WRClaimType.Role, role.RoleName));
+        //if (role.IsAdmin)
+        //{
+        //    isAdmin = true;
+        //}
+    }
+    claimsIdentity.AddClaim(new Claim(WRClaimType.IsAdmin, isAdmin.ToString()));
+
+    return Task.CompletedTask;
+
+};
+
+// Okta authentication
+
+builder.Services.AddAuthentication(authOptions =>
+{
+    authOptions.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    authOptions.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    authOptions.DefaultSignOutScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    authOptions.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+}).AddOpenIdConnect(oidcOptions =>
+{
+    oidcOptions.ClientId = builder.Configuration["Okta:ClientId"];
+    oidcOptions.ClientSecret = builder.Configuration["Okta:ClientSecret"];
+    oidcOptions.CallbackPath = "/authorization-code/callback";
+    //oidcOptions.SignedOutRedirectUri = "/landing";
+    oidcOptions.Authority = builder.Configuration["Okta:Issuer"];
+    oidcOptions.ResponseType = "code";
+    oidcOptions.SaveTokens = true;
+    oidcOptions.Scope.Add("openid");
+    oidcOptions.Scope.Add("profile");
+    oidcOptions.TokenValidationParameters.ValidateIssuer = false;
+    oidcOptions.TokenValidationParameters.NameClaimType = "name";
+    oidcOptions.Events = new OpenIdConnectEvents
+    {        
+        OnTokenValidated = onTokenValidated
+    };
+})
+.AddCookie();
+
+builder.Services.Configure<Saml2Configuration>(builder.Configuration.GetSection("Saml2"));
+
+builder.Services.Configure<Saml2Configuration>(saml2Configuration =>
+{
+    saml2Configuration.AllowedAudienceUris.Add(saml2Configuration.Issuer);
+
+    var entityDescriptor = new EntityDescriptor();
+    entityDescriptor.ReadIdPSsoDescriptorFromUrl(new Uri(builder.Configuration["Saml2:IdPMetadata"]));
+    if (entityDescriptor.IdPSsoDescriptor != null)
+    {
+        saml2Configuration.SingleSignOnDestination = entityDescriptor.IdPSsoDescriptor.SingleSignOnServices.First().Location;
+        saml2Configuration.SignatureValidationCertificates.AddRange(entityDescriptor.IdPSsoDescriptor.SigningCertificates);
+    }
+    else
+    {
+        throw new Exception("IdPSsoDescriptor not loaded from metadata.");
+    }
+});
+
+builder.Services.AddSaml2();
 builder.Services.AddHttpContextAccessor();
 
 
 var app = builder.Build();
 
 // Force HTTPS context for use behind load balancer
+
 app.Use((context, next) =>
 {
     context.Request.Scheme = "https";
@@ -92,10 +185,21 @@ if (!app.Environment.IsDevelopment())
 
 app.UseStaticFiles();
 app.UseRouting();
+app.UseSaml2();
 
-//app.UseAuthentication();
-//app.UseAuthorization();
+app.UseAuthentication();
+app.UseAuthorization();
 
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapRazorPages();
+
+    endpoints.MapControllerRoute(
+        name: "default",
+        pattern: "{controller=Home}/{action=Index}/{id?}");
+});
+
+app.MapControllers();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 

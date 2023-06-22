@@ -3,6 +3,7 @@
 @using TheradexPortal.Data.Services
 @using Newtonsoft.Json
 @using Microsoft.JSInterop;
+@using TheradexPortal.Data.Services.Abstract;
 
 <Row Background="Background.Light">
     <Column ColumnSize="ColumnSize.IsFull">
@@ -113,7 +114,7 @@
 </Modal>
 
     @code {
-    [Inject] StudyService studyService { get; set; } = null!;
+    [Inject] IStudyService studyService { get; set; } = null!;
     [Inject] IJSRuntime jsRuntime { get; set; }
     [Inject] INotificationService? notificationService { get; set; } = null!;
 

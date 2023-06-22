@@ -5,8 +5,8 @@
 @using System.Threading.Tasks
 @using TheradexPortal.Data;
 @using TheradexPortal.Data.Models;
-@using TheradexPortal.Data.PowerBI;
-@using TheradexPortal.Data.Services;
+@using TheradexPortal.Data.PowerBI.Abstract;
+@using TheradexPortal.Data.Services.Abstract;
 @using TheradexPortal.Data.ViewModels;
 
 @if(notFound)
@@ -47,7 +47,7 @@ else
 
 
 @code {
-    [Inject] private DashboardService dashboardService { get; set; } = null!;
+    [Inject] private IDashboardService dashboardService { get; set; } = null!;
     [Inject] private NavigationManager navigation {get; set; } = null!;
 
     [Parameter] public int DashboardId { get; set; }

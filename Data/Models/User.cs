@@ -11,7 +11,7 @@ namespace TheradexPortal.Data.Models
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
         public string? EmailAddress { get; set; }
-        public string? CtepId { get; set; }
+        public string? CtepUserId { get; set; }
         public string? Title { get; set; }
         public DateTime? CreateDate { get; set; }
         public DateTime? UpdateDate { get; set; }

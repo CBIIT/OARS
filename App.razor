@@ -1,9 +1,17 @@
-﻿@*<CascadingAuthenticationState>*@
+﻿<CascadingValue Name="AccessToken" Value="AccessToken">
+    <CascadingAuthenticationState>
     <Blazorise.ThemeProvider Theme="@theme">
         <Router AppAssembly="@typeof(App).Assembly">
             <Found Context="routeData">
-                <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
-                <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+                <AuthorizeRouteView RouteData=@routeData DefaultLayout="@typeof(MainLayout)">
+                    <NotAuthorized>
+                        <!--RedirectToLogin /-->
+                        Not Authorized  - App.razor
+                    </NotAuthorized>
+                    <Authorizing>
+                        Authorizing...
+                    </Authorizing>
+                </AuthorizeRouteView>
             </Found>
             <NotFound>
                 <PageTitle>Not found</PageTitle>
@@ -14,8 +22,9 @@
         </Router>
         <NotificationProvider />
     </Blazorise.ThemeProvider>
-@*</CascadingAuthenticationState>
-*@
+    </CascadingAuthenticationState>
+</CascadingValue>
+
 @code {
     private Theme theme = new Theme
     {
@@ -29,4 +38,6 @@
             Light = "#D1D2D4"
         }
     };
+
+    [Parameter] public string AccessToken { get; set; }
 }

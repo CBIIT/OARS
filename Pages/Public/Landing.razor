@@ -1,6 +1,6 @@
 ﻿@page "/"
+@page "/landing"
 @layout LoginLayout
-
 <Container Position="Position.Absolute.Top.Is50.Start.Is50.Translate.Middle">
     <Row>
         <Column ColumnSize="ColumnSize.Is4.Is4.WithOffset">
@@ -12,10 +12,11 @@
                 </CardBody>
                 <CardBody>
                     <Div Class="my-2" Flex="Flex.JustifyContent.Center">
-                        <Button Flex="Flex.JustifyContent.Center" Block Color="Color.Primary" Type="ButtonType.Link" To="/login">Theradex Sign In</Button>
+                        <!--Button Flex="Flex.JustifyContent.Center" Block Color="Color.Secondary" Type="ButtonType.Link" To="/Login/Login">Theradex Sign In</!--Button-->
+                        <Button Flex="Flex.JustifyContent.Center" Block Color="Color.Primary" TextColor="TextColor.White" Clicked="@OnButtonClicked">Theradex Sign In</Button>
                     </Div>
                     <Div Class="my-2" Flex="Flex.JustifyContent.Center">
-                        <Button Flex="Flex.JustifyContent.Center" Block Color="Color.Primary">CTEP/NIH Sign In</Button>
+                        <Button Flex="Flex.JustifyContent.Center" Block Color="Color.Primary" TextColor="TextColor.White" Clicked="@OnSAMLButtonClicked">CTEP/NIH Sign In</Button>
                     </Div>
                 </CardBody>
             </Card>
@@ -37,4 +38,27 @@
         </Column>
     </Row>
 </Container>
+
+@code {
+    [Inject] public NavigationManager Navigation { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+    }
+
+    Task OnButtonClicked()
+    {
+        Navigation.NavigateTo($"Login", true);
+
+        return Task.CompletedTask;
+    }
+
+    Task OnSAMLButtonClicked()
+    {
+        Navigation.NavigateTo($"Auth/Login", true);
+
+        return Task.CompletedTask;
+    }
+}
     

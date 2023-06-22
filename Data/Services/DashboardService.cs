@@ -1,9 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TheradexPortal.Data.Models;
+using TheradexPortal.Data.Services.Abstract;
 
 namespace TheradexPortal.Data.Services
 {
-    public class DashboardService : BaseService
+    public class DashboardService : BaseService, IDashboardService
     {
         public DashboardService(IDbContextFactory<WrDbContext> dbFactory) : base(dbFactory) { }
 

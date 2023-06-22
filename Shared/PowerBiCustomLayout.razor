@@ -4,8 +4,10 @@
 @using TheradexPortal.Data
 @using TheradexPortal.Data.Models;
 @using TheradexPortal.Data.PowerBI
+@using TheradexPortal.Data.PowerBI.Abstract;
 @using TheradexPortal.Data.PowerBI.Models;
 @using TheradexPortal.Data.Services;
+@using TheradexPortal.Data.Services.Abstract;
 
 @implements IAsyncDisposable;
 
@@ -15,8 +17,8 @@
 @code {
     [Inject] private IJSRuntime js { get; set; } = null!;
     [Inject] private IOptions<PowerBI> powerBiConfig { get; set; } = null!;
-    [Inject] private PbiEmbedService pbiEmbedService { get; set; } = null!;
-    [Inject] private DashboardService dashboardService { get; set; } = null!;
+    [Inject] private IPbiEmbedService pbiEmbedService { get; set; } = null!;
+    [Inject] private IDashboardService dashboardService { get; set; } = null!;
     [Inject] INotificationService notificationService { get; set; } = null!;
 
     [Parameter] public Dashboard? Dashboard { get; set; }

@@ -41,11 +41,15 @@
     <PackageReference Include="Blazorise.DataGrid" Version="1.2.2" />
     <PackageReference Include="Blazorise.Icons.FontAwesome" Version="1.2.2" />
     <PackageReference Include="Blazorise.LoadingIndicator" Version="1.2.3" />
+    <PackageReference Include="ITfoxtec.Identity.Saml2" Version="4.8.6" />
+    <PackageReference Include="ITfoxtec.Identity.Saml2.MvcCore" Version="4.8.6" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="6.0.4" />
     <PackageReference Include="Microsoft.Identity.Client" Version="4.43.0" />
     <PackageReference Include="Microsoft.PowerBI.Api" Version="4.5.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.14.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Okta.AspNetCore" Version="4.4.2" />
+    <PackageReference Include="Okta.Sdk" Version="6.0.11" />
     <PackageReference Include="Oracle.EntityFrameworkCore" Version="7.21.9" />
   </ItemGroup>
 
