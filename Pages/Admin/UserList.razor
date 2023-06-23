@@ -1,0 +1,76 @@
+﻿@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+
+@page "/admin/users"
+
+<Row Background="Background.Light">
+    <Column ColumnSize="ColumnSize.IsFull">
+        <DataGrid TItem="User"
+                  Data="@userList"
+                  Responsive
+                  Filterable
+                  Striped
+                  ShowPager
+                  FixedHeader
+                  FixedHeaderDataGridHeight="calc(100vh - 350px)"
+                  FixedHeaderDataGridMaxHeight="calc(100vh - 350px)"
+                  PageSize="25"
+                  CommandMode="DataGridCommandMode.ButtonRow">
+            <DataGridColumns>
+                <DataGridMultiSelectColumn Width="30px"> </DataGridMultiSelectColumn>
+                <DataGridCommandColumn />
+                <DataGridColumn Field="@nameof(User.FirstName)" Caption="First Name" />
+                <DataGridColumn Field="@nameof(User.LastName)" Caption="Last Name" />
+                <DataGridColumn Field="@nameof(User.EmailAddress)" Caption="Email" />
+                <DataGridColumn Field="@nameof(User.IsActive)" Filterable="false" Caption="Active" Width="125px">
+                    <DisplayTemplate>
+                        @{
+                            var isActive = (context as User)?.IsActive ?? false;
+
+                            if(isActive)
+                            {
+                                @("Yes")
+                            }
+                            else
+                            {
+                                @("No")
+                            }
+
+                        }
+                    </DisplayTemplate>
+                </DataGridColumn>
+                <DataGridDateColumn Field="@nameof(User.LastLoginDate)" Filterable="false" Caption="Last Logged In" Width="250px">
+                    <DisplayTemplate>
+                        @{
+                            var date = (context as User)?.LastLoginDate;
+
+                            if (date != null)
+                            {
+                                @(date.Value.ToShortDateString())
+                            }
+                        }
+                    </DisplayTemplate>
+                </DataGridDateColumn>
+                <DataGridColumn Sortable="false" Filterable="false" Width="125px">
+                    <DisplayTemplate>
+                        <Button Color="Color.Info">
+                            Edit
+                        </Button>
+                    </DisplayTemplate>
+                </DataGridColumn>
+            </DataGridColumns>
+
+        </DataGrid>
+    </Column>
+</Row>
+
+@code {
+    [Inject] IUserService userService { get; set; } = null!;
+
+    private IList<User> userList = new List<User>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        userList = await userService.GetAllUsersAsync();
+    }
+}

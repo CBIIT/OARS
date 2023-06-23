@@ -8,6 +8,11 @@ namespace TheradexPortal.Data.Services
     {
         public UserService(IDbContextFactory<WrDbContext> dbFactory) : base(dbFactory) { }
 
+        public async Task<IList<User>> GetAllUsersAsync()
+        {
+            return await context.Users.ToListAsync();
+        }
+
         public async Task<User?> GetUserAsync(int userId)
         {
             return await context.Users.FirstOrDefaultAsync(u => u.UserId == userId);
@@ -16,11 +21,6 @@ namespace TheradexPortal.Data.Services
         public async Task<User?> GetUserByEmailAsync(string emailAddress)
         {
             return await context.Users.FirstOrDefaultAsync(u => u.EmailAddress == emailAddress);
-        }
-
-        public async Task<int> GetUserCountAsync()
-        {
-            return await context.Users.CountAsync();
         }
     }
 }
