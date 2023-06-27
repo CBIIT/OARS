@@ -1,0 +1,36 @@
+﻿@using TheradexPortal.Data.Identity;
+@inherits LayoutComponentBase
+
+<CascadingAuthenticationState>
+    <AuthorizeView>
+        <Authorized>
+            <AuthorizeView Policy="IsRegistered">
+                <Authorized Context="RegisteredAuth">
+                     @Body
+                </Authorized>
+                <NotAuthorized Context="RegisteredAuth">
+                    <LayoutView Layout="@typeof(LoginLayout)">
+                    <Div Flex="Flex.JustifyContent.Center.AlignItems.Center" Height="Height.Is75">
+                        <Card Margin="Margin.Is5.FromBottom.Is5.FromTop" Width="Width.Is50" Class="text-center">
+                            <CardBody Margin="Margin.Is5">
+                                <CardTitle Margin="Margin.Is4.FromBottom" Size="1">
+                                    Complete Your Registration
+                                </CardTitle>
+                                <CardText>
+                                    <p>Welcome to Theradex Web Reporting! You are almost there. Please contact the <a href="mailto:wrteam@theradex.com">Theradex team</a> to complete your regisration.</p>
+                                </CardText>
+                                <Button Color="Color.Primary" Margin="Margin.Is5.FromTop" Type="ButtonType.Link" To="/">
+                                    Home
+                                </Button>
+                            </CardBody>
+                        </Card>
+                    </Div>
+                </LayoutView>
+                </NotAuthorized>
+            </AuthorizeView>
+        </Authorized>
+        <NotAuthorized>
+            <RedirectToLogin />
+        </NotAuthorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>

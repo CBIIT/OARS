@@ -1,78 +1,60 @@
 ﻿@using TheradexPortal.Data.Identity;
 @inherits LayoutComponentBase
+@layout AuthLayout
 
-<CascadingAuthenticationState>
-    <AuthorizeView>
-        <Authorized>
-            <Div Class="nci-main-wrapper">
-                <Layout Class="nci-main-layout">
-                    @if (context.User.IsRegistered())
-                    {
-                        <LayoutHeader>
-                            <Bar Breakpoint="Breakpoint.Desktop" NavigationBreakpoint="Breakpoint.Desktop" Background="Background.Light" Class="nci-navbar px-4">
-                                <BarBrand>
-                                    <Image Source="img/theradex-logo.png" AlternateText="Theradex Oncology" />
-                                </BarBrand>
-                                <BarToggler />
-                                <BarMenu>
-                                    <BarStart Display="Display.None.OnDesktop">
-                                        <PrimaryNav />
-                                    </BarStart>
-                                    <BarEnd>
-                                        <BarItem>
-                                            <BarLink To="#Notifications">
-                                                <Icon Name="IconName.ExclamationCircle" IconSize="IconSize.Large" />
-                                            </BarLink>
-                                        </BarItem>
-                                        <BarItem>
-                                            <BarLink To="#Notifications">
-                                                <Icon Name="IconName.InfoCircle" IconSize="IconSize.Large" />
-                                            </BarLink>
-                                        </BarItem>
-                                        <BarItem>
-                                            <BarLink To="#Profile">
-                                                <Icon Name="IconName.UserCircle" IconSize="IconSize.Large" />
-                                            </BarLink>
-                                        </BarItem>
-                                        <BarItem>
-                                            <Button Flex="Flex.JustifyContent.Center" Block Color="Color.Secondary" Clicked="@OnButtonClicked">Logout</Button>
-                                        </BarItem>
-                                    </BarEnd>
-                                </BarMenu>
-                            </Bar>
-                            <Bar Breakpoint="Breakpoint.Desktop" Display="Display.None.Block.OnDesktop"  Background="Background.White" Class="px-4 nci-dashboard-navbar">
-                                <BarStart>
-                                    <PrimaryNav    
-                                RenderButtons
-                                    />
-                                </BarStart>
-                        </Bar>
-                        <Divider Class="mt-1 mb-0"/>
-
-                    </LayoutHeader>
-                    <LayoutContent>
-                        <LoadingIndicator>
-                            @Body
-                        </LoadingIndicator>
-                    </LayoutContent>
-                    <LayoutFooter>
-                        <Footer />
-                    </LayoutFooter>
-                    }
-                    else
-                    {
-                        <LayoutContent>
-                            <p>Welcome to Theradex Web Reporting! You are almost there. Please contact the <a href="mailto:wrteam@theradex.com">Theradex team</a> to complete your regisration.</p>
-                        </LayoutContent>
-                    }
-                </Layout>
-            </Div>
-        </Authorized>
-        <NotAuthorized>
-            <TheradexPortal.Pages.Public.Landing/>
-        </NotAuthorized>
-    </AuthorizeView>
-</CascadingAuthenticationState>
+<Div Class="nci-main-wrapper">
+    <Layout Class="nci-main-layout">
+        <LayoutHeader>
+                <Bar Breakpoint="Breakpoint.Desktop" NavigationBreakpoint="Breakpoint.Desktop" Background="Background.Light" Class="nci-navbar px-4">
+                    <BarBrand>
+                        <Image Source="img/theradex-logo.png" AlternateText="Theradex Oncology" />
+                    </BarBrand>
+                    <BarToggler />
+                    <BarMenu>
+                        <BarStart Display="Display.None.OnDesktop">
+                            <PrimaryNav />
+                        </BarStart>
+                        <BarEnd>
+                            <BarItem>
+                                <BarLink To="#Notifications">
+                                    <Icon Name="IconName.ExclamationCircle" IconSize="IconSize.Large" />
+                                </BarLink>
+                            </BarItem>
+                            <BarItem>
+                                <BarLink To="#Notifications">
+                                    <Icon Name="IconName.InfoCircle" IconSize="IconSize.Large" />
+                                </BarLink>
+                            </BarItem>
+                            <BarItem>
+                                <BarLink To="#Profile">
+                                    <Icon Name="IconName.UserCircle" IconSize="IconSize.Large" />
+                                </BarLink>
+                            </BarItem>
+                            <BarItem>
+                                <Button Flex="Flex.JustifyContent.Center" Block Color="Color.Secondary" Clicked="@OnButtonClicked">Logout</Button>
+                            </BarItem>
+                        </BarEnd>
+                    </BarMenu>
+                </Bar>
+                <Bar Breakpoint="Breakpoint.Desktop" Display="Display.None.Block.OnDesktop"  Background="Background.White" Class="px-4 nci-dashboard-navbar">
+                    <BarStart>
+                        <PrimaryNav    
+                    RenderButtons
+                        />
+                    </BarStart>
+            </Bar>
+            <Divider Class="mt-1 mb-0"/>
+        </LayoutHeader>
+        <LayoutContent>
+            <LoadingIndicator>
+                @Body
+            </LoadingIndicator>
+        </LayoutContent>
+        <LayoutFooter>
+            <Footer />
+        </LayoutFooter>
+    </Layout>
+</Div>
 
 @code {
     private Bar? sidebar;
