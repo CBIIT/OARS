@@ -97,7 +97,11 @@ var onTokenValidated = async (TokenValidatedContext context) =>
     }
     userIsRegistered = true;
 
-    claimsIdentity.AddClaim(new Claim(WRClaimType.Registered, userIsRegistered.ToString()));
+    if(user.IsActive && !user.IsLockedOut)
+    {
+        claimsIdentity.AddClaim(new Claim(WRClaimType.Registered, userIsRegistered.ToString()));
+    }
+
     claimsIdentity.AddClaim(new Claim(WRClaimType.UserId, user.UserId.ToString()));
 
     var userRoles = await userRoleService.GetUserRolesAsync(user.UserId);
@@ -105,16 +109,25 @@ var onTokenValidated = async (TokenValidatedContext context) =>
     foreach(var role in userRoles)
     {        
         claimsIdentity.AddClaim(new Claim(WRClaimType.Role, role.RoleName));
-        //if (role.IsAdmin)
-        //{
-        //    isAdmin = true;
-        //}
+        if (role.RoleName == "Administrator")
+        {
+            isAdmin = true;
+        }
     }
     claimsIdentity.AddClaim(new Claim(WRClaimType.IsAdmin, isAdmin.ToString()));
 
     return Task.CompletedTask;
 
 };
+
+// Add policies based on claims for Blazor auth checks
+builder.Services.AddAuthorization(options =>
+      options.AddPolicy("IsAdmin",
+      policy => policy.RequireClaim(WRClaimType.IsAdmin, true.ToString())));
+
+builder.Services.AddAuthorization(options =>
+      options.AddPolicy("IsRegistered",
+      policy => policy.RequireClaim(WRClaimType.Registered, true.ToString())));
 
 // Okta authentication
 

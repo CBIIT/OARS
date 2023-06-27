@@ -1,0 +1,58 @@
+﻿@inherits LayoutComponentBase
+@layout AuthLayout
+
+<AuthorizeView Policy="IsAdmin">
+    <Authorized>
+        <Layout Sider>
+            <LayoutSider>
+                <LayoutSiderContent>
+                    <Bar Mode="BarMode.VerticalInline"
+                         CollapseMode="BarCollapseMode.Small"
+                         Breakpoint="Breakpoint.Desktop"
+                         NavigationBreakpoint="Breakpoint.Tablet"
+                         ThemeContrast="ThemeContrast.Dark">
+                        <BarBrand>
+                            <BarItem>
+                                <BarLink To="/admin">
+                                    <BarIcon IconName="IconName.Dashboard" />
+                                    Admin Home
+                                </BarLink>
+                            </BarItem>
+                        </BarBrand>
+                        <BarMenu>
+                            <BarStart>
+                                <BarItem>
+                                    <BarLink To="/admin/users">
+                                        <BarIcon IconName="IconName.Users" />
+                                        User List
+                                    </BarLink>
+                                </BarItem>
+                            </BarStart>
+                        </BarMenu>
+                    </Bar>
+                </LayoutSiderContent>
+            </LayoutSider>
+            <Layout>
+                <LayoutHeader Fixed>
+                    <Bar Breakpoint="Breakpoint.None" Background="Background.Light" Class="nci-navbar px-4">
+                        <BarBrand>
+                            <Image Source="img/theradex-logo.png" AlternateText="Theradex Oncology" />
+                        </BarBrand>
+                        <BarItem></BarItem>
+                    </Bar>
+                </LayoutHeader>
+                <LayoutContent>
+                    @Body
+                </LayoutContent>
+            </Layout>
+        </Layout>
+    </Authorized>
+    <NotAuthorized>
+        Not an admin 
+    </NotAuthorized>
+
+</AuthorizeView>
+
+@code {
+
+}

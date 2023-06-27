@@ -1,5 +1,6 @@
 ﻿@using TheradexPortal.Data.Models;
 @using TheradexPortal.Data.Services.Abstract;
+@layout AdminLayout
 
 @page "/admin/users"
 
@@ -11,9 +12,6 @@
                   Filterable
                   Striped
                   ShowPager
-                  FixedHeader
-                  FixedHeaderDataGridHeight="calc(100vh - 350px)"
-                  FixedHeaderDataGridMaxHeight="calc(100vh - 350px)"
                   PageSize="25"
                   CommandMode="DataGridCommandMode.ButtonRow">
             <DataGridColumns>
