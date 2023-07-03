@@ -1,6 +1,10 @@
 ﻿@page "/"
 @page "/landing"
 @page "/login"
+@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services;
+@using TheradexPortal.Data;
+@using TheradexPortal.Data.Services.Abstract;
 @layout LoginLayout
 
 <Container Position="Position.Absolute.Top.Is50.Start.Is50.Translate.Middle">
@@ -24,17 +28,13 @@
             </Card>
             <br />
             <Div>
-                <Alert Color="Color.Info" Visible>
+                <Alert Color="Color.Info" @bind-Visible="@noteVisible">
                     <AlertMessage>Notes and Updates</AlertMessage>
-                    <AlertDescription>
-                        This is an update message.
-                    </AlertDescription>
+                    <AlertDescription>@activeNote.AlertText</AlertDescription>
                 </Alert>
-                <Alert Color="Color.Warning" Visible>
+                <Alert Color="Color.Warning" @bind-Visible="@alertVisible">
                     <AlertMessage>Alerts</AlertMessage>
-                    <AlertDescription>
-                        This is an alert message.
-                    </AlertDescription>
+                    <AlertDescription>@activeAlert.AlertText</AlertDescription>
                 </Alert>
             </Div>
         </Column>
@@ -43,10 +43,29 @@
 
 @code {
     [Inject] public NavigationManager Navigation { get; set; }
+    [Inject] private IAlertService alertService { get; set; } = null!;
+    private IList<WRAlert> activeAlerts = new List<WRAlert>();
+    private IList<WRAlert> activeNotes = new List<WRAlert>();
+    private WRAlert activeAlert = new WRAlert();
+    private WRAlert activeNote = new WRAlert();
+    protected bool noteVisible;
+    protected bool alertVisible;
 
     protected override async Task OnInitializedAsync()
     {
+        this.initializeAlerts();
+        this.showAlerts();
         await base.OnInitializedAsync();
+    }
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            
+        }
+
+        return base.OnAfterRenderAsync(firstRender);
     }
 
     Task OnButtonClicked()
@@ -62,5 +81,25 @@
 
         return Task.CompletedTask;
     }
+
+    private async void initializeAlerts()
+    {
+        activeAlerts = await alertService.GetActiveLoginAlertsAsync();
+        activeNotes = await alertService.GetActiveLoginNotesAsync();
+    }
+
+    private void showAlerts()
+    {
+        if (this.activeAlerts.Count > 0)
+        {
+            this.activeAlert = this.activeAlerts.FirstOrDefault()!;
+            alertVisible = true;
+        }
+
+        if (this.activeNotes.Count > 0)
+        {
+            this.activeNote = this.activeNotes.FirstOrDefault()!;
+            noteVisible = true;
+        }
+    }
 }
-    
