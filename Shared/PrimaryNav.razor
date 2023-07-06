@@ -39,7 +39,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        dashboards = await dashboardService.GetAllDashboardsAsync();
+        dashboards = await dashboardService.GetDashboardsForUserAsync();
         Console.WriteLine(dashboards);
     }
 

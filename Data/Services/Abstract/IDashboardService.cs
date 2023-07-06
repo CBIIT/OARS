@@ -6,6 +6,7 @@ namespace TheradexPortal.Data.Services.Abstract
     {
         public Task<IList<Dashboard>> GetAllDashboardsAsync();
         public Task<Dashboard?> GetDashboardByIdAsync(int id);
+        public Task<IList<Dashboard>> GetDashboardsForUserAsync();
         public Task<IList<Report>> GetAllReportsByDashboardIdAsync(int id);
         public Task<IList<Visual>> GetAllVisualsByReportIdAsync(int id);
     }

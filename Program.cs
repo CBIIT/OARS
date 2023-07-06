@@ -32,6 +32,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddSingleton<IAadService, AadService>();
 builder.Services.AddSingleton<IPbiEmbedService, PbiEmbedService>();
 builder.Services.AddSingleton<IUserService, UserService>();

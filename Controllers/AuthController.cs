@@ -67,9 +67,7 @@ namespace TheradexPortal.Controllers
             var binding = new Saml2PostBinding();
             var saml2LogoutRequest = await new Saml2LogoutRequest(config, User).DeleteSession(HttpContext);
 
-            return Redirect("https://theradexbeta.oktapreview.com/logout");
-            //return RedirectToAction("Logout", "Login");
-            //return Redirect("~/");
+            return Redirect("~/");
         }
     }
 }
