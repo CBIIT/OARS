@@ -3,15 +3,7 @@
     <Blazorise.ThemeProvider Theme="@theme">
         <Router AppAssembly="@typeof(App).Assembly">
             <Found Context="routeData">
-                <AuthorizeRouteView RouteData=@routeData DefaultLayout="@typeof(MainLayout)">
-                    <NotAuthorized>
-                        <!--RedirectToLogin /-->
-                        Not Authorized  - App.razor
-                    </NotAuthorized>
-                    <Authorizing>
-                        Authorizing...
-                    </Authorizing>
-                </AuthorizeRouteView>
+                <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
             </Found>
             <NotFound>
                 <PageTitle>Not found</PageTitle>
