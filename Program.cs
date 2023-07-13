@@ -34,10 +34,10 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<IAadService, AadService>();
 builder.Services.AddSingleton<IPbiEmbedService, PbiEmbedService>();
-builder.Services.AddSingleton<IUserService, UserService>();
-builder.Services.AddSingleton<IUserRoleService, UserRoleService>();
-builder.Services.AddSingleton<IStudyService, StudyService>();
-builder.Services.AddSingleton<IDashboardService, DashboardService>(); 
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IUserRoleService, UserRoleService>();
+builder.Services.AddScoped<IStudyService, StudyService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>(); 
 
 // Add Blazorise and Tailwind UI
 builder.Services
