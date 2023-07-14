@@ -27,16 +27,37 @@
                 </CardBody>
             </Card>
             <br />
-            <Div>
-                <Alert Color="Color.Info" @bind-Visible="@noteVisible">
-                    <AlertMessage>Notes and Updates</AlertMessage>
-                    <AlertDescription>@activeNote.AlertText</AlertDescription>
-                </Alert>
-                <Alert Color="Color.Warning" @bind-Visible="@alertVisible">
-                    <AlertMessage>Alerts</AlertMessage>
-                    <AlertDescription>@activeAlert.AlertText</AlertDescription>
-                </Alert>
-            </Div>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is4.Is4.WithOffset">
+            <Card>
+                <CardBody>
+                    <CardTitle Size="6">
+                        Alerts
+                    </CardTitle>
+                    @foreach (var alert in activeAlerts)
+                    {
+                        <Alert Color="Color.Warning" Visible>
+                            <AlertMessage>Title</AlertMessage>
+                            <AlertDescription>@alert.AlertText</AlertDescription>
+                        </Alert>
+                    }
+                </CardBody>
+            </Card>
+            <br />
+            <Card>
+                <CardBody>
+                    <CardTitle Size="6">
+                        Notes and Updates
+                    </CardTitle>
+                    @foreach (var note in activeNotes)
+                    {
+                        <Alert Color="Color.Info" Visible>
+                            <AlertMessage>Title</AlertMessage>
+                            <AlertDescription>@note.AlertText</AlertDescription>
+                        </Alert>
+                    }
+                </CardBody>
+            </Card>
         </Column>
     </Row>
 </Container>
@@ -46,26 +67,12 @@
     [Inject] private IAlertService alertService { get; set; } = null!;
     private IList<WRAlert> activeAlerts = new List<WRAlert>();
     private IList<WRAlert> activeNotes = new List<WRAlert>();
-    private WRAlert activeAlert = new WRAlert();
-    private WRAlert activeNote = new WRAlert();
-    protected bool noteVisible;
-    protected bool alertVisible;
 
     protected override async Task OnInitializedAsync()
     {
-        this.initializeAlerts();
-        this.showAlerts();
+        activeAlerts = await alertService.GetActiveLoginAlertsAsync();
+        activeNotes = await alertService.GetActiveLoginNotesAsync();
         await base.OnInitializedAsync();
-    }
-
-    protected override Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            
-        }
-
-        return base.OnAfterRenderAsync(firstRender);
     }
 
     Task OnButtonClicked()
@@ -80,26 +87,5 @@
         Navigation.NavigateTo($"Auth/Login", true);
 
         return Task.CompletedTask;
-    }
-
-    private async void initializeAlerts()
-    {
-        activeAlerts = await alertService.GetActiveLoginAlertsAsync();
-        activeNotes = await alertService.GetActiveLoginNotesAsync();
-    }
-
-    private void showAlerts()
-    {
-        if (this.activeAlerts.Count > 0)
-        {
-            this.activeAlert = this.activeAlerts.FirstOrDefault()!;
-            alertVisible = true;
-        }
-
-        if (this.activeNotes.Count > 0)
-        {
-            this.activeNote = this.activeNotes.FirstOrDefault()!;
-            noteVisible = true;
-        }
     }
 }
