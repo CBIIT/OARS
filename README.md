@@ -56,6 +56,8 @@ The project structure is as follows:
     - Shared UI components
 - wwwroot
     - Public static files
+- wwwrooot/js
+    - JavaScript files
 
 ### UI Framework - Blazorise (Bootstrap 5)
 This project uses [Blazorise](https://blazorise.com/) as a UI framework. Blazorise is a component library that wraps Bootstrap components for use in Blazor.
