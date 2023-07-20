@@ -1,7 +1,7 @@
 # NCI Web Reporting - PowerBI Embedding Inntegration
 
 ## PowerBI Embedded SDK
-PowerBI embedding is using the Javascript SDK.  The SDK provides a set of functions that you can use to embed and control PowerBI reports [Microsfoft docs](https://learn.microsoft.com/en-us/javascript/api/overview/powerbi/).
+PowerBI embedding is using the Javascript SDK.  The SDK provides a set of functions that you can use to embed and control PowerBI reports [Microsoft docs](https://learn.microsoft.com/en-us/javascript/api/overview/powerbi/).
 
 The library is included in the project in the `Pages/_Layout.cshtml` file and can be found in the `wwwroot/js` folder.
 
