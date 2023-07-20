@@ -58,6 +58,7 @@ The project structure is as follows:
     - Public static files
 - wwwrooot/js
     - JavaScript files
+    - Note: This folder is for including and integrating with JavaScript libraries. Most of the client-side code should be written in C# using Blazor components.
 
 ### UI Framework - Blazorise (Bootstrap 5)
 This project uses [Blazorise](https://blazorise.com/) as a UI framework. Blazorise is a component library that wraps Bootstrap components for use in Blazor.
