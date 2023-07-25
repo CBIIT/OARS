@@ -1,5 +1,6 @@
 ﻿@attribute [Route(WrConstants.DASHBOARD_PAGE_PATH + "/{dashboardid:int}/{reportid:int?}")]
 @layout SecondaryNavLayout
+@inject IHttpContextAccessor httpContextAccessor
 
 @using System.Net.Http
 @using System.Threading.Tasks
@@ -8,6 +9,7 @@
 @using TheradexPortal.Data.PowerBI.Abstract;
 @using TheradexPortal.Data.Services.Abstract;
 @using TheradexPortal.Data.ViewModels;
+@using TheradexPortal.Data.Static;
 
 @if(notFound)
 {
@@ -75,15 +77,22 @@ else
     protected override async Task OnParametersSetAsync()
     {
         notFound = false;
-        dashboard = await dashboardService.GetDashboardByIdAsync(DashboardId);
+
+        // Determine if user has access to requested dashboard & report
+        string userDashboards = httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.Dashboards).Value;
+        string userReports = httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.Reports).Value;
+
+        dashboard = await dashboardService.GetDashboardByIdAsync(DashboardId, userDashboards);
         if(dashboard == null)
         {
             notFound = true;
             return;
         }
 
-        allReports = await dashboardService.GetAllReportsByDashboardIdAsync(DashboardId);
+        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.Role, "Administrator");
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
 
+        allReports = await dashboardService.GetReportsByDashboardIdForUserAsync(DashboardId, userId, isAdmin);
         if (ReportId == 0)
         {
             report = allReports.FirstOrDefault();

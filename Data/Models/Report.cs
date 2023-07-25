@@ -27,7 +27,7 @@ namespace TheradexPortal.Data.Models
         public string? CustomPagePath { get; set; }
         [Column("PowerBI_Page_Name")]
         public string? PowerBIPageName { get; set; }
-
+        public string? StudyType { get; set; }
         public Dashboard? Dashboard { get; init; }
 
     }

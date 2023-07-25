@@ -47,6 +47,7 @@ namespace TheradexPortal.Data
         public DbSet<RoleVisual> Role_Visuals { get; set; }
         public DbSet<UserRole> User_Roles { get; set; }
         public DbSet<RoleDashboard> Role_Dashboards { get; set; } 
+        public DbSet<RoleReport> Role_Reports { get; set; }
 
     }
 

@@ -32,7 +32,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddSingleton<IAadService, AadService>();
 builder.Services.AddSingleton<IPbiEmbedService, PbiEmbedService>();
 builder.Services.AddSingleton<IUserService, UserService>();
@@ -69,6 +68,7 @@ var onTokenValidated = async (TokenValidatedContext context) =>
 
     var userService = context.HttpContext.RequestServices.GetRequiredService<IUserService>();
     var userRoleService = context.HttpContext.RequestServices.GetRequiredService<IUserRoleService>();
+    var dashboardService = context.HttpContext.RequestServices.GetRequiredService<IDashboardService>();
 
     var userIsRegistered = false;
 
@@ -115,7 +115,13 @@ var onTokenValidated = async (TokenValidatedContext context) =>
             isAdmin = true;
         }
     }
+
+    var dashboardIds = await dashboardService.GetDashboardIdsForUser(user.UserId, isAdmin);
+    var reportIds = await dashboardService.GetReportIdsForUser(user.UserId, isAdmin);
+
     claimsIdentity.AddClaim(new Claim(WRClaimType.IsAdmin, isAdmin.ToString()));
+    claimsIdentity.AddClaim(new Claim(WRClaimType.Dashboards, dashboardIds));
+    claimsIdentity.AddClaim(new Claim(WRClaimType.Reports, reportIds));
 
     return Task.CompletedTask;
 
