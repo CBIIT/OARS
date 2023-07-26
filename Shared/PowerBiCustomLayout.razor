@@ -8,6 +8,8 @@
 @using TheradexPortal.Data.PowerBI.Models;
 @using TheradexPortal.Data.Services;
 @using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@inject IHttpContextAccessor httpContextAccessor;
 
 @implements IAsyncDisposable;
 
@@ -73,8 +75,8 @@
 
     public async Task EmbedReportJS()
     {
-        // TODO - get email from current user
-        var userEmail = "jbidwell@innovativesol.com"; //httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Email)?.Value;
+        var userEmail = httpContextAccessor.HttpContext?.User?.FindFirst("preferred_username")?.Value;
+        
         if (string.IsNullOrEmpty(userEmail))
             throw new ArgumentNullException("Email address not found");
 
