@@ -10,7 +10,7 @@
     <BarLink Match="Match.Prefix" To="/studies">
         @if (RenderButtons)
         {
-            <Button Color="Color.Primary" Outline Class="text-nowrap">My Studies</Button>
+            <Button Color="Color.Primary" TextWeight="TextWeight.Bold" Outline Class="text-nowrap">My Studies</Button>
         }
         else
         {
@@ -25,7 +25,7 @@
         <BarLink Match="Match.Prefix" To="@GetLink(dashboard)">
             @if (RenderButtons)
             {
-                <Button Color="Color.Primary" Outline Class="text-nowrap">@dashboard.Name</Button>
+                <Button Color="Color.Primary" TextWeight="TextWeight.Bold" Outline Class="text-nowrap">@dashboard.Name</Button>
             }
             else
             {
