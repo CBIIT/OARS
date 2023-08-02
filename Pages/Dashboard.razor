@@ -71,6 +71,20 @@ else
             IconName = IconName.Filter,
             Label = "Filters",
             OnClick = ShowFilters
+        },
+
+        new SecondaryNavAction
+        {
+            IconName = IconName.Receipt,
+            Label = "Study Overview",
+            OnClick = ShowOverview
+        },
+
+        new SecondaryNavAction
+        {
+            IconName = IconName.Bookmark,
+            Label = "Recent Studies",
+            OnClick = ShowOverview
         }
     };
 
@@ -124,7 +138,6 @@ else
         {
             await modalRef.Show();
         }
-
     }
 
     // Re-render report components and hide modal
@@ -146,6 +159,14 @@ else
         if(modalRef != null)
         {
             await modalRef.Hide();
+        }
+    }
+
+    private async void ShowOverview()
+    {
+        if (modalRef != null)
+        {
+            await modalRef.Show();
         }
     }
 }

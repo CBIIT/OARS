@@ -21,7 +21,7 @@
             }
             @foreach(var action in Actions)
             {
-                <BarItem>
+                <BarItem Background="Background.White">
                     @if(action.To != null){
                         <BarLink To="@action.To">
                             <BarIcon IconName="action.IconName" />
@@ -92,7 +92,7 @@
     [Parameter] public IList<SecondaryNavAction> Actions { get; set; } = new List<SecondaryNavAction>();
     [Parameter] public IList<Report> Reports { get; set; } = new List<Report>();
 
-    private bool IsVisible = false;
+    private bool IsVisible = true;
     private string defaultIcon = "fa-columns"; // https://blazorise.com/docs/extensions/icons-available
 
     protected void ToggleNavbar()
