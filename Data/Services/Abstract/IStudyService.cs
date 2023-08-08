@@ -5,5 +5,8 @@ namespace TheradexPortal.Data.Services.Abstract
     public interface IStudyService
     {
         public Task<IList<Protocol>> GetAllProtocolsAsync();
+        public IList<Protocol> GetProtocolsForUserAsync(int userId);
+        public IList<Protocol> GetCurrentStudiesForUser(int userId);
+        public string GetFilteredStudyIdsForUser(int userId);
     }
 }

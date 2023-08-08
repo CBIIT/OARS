@@ -7,6 +7,8 @@
 @using TheradexPortal.Data.PowerBI.Abstract;
 @using TheradexPortal.Data.PowerBI.Models;
 @using TheradexPortal.Data.Static;
+@using TheradexPortal.Data.Services;
+@using TheradexPortal.Data.Services.Abstract;
 @inject IHttpContextAccessor httpContextAccessor;
 
 <div @ref="@pbiElement" class="pbi-embed-container" />
@@ -16,6 +18,9 @@
     [Inject] private IJSRuntime js { get; set; } = null!;
     [Inject] private IOptions<PowerBI> powerBiConfig { get; set; } = null!;
     [Inject] private IPbiEmbedService pbiEmbedService { get; set; } = null!;
+    [Inject] private IStudyService studyService { get; set; } = null!;
+    [Inject] private IUserService userService { get; set; } = null!;
+    [Inject] private IDashboardService dashboardService { get; set; } = null!;
 
     [Parameter] public Dashboard? Dashboard { get; set; }
     [Parameter] public Report? Report {get; set; }
@@ -25,6 +30,13 @@
     private IJSObjectReference? pbiEmbedModule;
     private IJSObjectReference? reportRef;
     private DotNetObjectReference<PowerBiFullReport>? objRef;
+    private static Func<string, Task> UpdateFilterActionAsync;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        UpdateFilterActionAsync= LocalChangUpdateFilterValueAsync;
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -48,6 +60,24 @@
     public async Task EmbedFullReportJS()
     {
         var userEmail = httpContextAccessor.HttpContext?.User?.FindFirst("preferred_username")?.Value;
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        var currentStudy = "";
+
+        IList<Protocol> protocols = studyService.GetCurrentStudiesForUser(userId);
+
+        // For now, limit to one study filter at a time.
+        if (protocols.Count == 0)
+            currentStudy = null;
+        else
+            currentStudy = protocols[0].StudyId;
+
+        string[] filteredStudies = studyService.GetFilteredStudyIdsForUser(userId).Split(',');
+
+        //foreach (Protocol protocol in protocols)
+        //{
+        //    filterString += protocol.StudyId + ",";
+        //}
+        //filterString = filterString.Trim(',');
 
         if (string.IsNullOrEmpty(userEmail))
             throw new ArgumentNullException("Email address not found");
@@ -63,6 +93,19 @@
         }
 
         var embedUrl = embedParams.EmbedReport[0].EmbedUrl + "&pageName=" + Report.PowerBIPageName;
+        var visuals = await dashboardService.GetAllVisualsByReportIdAsync(Report.WRReportId);
+        Visual studySlicer = visuals.Where(v => v.VisualDescription == "STUDYID" && v.VisualType == "slicer").SingleOrDefault();
+        var slicerGuid = "";
+
+        if (studySlicer == null)
+        {
+            currentStudy = "";
+            slicerGuid = "";
+        }
+        else
+        {
+            slicerGuid = studySlicer.PowerBIVisualId;
+        }
 
         reportRef = await pbiEmbedModule.InvokeAsync<IJSObjectReference>(
             "embedFullReport",
@@ -70,7 +113,22 @@
             embedParams.EmbedToken.Token,
             WrConstants.PBI_STUDY_FILTER_TARGETS.ToArray(),
             embedUrl,
-            embedParams.EmbedReport[0].ReportId.ToString()
+            embedParams.EmbedReport[0].ReportId.ToString(),
+            filteredStudies,
+            currentStudy,
+            slicerGuid
         );
+    }
+
+    private async Task LocalChangUpdateFilterValueAsync(string value)
+    {
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        bool saved = userService.SaveSelectedStudies(userId, value);
+    }
+
+    [JSInvokable]
+    public static async Task SaveStudyFromSlicer(string study)
+    {
+        await UpdateFilterActionAsync.Invoke(study);
     }
 }

@@ -41,6 +41,10 @@ else
 
 <Modal @ref="modalRef">
     <ModalContent Centered Size="ModalSize.ExtraLarge">
+        <ModalHeader>
+            <ModalTitle>Filter Studies</ModalTitle>
+            <CloseButton/>
+        </ModalHeader>
         <ModalBody>
             <StudyGrid OnSave="@HideFilters"/>
         </ModalBody>
@@ -79,13 +83,6 @@ else
             Label = "Study Overview",
             OnClick = ShowOverview
         },
-
-        new SecondaryNavAction
-        {
-            IconName = IconName.Bookmark,
-            Label = "Recent Studies",
-            OnClick = ShowOverview
-        }
     };
 
     protected override async Task OnParametersSetAsync()

@@ -22,5 +22,22 @@ namespace TheradexPortal.Data.Services
         {
             return await context.Users.FirstOrDefaultAsync(u => u.EmailAddress == emailAddress);
         }
+
+        public bool SaveSelectedStudies(int userId, string studies)
+        {
+            try
+            {
+                // Get the user, update and save.
+                User user = context.Users.FirstOrDefault(u => u.UserId == userId);
+                user.CurrentStudy = studies;
+                context.SaveChanges();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
     }
 }

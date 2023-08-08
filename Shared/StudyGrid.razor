@@ -4,16 +4,19 @@
 @using Newtonsoft.Json
 @using Microsoft.JSInterop;
 @using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@inject IHttpContextAccessor httpContextAccessor
 
 <Row Background="Background.Light">
     <Column ColumnSize="ColumnSize.IsFull">
-        <DataGrid TItem="Protocol"
-                    Class=""
+        <DataGrid @ref="datagridRef"
+                    TItem="Protocol"
                     Data="@studyList"
                     SelectionMode="DataGridSelectionMode.Multiple"
-                    SelectedRows="@selectedStudies"
+                    @bind-SelectedRows="@selectedStudies"
                     Responsive
                     Filterable
+                    Editable
                     Striped
                     ShowPager
                     FixedHeader
@@ -49,9 +52,8 @@
                     </DataGridColumn>
                 </DataGridColumns>
             <ButtonRowTemplate>
-                <Button Color="Color.Primary" Clicked="@Save">Save Studies</Button>
+                <Button Color="Color.Primary" Clicked="@Save">Load Studies</Button>
             </ButtonRowTemplate>
-
         </DataGrid>
     </Column>
 </Row>
@@ -117,6 +119,7 @@
     [Inject] IStudyService studyService { get; set; } = null!;
     [Inject] IJSRuntime jsRuntime { get; set; }
     [Inject] INotificationService? notificationService { get; set; } = null!;
+    [Inject] private IUserService userService { get; set; } = null!;
 
     [Parameter] public Action<List<Protocol>?>? OnSave { get; set; } = null!;
 
@@ -125,30 +128,62 @@
     private IReadOnlyList<DateTime?> selectedDates;
     private Modal? overviewRef;
     private Protocol overviewProtocol = new Protocol();
+    protected DataGrid<Protocol> datagridRef;
+
     // get studies for grid
     protected override async Task OnInitializedAsync()
     {
-        studyList = await studyService.GetAllProtocolsAsync();
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        studyList = studyService.GetProtocolsForUserAsync(userId);
+
+        // Get the selected studies from the user
+        //IList<Protocol> protocols = studyService.GetFilteredStudiesForUser(userId);
+
+        //datagridRef
+        //selectedStudies = protocols.ToList();
+
+        //await InvokeAsync( StateHasChanged );
     }
+
+    //protected async Task OnReadData(DataGridReadDataEventArgs<Protocol> e)
+    //{
+    //    StateHasChanged();
+    //}
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            // apply filters from localstorage
-            // TODO load selection from database
-            string? json = await jsRuntime.InvokeAsync<string>("localStorage.getItem", "selectedStudies");
-            if (json != null)
-            {
-                var storedProtocols = JsonConvert.DeserializeObject<List<Protocol>>(json);
-                if (storedProtocols != null)
-                {
-                    var ids = storedProtocols.Select(x => x.StudyId).ToList();
-                    selectedStudies = studyList.Where(x => ids.Contains(x.StudyId)).ToList();
-                    StateHasChanged();
-                }
-            }
+            //forach (var row in datagridRef.DetailRowTemplate.Target)
+            //await datagridRef.Reload();
+            //datagridRef.SelectedRows = selectedStudies;
+            //datagridRef
+            //await InvokeAsync( StateHasChanged );
+
+            //datagridRef.SelectedRows.Select(selectedStudies);
+            //    int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        //    List<Protocol> protocols = studyService.GetFilteredStudiesForUser(userId);
+        //    selectedStudies = protocols.ToList();
+
+        //    StateHasChanged();
         }
+
+        //if (firstRender)
+        //{
+        //    // apply filters from localstorage
+        //    // TODO load selection from database
+        //    string? json = await jsRuntime.InvokeAsync<string>("localStorage.getItem", "selectedStudies");
+        //    if (json != null)
+        //    {
+        //        var storedProtocols = JsonConvert.DeserializeObject<List<Protocol>>(json);
+        //        if (storedProtocols != null)
+        //        {
+        //            var ids = storedProtocols.Select(x => x.StudyId).ToList();
+        //            selectedStudies = studyList.Where(x => ids.Contains(x.StudyId)).ToList();
+        //            StateHasChanged();
+        //        }
+        //    }
+        //}
     }
 
     // filter by dates
@@ -167,15 +202,23 @@
 
     private async void Save()
     {
-        // TODO save selection to database
-        string json = JsonConvert.SerializeObject(selectedStudies, Formatting.Indented);
-        Console.WriteLine(json);
-        await jsRuntime.InvokeVoidAsync("localStorage.setItem", "selectedStudies", json);
+        string studiesToSave = "";
+        foreach (Protocol study in selectedStudies)
+        {
+            studiesToSave += study.StudyId + ",";
+        }
+        studiesToSave = studiesToSave.TrimEnd(',');
+
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        bool saved = userService.SaveSelectedStudies(userId, studiesToSave);
 
         // Notify user
         if(notificationService != null)
         {
-            await notificationService.Success("Studies Updated");
+            if (saved)
+                await notificationService.Success("Studies Updated");
+            else
+                await notificationService.Error("Save Failed");
         }
 
         // Notify calling component
