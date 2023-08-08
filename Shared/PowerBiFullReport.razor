@@ -60,6 +60,7 @@
     public async Task EmbedFullReportJS()
     {
         var userEmail = httpContextAccessor.HttpContext?.User?.FindFirst("preferred_username")?.Value;
+        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.Role, "Administrator");
         int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
         var currentStudy = "";
 
@@ -71,7 +72,13 @@
         else
             currentStudy = protocols[0].StudyId;
 
-        string[] filteredStudies = studyService.GetFilteredStudyIdsForUser(userId).Split(',');
+        string[] filteredStudiesArray; //= studyService.GetFilteredStudyIdsForUser(userId, isAdmin).Split(',');
+        string filteredStudies = studyService.GetFilteredStudyIdsForUser(userId, isAdmin);
+
+        if (filteredStudies != "")
+            filteredStudiesArray = filteredStudies.Split(',');
+        else
+            filteredStudiesArray = new string[] { };
 
         //foreach (Protocol protocol in protocols)
         //{
@@ -114,7 +121,8 @@
             WrConstants.PBI_STUDY_FILTER_TARGETS.ToArray(),
             embedUrl,
             embedParams.EmbedReport[0].ReportId.ToString(),
-            filteredStudies,
+            filteredStudies == "" ? "" : filteredStudies.Split(','),
+            //filteredStudiesArray,
             currentStudy,
             slicerGuid
         );

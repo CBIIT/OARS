@@ -15,10 +15,14 @@ namespace TheradexPortal.Data.Services
             return await context.Protocols.ToListAsync();
         }
 
-        public IList<Protocol> GetProtocolsForUserAsync(int userId)
+        public IList<Protocol> GetProtocolsForUserAsync(int userId, bool isAdmin)
         {
+            List<Protocol> protocols = new List<Protocol>();
+
             // Use tables WRUSER_PROTOCOL, WR_USER_GROUP and WR_GROUPPROTOCOL to get list of studies for the user
-            var protocols = (from up in context.User_Protocols
+            if (!isAdmin)
+            { 
+            protocols = (from up in context.User_Protocols
                              join p in context.Protocols on up.StudyId equals p.StudyId
                              where up.UserId == userId && (up.ExpirationDate == null || up.ExpirationDate.Value.Date >= DateTime.Today)
                              select p)
@@ -28,6 +32,10 @@ namespace TheradexPortal.Data.Services
                                     where ug.UserId == userId && (ug.ExpirationDate == null || ug.ExpirationDate.Value.Date >= DateTime.Today)
                                     select p)
                              .OrderBy(p1 => p1.StudyId).ToList();
+            }
+            else
+                protocols = (from p in context.Protocols
+                            select p).ToList();
 
             return protocols;
         }
@@ -52,16 +60,19 @@ namespace TheradexPortal.Data.Services
                 return new List<Protocol>();
         }
 
-        public string GetFilteredStudyIdsForUser(int userId)
+        public string GetFilteredStudyIdsForUser(int userId, bool isAdmin)
         {
             string studyList = "";
-            var protocols = GetProtocolsForUserAsync(userId);
-            foreach (Protocol protocol in protocols)
+            if (!isAdmin)
             {
-                studyList += protocol.StudyId + ",";
-            }
+                var protocols = GetProtocolsForUserAsync(userId, isAdmin);
+                foreach (Protocol protocol in protocols)
+                {
+                    studyList += protocol.StudyId + ",";
+                }
 
-            studyList = studyList.TrimEnd(',');
+                studyList = studyList.TrimEnd(',');
+            }
 
             return studyList;
         }

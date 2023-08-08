@@ -36,8 +36,9 @@
                                 var date = (context as Protocol)?.ActivationDT;
 
                                 if (date != null)
-                                {
-                                    @(date.Value.ToShortDateString())
+                                {   
+                                    @(date.Value.ToString("dd-MMM-yyyy"))
+                                    //@(date.Value.ToShortDateString())
                                 }
                             }
                         </DisplayTemplate>
@@ -133,8 +134,9 @@
     // get studies for grid
     protected override async Task OnInitializedAsync()
     {
+        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.Role, "Administrator");
         int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
-        studyList = studyService.GetProtocolsForUserAsync(userId);
+        studyList = studyService.GetProtocolsForUserAsync(userId, isAdmin);
 
         // Get the selected studies from the user
         //IList<Protocol> protocols = studyService.GetFilteredStudiesForUser(userId);

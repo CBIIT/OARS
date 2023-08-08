@@ -10,6 +10,18 @@ function callDotNetSaveStudyMethod(study) {
 
 function embedFullReport(reportContainer, accessToken, filterTargets, embedUrl, embedReportId, studyFilter, slicerSetStudy, studySlicer) {
 
+    // Define if we are not filtering or filtering
+    var operatorX;
+    var valuesX;
+    if (studyFilter == "") {
+        operatorX = "All";
+        valuesX = new Array();
+    }
+    else {
+        operatorX = "In";
+        valuesX = studyFilter;
+    }
+
     const study_filter =
     {
         $schema: "http://powerbi.com/product/schema#basic",
@@ -17,8 +29,8 @@ function embedFullReport(reportContainer, accessToken, filterTargets, embedUrl, 
             table: "PROTOCOL",
             column: "STUDY_ID"
         },
-        operator: "In",
-        values: studyFilter,
+        operator: operatorX,
+        values: valuesX,
         filterType: models.FilterType.BasicFilter,
         requireSingleSelection: false
     }
