@@ -19,7 +19,7 @@
 @foreach(var dashboard in dashboards)
 {
     <BarItem>
-        <BarLink Match="Match.Prefix" To="@GetLink(dashboard)">
+        <BarLink Match="Match.Prefix" @onclick="() => updateDashboard(dashboard)" To="@GetLink(dashboard)">
             @if (RenderButtons)
             {
                 <Button Color="Color.Primary" Outline Class="text-nowrap">@dashboard.Name</Button>
@@ -34,6 +34,8 @@
 
 @code {
     [Parameter] public bool RenderButtons { get; set; } = false;
+    [Parameter] public Dashboard SelectedDashboardPrimaryNav { get; set; } = null!;
+    [Parameter] public EventCallback<Dashboard> SelectedDashboardChangedPrimaryNav { get; set; }
     [Inject] private IDashboardService dashboardService { get; set; } = null!;
     private IList<Dashboard> dashboards = new List<Dashboard>();
 
@@ -53,5 +55,11 @@
         {
             return $"{WrConstants.DASHBOARD_PAGE_PATH}/{dashboard.WRDashboardId}";
         }
+    }
+
+    private async Task updateDashboard(Dashboard dashboard)
+    {
+        SelectedDashboardPrimaryNav = dashboard;
+        await SelectedDashboardChangedPrimaryNav.InvokeAsync(dashboard);
     }
 }

@@ -29,35 +29,39 @@
             <br />
         </Column>
         <Column ColumnSize="ColumnSize.Is4.Is4.WithOffset">
-            <Card>
-                <CardBody>
-                    <CardTitle Size="6">
-                        Alerts
-                    </CardTitle>
-                    @foreach (var alert in activeAlerts)
-                    {
-                        <Alert Color="Color.Warning" Visible>
-                            <AlertMessage>Title</AlertMessage>
-                            <AlertDescription>@alert.AlertText</AlertDescription>
-                        </Alert>
-                    }
-                </CardBody>
-            </Card>
+            <Accordion>
+                <Collapse Visible="true">
+                    <CollapseHeader>
+                        <AccordionToggle>Alerts ( @activeAlerts.Count )</AccordionToggle>
+                    </CollapseHeader>
+                    <CollapseBody>
+                        @foreach (var alert in activeAlerts)
+                        {
+                            <Alert Color="Color.Warning" Visible>
+                                <AlertMessage></AlertMessage>
+                                <AlertDescription>@alert.AlertText</AlertDescription>
+                            </Alert>
+                        }
+                    </CollapseBody>
+                </Collapse>
+            </Accordion>
             <br />
-            <Card>
-                <CardBody>
-                    <CardTitle Size="6">
-                        Notes and Updates
-                    </CardTitle>
-                    @foreach (var note in activeNotes)
-                    {
-                        <Alert Color="Color.Info" Visible>
-                            <AlertMessage>Title</AlertMessage>
-                            <AlertDescription>@note.AlertText</AlertDescription>
-                        </Alert>
-                    }
-                </CardBody>
-            </Card>
+            <Accordion>
+                <Collapse Visible="false">
+                    <CollapseHeader>
+                        <AccordionToggle>Notes ( @activeNotes.Count )</AccordionToggle>
+                    </CollapseHeader>
+                    <CollapseBody>
+                        @foreach (var note in activeNotes)
+                        {
+                            <Alert Color="Color.Info" Visible>
+                                <AlertMessage></AlertMessage>
+                                <AlertDescription>@note.AlertText</AlertDescription>
+                            </Alert>
+                        }
+                    </CollapseBody>
+                </Collapse>
+            </Accordion>
         </Column>
     </Row>
 </Container>
