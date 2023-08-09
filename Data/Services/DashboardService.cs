@@ -21,7 +21,7 @@ namespace TheradexPortal.Data.Services
 
             if (isAdmin)
             {
-                dashboards = await context.Dashboards.Select(d=>d.WRDashboardId).ToListAsync();
+                dashboards = await context.Dashboards.OrderBy(d=>d.DisplayOrder).Select(d=>d.WRDashboardId).ToListAsync();
             }
             else
             {
@@ -29,6 +29,7 @@ namespace TheradexPortal.Data.Services
                                   join rd in context.Role_Dashboards on ur.RoleId equals rd.RoleId
                                   join d in context.Dashboards on rd.DashboardId equals d.WRDashboardId
                                   where ur.UserId == userId
+                                  orderby d.DisplayOrder
                                   select d.WRDashboardId).ToList();
             }
 

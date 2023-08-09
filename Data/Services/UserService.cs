@@ -29,7 +29,13 @@ namespace TheradexPortal.Data.Services
             {
                 // Get the user, update and save.
                 User user = context.Users.FirstOrDefault(u => u.UserId == userId);
-                user.CurrentStudy = studies;
+
+                string[] studyList = studies.Split(',');
+
+                if (!studyList.Contains(user.CurrentStudy))
+                    user.CurrentStudy = studyList[0];
+
+                user.SelectedStudies = studies;
                 context.SaveChanges();
 
                 return true;

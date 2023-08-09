@@ -24,6 +24,7 @@ namespace TheradexPortal.Data.Models
         public DateTime? FailedPasswordAttemptDate { get; set; }
         public int? FailedPasswordAttemptCount { get; set; }
         public int? LoginSourceId { get; set; }
+        public string? SelectedStudies { get; set; }
         public string? CurrentStudy { get; set; }
     }
 }

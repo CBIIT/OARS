@@ -60,19 +60,11 @@ namespace TheradexPortal.Data.Services
                 return new List<Protocol>();
         }
 
-        public string GetFilteredStudyIdsForUser(int userId, bool isAdmin)
+        public string GetSelectedStudyIdsForUser(int userId)
         {
-            string studyList = "";
-            if (!isAdmin)
-            {
-                var protocols = GetProtocolsForUserAsync(userId, isAdmin);
-                foreach (Protocol protocol in protocols)
-                {
-                    studyList += protocol.StudyId + ",";
-                }
-
-                studyList = studyList.TrimEnd(',');
-            }
+            var studyList = (from u in context.Users
+                                where u.UserId == userId
+                                select u.SelectedStudies).SingleOrDefault();
 
             return studyList;
         }

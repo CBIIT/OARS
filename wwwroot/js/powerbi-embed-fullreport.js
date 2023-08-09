@@ -10,17 +10,9 @@ function callDotNetSaveStudyMethod(study) {
 
 function embedFullReport(reportContainer, accessToken, filterTargets, embedUrl, embedReportId, studyFilter, slicerSetStudy, studySlicer) {
 
-    // Define if we are not filtering or filtering
-    var operatorX;
-    var valuesX;
-    if (studyFilter == "") {
-        operatorX = "All";
-        valuesX = new Array();
-    }
-    else {
-        operatorX = "In";
-        valuesX = studyFilter;
-    }
+    // studyFilter = list of studies to show in slicer
+    // slicerSetStudy = current study to default the slicer to
+    // studySlicer = power bi guid of the study id slicer
 
     const study_filter =
     {
@@ -29,10 +21,11 @@ function embedFullReport(reportContainer, accessToken, filterTargets, embedUrl, 
             table: "PROTOCOL",
             column: "STUDY_ID"
         },
-        operator: operatorX,
-        values: valuesX,
+        operator: "In",
+        values: studyFilter,
         filterType: models.FilterType.BasicFilter,
-        requireSingleSelection: false
+        requireSingleSelection: false,
+        displaySettings: { isHiddenInViewMode: true }
     }
 
     const slicer_filter =

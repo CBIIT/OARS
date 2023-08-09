@@ -7,6 +7,12 @@
 @using TheradexPortal.Data.Static;
 @inject IHttpContextAccessor httpContextAccessor
 
+<Alert Color="Color.Warning" @bind-Visible="@alertVisible">
+    <AlertMessage>
+        Please select at least one study.&nbsp;&nbsp;
+    </AlertMessage>
+    <CloseButton />
+</Alert>
 <Row Background="Background.Light">
     <Column ColumnSize="ColumnSize.IsFull">
         <DataGrid @ref="datagridRef"
@@ -26,7 +32,7 @@
                     CommandMode="DataGridCommandMode.ButtonRow">
                 <DataGridColumns>
                     <DataGridMultiSelectColumn Width="30px"> </DataGridMultiSelectColumn>
-                    <DataGridCommandColumn />
+                    <DataGridCommandColumn Caption="Teddddd" />
                     <DataGridColumn Field="@nameof(Protocol.StudyId)" Caption="Study ID"/>
                     <DataGridColumn Field="@nameof(Protocol.StudyDrug)" Caption="Primary Agent" />
                     <DataGridColumn Field="@nameof(Protocol.ProtocolTitle)" Caption="Title" />
@@ -38,7 +44,6 @@
                                 if (date != null)
                                 {   
                                     @(date.Value.ToString("dd-MMM-yyyy"))
-                                    //@(date.Value.ToShortDateString())
                                 }
                             }
                         </DisplayTemplate>
@@ -58,7 +63,6 @@
         </DataGrid>
     </Column>
 </Row>
-
 
 <Modal @ref="overviewRef">
     <ModalContent>
@@ -121,6 +125,7 @@
     [Inject] IJSRuntime jsRuntime { get; set; }
     [Inject] INotificationService? notificationService { get; set; } = null!;
     [Inject] private IUserService userService { get; set; } = null!;
+    [Inject] private NavigationManager navigation {get; set; } = null!;
 
     [Parameter] public Action<List<Protocol>?>? OnSave { get; set; } = null!;
 
@@ -131,16 +136,19 @@
     private Protocol overviewProtocol = new Protocol();
     protected DataGrid<Protocol> datagridRef;
 
+    private bool alertVisible = false;
+
     // get studies for grid
     protected override async Task OnInitializedAsync()
     {
+        alertVisible = false;
         bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsAdmin, "True");
         int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
         studyList = studyService.GetProtocolsForUserAsync(userId, isAdmin);
 
         // Get the selected studies from the user
         //IList<Protocol> protocols = studyService.GetFilteredStudiesForUser(userId);
-
+        //await datagridRef.Refresh();
         //datagridRef
         //selectedStudies = protocols.ToList();
 
@@ -154,6 +162,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        alertVisible = false;
         if (firstRender)
         {
             //forach (var row in datagridRef.DetailRowTemplate.Target)
@@ -164,10 +173,10 @@
 
             //datagridRef.SelectedRows.Select(selectedStudies);
             //    int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
-        //    List<Protocol> protocols = studyService.GetFilteredStudiesForUser(userId);
-        //    selectedStudies = protocols.ToList();
+            //    List<Protocol> protocols = studyService.GetFilteredStudiesForUser(userId);
+            //    selectedStudies = protocols.ToList();
 
-        //    StateHasChanged();
+            //    StateHasChanged();
         }
 
         //if (firstRender)
@@ -204,29 +213,49 @@
 
     private async void Save()
     {
-        string studiesToSave = "";
-        foreach (Protocol study in selectedStudies)
+        if (selectedStudies != null && selectedStudies.Count > 0)
         {
-            studiesToSave += study.StudyId + ",";
-        }
-        studiesToSave = studiesToSave.TrimEnd(',');
+            string studiesToSave = "";
+            foreach (Protocol study in selectedStudies)
+            {
+                studiesToSave += study.StudyId + ",";
+            }
+            studiesToSave = studiesToSave.TrimEnd(',');
 
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
-        bool saved = userService.SaveSelectedStudies(userId, studiesToSave);
+            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+            bool saved = userService.SaveSelectedStudies(userId, studiesToSave);
 
-        // Notify user
-        if(notificationService != null)
-        {
-            if (saved)
-                await notificationService.Success("Studies Updated");
+            // Navigate to first dashboard
+            if (OnSave == null)
+            {
+                string dashboards = httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.Dashboards).Value;
+                dashboards = dashboards.TrimStart('|').Split('|')[0];
+                navigation.NavigateTo($"{WrConstants.DASHBOARD_PAGE_PATH}/{dashboards}", new NavigationOptions { ReplaceHistoryEntry = true });
+            }
             else
-                await notificationService.Error("Save Failed");
-        }
+                OnSave.Invoke(selectedStudies);
 
-        // Notify calling component
-        if(OnSave != null)
+
+            // Notify user
+            //if (notificationService != null)
+            //{
+            //    if (saved)
+            //        await notificationService.Success("Studies Updated");
+            //    else
+            //        await notificationService.Error("Save Failed");
+            //}
+
+
+
+            // Notify calling component
+            //if (OnSave != null)
+            //{
+            //    OnSave.Invoke(selectedStudies);
+            //}
+        }
+        else
         {
-            OnSave.Invoke(selectedStudies);
+            alertVisible = true;
         }
     }
 

@@ -73,18 +73,12 @@
             currentStudy = protocols[0].StudyId;
 
         string[] filteredStudiesArray; //= studyService.GetFilteredStudyIdsForUser(userId, isAdmin).Split(',');
-        string filteredStudies = studyService.GetFilteredStudyIdsForUser(userId, isAdmin);
+        string filteredStudies = studyService.GetSelectedStudyIdsForUser(userId);
 
         if (filteredStudies != "")
             filteredStudiesArray = filteredStudies.Split(',');
         else
             filteredStudiesArray = new string[] { };
-
-        //foreach (Protocol protocol in protocols)
-        //{
-        //    filterString += protocol.StudyId + ",";
-        //}
-        //filterString = filterString.Trim(',');
 
         if (string.IsNullOrEmpty(userEmail))
             throw new ArgumentNullException("Email address not found");
