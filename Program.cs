@@ -110,7 +110,7 @@ var onTokenValidated = async (TokenValidatedContext context) =>
     foreach(var role in userRoles)
     {        
         claimsIdentity.AddClaim(new Claim(WRClaimType.Role, role.RoleName));
-        if (role.RoleName == "Administrator")
+        if (role.IsAdmin)
         {
             isAdmin = true;
         }

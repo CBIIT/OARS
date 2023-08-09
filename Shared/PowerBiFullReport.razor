@@ -60,7 +60,7 @@
     public async Task EmbedFullReportJS()
     {
         var userEmail = httpContextAccessor.HttpContext?.User?.FindFirst("preferred_username")?.Value;
-        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.Role, "Administrator");
+        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsAdmin, "True");
         int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
         var currentStudy = "";
 

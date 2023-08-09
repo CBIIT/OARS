@@ -43,7 +43,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.Role, "Administrator");
+        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsAdmin, "True");
         int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
 
         dashboards = await dashboardService.GetDashboardsForUserAsync(userId, isAdmin);

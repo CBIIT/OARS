@@ -134,7 +134,7 @@
     // get studies for grid
     protected override async Task OnInitializedAsync()
     {
-        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.Role, "Administrator");
+        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsAdmin, "True");
         int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
         studyList = studyService.GetProtocolsForUserAsync(userId, isAdmin);
 

@@ -41,7 +41,7 @@ else
 
 <Modal @ref="modalRef">
     <ModalContent Centered Size="ModalSize.ExtraLarge">
-        <ModalHeader>
+        <ModalHeader TextColor="TextColor.White" Background="Background.Primary">
             <ModalTitle>Filter Studies</ModalTitle>
             <CloseButton/>
         </ModalHeader>
@@ -100,7 +100,7 @@ else
             return;
         }
 
-        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.Role, "Administrator");
+        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsAdmin, "True");
         int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
 
         allReports = await dashboardService.GetReportsByDashboardIdForUserAsync(DashboardId, userId, isAdmin);
