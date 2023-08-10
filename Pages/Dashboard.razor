@@ -54,6 +54,7 @@ else
 
 @code {
     [Inject] private IDashboardService dashboardService { get; set; } = null!;
+    [Inject] private IStudyService studyService { get; set; } = null!;
     [Inject] private NavigationManager navigation {get; set; } = null!;
 
     [Parameter] public int DashboardId { get; set; }
@@ -102,6 +103,11 @@ else
 
         bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsAdmin, "True");
         int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+
+        // Check if at least one study has been selected by the user
+        IList<Protocol> currentStudies = studyService.GetCurrentStudiesForUser(userId);
+        if (currentStudies.Count == 0)
+            navigation.NavigateTo("Studies");
 
         allReports = await dashboardService.GetReportsByDashboardIdForUserAsync(DashboardId, userId, isAdmin);
         if (ReportId == 0)

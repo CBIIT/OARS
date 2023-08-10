@@ -68,5 +68,22 @@ namespace TheradexPortal.Data.Services
 
             return studyList;
         }
+
+        public List<Protocol> GetSelectedStudiesForUser(int userId)
+        {
+            string[] studyListArray;
+            string studyList = GetSelectedStudyIdsForUser(userId);
+
+            if (studyList != null && studyList != "")
+                studyListArray = studyList.Split(',');
+            else
+                studyListArray = Array.Empty<string>();
+
+            List<Protocol> protocols = (from p in context.Protocols
+                            where studyListArray.Contains(p.StudyId)
+                            select p).ToList();
+
+            return protocols;
+        }
     }
 }

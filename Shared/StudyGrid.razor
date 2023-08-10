@@ -9,7 +9,7 @@
 
 <Alert Color="Color.Warning" @bind-Visible="@alertVisible">
     <AlertMessage>
-        Please select at least one study.&nbsp;&nbsp;
+        Please select at least one study to continue.&nbsp;&nbsp;
     </AlertMessage>
     <CloseButton />
 </Alert>
@@ -31,8 +31,16 @@
                     PageSize="25"
                     CommandMode="DataGridCommandMode.ButtonRow">
                 <DataGridColumns>
-                    <DataGridMultiSelectColumn Width="30px"> </DataGridMultiSelectColumn>
-                    <DataGridCommandColumn Caption="Teddddd" />
+                    <DataGridMultiSelectColumn Width="30px">
+                    </DataGridMultiSelectColumn>
+                    <DataGridCommandColumn />
+                    <DataGridColumn Field="@nameof(Protocol.StudyId)" Caption="Recent" Sortable="true" Filterable="false" Width="120px">
+                        <DisplayTemplate>
+                            <Figure Size="FigureSize.Is32x32">
+                                <FigureImage Source="img/recent.jpg" Visibility="@CheckRecentStudy(context as Protocol)" AlternateText="Recently Selected" />
+                            </Figure>
+                        </DisplayTemplate>
+                    </DataGridColumn>
                     <DataGridColumn Field="@nameof(Protocol.StudyId)" Caption="Study ID"/>
                     <DataGridColumn Field="@nameof(Protocol.StudyDrug)" Caption="Primary Agent" />
                     <DataGridColumn Field="@nameof(Protocol.ProtocolTitle)" Caption="Title" />
@@ -146,11 +154,22 @@
         int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
         studyList = studyService.GetProtocolsForUserAsync(userId, isAdmin);
 
+        List<Protocol> defaultStudies = studyService.GetSelectedStudiesForUser(userId);
+        if (defaultStudies.Count == 0)
+            alertVisible = true;
+
+
         // Get the selected studies from the user
         //IList<Protocol> protocols = studyService.GetFilteredStudiesForUser(userId);
+        //IList<Protocol> protocols = studyService.GetProtocolsForUserAsync(1, false);
+        //await datagridRef.Select(protocols[0]);
         //await datagridRef.Refresh();
         //datagridRef
-        //selectedStudies = protocols.ToList();
+        //List<Protocol> curProts = studyService.GetSelectedStudiesForUser(userId);
+
+        //selectedStudies = curProts;
+        //datagridRef.Refresh();
+        //selectedStudies = studyList.ToList();  //.Intersect(curProts).ToList(); //studyService.GetSelectedStudiesForUser(userId).ToList();
 
         //await InvokeAsync( StateHasChanged );
     }
@@ -165,6 +184,9 @@
         alertVisible = false;
         if (firstRender)
         {
+            //IList<Protocol> protocols = studyService.GetProtocolsForUserAsync(1, false);
+            //await datagridRef.Select(protocols[0]);
+            //datagridRef.SelectedRowChanged();
             //forach (var row in datagridRef.DetailRowTemplate.Target)
             //await datagridRef.Reload();
             //datagridRef.SelectedRows = selectedStudies;
@@ -266,6 +288,15 @@
         return overviewRef.Show();
     }
 
+    private Blazorise.Visibility CheckRecentStudy(Protocol p)
+    {
+        return Visibility.Invisible;
+
+        //if (p.StudyId == "10005")
+        //    return Visibility.Visible;
+        //else
+        //    return Visibility.Invisible;
+    }
 
     // checkbox X
     // study id X
