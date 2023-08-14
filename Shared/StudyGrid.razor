@@ -6,6 +6,7 @@
 @using TheradexPortal.Data.Services.Abstract;
 @using TheradexPortal.Data.Static;
 @inject IHttpContextAccessor httpContextAccessor
+@inject IConfiguration configuration
 
 <Alert Color="Color.Warning" @bind-Visible="@alertVisible">
     <AlertMessage>
@@ -13,38 +14,39 @@
     </AlertMessage>
     <CloseButton />
 </Alert>
-<Row Background="Background.Light">
-    <Column ColumnSize="ColumnSize.IsFull">
         <DataGrid @ref="datagridRef"
+                    Class="studygrid"
                     TItem="Protocol"
                     Data="@studyList"
                     SelectionMode="DataGridSelectionMode.Multiple"
                     @bind-SelectedRows="@selectedStudies"
                     Responsive
+                    Sortable
+                    SortMode="DataGridSortMode.Single"
                     Filterable
                     Editable
                     Striped
                     ShowPager
                     FixedHeader
-                    FixedHeaderDataGridHeight="calc(100vh - 350px)"
-                    FixedHeaderDataGridMaxHeight="calc(100vh - 350px)"
+                    FixedHeaderDataGridHeight="calc(100vh - 240px)"
+                    FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
                     PageSize="25"
                     CommandMode="DataGridCommandMode.ButtonRow">
                 <DataGridColumns>
                     <DataGridMultiSelectColumn Width="30px">
                     </DataGridMultiSelectColumn>
                     <DataGridCommandColumn />
-                    <DataGridColumn Field="@nameof(Protocol.StudyId)" Caption="Recent" Sortable="true" Filterable="false" Width="120px">
+                    <DataGridColumn Width="20px" Caption="Rcnt" VerticalAlignment="VerticalAlignment.Top" Filterable="false" Field="@nameof(Protocol.RecentOrder)" SortDirection="SortDirection.Descending">
                         <DisplayTemplate>
                             <Figure Size="FigureSize.Is32x32">
                                 <FigureImage Source="img/recent.jpg" Visibility="@CheckRecentStudy(context as Protocol)" AlternateText="Recently Selected" />
                             </Figure>
                         </DisplayTemplate>
-                    </DataGridColumn>
-                    <DataGridColumn Field="@nameof(Protocol.StudyId)" Caption="Study ID"/>
-                    <DataGridColumn Field="@nameof(Protocol.StudyDrug)" Caption="Primary Agent" />
+                    </DataGridColumn> 
+                    <DataGridColumn Width="100px" Field="@nameof(Protocol.StudyId)" Caption="Study ID" />
+                    <DataGridColumn Width="100px" Field="@nameof(Protocol.StudyDrug)" Caption="Primary Agent" />
                     <DataGridColumn Field="@nameof(Protocol.ProtocolTitle)" Caption="Title" />
-                    <DataGridDateColumn Field="@nameof(Protocol.ActivationDT)" Caption="Activation Date">
+                    <DataGridDateColumn Width="150px" Field="@nameof(Protocol.ActivationDT)" Caption="Activation Date">
                         <DisplayTemplate>
                             @{
                                 var date = (context as Protocol)?.ActivationDT;
@@ -56,12 +58,14 @@
                             }
                         </DisplayTemplate>
                     </DataGridDateColumn>
-                    <DataGridColumn Field="@nameof(Protocol.CurrentStatus)" Caption="Protocol Status" />
-                    <DataGridColumn Field="@nameof(Protocol.StudyId)" Sortable="false" Filterable="false" Width="120px">
+                    <DataGridColumn Width="200px" Field="@nameof(Protocol.CurrentStatus)" Caption="Protocol Status" />
+                    <DataGridColumn Width="120px" Field="@nameof(Protocol.StudyId)" Sortable="false" Filterable="false">
                         <DisplayTemplate>
-                            <Button Color="Color.Info" Clicked="@(()=>OnOverviewClicked(context as Protocol))">
-                                Overview
-                            </Button>
+                            <div @onclick:stopPropagation="true" @onclick:preventDefault="true">
+                                <Button Color="Color.Info" Clicked="@(()=>OnOverviewClicked(context as Protocol))">
+                                    Overview
+                                </Button>
+                            </div>
                         </DisplayTemplate>
                     </DataGridColumn>
                 </DataGridColumns>
@@ -69,8 +73,6 @@
                 <Button Color="Color.Primary" Clicked="@Save">Load Studies</Button>
             </ButtonRowTemplate>
         </DataGrid>
-    </Column>
-</Row>
 
 <Modal @ref="overviewRef">
     <ModalContent>
@@ -143,6 +145,7 @@
     private Modal? overviewRef;
     private Protocol overviewProtocol = new Protocol();
     protected DataGrid<Protocol> datagridRef;
+    private IList<string> recentStudies;
 
     private bool alertVisible = false;
 
@@ -158,6 +161,14 @@
         if (defaultStudies.Count == 0)
             alertVisible = true;
 
+        int recentCount = configuration.GetValue<int>("System:RecentHistoryCount");
+        recentStudies = await userService.GetProtocolHistoryAsync(userId, recentCount);
+        for (int iOrder=1; iOrder <= recentStudies.Count; iOrder++)
+        {
+            Protocol? foundStudy = studyList.FirstOrDefault(p => p.StudyId == recentStudies[iOrder-1]);
+            if (foundStudy != null)
+                foundStudy.RecentOrder = recentStudies.Count - iOrder + 1;  // Show most recent first
+        }
 
         // Get the selected studies from the user
         //IList<Protocol> protocols = studyService.GetFilteredStudiesForUser(userId);
@@ -245,7 +256,7 @@
             studiesToSave = studiesToSave.TrimEnd(',');
 
             int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
-            bool saved = userService.SaveSelectedStudies(userId, studiesToSave);
+            bool saved = userService.SaveSelectedStudies(userId, studiesToSave, true);
 
             // Navigate to first dashboard
             if (OnSave == null)
@@ -290,12 +301,10 @@
 
     private Blazorise.Visibility CheckRecentStudy(Protocol p)
     {
-        return Visibility.Invisible;
-
-        //if (p.StudyId == "10005")
-        //    return Visibility.Visible;
-        //else
-        //    return Visibility.Invisible;
+        if (p.RecentOrder >= 1)
+            return Visibility.Visible;
+        else
+            return Visibility.Invisible;
     }
 
     // checkbox X

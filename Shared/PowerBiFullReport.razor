@@ -125,7 +125,7 @@
     private async Task LocalChangUpdateFilterValueAsync(string value)
     {
         int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
-        bool saved = userService.SaveSelectedStudies(userId, value);
+        bool saved = userService.SaveSelectedStudies(userId, value, false);
     }
 
     [JSInvokable]

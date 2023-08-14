@@ -52,6 +52,7 @@ namespace TheradexPortal.Data
         public DbSet<Group> Groups { get; set; }
         public DbSet<GroupProtocol> Group_Protocols { get; set; }
         public DbSet<UserGroup> User_Groups { get; set; }
+        public DbSet<UserProtocolHistory> User_ProtocolHistory { get; set; }
 
     }
 

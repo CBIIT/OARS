@@ -23,7 +23,7 @@ namespace TheradexPortal.Data.Services
             return await context.Users.FirstOrDefaultAsync(u => u.EmailAddress == emailAddress);
         }
 
-        public bool SaveSelectedStudies(int userId, string studies)
+        public bool SaveSelectedStudies(int userId, string studies, bool saveRecent)
         {
             try
             {
@@ -36,14 +36,40 @@ namespace TheradexPortal.Data.Services
                     user.CurrentStudy = studyList[0];
 
                 user.SelectedStudies = studies;
-                context.SaveChanges();
 
+                if (saveRecent)
+                {
+                    // Delete old entry for any newly selected study
+                    foreach (string selectedStudy in studyList)
+                    {
+                        List<UserProtocolHistory> histsToDelete = context.User_ProtocolHistory.Where(uph => uph.StudyId == selectedStudy).ToList();
+                        foreach (UserProtocolHistory history in histsToDelete)
+                            context.User_ProtocolHistory.Remove(history);
+
+                    }
+                    List<UserProtocolHistory> newHistory = new List<UserProtocolHistory>();
+                    foreach (string selectedStudy in studyList)
+                    {
+                        UserProtocolHistory newUPH = new UserProtocolHistory();
+                        newUPH.UserId = userId;
+                        newUPH.StudyId = selectedStudy;
+                        newUPH.CreateDate = DateTime.UtcNow;
+                        context.User_ProtocolHistory.Add(newUPH);
+                    }
+                }
+
+                context.SaveChanges();
                 return true;
             }
             catch (Exception ex)
             {
                 return false;
             }
+        }
+
+        public async Task<IList<string>> GetProtocolHistoryAsync(int userId, int count)
+        {
+            return await context.User_ProtocolHistory.Where(p1=>p1.UserId == userId).OrderByDescending(p=>p.WRUserProtocolHistoryId).Select(p=>p.StudyId).Take(count).ToListAsync();
         }
     }
 }

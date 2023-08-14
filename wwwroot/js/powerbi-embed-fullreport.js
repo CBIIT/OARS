@@ -1,7 +1,7 @@
 const models = window['powerbi-client'].models;
 
 function callDotNetSaveStudyMethod(study) {
-    DotNet.invokeMethodAsync("TheradexPortal", "SaveStudyFromSlicer", study[0])
+    DotNet.invokeMethodAsync("TheradexPortal", "SaveStudyFromSlicer", study[0], false)
         .then(data => {
             // once async call is done, this is to display the result returned by .NET call
             console.log("Slicer data :" + data);
