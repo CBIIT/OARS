@@ -36,7 +36,7 @@
                     <DataGridMultiSelectColumn Width="30px">
                     </DataGridMultiSelectColumn>
                     <DataGridCommandColumn />
-                    <DataGridColumn Width="20px" Caption="Rcnt" VerticalAlignment="VerticalAlignment.Top" Filterable="false" Field="@nameof(Protocol.RecentOrder)" SortDirection="SortDirection.Descending">
+                    <DataGridColumn Width="20px" Caption="Hx" Filterable="false" Field="@nameof(Protocol.RecentOrder)" SortDirection="SortDirection.Descending">
                         <DisplayTemplate>
                             <Figure Size="FigureSize.Is32x32">
                                 <FigureImage Source="img/recent.jpg" Visibility="@CheckRecentStudy(context as Protocol)" AlternateText="Recently Selected" />
