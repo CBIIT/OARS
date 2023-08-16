@@ -1,4 +1,18 @@
 ﻿@page "/studies"
+@inject IHttpContextAccessor httpContextAccessor
 
 <StudyGrid />
 
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+
+@code
+{
+    [Inject] private IUserService userService { get; set; } = null!;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        userService.SaveActivityLog(userId, WRActivityType.Navigation, "My Studies");
+    }
+}

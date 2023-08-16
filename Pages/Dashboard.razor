@@ -55,6 +55,7 @@ else
 @code {
     [Inject] private IDashboardService dashboardService { get; set; } = null!;
     [Inject] private IStudyService studyService { get; set; } = null!;
+    [Inject] private IUserService userService { get; set; } = null!;
     [Inject] private NavigationManager navigation {get; set; } = null!;
 
     [Parameter] public int DashboardId { get; set; }
@@ -68,6 +69,10 @@ else
     private TheradexPortal.Data.Models.Dashboard? dashboard;
     private IList<Report> allReports = new List<Report>();
     private Report? report;
+    private string dashboardName;
+    private string reportName;
+    private int userId;
+    private int previousReport = 0;
 
     private IList<SecondaryNavAction> Actions => new List<SecondaryNavAction>
     {
@@ -93,7 +98,6 @@ else
         // Determine if user has access to requested dashboard & report
         string userDashboards = httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.Dashboards).Value;
         string userReports = httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.Reports).Value;
-
         dashboard = await dashboardService.GetDashboardByIdAsync(DashboardId, userDashboards);
         if(dashboard == null)
         {
@@ -102,7 +106,7 @@ else
         }
 
         bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsAdmin, "True");
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
 
         // Check if at least one study has been selected by the user
         IList<Protocol> currentStudies = studyService.GetCurrentStudiesForUser(userId);
@@ -132,8 +136,24 @@ else
                 return;
             }
         }
-    }
 
+        // First navigation to Dashboard creates a duplicate record.
+        if (report.WRReportId != previousReport)
+        {
+            userService.SaveActivityLog(userId, WRActivityType.Navigation, dashboard.Name, report.Name);
+            previousReport = report.WRReportId;
+        }
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            //navigation.LocationChanged += LocationChanged;
+
+            //int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+            //bool saved = userService.SaveActivityLog(userId, WRActivityType.Navigation, dashboard.Name, report.Name);
+        }
+    }
     // Show modal
     private async void ShowFilters()
     {

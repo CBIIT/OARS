@@ -65,12 +65,12 @@ var onTokenValidated = async (TokenValidatedContext context) =>
     // Add custom claims to the identity
     var claimsIdentity = (ClaimsIdentity)context.Principal.Identity;
 
-
     var userService = context.HttpContext.RequestServices.GetRequiredService<IUserService>();
     var userRoleService = context.HttpContext.RequestServices.GetRequiredService<IUserRoleService>();
     var dashboardService = context.HttpContext.RequestServices.GetRequiredService<IDashboardService>();
 
     var userIsRegistered = false;
+    var roleList = "";
 
     if (claimsIdentity.Claims is null)
     {
@@ -110,11 +110,13 @@ var onTokenValidated = async (TokenValidatedContext context) =>
     foreach(var role in userRoles)
     {        
         claimsIdentity.AddClaim(new Claim(WRClaimType.Role, role.RoleName));
+        roleList += role.RoleName + ",";
         if (role.IsAdmin)
         {
             isAdmin = true;
         }
     }
+    roleList = roleList.TrimEnd(',');
 
     var dashboardIds = await dashboardService.GetDashboardIdsForUser(user.UserId, isAdmin);
     var reportIds = await dashboardService.GetReportIdsForUser(user.UserId, isAdmin);
@@ -123,6 +125,7 @@ var onTokenValidated = async (TokenValidatedContext context) =>
     claimsIdentity.AddClaim(new Claim(WRClaimType.Dashboards, dashboardIds));
     claimsIdentity.AddClaim(new Claim(WRClaimType.Reports, reportIds));
 
+    bool saveActivity = userService.SaveActivityLog(user.UserId, WRActivityType.Login, roleList);
     return Task.CompletedTask;
 
 };

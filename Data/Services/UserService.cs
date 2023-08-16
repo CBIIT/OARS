@@ -42,7 +42,7 @@ namespace TheradexPortal.Data.Services
                     // Delete old entry for any newly selected study
                     foreach (string selectedStudy in studyList)
                     {
-                        List<UserProtocolHistory> histsToDelete = context.User_ProtocolHistory.Where(uph => uph.StudyId == selectedStudy).ToList();
+                        List<UserProtocolHistory> histsToDelete = context.User_ProtocolHistory.Where(uph => uph.UserId == userId && uph.StudyId == selectedStudy).ToList();
                         foreach (UserProtocolHistory history in histsToDelete)
                             context.User_ProtocolHistory.Remove(history);
 
@@ -70,6 +70,36 @@ namespace TheradexPortal.Data.Services
         public async Task<IList<string>> GetProtocolHistoryAsync(int userId, int count)
         {
             return await context.User_ProtocolHistory.Where(p1=>p1.UserId == userId).OrderByDescending(p=>p.WRUserProtocolHistoryId).Select(p=>p.StudyId).Take(count).ToListAsync();
+        }
+
+        public bool SaveActivityLog(int userId, string activityType)
+        {
+            return SaveActivityLog(userId, activityType, null);
+        }
+        public bool SaveActivityLog(int userId, string activityType, string data1)
+        {
+            return SaveActivityLog(userId, activityType, data1, null);
+        }
+        public bool SaveActivityLog(int userId, string activityType, string data1, string data2)
+        {
+            try
+            {
+                UserActivityLog newUal = new UserActivityLog();
+                newUal.UserId = userId;
+                newUal.ActivityType = activityType;
+                newUal.ActivityDate = DateTime.UtcNow;
+                newUal.Data1 = data1;
+                newUal.Data2 = data2;
+
+                context.User_ActivityLog.Add(newUal);
+                context.SaveChanges();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
     }
 }

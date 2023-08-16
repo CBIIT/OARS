@@ -146,6 +146,7 @@
     private Protocol overviewProtocol = new Protocol();
     protected DataGrid<Protocol> datagridRef;
     private IList<string> recentStudies;
+    //private bool saveNavigationLog = true;
 
     private bool alertVisible = false;
 
@@ -170,6 +171,7 @@
                 foundStudy.RecentOrder = recentStudies.Count - iOrder + 1;  // Show most recent first
         }
 
+        // TRYING TO RE_SELECT SELECTED STUDIES
         // Get the selected studies from the user
         //IList<Protocol> protocols = studyService.GetFilteredStudiesForUser(userId);
         //IList<Protocol> protocols = studyService.GetProtocolsForUserAsync(1, false);
@@ -185,16 +187,17 @@
         //await InvokeAsync( StateHasChanged );
     }
 
-    //protected async Task OnReadData(DataGridReadDataEventArgs<Protocol> e)
-    //{
-    //    StateHasChanged();
-    //}
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         alertVisible = false;
         if (firstRender)
         {
+            //if (saveNavigationLog)
+            //{
+            //    int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+            //    userService.SaveActivityLog(userId, WRActivityType.Navigation, "Dashboard", "My Studies");
+            //}
+
             //IList<Protocol> protocols = studyService.GetProtocolsForUserAsync(1, false);
             //await datagridRef.Select(protocols[0]);
             //datagridRef.SelectedRowChanged();
@@ -249,14 +252,18 @@
         if (selectedStudies != null && selectedStudies.Count > 0)
         {
             string studiesToSave = "";
+            string firstStudy = "";
             foreach (Protocol study in selectedStudies)
             {
+                firstStudy = firstStudy == "" ? study.StudyId : firstStudy;
                 studiesToSave += study.StudyId + ",";
             }
             studiesToSave = studiesToSave.TrimEnd(',');
 
             int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
             bool saved = userService.SaveSelectedStudies(userId, studiesToSave, true);
+            saved = userService.SaveActivityLog(userId, WRActivityType.Study, "Filter Studies", studiesToSave);
+            saved = userService.SaveActivityLog(userId, WRActivityType.Study, "Default Study", firstStudy);
 
             // Navigate to first dashboard
             if (OnSave == null)
