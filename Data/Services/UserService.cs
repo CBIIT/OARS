@@ -39,7 +39,7 @@ namespace TheradexPortal.Data.Services
 
                 if (saveRecent)
                 {
-                    // Delete old entry for any newly selected study
+                    // Delete old entry in UserProtocolHistory for any newly selected study
                     foreach (string selectedStudy in studyList)
                     {
                         List<UserProtocolHistory> histsToDelete = context.User_ProtocolHistory.Where(uph => uph.UserId == userId && uph.StudyId == selectedStudy).ToList();
@@ -67,6 +67,22 @@ namespace TheradexPortal.Data.Services
             }
         }
 
+        public bool SaveCurrentStudy(int userId, string study)
+        {
+            try
+            {
+                // Get the user, update and save.
+                User user = context.Users.FirstOrDefault(u => u.UserId == userId);
+                user.CurrentStudy = study;
+
+                context.SaveChanges();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
         public async Task<IList<string>> GetProtocolHistoryAsync(int userId, int count)
         {
             return await context.User_ProtocolHistory.Where(p1=>p1.UserId == userId).OrderByDescending(p=>p.WRUserProtocolHistoryId).Select(p=>p.StudyId).Take(count).ToListAsync();

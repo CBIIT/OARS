@@ -108,11 +108,6 @@ else
         bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsAdmin, "True");
         userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
 
-        // Check if at least one study has been selected by the user
-        IList<Protocol> currentStudies = studyService.GetCurrentStudiesForUser(userId);
-        if (currentStudies.Count == 0)
-            navigation.NavigateTo("Studies");
-
         allReports = await dashboardService.GetReportsByDashboardIdForUserAsync(DashboardId, userId, isAdmin);
         if (ReportId == 0)
         {
@@ -137,21 +132,24 @@ else
             }
         }
 
-        // First navigation to Dashboard creates a duplicate record.
-        if (report.WRReportId != previousReport)
+        // Check if at least one study has been selected by the user
+        IList<Protocol> currentStudies = studyService.GetCurrentStudiesForUser(userId);
+        if (currentStudies.Count == 0)
+            navigation.NavigateTo("Studies");
+        else
         {
-            userService.SaveActivityLog(userId, WRActivityType.Navigation, dashboard.Name, report.Name);
-            previousReport = report.WRReportId;
+            // First navigation to Dashboard creates a duplicate record.
+            if (report.WRReportId != previousReport)
+            {
+                userService.SaveActivityLog(userId, WRActivityType.Navigation, dashboard.Name, report.Name);
+                previousReport = report.WRReportId;
+            }
         }
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            //navigation.LocationChanged += LocationChanged;
-
-            //int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
-            //bool saved = userService.SaveActivityLog(userId, WRActivityType.Navigation, dashboard.Name, report.Name);
         }
     }
     // Show modal

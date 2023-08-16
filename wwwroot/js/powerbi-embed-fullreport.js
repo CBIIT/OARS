@@ -1,7 +1,7 @@
 const models = window['powerbi-client'].models;
 
 function callDotNetSaveStudyMethod(study) {
-    DotNet.invokeMethodAsync("TheradexPortal", "SaveStudyFromSlicer", study[0], false)
+    DotNet.invokeMethodAsync("TheradexPortal", "SaveStudyFromSlicer", study[0])
         .then(data => {
             // once async call is done, this is to display the result returned by .NET call
             console.log("Slicer data :" + data);
@@ -68,7 +68,7 @@ function embedFullReport(reportContainer, accessToken, filterTargets, embedUrl, 
     let report = powerbi.embed(reportContainer, config);
 
     report.on('dataSelected', async function () {
-        console.log("Visual clicked event triggred");
+        //console.log("Visual clicked event triggred");
 
         // Get pages
         const pages = await report.getPages();
@@ -88,8 +88,6 @@ function embedFullReport(reportContainer, accessToken, filterTargets, embedUrl, 
 
         // Get the slicer state
         const state = await slicer.getSlicerState();
-        console.log("Selected Protocol: " + state.filters[0].values);
-
         callDotNetSaveStudyMethod(state.filters[0].values);
     });
 

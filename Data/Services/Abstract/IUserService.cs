@@ -8,6 +8,7 @@ namespace TheradexPortal.Data.Services.Abstract
         public Task<User?> GetUserAsync(int userId);
         public Task<User?> GetUserByEmailAsync(string emailAddress);
         public bool SaveSelectedStudies(int userId, string studies, bool saveRecent);
+        public bool SaveCurrentStudy(int userId, string study);
         public Task<IList<string>> GetProtocolHistoryAsync(int userId, int count);
         public bool SaveActivityLog(int userId, string activityType);
         public bool SaveActivityLog(int userId, string activityType, string data1);
