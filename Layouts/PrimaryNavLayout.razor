@@ -33,13 +33,12 @@
             </Bar>
             <Bar Breakpoint="Breakpoint.Desktop" Display="Display.None.Block.OnDesktop" Background="Background.White" Class="px-4 nci-dashboard-navbar">
                 <BarStart>
-                    <PrimaryNav RenderButtons @bind-SelectedDashboardPrimaryNav=selectedDashboard
-                    SelectedDashboardChangedPrimaryNav=SelectedDashboardChanged />
+                    <PrimaryNav @ref="@primaryNav" RenderButtons SelectedDashboardPrimaryNavChanged=DashboardChanged />
                 </BarStart>
             </Bar>
-            <Bar @ref="@alertsBar" Breakpoint="Breakpoint.Desktop" Display="Display.None.Block.OnDesktop" Background="Background.White">
+            <Bar Breakpoint="Breakpoint.Desktop" Display="Display.None.Block.OnDesktop" Background="Background.White">
                 <BarStart>
-                    <AlertBar Dashboard="true" SelectedDashboard="selectedDashboard" />
+                    <AlertBar @ref="@alertsBar" Dashboard="true" SelectedDashboard="selectedDashboard" />
                 </BarStart>
                 <BarToggler />
             </Bar>
@@ -57,8 +56,8 @@
 </Div>
 
 @code {
-    private Bar? sidebar;
-    private Bar? alertsBar;
+    private PrimaryNav? primaryNav;
+    private AlertBar? alertsBar;
     private Dashboard selectedDashboard { get; set; } = null!;
     [Inject] public NavigationManager Navigation { get; set; }
     [Inject] private IAlertService alertService { get; set; } = null!;
@@ -79,8 +78,9 @@
         return Task.CompletedTask;
     }
 
-    async Task SelectedDashboardChanged()
+    protected async Task DashboardChanged()
     {
-
+        this.selectedDashboard = this.primaryNav!.SelectedDashboardPrimaryNav;
+        this.alertsBar?.UpdateDashboard(this.selectedDashboard);
     }
 }

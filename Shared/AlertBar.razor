@@ -3,11 +3,11 @@
 @using TheradexPortal.Data;
 @using TheradexPortal.Data.Services.Abstract;
 
-<BarItem>
+<BarItem @ref="@alertsItem" hidden="@alertsHidden">
     <BarDropdown RightAligned=System Visible="true">
         <BarDropdownToggle>
             <BarIcon IconName="IconName.ExclamationCircle" />
-            Alerts ( @activeAlerts.Count )
+            Alerts
         </BarDropdownToggle>
         <BarDropdownMenu>
             @if (activeAlerts.Count > 0)
@@ -24,11 +24,11 @@
         </BarDropdownMenu>
     </BarDropdown>
 </BarItem>
-<BarItem>
+<BarItem @ref="@notesItem" hidden="@notesHidden">
     <BarDropdown RightAligned=System>
         <BarDropdownToggle>
             <BarIcon IconName="IconName.InfoCircle" />
-            Notes ( @activeNotes.Count )
+            Notes
         </BarDropdownToggle>
         <BarDropdownMenu>
             @if (activeNotes.Count > 0)
@@ -47,10 +47,14 @@
 </BarItem>
 
 @code {
+    private BarItem? alertsItem;
+    private BarItem? notesItem;
+    private bool alertsHidden;
+    private bool notesHidden;
     [Parameter] public bool LoginScreen { get; set; } = false;
     [Parameter] public bool System { get; set; } = false;
     [Parameter] public bool Dashboard { get; set; } = false;
-    [Parameter] public Dashboard SelectedDashboard { get; set; }
+    [Parameter] public Dashboard SelectedDashboard { get; set; } = null!;
     [Inject] private IAlertService alertService { get; set; } = null!;
     private IList<WRAlert> activeAlerts = new List<WRAlert>();
     private IList<WRAlert> activeNotes = new List<WRAlert>();
@@ -61,6 +65,12 @@
         this.getLoginAlerts();
         this.getDashboardAlerts();
         await base.OnInitializedAsync();
+    }
+
+    public void UpdateDashboard(Dashboard dashboard)
+    {
+        this.SelectedDashboard = dashboard;
+        this.getDashboardAlerts();
     }
 
     private async void getSystemAlerts()
@@ -76,17 +86,21 @@
     {
         if (LoginScreen)
         {
-            activeAlerts = await alertService.GetActiveLoginAlertsAsync();
-            activeNotes = await alertService.GetActiveLoginNotesAsync();
+            this.activeAlerts = await alertService.GetActiveLoginAlertsAsync();
+            this.activeNotes = await alertService.GetActiveLoginNotesAsync();
         }
     }
 
     private async void getDashboardAlerts()
     {
-        if (Dashboard && !SelectedDashboard.Equals(null) && !SelectedDashboard.WRDashboardId.Equals(null))
+        if (Dashboard)
         {
-            activeAlerts = await alertService.GetActiveDashboardAlertsByIdAsync(SelectedDashboard.WRDashboardId);
-            activeNotes = await alertService.GetActiveDashboardNotesByIdAsync(SelectedDashboard.WRDashboardId);
+            this.notesHidden = true;
+
+            if (this.SelectedDashboard != null)
+            {
+                this.activeAlerts = await alertService.GetActiveDashboardAlertsByIdAsync(this.SelectedDashboard.WRDashboardId);
+            }
         }
     }
 }
