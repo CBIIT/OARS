@@ -23,6 +23,21 @@ namespace TheradexPortal.Data.Services
             return await context.Users.FirstOrDefaultAsync(u => u.EmailAddress == emailAddress);
         }
 
+        public bool SaveLastLoginDate(int userId)
+        {
+            try
+            {
+                User user = context.Users.FirstOrDefault(u => u.UserId == userId);
+                user.LastLoginDate = DateTime.UtcNow;
+                context.SaveChanges();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
         public bool SaveSelectedStudies(int userId, string studies, bool saveRecent)
         {
             try

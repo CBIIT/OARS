@@ -125,6 +125,7 @@ var onTokenValidated = async (TokenValidatedContext context) =>
     claimsIdentity.AddClaim(new Claim(WRClaimType.Dashboards, dashboardIds));
     claimsIdentity.AddClaim(new Claim(WRClaimType.Reports, reportIds));
 
+    bool updateLastLoginDate = userService.SaveLastLoginDate(user.UserId);
     bool saveActivity = userService.SaveActivityLog(user.UserId, WRActivityType.Login, roleList);
     return Task.CompletedTask;
 
