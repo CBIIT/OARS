@@ -4,17 +4,22 @@
 @using TheradexPortal.Data.Services.Abstract;
 
 <BarItem @ref="@alertsItem" hidden="@alertsHidden">
-    <BarDropdown RightAligned=System Visible="true">
+    <BarDropdown RightAligned="@rightAligned" Visible="true">
         <BarDropdownToggle>
-            <BarIcon IconName="IconName.ExclamationCircle" />
+            <Image Source="img/alert-icon.png" height="@iconHeight" />
             Alerts
         </BarDropdownToggle>
         <BarDropdownMenu>
             @if (activeAlerts.Count > 0)
             {
-                foreach (var alert in activeAlerts)
+                @foreach (var alert in activeAlerts)
                 {
-                    <BarDropdownItem>@alert.AlertText</BarDropdownItem>
+                    <BarDropdownItem>
+                        <Alert Color="Color.Warning" Visible>
+                            <AlertDescription TextOverflow="TextOverflow.Wrap">@alert.AlertText</AlertDescription>
+                            <CloseButton />
+                        </Alert>
+                    </BarDropdownItem>
                 }
             }
             else
@@ -25,9 +30,9 @@
     </BarDropdown>
 </BarItem>
 <BarItem @ref="@notesItem" hidden="@notesHidden">
-    <BarDropdown RightAligned=System>
+    <BarDropdown RightAligned="@rightAligned">
         <BarDropdownToggle>
-            <BarIcon IconName="IconName.InfoCircle" />
+            <Image Source="img/notification-icon.png" height="@iconHeight" />
             Notes
         </BarDropdownToggle>
         <BarDropdownMenu>
@@ -35,7 +40,12 @@
             {
                 @foreach (var note in activeNotes)
                 {
-                    <BarDropdownItem>@note.AlertText</BarDropdownItem>
+                    <BarDropdownItem>
+                        <Alert Color="Color.Info" Visible>
+                            <AlertDescription TextOverflow="TextOverflow.Wrap">@note.AlertText</AlertDescription>
+                            <CloseButton />
+                        </Alert>
+                    </BarDropdownItem>
                 }
             }
             else
@@ -47,15 +57,17 @@
 </BarItem>
 
 @code {
-    private BarItem? alertsItem;
-    private BarItem? notesItem;
-    private bool alertsHidden;
-    private bool notesHidden;
     [Parameter] public bool LoginScreen { get; set; } = false;
     [Parameter] public bool System { get; set; } = false;
     [Parameter] public bool Dashboard { get; set; } = false;
     [Parameter] public Dashboard SelectedDashboard { get; set; } = null!;
     [Inject] private IAlertService alertService { get; set; } = null!;
+    private int iconHeight = 24;
+    private BarItem? alertsItem;
+    private BarItem? notesItem;
+    private bool rightAligned;
+    private bool alertsHidden;
+    private bool notesHidden;
     private IList<WRAlert> activeAlerts = new List<WRAlert>();
     private IList<WRAlert> activeNotes = new List<WRAlert>();
 
@@ -77,6 +89,7 @@
     {
         if (System)
         {
+            this.rightAligned = true;
             this.activeAlerts = await alertService.GetActiveSystemAlertsAsync();
             this.activeNotes = await alertService.GetActiveSystemNotesAsync();
         }

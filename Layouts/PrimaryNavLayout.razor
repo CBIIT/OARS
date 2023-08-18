@@ -26,7 +26,9 @@
                             </BarLink>
                         </BarItem>
                         <BarItem>
-                            <Button Flex="Flex.JustifyContent.Center" Block Color="Color.Secondary" Clicked="@OnButtonClicked">Logout</Button>
+                            <Button Flex="Flex.JustifyContent.Center" Block Color="Color.Secondary" Clicked="@OnButtonClicked">
+                                <Image Source="img/logout-icon.png" height="@iconHeight" />
+                            </Button>
                         </BarItem>
                     </BarEnd>
                 </BarMenu>
@@ -61,13 +63,14 @@
     private Dashboard selectedDashboard { get; set; } = null!;
     [Inject] public NavigationManager Navigation { get; set; }
     [Inject] private IAlertService alertService { get; set; } = null!;
+    private int iconHeight = 24;
     private IList<WRAlert> activeAlerts = new List<WRAlert>();
     private IList<WRAlert> activeNotes = new List<WRAlert>();
 
     protected override async Task OnInitializedAsync()
     {
-        activeAlerts = await alertService.GetActiveLoginAlertsAsync();
-        activeNotes = await alertService.GetActiveLoginNotesAsync();
+        this.activeAlerts = await this.alertService.GetActiveLoginAlertsAsync();
+        this.activeNotes = await this.alertService.GetActiveLoginNotesAsync();
         await base.OnInitializedAsync();
     }
 
