@@ -1,0 +1,26 @@
+﻿@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+@layout AdminLayout
+
+@page "/admin/user/{userid:int?}"
+
+<h2>@AddOrEdit</h2>
+
+@code {
+
+    [Parameter] public int? UserId { get; set; }
+
+    public string AddOrEdit { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (UserId == null )
+        {
+            AddOrEdit = "Create User";
+        }
+        else
+        {
+            AddOrEdit = "Edit User";
+        }
+    }
+}

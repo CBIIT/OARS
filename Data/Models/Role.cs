@@ -16,9 +16,10 @@ namespace TheradexPortal.Data.Models
         public DateTime? CreateDate { get; set; }
         [Column("Update_Date")]
         public DateTime? UpdateDate { get; set; }
-        [Column("Is_Admin")]
-        public bool IsAdmin { get; set; }
-
+        [Column("AdminType")]
+        public string  AdminType { get; set; }
+        [Column("Is_Primary")]
+        public bool IsPrimary { get; set;}
         public Role() 
         {
             CreateDate = DateTime.Now;

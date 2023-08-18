@@ -1,51 +1,105 @@
-﻿@inherits LayoutComponentBase
+﻿@using TheradexPortal.Data.Identity;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@inject IHttpContextAccessor httpContextAccessor
+@inject IConfiguration configuration
+
+@inherits LayoutComponentBase
 @layout AuthLayout
 
 <AuthorizeView Policy="IsAdmin">
     <Authorized>
-        <Layout Sider>
-            <LayoutSider>
-                <LayoutSiderContent>
-                    <Bar Mode="BarMode.VerticalInline"
-                         CollapseMode="BarCollapseMode.Small"
-                         Breakpoint="Breakpoint.Desktop"
-                         NavigationBreakpoint="Breakpoint.Tablet"
-                         ThemeContrast="ThemeContrast.Dark">
-                        <BarBrand>
+        <Div Class="nci-main-wrapper">
+        <Layout Class="nci-main-layout">
+            <LayoutHeader>
+                <Bar Breakpoint="Breakpoint.Desktop" NavigationBreakpoint="Breakpoint.Desktop" Background="Background.Light" Class="nci-navbar px-4">
+                    <BarBrand>
+                        <Image Source="img/theradex-logo.png" AlternateText="Theradex Oncology" />
+                    </BarBrand>
+                    <BarToggler />
+                    <BarMenu>
+                        <BarEnd>
+                            <BarItem Width="Width.Max100" Class="pe-4">
+                                <Heading Size="HeadingSize.Is3" TextColor="TextColor.Secondary">@CurrentEnvironment</Heading>
+                            </BarItem>
                             <BarItem>
-                                <BarLink To="/admin">
-                                    <BarIcon IconName="IconName.Dashboard" />
-                                    Admin Home
+                                <BarLink To="studies">
+                                    <img src="img/home.jpg" alt="Home" style="width:25px;height:25px;" />
                                 </BarLink>
                             </BarItem>
-                        </BarBrand>
-                        <BarMenu>
-                            <BarStart>
+                            <BarItem>
+                                <BarLink onclick="@OnButtonClicked">
+                                    <img src="img/logout.png" alt="Logout" style="width:25px;height:25px;" />
+                                </BarLink>
+                            </BarItem>
+                        </BarEnd>
+                    </BarMenu>
+                </Bar>
+            </LayoutHeader>
+            <Layout Sider>
+                <LayoutSider>
+                    <LayoutSiderContent>
+                        <Bar Mode="BarMode.VerticalInline"
+                                CollapseMode="BarCollapseMode.Small"
+                                Breakpoint="Breakpoint.Desktop"
+                                NavigationBreakpoint="Breakpoint.Tablet"
+                                ThemeContrast="ThemeContrast.Light">
+                            <BarBrand>
                                 <BarItem>
-                                    <BarLink To="/admin/users">
-                                        <BarIcon IconName="IconName.Users" />
-                                        User List
+                                    <BarLink To="/admin">
+                                        <BarIcon IconName="IconName.Dashboard" />
+                                        Admin Home
                                     </BarLink>
                                 </BarItem>
-                            </BarStart>
-                        </BarMenu>
-                    </Bar>
-                </LayoutSiderContent>
-            </LayoutSider>
-            <Layout>
-                <LayoutHeader Fixed>
-                    <Bar Breakpoint="Breakpoint.None" Background="Background.Light" Class="nci-navbar px-4">
-                        <BarBrand>
-                            <Image Source="img/theradex-logo.png" AlternateText="Theradex Oncology" />
-                        </BarBrand>
-                        <BarItem></BarItem>
-                    </Bar>
-                </LayoutHeader>
-                <LayoutContent>
-                    @Body
-                </LayoutContent>
+                            </BarBrand>
+                            <BarMenu>
+                                <BarStart>
+                                    <BarItem>
+                                        <BarLink To="/admin/alerts">
+                                            <BarIcon IconName="IconName.ExclamationCircle" />
+                                            Alerts/Notes
+                                        </BarLink>
+                                    </BarItem>
+                                        @if (!isContentAdmin)
+                                        {
+                                            <BarItem>
+                                                <BarLink To="/admin/users">
+                                                    <BarIcon IconName="IconName.Users" />
+                                                    Users
+                                                </BarLink>
+                                            </BarItem>
+                                            <BarItem>
+                                                <BarLink To="/admin/roles">
+                                                    <BarIcon IconName="IconName.Coffee" />
+                                                    Roles
+                                                </BarLink>
+                                            </BarItem>
+                                            <BarItem>
+                                                <BarLink To="/admin/groups">
+                                                    <BarIcon IconName="IconName.PuzzlePiece" />
+                                                    Groups
+                                                </BarLink>
+                                            </BarItem>
+                                            <BarItem>
+                                                <BarLink To="/admin/dashboards">
+                                            <BarIcon IconName="IconName.ChartPie" />
+                                            Dashboards
+                                        </BarLink>
+                                    </BarItem>
+                                    }
+                                </BarStart>
+                            </BarMenu>
+                        </Bar>
+                    </LayoutSiderContent>
+                </LayoutSider>
+                <Layout>
+                    <LayoutContent Class="mt-2 ms-4 me-2">
+                        @Body
+                    </LayoutContent>
+                </Layout>
             </Layout>
         </Layout>
+        </Div>
     </Authorized>
     <NotAuthorized>
         Not an admin 
@@ -54,5 +108,29 @@
 </AuthorizeView>
 
 @code {
+    [Inject] public NavigationManager Navigation { get; set; }
+    [Inject] private IUserService userService { get; set; } = null!;
 
+    public string CurrentEnvironment { get; set; }
+    public bool isContentAdmin { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        string currentEnvironment = configuration.GetValue<string>("System:Environment");
+        if (currentEnvironment != "Prod")
+            CurrentEnvironment = currentEnvironment;
+        else
+            CurrentEnvironment = "";
+
+        isContentAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsContentAdmin, "True");
+    }
+    
+    Task OnButtonClicked()
+    {
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        userService.SaveActivityLog(userId, WRActivityType.Logout);
+        Navigation.NavigateTo($"Signout", true);
+
+        return Task.CompletedTask;
+    }
 }

@@ -1,13 +1,15 @@
 ﻿@using TheradexPortal.Data.Models;
 @using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
 @layout AdminLayout
 
-@page "/admin/users"
-<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>User List</h2></Div>
+@page "/admin/roles"
+<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>Role List</h2></Div>
+
 <Row Background="Background.Light">
     <Column ColumnSize="ColumnSize.IsFull">
-        <DataGrid TItem="User"
-                  Data="@userList"
+        <DataGrid TItem="Role"
+                  Data="@roleList"
                   Responsive
                   Filterable
                   Striped
@@ -20,14 +22,11 @@
             <DataGridColumns>
                 <DataGridMultiSelectColumn Width="30px"> </DataGridMultiSelectColumn>
                 <DataGridCommandColumn />
-                <DataGridColumn Field="@nameof(User.FirstName)" Caption="First Name" />
-                <DataGridColumn Field="@nameof(User.LastName)" Caption="Last Name" />
-                <DataGridColumn Field="@nameof(User.EmailAddress)" Caption="Email" />
-                <DataGridColumn Field="@nameof(User.CtepUserId)" Caption="CTEP ID" />
-                <DataGridColumn Field="@nameof(User.IsActive)" Filterable="false" Caption="Active" Width="125px">
+                <DataGridColumn Field="@nameof(Role.RoleName)" Caption="Role Name" />
+                <DataGridColumn Field="@nameof(Role.IsPrimary)" Caption="Is Primary Role">
                     <DisplayTemplate>
                         @{
-                            var isActive = (context as User)?.IsActive ?? false;
+                            var isActive = (context as Role)?.IsPrimary ?? false;
 
                             if(isActive)
                             {
@@ -41,51 +40,52 @@
                         }
                     </DisplayTemplate>
                 </DataGridColumn>
-                <DataGridDateColumn Field="@nameof(User.LastLoginDate)" Filterable="false" Caption="Last Logged In" Width="250px">
+                <DataGridColumn Field="@nameof(Role.AdminType)" Caption="Admin Type">
                     <DisplayTemplate>
                         @{
-                            var date = (context as User)?.LastLoginDate;
-
-                            if (date != null)
+                            if ((context as Role).AdminType == WRAdminType.None)
                             {
-                                @(date.Value.ToString("dd-MMM-yyyy"))
+                                @("")
+                            }
+                            else
+                            {
+                                @((context as Role).AdminType)
                             }
                         }
                     </DisplayTemplate>
-                </DataGridDateColumn>
+                </DataGridColumn>
                 <DataGridColumn Sortable="false" Filterable="false" Width="125px">
                     <DisplayTemplate>
-                        <Button Color="Color.Info" Clicked="@(()=>EditUserClick(context as User))">
+                        <Button Color="Color.Info" Clicked="@(()=>EditRoleClick(context as Role))">
                             Edit
                         </Button>
                     </DisplayTemplate>
                 </DataGridColumn>
             </DataGridColumns>
             <ButtonRowTemplate>
-                <Button Color="Color.Primary" Clicked="@NewUserClick">Create User</Button>
+                <Button Color="Color.Primary" Clicked="@NewRoleClick">Create Role</Button>
             </ButtonRowTemplate>
         </DataGrid>
     </Column>
 </Row>
-
 @code {
     [Inject] private NavigationManager navigation {get; set; } = null!;
-    [Inject] IUserService userService { get; set; } = null!;
+    [Inject] IUserRoleService roleService { get; set; } = null!;
 
-    private IList<User> userList = new List<User>();
+    private IList<Role> roleList = new List<Role>();
 
     protected override async Task OnInitializedAsync()
     {
-        userList = await userService.GetAllUsersAsync();
+        roleList = await roleService.GetAllRolesAsync();
     }
 
-    private async void NewUserClick()
+    private async void NewRoleClick()
     {
-        navigation.NavigateTo("/admin/user");
+        navigation.NavigateTo("/admin/role");
     }
 
-    private async void EditUserClick(User u)
+    private async void EditRoleClick(Role r)
     {
-        navigation.NavigateTo($"/admin/user/{u.UserId}");
+        navigation.NavigateTo($"/admin/role/{r.RoleId}");
     }
 }

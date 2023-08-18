@@ -107,14 +107,15 @@ var onTokenValidated = async (TokenValidatedContext context) =>
 
     var userRoles = await userRoleService.GetUserRolesAsync(user.UserId);
     var isAdmin = false;
+    var isContentAdmin = false;
     foreach(var role in userRoles)
     {        
         claimsIdentity.AddClaim(new Claim(WRClaimType.Role, role.RoleName));
         roleList += role.RoleName + ",";
-        if (role.IsAdmin)
-        {
+        if (role.AdminType == WRAdminType.Super || role.AdminType == WRAdminType.Content)
             isAdmin = true;
-        }
+        if (role.AdminType == WRAdminType.Content)
+            isContentAdmin = true;
     }
     roleList = roleList.TrimEnd(',');
 
@@ -122,6 +123,7 @@ var onTokenValidated = async (TokenValidatedContext context) =>
     var reportIds = await dashboardService.GetReportIdsForUser(user.UserId, isAdmin);
 
     claimsIdentity.AddClaim(new Claim(WRClaimType.IsAdmin, isAdmin.ToString()));
+    claimsIdentity.AddClaim(new Claim(WRClaimType.IsContentAdmin, isContentAdmin.ToString()));
     claimsIdentity.AddClaim(new Claim(WRClaimType.Dashboards, dashboardIds));
     claimsIdentity.AddClaim(new Claim(WRClaimType.Reports, reportIds));
 

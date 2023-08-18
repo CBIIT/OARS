@@ -10,6 +10,10 @@ namespace TheradexPortal.Data.Services
         {
         }
 
+        public async Task<IList<Role>> GetAllRolesAsync()
+        {
+            return await context.Roles.ToListAsync();
+        }
         public async Task<List<Role>> GetUserRolesAsync(int userId)
         {
             return await context.User_Roles.Include(ur => ur.Role).Where(ur => ur.UserId == userId).Select(ur => ur.Role).ToListAsync();
