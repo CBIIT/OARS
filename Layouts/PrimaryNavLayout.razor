@@ -19,7 +19,28 @@
                         <PrimaryNav />
                     </BarStart>
                     <BarEnd>
-                        <AlertBar System="true" />
+                        <BarItem>
+                            <BarDropdown RightAligned Visible>
+                                <BarDropdownToggle>
+                                    <Image Source="img/alert-icon.png" height="@iconHeight" />
+                                    Alerts
+                                </BarDropdownToggle>
+                                <BarDropdownMenu>
+                                    <AlertBar Alert System />
+                                </BarDropdownMenu>
+                            </BarDropdown>
+                        </BarItem>
+                        <BarItem>
+                            <BarDropdown RightAligned>
+                                <BarDropdownToggle>
+                                    <Image Source="img/notification-icon.png" height="@iconHeight" />
+                                    Notes
+                                </BarDropdownToggle>
+                                <BarDropdownMenu>
+                                    <AlertBar Note System />
+                                </BarDropdownMenu>
+                            </BarDropdown>
+                        </BarItem>
                         <BarItem>
                             <BarLink To="#Profile">
                                 <Icon Name="IconName.UserCircle" IconSize="IconSize.Large" />
@@ -40,7 +61,17 @@
             </Bar>
             <Bar Breakpoint="Breakpoint.Desktop" Display="Display.None.Block.OnDesktop" Background="Background.White">
                 <BarStart>
-                    <AlertBar @ref="@alertsBar" Dashboard="true" SelectedDashboard="selectedDashboard" />
+                    <BarItem>
+                        <BarDropdown Visible>
+                            <BarDropdownToggle>
+                                <Image Source="img/alert-icon.png" height="@iconHeight" />
+                                Alerts
+                            </BarDropdownToggle>
+                            <BarDropdownMenu>
+                                <AlertBar @ref="@dashboardAlertsBar" Alert Dashboard SelectedDashboard="selectedDashboard" />
+                            </BarDropdownMenu>
+                        </BarDropdown>
+                    </BarItem>
                 </BarStart>
                 <BarToggler />
             </Bar>
@@ -59,8 +90,8 @@
 
 @code {
     private PrimaryNav? primaryNav;
-    private AlertBar? alertsBar;
-    private Dashboard selectedDashboard { get; set; } = null!;
+    private AlertBar? dashboardAlertsBar;
+    private Dashboard? selectedDashboard { get; set; } = null!;
     [Inject] public NavigationManager Navigation { get; set; }
     [Inject] private IAlertService alertService { get; set; } = null!;
     private int iconHeight = 24;
@@ -84,6 +115,6 @@
     protected async Task DashboardChanged()
     {
         this.selectedDashboard = this.primaryNav!.SelectedDashboardPrimaryNav;
-        this.alertsBar?.UpdateDashboard(this.selectedDashboard);
+        this.dashboardAlertsBar?.UpdateDashboard(this.selectedDashboard);
     }
 }

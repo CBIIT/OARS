@@ -30,18 +30,15 @@
         </Column>
         <Column ColumnSize="ColumnSize.Is4.Is4.WithOffset">
             <Accordion>
-                <Collapse Visible="true">
+                <Collapse Visible>
                     <CollapseHeader>
-                        <AccordionToggle>Alerts ( @activeAlerts.Count )</AccordionToggle>
+                        <AccordionToggle>
+                            <Image Source="img/alert-icon.png" height="@iconHeight" />
+                            Alerts
+                        </AccordionToggle>
                     </CollapseHeader>
                     <CollapseBody>
-                        @foreach (var alert in activeAlerts)
-                        {
-                            <Alert Color="Color.Warning" Visible>
-                                <AlertMessage></AlertMessage>
-                                <AlertDescription>@alert.AlertText</AlertDescription>
-                            </Alert>
-                        }
+                        <AlertBar Alert LoginScreen />
                     </CollapseBody>
                 </Collapse>
             </Accordion>
@@ -49,16 +46,13 @@
             <Accordion>
                 <Collapse Visible="false">
                     <CollapseHeader>
-                        <AccordionToggle>Notes ( @activeNotes.Count )</AccordionToggle>
+                        <AccordionToggle>
+                            <Image Source="img/notification-icon.png" height="@iconHeight" />
+                            Notes
+                        </AccordionToggle>
                     </CollapseHeader>
                     <CollapseBody>
-                        @foreach (var note in activeNotes)
-                        {
-                            <Alert Color="Color.Info" Visible>
-                                <AlertMessage></AlertMessage>
-                                <AlertDescription>@note.AlertText</AlertDescription>
-                            </Alert>
-                        }
+                        <AlertBar Note LoginScreen />
                     </CollapseBody>
                 </Collapse>
             </Accordion>
@@ -71,6 +65,7 @@
     [Inject] private IAlertService alertService { get; set; } = null!;
     private IList<WRAlert> activeAlerts = new List<WRAlert>();
     private IList<WRAlert> activeNotes = new List<WRAlert>();
+    private int iconHeight = 24;
 
     protected override async Task OnInitializedAsync()
     {

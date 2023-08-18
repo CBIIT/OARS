@@ -3,76 +3,44 @@
 @using TheradexPortal.Data;
 @using TheradexPortal.Data.Services.Abstract;
 
-<BarItem @ref="@alertsItem" hidden="@alertsHidden">
-    <BarDropdown RightAligned="@rightAligned" Visible="true">
-        <BarDropdownToggle>
-            <Image Source="img/alert-icon.png" height="@iconHeight" />
-            Alerts
-        </BarDropdownToggle>
-        <BarDropdownMenu>
-            @if (activeAlerts.Count > 0)
-            {
-                @foreach (var alert in activeAlerts)
-                {
-                    <BarDropdownItem>
-                        <Alert Color="Color.Warning" Visible>
-                            <AlertDescription TextOverflow="TextOverflow.Wrap">@alert.AlertText</AlertDescription>
-                            <CloseButton />
-                        </Alert>
-                    </BarDropdownItem>
-                }
-            }
-            else
-            {
-                <BarDropdownItem>No current alerts.</BarDropdownItem>
-            }
-        </BarDropdownMenu>
-    </BarDropdown>
-</BarItem>
-<BarItem @ref="@notesItem" hidden="@notesHidden">
-    <BarDropdown RightAligned="@rightAligned">
-        <BarDropdownToggle>
-            <Image Source="img/notification-icon.png" height="@iconHeight" />
-            Notes
-        </BarDropdownToggle>
-        <BarDropdownMenu>
-            @if (activeNotes.Count > 0)
-            {
-                @foreach (var note in activeNotes)
-                {
-                    <BarDropdownItem>
-                        <Alert Color="Color.Info" Visible>
-                            <AlertDescription TextOverflow="TextOverflow.Wrap">@note.AlertText</AlertDescription>
-                            <CloseButton />
-                        </Alert>
-                    </BarDropdownItem>
-                }
-            }
-            else
-            {
-                <BarDropdownItem>No current notes.</BarDropdownItem>
-            }
-        </BarDropdownMenu>
-    </BarDropdown>
-</BarItem>
+@if (activeAlerts.Count > 0)
+{
+    @foreach (var alert in activeAlerts)
+    {
+        <Alert Color="Color.Warning" Visible>
+            <AlertDescription TextOverflow="TextOverflow.Wrap">@alert.AlertText</AlertDescription>
+            <CloseButton @onclick="() => dismissAlert(alert)" />
+        </Alert>
+    }
+}
+else
+{
+    <Alert Color="Color.Info" Visible>
+        <AlertDescription TextOverflow="TextOverflow.Wrap">No current alerts.</AlertDescription>
+    </Alert>
+}
 
 @code {
+    [Parameter] public bool Alert { get; set; } = false;
+    [Parameter] public bool Note { get; set; } = false;
     [Parameter] public bool LoginScreen { get; set; } = false;
     [Parameter] public bool System { get; set; } = false;
     [Parameter] public bool Dashboard { get; set; } = false;
     [Parameter] public Dashboard SelectedDashboard { get; set; } = null!;
-    [Inject] private IAlertService alertService { get; set; } = null!;
-    private int iconHeight = 24;
-    private BarItem? alertsItem;
-    private BarItem? notesItem;
-    private bool rightAligned;
+
     private bool alertsHidden;
     private bool notesHidden;
+    [Inject] private IAlertService alertService { get; set; } = null!;
+    private BarItem? alertsItem;
+    private BarItem? notesItem;
+    private Color currentColor = Color.Info;
+    private Color alertColor = Color.Warning;
+    private Color noteColor = Color.Info;
     private IList<WRAlert> activeAlerts = new List<WRAlert>();
-    private IList<WRAlert> activeNotes = new List<WRAlert>();
 
     protected override async Task OnInitializedAsync()
     {
+        this.setCurrentColor();
         this.getSystemAlerts();
         this.getLoginAlerts();
         this.getDashboardAlerts();
@@ -89,9 +57,14 @@
     {
         if (System)
         {
-            this.rightAligned = true;
-            this.activeAlerts = await alertService.GetActiveSystemAlertsAsync();
-            this.activeNotes = await alertService.GetActiveSystemNotesAsync();
+            if (Alert)
+            {
+                this.activeAlerts = await alertService.GetActiveSystemAlertsAsync();
+            }
+            if (Note)
+            {
+                this.activeAlerts = await alertService.GetActiveSystemNotesAsync();
+            }
         }
     }
 
@@ -99,8 +72,14 @@
     {
         if (LoginScreen)
         {
-            this.activeAlerts = await alertService.GetActiveLoginAlertsAsync();
-            this.activeNotes = await alertService.GetActiveLoginNotesAsync();
+            if (Alert)
+            {
+                this.activeAlerts = await alertService.GetActiveLoginAlertsAsync();
+            }
+            if (Note)
+            {
+                this.activeAlerts = await alertService.GetActiveLoginNotesAsync();
+            }
         }
     }
 
@@ -108,12 +87,31 @@
     {
         if (Dashboard)
         {
-            this.notesHidden = true;
-
-            if (this.SelectedDashboard != null)
+            if (Alert && this.SelectedDashboard != null)
             {
                 this.activeAlerts = await alertService.GetActiveDashboardAlertsByIdAsync(this.SelectedDashboard.WRDashboardId);
             }
+            if (Note && this.SelectedDashboard != null)
+            {
+                this.activeAlerts = await alertService.GetActiveDashboardNotesByIdAsync(this.SelectedDashboard.WRDashboardId);
+            }
         }
+    }
+
+    private async void setCurrentColor()
+    {
+        if (Alert)
+        {
+            this.currentColor = this.alertColor;
+        }
+        if (Note)
+        {
+            this.currentColor = this.noteColor;
+        }
+    }
+
+    private async Task dismissAlert(WRAlert alert)
+    {
+
     }
 }
