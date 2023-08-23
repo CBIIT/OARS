@@ -2,18 +2,36 @@
 @using TheradexPortal.Data.Services;
 @using TheradexPortal.Data;
 @using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject ProtectedSessionStorage SessionData
 
 @if (activeAlerts.Count > 0)
 {
-    @foreach (var alert in activeAlerts)
+    if (this.alertsSessionLoaded)
     {
-        <Alert Color="Color.Warning" Visible>
-            <AlertDescription TextOverflow="TextOverflow.Wrap">@alert.AlertText</AlertDescription>
-            <CloseButton @onclick="() => dismissAlert(alert)" />
+        @foreach (var alert in activeAlerts)
+        {
+            if (!this.Dismissable || !this.dismissedAlerts.Contains(alert.WRAlertId.ToString()))
+            {
+                <Alert Color="Color.Warning" Visible>
+                    <AlertDescription TextOverflow="TextOverflow.Wrap">@alert.AlertText</AlertDescription>
+                    @if (this.Dismissable)
+                    {
+                        <CloseButton  @onclick="() => dismissAlert(alert)" />
+                    }
+                </Alert>
+            }
+        }
+    }
+    else
+    {
+        <Alert Color="Color.Info" Visible>
+            <AlertDescription TextOverflow="TextOverflow.Wrap">Loading Alerts...</AlertDescription>
         </Alert>
     }
 }
-else
+else if (this.NoAlertsMessage)
 {
     <Alert Color="Color.Info" Visible>
         <AlertDescription TextOverflow="TextOverflow.Wrap">No current alerts.</AlertDescription>
@@ -26,10 +44,13 @@ else
     [Parameter] public bool LoginScreen { get; set; } = false;
     [Parameter] public bool System { get; set; } = false;
     [Parameter] public bool Dashboard { get; set; } = false;
+    [Parameter] public bool Dismissable { get; set; } = false;
+    [Parameter] public bool NoAlertsMessage { get; set; } = false;
     [Parameter] public Dashboard SelectedDashboard { get; set; } = null!;
 
     private bool alertsHidden;
     private bool notesHidden;
+    private bool alertsSessionLoaded;
     [Inject] private IAlertService alertService { get; set; } = null!;
     private BarItem? alertsItem;
     private BarItem? notesItem;
@@ -37,6 +58,7 @@ else
     private Color alertColor = Color.Warning;
     private Color noteColor = Color.Info;
     private IList<WRAlert> activeAlerts = new List<WRAlert>();
+    private string? dismissedAlerts = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -45,6 +67,16 @@ else
         this.getLoginAlerts();
         this.getDashboardAlerts();
         await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            this.alertsSessionLoaded = true;
+            await LoadSessionAlerts();
+            StateHasChanged();
+        }
     }
 
     public void UpdateDashboard(Dashboard dashboard)
@@ -98,7 +130,7 @@ else
         }
     }
 
-    private async void setCurrentColor()
+    private void setCurrentColor()
     {
         if (Alert)
         {
@@ -112,6 +144,27 @@ else
 
     private async Task dismissAlert(WRAlert alert)
     {
+        var alertId = alert.WRAlertId.ToString();
 
+        if (!this.dismissedAlerts!.Contains(alertId))
+        {
+            if (this.dismissedAlerts.Length > 0)
+            {
+                this.dismissedAlerts += '|';
+            }
+            this.dismissedAlerts += alertId;
+            await this.SaveSessionAlerts(this.dismissedAlerts);
+        }
+    }
+
+    private async Task LoadSessionAlerts()
+    {
+        var sessionDismissedAlerts = await SessionData.GetAsync<string>("dismissedAlerts");
+        this.dismissedAlerts = sessionDismissedAlerts.Success ? sessionDismissedAlerts.Value : "";
+    }
+
+    private async Task SaveSessionAlerts(string newData)
+    {
+        await SessionData.SetAsync("dismissedAlerts", newData);
     }
 }

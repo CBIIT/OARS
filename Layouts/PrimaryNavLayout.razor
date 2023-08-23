@@ -26,7 +26,7 @@
                                     Alerts
                                 </BarDropdownToggle>
                                 <BarDropdownMenu>
-                                    <AlertBar Alert System />
+                                    <AlertBar Alert System NoAlertsMessage Dismissable />
                                 </BarDropdownMenu>
                             </BarDropdown>
                         </BarItem>
@@ -37,7 +37,7 @@
                                     Notes
                                 </BarDropdownToggle>
                                 <BarDropdownMenu>
-                                    <AlertBar Note System />
+                                    <AlertBar Note System NoAlertsMessage Dismissable />
                                 </BarDropdownMenu>
                             </BarDropdown>
                         </BarItem>
@@ -62,15 +62,7 @@
             <Bar Breakpoint="Breakpoint.Desktop" Display="Display.None.Block.OnDesktop" Background="Background.White">
                 <BarStart>
                     <BarItem>
-                        <BarDropdown Visible>
-                            <BarDropdownToggle>
-                                <Image Source="img/alert-icon.png" height="@iconHeight" />
-                                Alerts
-                            </BarDropdownToggle>
-                            <BarDropdownMenu>
-                                <AlertBar @ref="@dashboardAlertsBar" Alert Dashboard SelectedDashboard="selectedDashboard" />
-                            </BarDropdownMenu>
-                        </BarDropdown>
+                        <AlertBar @ref="@dashboardAlertsBar" Alert Dashboard SelectedDashboard="selectedDashboard" Dismissable />
                     </BarItem>
                 </BarStart>
                 <BarToggler />
