@@ -1,6 +1,12 @@
 ﻿@page "/"
 @page "/landing"
 @page "/login"
+@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services;
+@using TheradexPortal.Data;
+@using TheradexPortal.Data.Services.Abstract;
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject ProtectedSessionStorage SessionData
 @layout LoginLayout
 
 <Container Position="Position.Absolute.Top.Is50.Start.Is50.Translate.Middle">
@@ -23,29 +29,51 @@
                 </CardBody>
             </Card>
             <br />
-            <Div>
-                <Alert Color="Color.Info" Visible>
-                    <AlertMessage>Notes and Updates</AlertMessage>
-                    <AlertDescription>
-                        This is an update message.
-                    </AlertDescription>
-                </Alert>
-                <Alert Color="Color.Warning" Visible>
-                    <AlertMessage>Alerts</AlertMessage>
-                    <AlertDescription>
-                        This is an alert message.
-                    </AlertDescription>
-                </Alert>
-            </Div>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is4.Is4.WithOffset">
+            <Accordion>
+                <Collapse Visible>
+                    <CollapseHeader>
+                        <AccordionToggle>
+                            <Image Source="img/alert-icon.png" height="@iconHeight" />
+                            Alerts
+                        </AccordionToggle>
+                    </CollapseHeader>
+                    <CollapseBody>
+                        <AlertBar Alert LoginScreen NoAlertsMessage />
+                    </CollapseBody>
+                </Collapse>
+            </Accordion>
+            <br />
+            <Accordion>
+                <Collapse Visible="false">
+                    <CollapseHeader>
+                        <AccordionToggle>
+                            <Image Source="img/notification-icon.png" height="@iconHeight" />
+                            Notes
+                        </AccordionToggle>
+                    </CollapseHeader>
+                    <CollapseBody>
+                        <AlertBar Note LoginScreen NoAlertsMessage  />
+                    </CollapseBody>
+                </Collapse>
+            </Accordion>
         </Column>
     </Row>
 </Container>
 
 @code {
     [Inject] public NavigationManager Navigation { get; set; }
+    [Inject] private IAlertService alertService { get; set; } = null!;
+    private IList<WRAlert> activeAlerts = new List<WRAlert>();
+    private IList<WRAlert> activeNotes = new List<WRAlert>();
+    private int iconHeight = 24;
 
     protected override async Task OnInitializedAsync()
     {
+        this.clearSessionData();
+        activeAlerts = await alertService.GetActiveLoginAlertsAsync();
+        activeNotes = await alertService.GetActiveLoginNotesAsync();
         await base.OnInitializedAsync();
     }
 
@@ -62,5 +90,10 @@
 
         return Task.CompletedTask;
     }
+
+    private void clearSessionData()
+    {
+        // Clear dismissed alerts from SessionData
+        SessionData.SetAsync("dismissedAlerts", string.Empty);
+    }
 }
-    

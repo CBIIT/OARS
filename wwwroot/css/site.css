@@ -58,6 +58,15 @@
     height:20px;
 }
 
+/* Alert Display */
+.nci-alert-dropdown {
+    width: 600px;
+    height: auto;
+    max-height: 350px;
+    overflow-x: auto;
+    overflow-y: auto;
+
+
 /* PBI Embed */
 .pbi-embed-container {
     width: 100%;

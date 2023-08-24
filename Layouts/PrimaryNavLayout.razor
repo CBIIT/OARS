@@ -4,47 +4,66 @@
 @inject IHttpContextAccessor httpContextAccessor
 
 @inherits LayoutComponentBase
+@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services;
+@using TheradexPortal.Data;
+@using TheradexPortal.Data.Services.Abstract;
 @layout AuthLayout
 
 <Div Class="nci-main-wrapper">
     <Layout Class="nci-main-layout">
         <LayoutHeader>
-                <Bar Breakpoint="Breakpoint.Desktop" NavigationBreakpoint="Breakpoint.Desktop" Background="Background.Light" Class="nci-navbar px-4">
-                    <BarBrand>
-                        <Image Source="img/theradex-logo.png" AlternateText="Theradex Oncology" />
-                    </BarBrand>
-                    <BarToggler />
-                    <BarMenu>
-                        <BarStart Display="Display.None.OnDesktop" Class="px-1">
-                            <PrimaryNav />
-                        </BarStart>
-                        <BarEnd>
-                            <BarItem>
-                                <BarLink To="#Notifications">
-                                    <Icon Name="IconName.ExclamationCircle" IconSize="IconSize.Large" />
-                                </BarLink>
-                            </BarItem>
-                            <BarItem>
-                                <BarLink To="#Notifications">
-                                    <Icon Name="IconName.InfoCircle" IconSize="IconSize.Large" />
-                                </BarLink>
-                            </BarItem>
-                            <!--<BarItem>
-                                <BarLink To="#Profile">
-                                    <Icon Name="IconName.UserCircle" IconSize="IconSize.Large" />
-                                </BarLink>
-                            </BarItem>-->
-                            <BarItem>
-                                <Button Flex="Flex.JustifyContent.Center" Block Color="Color.Secondary" Clicked="@OnButtonClicked">Logout</Button>
-                            </BarItem>
-                        </BarEnd>
-                    </BarMenu>
-                </Bar>
-                <Bar Breakpoint="Breakpoint.Desktop" Display="Display.None.Block.OnDesktop"  Background="Background.White" Class="px-1 py-0 nci-dashboard-navbar">
-                    <BarStart>
-                        <PrimaryNav RenderButtons />
+            <Bar Breakpoint="Breakpoint.Desktop" NavigationBreakpoint="Breakpoint.Desktop" Background="Background.Light" Class="nci-navbar px-4">
+                <BarBrand>
+                    <Image Source="img/theradex-logo.png" AlternateText="Theradex Oncology" />
+                </BarBrand>
+                <BarToggler />
+                <BarMenu>
+                    <BarStart Display="Display.None.OnDesktop">
+                        <PrimaryNav />
                     </BarStart>
+                    <BarEnd>
+                        <BarItem>
+                            <BarDropdown RightAligned Visible>
+                                <BarDropdownToggle>
+                                    <Image Source="img/alert-icon.png" height="@iconHeight" />
+                                    Alerts
+                                </BarDropdownToggle>
+                                <BarDropdownMenu Class="nci-alert-dropdown">
+                                    <AlertBar Alert System NoAlertsMessage Dismissable />
+                                </BarDropdownMenu>
+                            </BarDropdown>
+                        </BarItem>
+                        <BarItem>
+                            <BarDropdown RightAligned>
+                                <BarDropdownToggle>
+                                    <Image Source="img/notification-icon.png" height="@iconHeight" />
+                                    Notes
+                                </BarDropdownToggle>
+                                <BarDropdownMenu Class="nci-alert-dropdown">
+                                    <AlertBar Note System NoAlertsMessage Dismissable />
+                                </BarDropdownMenu>
+                            </BarDropdown>
+                        </BarItem>
+                        <BarItem>
+                            <BarLink To="#Profile">
+                                <Icon Name="IconName.UserCircle" IconSize="IconSize.Large" />
+                            </BarLink>
+                        </BarItem>
+                        <BarItem>
+                            <Button Flex="Flex.JustifyContent.Center" Block Color="Color.Secondary" Clicked="@OnButtonClicked">
+                                <Image Source="img/logout-icon.png" height="@iconHeight" />
+                            </Button>
+                        </BarItem>
+                    </BarEnd>
+                </BarMenu>
             </Bar>
+            <Bar Breakpoint="Breakpoint.Desktop" Display="Display.None.Block.OnDesktop" Background="Background.White" Class="px-4 nci-dashboard-navbar">
+                <BarStart>
+                    <PrimaryNav @ref="@primaryNav" RenderButtons SelectedDashboardPrimaryNavChanged=DashboardChanged />
+                </BarStart>
+            </Bar>
+            <AlertBar @ref="@dashboardAlertsBar" Alert Dashboard SelectedDashboard="selectedDashboard" Dismissable />
             <Divider Class="mt-1 mb-0"/>
         </LayoutHeader>
         <LayoutContent>
@@ -59,9 +78,22 @@
 </Div>
 
 @code {
-    private Bar? sidebar;
+    private PrimaryNav? primaryNav;
+    private AlertBar? dashboardAlertsBar;
+    private Dashboard? selectedDashboard { get; set; } = null!;
     [Inject] public NavigationManager Navigation { get; set; }
     [Inject] private IUserService userService { get; set; } = null!;
+    [Inject] private IAlertService alertService { get; set; } = null!;
+    private int iconHeight = 24;
+    private IList<WRAlert> activeAlerts = new List<WRAlert>();
+    private IList<WRAlert> activeNotes = new List<WRAlert>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        this.activeAlerts = await this.alertService.GetActiveLoginAlertsAsync();
+        this.activeNotes = await this.alertService.GetActiveLoginNotesAsync();
+        await base.OnInitializedAsync();
+    }
 
     Task OnButtonClicked()
     {
@@ -70,5 +102,11 @@
         Navigation.NavigateTo($"Signout", true);
 
         return Task.CompletedTask;
+    }
+
+    protected async Task DashboardChanged()
+    {
+        this.selectedDashboard = this.primaryNav!.SelectedDashboardPrimaryNav;
+        this.dashboardAlertsBar?.UpdateDashboard(this.selectedDashboard);
     }
 }
