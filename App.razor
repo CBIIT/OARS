@@ -19,15 +19,21 @@
 
 @code {
     private Theme theme = new Theme
-    {
-        ColorOptions = new ThemeColorOptions {
+        {
+            ColorOptions = new ThemeColorOptions {
+                Primary = "#FA8D29",
+                Secondary = "#E32726",
+                Info = "#6A93BF",
+                Danger = "#E32726",
+                Warning = "#FDBf48",
+                Success = "#809F5D",
+                Light = "#D1D2D4"
+            },
+
+        BackgroundOptions = new ThemeBackgroundOptions
+        {
             Primary = "#FA8D29",
-            Secondary = "#E32726",
-            Info = "#6A93BF",
-            Danger = "#E32726",
-            Warning = "#FDBf48",
-            Success = "#809F5D",
-            Light = "#D1D2D4"
+            Secondary = "#E32726"
         }
     };
 

@@ -126,6 +126,9 @@ namespace TheradexPortal.Data.Models
 
         //primary key, unique
         [Column("PR_Record_Id")]
-        public string? PRRecordId { get; set; } 
+        public string? PRRecordId { get; set; }
+
+        [NotMapped]
+        public int RecentOrder { get; set; }
     }
 }

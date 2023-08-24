@@ -1,0 +1,528 @@
+﻿@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@layout AdminLayout
+
+@page "/admin/user/{userid:int?}"
+<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1 mb-3"><h2>@AddOrEdit</h2></Div>
+<Steps @ref="stepsRef" SelectedStep="@selectedStep" SelectedStepChanged="@OnSelectedStepChanged" NavigationAllowed="NavigationAllowed">
+    <Items>
+        <Step Name="step1">User info</Step>
+        <Step Name="step2">Roles</Step>
+        <Step Name="step3">Studies & Groups</Step>
+        <Step Name="step4">
+            <Marker>
+                <Icon Name="IconName.Flag" />
+            </Marker>
+            <Caption>
+                Review & Save
+            </Caption>
+        </Step>
+    </Items>
+    <Content>
+        <StepPanel Name="step1">
+            <h4>User Information</h4>
+            <Divider />
+            <Div Flex="Flex.AlignItems.Start" Margin="Margin.Is3.FromBottom" Background="Background.Light">
+                <Div Padding="Padding.Is4" Style="@flexContainerStyle">
+                    <Field Horizontal>
+                        <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">First Name</FieldLabel>
+                        <FieldBody ColumnSize="ColumnSize.Is6">
+                            <TextEdit Placeholder="First Name" MaxLength="50" @bind-Text="@firstName" />
+                        </FieldBody>
+                    </Field>
+                    <Field Horizontal>
+                        <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Last Name</FieldLabel>
+                        <FieldBody ColumnSize="ColumnSize.Is6">
+                            <TextEdit Placeholder="Last Name" MaxLength="50" @bind-Text="@lastName" />
+                        </FieldBody>
+                    </Field>
+                    <Field Horizontal>
+                        <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Email Address</FieldLabel>
+                        <FieldBody ColumnSize="ColumnSize.Is6">
+                            <TextEdit Placeholder="Email Address" MaxLength="255" @bind-Text="@email" />
+                        </FieldBody>
+                    </Field>
+                    <Field Horizontal>
+                        <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Title</FieldLabel>
+                        <FieldBody ColumnSize="ColumnSize.Is6">
+                            <TextEdit Placeholder="Title" MaxLength="50" @bind-Text="@title" />
+                        </FieldBody>
+                    </Field>
+                </Div>
+                <Div Padding="Padding.Is4" Style="@flexContainerStyle">
+                    <Field Horizontal>
+                        <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Is Active</FieldLabel>
+                        <FieldBody ColumnSize="ColumnSize.Is6">
+                            <Switch TValue="bool" @bind-Checked="@isActive"></Switch>
+                        </FieldBody>
+                    </Field>
+                    <Field Horizontal>
+                        <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Is CTEP User</FieldLabel>
+                        <FieldBody ColumnSize="ColumnSize.Is6">
+                            <Switch TValue="bool" @bind-Checked="@isCTEPUser"></Switch>
+                        </FieldBody>
+                    </Field>
+                    <Field Horizontal>
+                        <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">CTEP Id</FieldLabel>
+                        <FieldBody ColumnSize="ColumnSize.Is6">
+                            <TextEdit Placeholder="CTEP Id" MaxLength="100" @bind-Text="@ctepUserId" />
+                        </FieldBody>
+                    </Field>
+                </Div>
+            </Div>
+        </StepPanel>
+        <StepPanel Name="step2">
+            <h4>Role Assignment</h4>
+            <Divider />
+            <Div Background="Background.Light" Class="p-3">
+                <Fields>
+                    <Field>
+                        <FieldLabel ColumnSize="ColumnSize.Is2" TextWeight="TextWeight.Bold">Primary Role</FieldLabel>
+                        <FieldBody ColumnSize="ColumnSize.Is4" Margin="Margin.IsAuto">
+                            <SelectList TItem="Role"
+                                        TValue="int"
+                                        Data="@primaryRoles"
+                                        TextField="@((role)=>role.RoleName)"
+                                        ValueField="@((role)=>role.RoleId)"
+                                        @bind-SelectedValue="@primaryRoleId"
+                                        DefaultItemText="Select the Primary Role" />
+                        </FieldBody>
+                    </Field>
+                    <Field>
+                        <FieldLabel ColumnSize="ColumnSize.Is5" TextWeight="TextWeight.Bold">Secondary Roles</FieldLabel>
+                        <FieldBody ColumnSize="ColumnSize.Is4" Margin="Margin.IsAuto">
+                            <SelectList TItem="Role"
+                                        TValue="int"
+                                        Data="@secondaryRoles"
+                                        TextField="@((role)=>role.RoleName)"
+                                        ValueField="@((role)=>role.RoleId)"
+                                        @bind-SelectedValues="@secondaryRoleIds"
+                                        MaxVisibleItems = "8"
+                                        Multiple />
+                        </FieldBody>
+                    </Field>
+                </Fields>
+            </Div>
+        </StepPanel>
+        <StepPanel Name="step3">
+            <h4>Study and Group Assignment</h4>
+            <Divider />
+            <Div Flex="Flex.JustifyContent.Start" Margin="Margin.Is4.FromBottom" Display="@showStudies">
+                <Div Padding="Padding.Is2" Style="@flexItemStyleProts">
+                    <Field>
+                        <FieldLabel TextWeight="TextWeight.Bold">Available Studies</FieldLabel>
+                        <FieldBody>
+                            <SelectList TItem="Protocol"
+                                MaxVisibleItems = "20"
+                                TValue="string"
+                                Data="@protocolsAvailable"
+                                TextField="@((protocol)=>protocol.StudyId)"
+                                ValueField="@((protocol)=>protocol.StudyId)"
+                                @bind-SelectedValues="@availableSelected"
+                                Multiple />
+                        </FieldBody>
+                    </Field>
+                    <Button Color="Color.Primary" Clicked="@MoveToSelectedProtocol">Add to Assigned</Button>
+                </Div>
+                <Div Padding="Padding.Is2" Style="@flexItemStyleProtsGrid">
+                    <Field>
+                        <FieldLabel TextWeight="TextWeight.Bold">User Assigned Studies</FieldLabel>
+                        <FieldBody>
+                            <DataGrid TItem="UserProtocol"
+                                      Class="admindataeditgrid"
+                                      Data="@selectedUserProtocolList"
+                                      @bind-SelectedRow="@selectedUserProtocol"
+                                      @bind-SelectedRows="@selectedUserProtocols"
+                                      Editable
+                                      Responsive
+                                      PageSize="2000"
+                                      FixedHeader
+                                      FixedHeaderDataGridHeight="454px"
+                                      FixedHeaderDataGridMaxHeight="454px"
+                                      SelectionMode = "DataGridSelectionMode.Multiple"
+                                      CommandMode="DataGridCommandMode.Commands"
+                                      EditMode="DataGridEditMode.Inline">
+                                <DataGridColumns>
+                                    <DataGridColumn Field="@nameof(UserProtocol.StudyId)" Width="100" Caption="Study Id" />
+                                    <DataGridColumn Field="@nameof(UserProtocol.ExpirationDate)" Width="150" Caption="Exp Date" Editable DisplayFormat="{0:dd-MMM-yyyy}">
+                                    </DataGridColumn>
+                                    <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
+                                        <SaveCommandTemplate>
+                                            <Button ElementId="btnSave" Size="Size.ExtraSmall" Type="ButtonType.Submit" PreventDefaultOnSubmit Color="Color.Primary" Clicked="@context.Clicked">@context.LocalizationString</Button>
+                                        </SaveCommandTemplate>
+                                        <CancelCommandTemplate>
+                                            <Button ElementId="btnCancel" Size="Size.ExtraSmall" Color="Color.Secondary" Clicked="@context.Clicked">Cancel</Button>
+                                        </CancelCommandTemplate>
+                                    </DataGridCommandColumn>
+                                </DataGridColumns>
+                                <ButtonRowTemplate>
+                                    <Button Color="Color.Primary" Size="Size.ExtraSmall" Disabled="(selectedUserProtocol is null)" Clicked="context.EditCommand.Clicked">Edit</Button>
+                                </ButtonRowTemplate>
+                            </DataGrid>
+                        </FieldBody>
+                    </Field>
+                    <Button Color="Color.Primary" Clicked="@RemoveFromSelectedProtocol">Remove from Assigned</Button>
+                </Div>
+                <Div Padding="Padding.Is2" Style="@flexItemStyleProtsSpacer"></Div>
+                <Div Padding="Padding.Is2" Style="@flexItemStyleProts">
+                    <Field>
+                        <FieldLabel TextWeight="TextWeight.Bold">Available Groups</FieldLabel>
+                        <FieldBody>
+                            <SelectList TItem="Group"
+                                MaxVisibleItems = "20"
+                                TValue="int"
+                                Data="@groupsAvailable"
+                                TextField="@((group)=>group.GroupName)"
+                                ValueField="@((group)=>group.WRGroupId)"
+                                @bind-SelectedValues="@availableGroupsSelected"
+                                Multiple />
+                        </FieldBody>
+                    </Field>
+                    <Button Color="Color.Primary" Clicked="@MoveToSelectedGroup">Add to Assigned</Button>
+                </Div>
+                <Div Padding="Padding.Is2" Style="@flexItemStyleProtsGrid">
+                    <Field>
+                        <FieldLabel TextWeight="TextWeight.Bold">User Assigned Groups</FieldLabel>
+                        <FieldBody>
+                            <DataGrid TItem="UserGroup"
+                                      Class="admindataeditgrid"
+                                      Data="@selectedUserGroupList"
+                                      @bind-SelectedRow="@selectedUserGroup"
+                                      @bind-SelectedRows="@selectedUserGroups"
+                                      Editable
+                                      Responsive
+                                      PageSize="2000"
+                                      FixedHeader
+                                      FixedHeaderDataGridHeight="454px"
+                                      FixedHeaderDataGridMaxHeight="454px"
+                                      SelectionMode = "DataGridSelectionMode.Multiple"
+                                      CommandMode="DataGridCommandMode.Commands"
+                                      EditMode="DataGridEditMode.Inline">
+                                <DataGridColumns>
+                                    <DataGridColumn Field="@nameof(UserGroup.GroupId)" Width="100" Caption="Group" />
+                                    <DataGridColumn Field="@nameof(UserGroup.ExpirationDate)" Width="150" Caption="Exp Date" Editable DisplayFormat="{0:dd-MMM-yyyy}">
+                                    </DataGridColumn>
+                                    <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
+                                        <SaveCommandTemplate>
+                                            <Button ElementId="btnSave" Size="Size.ExtraSmall" Type="ButtonType.Submit" PreventDefaultOnSubmit Color="Color.Primary" Clicked="@context.Clicked">@context.LocalizationString</Button>
+                                        </SaveCommandTemplate>
+                                        <CancelCommandTemplate>
+                                            <Button ElementId="btnCancel" Size="Size.ExtraSmall" Color="Color.Secondary" Clicked="@context.Clicked">Cancel</Button>
+                                        </CancelCommandTemplate>
+                                    </DataGridCommandColumn>
+                                </DataGridColumns>
+                                <ButtonRowTemplate>
+                                    <Button Color="Color.Primary" Size="Size.ExtraSmall" Disabled="(selectedUserGroup is null)" Clicked="context.EditCommand.Clicked">Edit</Button>
+                                </ButtonRowTemplate>
+                            </DataGrid>
+                        </FieldBody>
+                    </Field>
+                    <Button Color="Color.Primary" Clicked="@RemoveFromSelectedGroup">Remove from Assigned</Button>
+                </Div>
+            </Div>
+            <Div Padding="Padding.Is2" Background="Background.Light" Display="@showIsAdmin">
+                <Text TextColor="TextColor.Dark">Admin users have permissions to all Studies by default</Text>
+            </Div>
+        </StepPanel>
+        <StepPanel Name="step4">
+            <h4>Review and Save</h4>
+        </StepPanel>
+    </Content>
+</Steps>
+    <Divider />
+<Div Display="Display.Flex" Class="justify-content-center pe-5">
+    <Button Color="Color.Light" Display="Display.Block" Clicked="@Cancel">Cancel</Button>
+    <Div Class="pe-2"></Div>
+    <Button Color="Color.Primary" Display="@displayPrev" Clicked="() => stepsRef.PreviousStep()"> Previous</Button>
+    <Div Class="pe-2" Display="displayPrev"></Div>
+    <Button Color="Color.Primary" Display="@displayNext" Clicked="() => stepsRef.NextStep()">Next</Button>
+    <Button Color="Color.Danger" Display="@displaySave" Clicked="@Save">Save</Button>
+</Div>
+@code {
+    [Inject] IUserService userService { get; set; } = null!;
+    [Inject] IUserRoleService userRoleService { get; set; } = null!;
+    [Inject] IStudyService studyService { get; set; } = null!;
+    [Inject] IGroupService groupService { get; set; } = null!;
+    [Inject] INotificationService NotificationService { get; set; }
+    [Inject] private NavigationManager navigation {get; set; } = null!;
+
+    [Parameter] public int? UserId { get; set; }
+
+    // All steps
+    public string AddOrEdit { get; set; }
+    string selectedStep = "step1";
+    private Steps stepsRef;
+    IFluentDisplay displayPrev = Display.None;
+    IFluentDisplay displayNext = Display.Block;
+    IFluentDisplay displaySave = Display.None;
+    string flexContainerStyle = $"width:50%;";
+    string flexItemStyleProts = $"width:250px;";
+    string flexItemStyleProtsGrid = $"width:450px;";
+    string flexItemStyleProtsSpacer = $"width:1px;background-color: gray; margin-left:3px; margin-right:3px;";
+
+    // Step 1 vars (User Info)
+    string firstName = "";
+    string lastName = "";
+    string email = "";
+    string title = "";
+    bool isActive = false;
+    bool isCTEPUser = false;
+    string ctepUserId = "";
+
+    // Step 2 vars (Role assignment)
+    int primaryRoleId = 0;
+    IList<Role> allRoles;
+    IList<Role> primaryRoles;
+    IList<Role> secondaryRoles;
+    IReadOnlyList<int> secondaryRoleIds { get; set; }
+
+    // Step 3 vars (Protocol & Group Assignment)
+    IFluentDisplay showStudies = Display.None;
+    IFluentDisplay showIsAdmin = Display.None;
+
+    //  Protocol vars
+    IList<Protocol> protocolsAvailable;
+    IReadOnlyList<string> availableSelected { get; set; }
+    IList<UserProtocol> selectedUserProtocolList = new List<UserProtocol>();
+    private UserProtocol selectedUserProtocol;
+    List<UserProtocol> selectedUserProtocols { get; set; }
+    // Group vars
+    IList<Group> groupsAvailable;
+    IReadOnlyList<int> availableGroupsSelected { get; set; }
+    IList<UserGroup> selectedUserGroupList = new List<UserGroup>();
+    private UserGroup selectedUserGroup;
+    List<UserGroup> selectedUserGroups { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (UserId == null )
+        {
+            AddOrEdit = "Create User";
+        }
+        else
+        {
+            GetUser(UserId);
+            AddOrEdit = "Edit User - " + firstName + " " + lastName;
+
+        }
+
+        allRoles = await userRoleService.GetAllRolesAsync();
+
+        primaryRoles = allRoles.ToList().Where(p => p.IsPrimary).ToList();
+        secondaryRoles = allRoles.ToList().Where(p => !p.IsPrimary).ToList();
+        protocolsAvailable = (await studyService.GetAllProtocolsAsync()).OrderBy(p=>p.StudyId).ToList();
+        groupsAvailable = (await groupService.GetAllGroupsAsync()).OrderBy(g => g.GroupName).ToList();
+    }
+
+    private Task OnSelectedStepChanged( string name )
+    {
+        selectedStep = name;
+
+        // Navigation buttons
+        if (stepsRef.SelectedStep == "step1")
+        {
+            displayPrev = Display.None;
+            displayNext = Display.Block;
+            displaySave = Display.None;
+        }
+        else if (stepsRef.SelectedStep == "step4")
+        {
+            displayPrev = Display.Block;
+            displayNext = Display.None;
+            displaySave = Display.Block;
+        }
+        else
+        {
+            displayPrev = Display.Block;
+            displayNext = Display.Block;
+            displaySave = Display.None;
+        }
+
+        // Protocol & Group div
+        if  (stepsRef.SelectedStep == "step3")
+        {
+            Role selectedRole = allRoles.FirstOrDefault(r => r.RoleId == primaryRoleId);
+            if (selectedRole != null && selectedRole.AdminType != WRAdminType.None)
+            {
+                showStudies = Display.None;
+                showIsAdmin = Display.Block;
+            }
+            else
+            {
+                showStudies = Display.Block;
+                showIsAdmin = Display.None;
+            }
+        }
+        return Task.CompletedTask;
+    }
+
+    private bool NavigationAllowed( StepNavigationContext context )
+    {
+        //if ( context.CurrentStepIndex == 2 && context.NextStepIndex > 2 && !ValidationRule.IsEmail( email ) )
+        //{
+        //    return false;
+        //}
+
+        return true;
+    }
+
+    private async void GetUser(int? userId)
+    {
+        User curUser = await userService.GetUserAsync(Convert.ToInt32(userId));
+        List<Role> curRoles = await userRoleService.GetUserRolesAsync(Convert.ToInt32(userId));
+        firstName = curUser.FirstName;
+        lastName = curUser.LastName;
+        email = curUser.EmailAddress;
+        title = curUser.Title;
+        isActive = curUser.IsActive;
+        isCTEPUser = curUser.IsCtepUser;
+        ctepUserId = curUser.CtepUserId;
+        primaryRoleId = curRoles.FirstOrDefault(r => r.IsPrimary).RoleId;
+        secondaryRoleIds = curRoles.Where(r => r.IsPrimary == false).Select(r => r.RoleId).ToList();
+    }
+
+    private async void MoveToSelectedProtocol()
+    {
+        // Add studies to assigned grid
+        if (availableSelected != null)
+        {
+            foreach (string availStudy in availableSelected)
+            {
+                // Remove from Available list
+                Protocol foundProtocol = protocolsAvailable.First(p => p.StudyId == availStudy);
+                protocolsAvailable.Remove(foundProtocol);
+                // Add to Assigned list
+                UserProtocol newUP = new UserProtocol();
+                newUP.StudyId = foundProtocol.StudyId;
+                newUP.ExpirationDate = DateTime.Now.Date;
+                selectedUserProtocolList.Add(newUP);
+            }
+            selectedUserProtocolList = selectedUserProtocolList.OrderBy(sup => sup.StudyId).ToList();
+        }
+        availableSelected = null;
+    }
+
+    private async void RemoveFromSelectedProtocol()
+    {
+        // Remove studies from assigned grid
+        if (selectedUserProtocols != null)
+        {
+            foreach (UserProtocol selProtocol in selectedUserProtocols)
+            {
+                // Remove from Assigned list
+                selectedUserProtocolList.Remove(selProtocol);
+
+                //Add to Available list
+                Protocol newP = new Protocol();
+                newP.StudyId = selProtocol.StudyId;
+                protocolsAvailable.Add(newP);
+            }
+            protocolsAvailable = protocolsAvailable.OrderBy(pa => pa.StudyId).ToList();
+        }
+        selectedUserProtocols = null;
+    }
+
+    private async void MoveToSelectedGroup()
+    {
+
+    }
+
+    private async void RemoveFromSelectedGroup()
+    {
+        
+    }
+
+    private DateTime? ExpirationDate()
+    {
+        return selectedUserProtocol.ExpirationDate ;
+    }
+    private async void Save()
+    {
+        bool saved = false;
+        DateTime createDateTime = DateTime.UtcNow;
+
+        // Step 1 - user info
+        User saveUser = new User();
+        if (UserId != null)
+            saveUser.UserId = (int)UserId;
+        saveUser.FirstName = firstName;
+        saveUser.LastName = lastName;
+        saveUser.EmailAddress = email;
+        saveUser.Title = title;
+        saveUser.IsActive = isActive;
+        saveUser.IsCtepUser = isCTEPUser;
+        saveUser.CtepUserId = ctepUserId;
+        saveUser.IsLockedOut = false;
+        saveUser.CreateDate = createDateTime;
+
+        List<UserRole> userRolesToAdd = new List<UserRole>();
+        //UserRole primUserRole = new UserRole();
+        //primUserRole.RoleId = primaryRoleId;
+        //userRolesToAdd.Add(primUserRole);
+
+        //foreach (int roleId in secondaryRoleIds)
+        //{
+        //    UserRole newUR = new UserRole();
+        //    newUR.RoleId = roleId;
+        //    userRolesToAdd.Add(newUR);
+        //}
+
+        //Step 2 - Roles
+        //  Save Primary role
+        UserRole newUR = new UserRole();
+        newUR.RoleId = primaryRoleId;
+        newUR.CreateDate = createDateTime;
+        saveUser.UserRoles.Add(newUR);
+        //  Save Secondary Roles
+        foreach (int roleId in secondaryRoleIds)
+        {
+            UserRole newUR2 = new UserRole();
+            newUR2.RoleId = roleId;
+            newUR2.CreateDate = createDateTime;
+            saveUser.UserRoles.Add(newUR2);
+        }
+
+        //Step 3 - Protocols & Groups
+        foreach (UserProtocol userProt in selectedUserProtocolList)
+        {
+            UserProtocol newUP = new UserProtocol();
+            newUP.StudyId = userProt.StudyId;
+            newUP.ExpirationDate = userProt.ExpirationDate;
+            newUP.CreateDate = createDateTime;
+            saveUser.UserProtocols.Add(newUP);
+        }
+                 
+        //foreach (UserGroup userGroup in selectedUserGroupList)
+        //{
+        //    UserGroup newUG = new UserGroup();
+        //    newUG.GroupId = userGroup.GroupId;
+        //    newUG.ExpirationDate = userGroup.ExpirationDate;
+        //    newGR.CreateDate = createDateTime;
+        //    saveUser.UserGroups.Add(newUG);
+        //}
+
+        saved = userService.SaveUser(saveUser, userRolesToAdd);
+
+        if (saved)
+        {
+            await NotificationService.Success( "User successfully saved");
+            navigation.NavigateTo("/admin/users");
+        }
+        else
+        {
+            await NotificationService.Error( "Error saving user");
+            navigation.NavigateTo("/admin/users");
+        }
+    }
+
+    private void Cancel()
+    {
+        navigation.NavigateTo("/admin/users");
+    }
+
+    private void OnHelpClicked()
+    {
+        
+    }
+}

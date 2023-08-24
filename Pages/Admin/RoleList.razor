@@ -1,0 +1,92 @@
+﻿@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@layout AdminLayout
+
+@page "/admin/roles"
+<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>Role List</h2></Div>
+
+<Row Background="Background.Light">
+    <Column ColumnSize="ColumnSize.IsFull">
+        <DataGrid TItem="Role"
+                  Class="admindatagrid"
+                  Data="@roleList"
+                  Responsive
+                  Filterable
+                  Striped
+                  ShowPager
+                    FixedHeader
+                    FixedHeaderDataGridHeight="calc(100vh - 240px)"
+                    FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
+                  PageSize="25"
+                  CommandMode="DataGridCommandMode.ButtonRow">
+            <DataGridColumns>
+                <DataGridMultiSelectColumn Width="30px"> </DataGridMultiSelectColumn>
+                <DataGridCommandColumn />
+                <DataGridColumn Field="@nameof(Role.RoleName)" Caption="Role Name" />
+                <DataGridColumn Field="@nameof(Role.IsPrimary)" Caption="Is Primary Role">
+                    <DisplayTemplate>
+                        @{
+                            var isPrimary = (context as Role)?.IsPrimary ?? false;
+
+                            if(isPrimary)
+                            {
+                                @("Yes")
+                            }
+                            else
+                            {
+                                @("No")
+                            }
+
+                        }
+                    </DisplayTemplate>
+                </DataGridColumn>
+                <DataGridColumn Field="@nameof(Role.AdminType)" Caption="Admin Type">
+                    <DisplayTemplate>
+                        @{
+                            if ((context as Role).AdminType == WRAdminType.None)
+                            {
+                                @("")
+                            }
+                            else
+                            {
+                                @((context as Role).AdminType)
+                            }
+                        }
+                    </DisplayTemplate>
+                </DataGridColumn>
+                <DataGridColumn Sortable="false" Filterable="false" Width="125px">
+                    <DisplayTemplate>
+                        <Button Color="Color.Info" Clicked="@(()=>EditRoleClick(context as Role))">
+                            Edit
+                        </Button>
+                    </DisplayTemplate>
+                </DataGridColumn>
+            </DataGridColumns>
+            <ButtonRowTemplate>
+                <Button Color="Color.Primary" Clicked="@NewRoleClick">Create Role</Button>
+            </ButtonRowTemplate>
+        </DataGrid>
+    </Column>
+</Row>
+@code {
+    [Inject] private NavigationManager navigation {get; set; } = null!;
+    [Inject] IUserRoleService roleService { get; set; } = null!;
+
+    private IList<Role> roleList = new List<Role>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        roleList = await roleService.GetAllRolesAsync();
+    }
+
+    private async void NewRoleClick()
+    {
+        navigation.NavigateTo("/admin/role");
+    }
+
+    private async void EditRoleClick(Role r)
+    {
+        navigation.NavigateTo($"/admin/role/{r.RoleId}");
+    }
+}

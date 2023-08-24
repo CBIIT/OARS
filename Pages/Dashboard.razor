@@ -1,5 +1,6 @@
 ﻿@attribute [Route(WrConstants.DASHBOARD_PAGE_PATH + "/{dashboardid:int}/{reportid:int?}")]
 @layout SecondaryNavLayout
+@inject IHttpContextAccessor httpContextAccessor
 
 @using System.Net.Http
 @using System.Threading.Tasks
@@ -8,6 +9,7 @@
 @using TheradexPortal.Data.PowerBI.Abstract;
 @using TheradexPortal.Data.Services.Abstract;
 @using TheradexPortal.Data.ViewModels;
+@using TheradexPortal.Data.Static;
 
 @if(notFound)
 {
@@ -39,6 +41,10 @@ else
 
 <Modal @ref="modalRef">
     <ModalContent Centered Size="ModalSize.ExtraLarge">
+        <ModalHeader TextColor="TextColor.White" Background="Background.Primary">
+            <ModalTitle>Filter Studies</ModalTitle>
+            <CloseButton/>
+        </ModalHeader>
         <ModalBody>
             <StudyGrid OnSave="@HideFilters"/>
         </ModalBody>
@@ -48,6 +54,8 @@ else
 
 @code {
     [Inject] private IDashboardService dashboardService { get; set; } = null!;
+    [Inject] private IStudyService studyService { get; set; } = null!;
+    [Inject] private IUserService userService { get; set; } = null!;
     [Inject] private NavigationManager navigation {get; set; } = null!;
 
     [Parameter] public int DashboardId { get; set; }
@@ -61,6 +69,10 @@ else
     private TheradexPortal.Data.Models.Dashboard? dashboard;
     private IList<Report> allReports = new List<Report>();
     private Report? report;
+    private string dashboardName;
+    private string reportName;
+    private int userId;
+    private int previousReport = 0;
 
     private IList<SecondaryNavAction> Actions => new List<SecondaryNavAction>
     {
@@ -69,21 +81,34 @@ else
             IconName = IconName.Filter,
             Label = "Filters",
             OnClick = ShowFilters
-        }
+        },
+
+        new SecondaryNavAction
+        {
+            IconName = IconName.Receipt,
+            Label = "Study Overview",
+            OnClick = ShowOverview
+        },
     };
 
     protected override async Task OnParametersSetAsync()
     {
         notFound = false;
-        dashboard = await dashboardService.GetDashboardByIdAsync(DashboardId);
+
+        // Determine if user has access to requested dashboard & report
+        string userDashboards = httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.Dashboards).Value;
+        string userReports = httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.Reports).Value;
+        dashboard = await dashboardService.GetDashboardByIdAsync(DashboardId, userDashboards);
         if(dashboard == null)
         {
             notFound = true;
             return;
         }
 
-        allReports = await dashboardService.GetAllReportsByDashboardIdAsync(DashboardId);
+        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsAdmin, "True");
+        userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
 
+        allReports = await dashboardService.GetReportsByDashboardIdForUserAsync(DashboardId, userId, isAdmin);
         if (ReportId == 0)
         {
             report = allReports.FirstOrDefault();
@@ -106,8 +131,27 @@ else
                 return;
             }
         }
-    }
 
+        // Check if at least one study has been selected by the user
+        IList<Protocol> currentStudies = studyService.GetCurrentStudiesForUser(userId);
+        if (currentStudies.Count == 0)
+            navigation.NavigateTo("Studies");
+        else
+        {
+            // First navigation to Dashboard creates a duplicate record.
+            if (report.WRReportId != previousReport)
+            {
+                userService.SaveActivityLog(userId, WRActivityType.Navigation, dashboard.Name, report.Name);
+                previousReport = report.WRReportId;
+            }
+        }
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+        }
+    }
     // Show modal
     private async void ShowFilters()
     {
@@ -115,7 +159,6 @@ else
         {
             await modalRef.Show();
         }
-
     }
 
     // Re-render report components and hide modal
@@ -137,6 +180,14 @@ else
         if(modalRef != null)
         {
             await modalRef.Hide();
+        }
+    }
+
+    private async void ShowOverview()
+    {
+        if (modalRef != null)
+        {
+            await modalRef.Show();
         }
     }
 }

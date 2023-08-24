@@ -1,0 +1,60 @@
+﻿@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@layout AdminLayout
+
+@page "/admin/groups"
+<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>Group List</h2></Div>
+<Row Background="Background.Light">
+    <Column ColumnSize="ColumnSize.IsFull">
+        <DataGrid TItem="Group"
+                  Class="admindatagrid"
+                  Data="@groupList"
+                  Responsive
+                  Filterable
+                  Striped
+                  ShowPager
+                    FixedHeader
+                    FixedHeaderDataGridHeight="calc(100vh - 240px)"
+                    FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
+                  PageSize="25"
+                  CommandMode="DataGridCommandMode.ButtonRow">
+            <DataGridColumns>
+                <DataGridMultiSelectColumn Width="30px"> </DataGridMultiSelectColumn>
+                <DataGridCommandColumn />
+                <DataGridColumn Field="@nameof(Group.GroupName)" Caption="Group Name" />
+                <DataGridColumn Sortable="false" Filterable="false" Width="125px">
+                    <DisplayTemplate>
+                        <Button Color="Color.Info" Clicked="@(()=>EditGroupClick(context as Group))">
+                            Edit
+                        </Button>
+                    </DisplayTemplate>
+                </DataGridColumn>
+            </DataGridColumns>
+            <ButtonRowTemplate>
+                <Button Color="Color.Primary" Clicked="@NewGroupClick">Create Group</Button>
+            </ButtonRowTemplate>
+        </DataGrid>
+    </Column>
+</Row>
+@code {
+    [Inject] private NavigationManager navigation {get; set; } = null!;
+    [Inject] IGroupService groupService { get; set; } = null!;
+
+    private IList<Group> groupList = new List<Group>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        groupList = await groupService.GetAllGroupsAsync();
+    }
+
+    private async void NewGroupClick()
+    {
+        navigation.NavigateTo("/admin/group");
+    }
+
+    private async void EditGroupClick(Group g)
+    {
+        navigation.NavigateTo($"/admin/group/{g.WRGroupId}");
+    }
+}

@@ -1,4 +1,8 @@
 ﻿@using TheradexPortal.Data.Identity;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@inject IHttpContextAccessor httpContextAccessor
+
 @inherits LayoutComponentBase
 @using TheradexPortal.Data.Models;
 @using TheradexPortal.Data.Services;
@@ -78,6 +82,7 @@
     private AlertBar? dashboardAlertsBar;
     private Dashboard? selectedDashboard { get; set; } = null!;
     [Inject] public NavigationManager Navigation { get; set; }
+    [Inject] private IUserService userService { get; set; } = null!;
     [Inject] private IAlertService alertService { get; set; } = null!;
     private int iconHeight = 24;
     private IList<WRAlert> activeAlerts = new List<WRAlert>();
@@ -92,6 +97,8 @@
 
     Task OnButtonClicked()
     {
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        userService.SaveActivityLog(userId, WRActivityType.Logout);
         Navigation.NavigateTo($"Signout", true);
 
         return Task.CompletedTask;

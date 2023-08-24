@@ -16,13 +16,17 @@ namespace TheradexPortal.Data.Models
         public DateTime? CreateDate { get; set; }
         [Column("Update_Date")]
         public DateTime? UpdateDate { get; set; }
-
+        [Column("AdminType")]
+        public string  AdminType { get; set; }
+        [Column("Is_Primary")]
+        public bool IsPrimary { get; set;}
         public Role() 
         {
             CreateDate = DateTime.Now;
-            UpdateDate = DateTime.Now;
 
             RoleName = "";
         }
+        public ICollection<RoleDashboard> RoleDashboards { get; } = new List<RoleDashboard>();
+        public ICollection<RoleReport> RoleReports { get; } = new List<RoleReport>();
     }
 }

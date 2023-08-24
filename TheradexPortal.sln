@@ -5,6 +5,14 @@ VisualStudioVersion = 17.1.32228.430
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TheradexPortal", "TheradexPortal.csproj", "{D2DF8450-3B2F-4D52-90C6-8AFF6DC16C35}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{3ED4CB29-038B-4E00-84F4-F53FEF202BFD}"
+	ProjectSection(SolutionItems) = preProject
+		buildspec-build.yml = buildspec-build.yml
+		buildspec-push.yml = buildspec-push.yml
+		Dockerfile = Dockerfile
+		README.md = README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

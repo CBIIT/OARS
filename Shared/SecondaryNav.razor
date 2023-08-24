@@ -21,7 +21,7 @@
             }
             @foreach(var action in Actions)
             {
-                <BarItem>
+                <BarItem Background="Background.White">
                     @if(action.To != null){
                         <BarLink To="@action.To">
                             <BarIcon IconName="action.IconName" />
@@ -41,16 +41,49 @@
             {
                 <Divider Class="my-0" />
             }
-            @foreach(var report in Reports)
-            {
-                <BarItem>
-                        <BarLink To="@GetReportLink(report)">
-                        <BarIcon IconName="report.DisplayIconName ?? defaultIcon" />
-                        @report.Name
-                    </BarLink>
-                </BarItem>
+
+            @{
+                for (int x = 0; x < Reports.Count(); x++)
+                {
+                    var curReport = Reports[x];
+                    //var 
+                    @if (!StudyTypesExist(curReport, Reports))
+                    {
+                        <BarItem>
+                            <BarLink To="@GetReportLink(curReport)">
+                                <BarIcon IconName="@GetReportIcon(curReport)" />
+                                @curReport.Name
+                            </BarLink>
+                        </BarItem>
+                    }
+                    else
+                    {
+                        var nextReport = Reports[x+1];
+                        x++;
+                        <BarItem>
+                            <BarDropdown>
+                                <BarDropdownToggle>
+                                    <BarIcon IconName=@GetReportIcon(curReport) />
+                                    @curReport.Name
+                                </BarDropdownToggle>
+                                <BarDropdownMenu>
+                                    <BarDropdownItem Style="padding:0px 0px 0px 0px; margin:0px 0px 0px 0px;">
+                                        <BarLink To="@GetReportLink(curReport)" Style="margin-left:0px;padding-left:10px;">
+                                            @curReport.StudyType
+                                        </BarLink>
+                                    </BarDropdownItem>
+                                    <BarDropdownItem Style="padding:0px 0px 0px 0px; margin:0px 0px 0px 0px;">
+                                        <BarLink To="@GetReportLink(nextReport)" Style="margin-left:0px;padding-left:10px;">
+                                            @nextReport.StudyType
+                                        </BarLink>
+                                    </BarDropdownItem>
+                                </BarDropdownMenu>
+                            </BarDropdown>
+                        </BarItem>                            
+                    }
+                }
             }
-            </BarStart>
+        </BarStart>
     </BarMenu>
 </Bar>
 </Div>
@@ -59,7 +92,7 @@
     [Parameter] public IList<SecondaryNavAction> Actions { get; set; } = new List<SecondaryNavAction>();
     [Parameter] public IList<Report> Reports { get; set; } = new List<Report>();
 
-    private bool IsVisible = false;
+    private bool IsVisible = true;
     private string defaultIcon = "fa-columns"; // https://blazorise.com/docs/extensions/icons-available
 
     protected void ToggleNavbar()
@@ -85,5 +118,16 @@
         {
             return $"{WrConstants.DASHBOARD_PAGE_PATH}/{report.DashboardId}/{report.WRReportId}";
         }
+    }
+
+    protected string GetReportIcon(Report report)
+    {
+        return report.DisplayIconName ?? "defaultIcon";
+    }
+
+    protected bool StudyTypesExist(Report report, IList<Report> reports)
+    {
+        var dupeReports = reports.Count(r => r.Name == report.Name);
+        return dupeReports > 1;
     }
 }

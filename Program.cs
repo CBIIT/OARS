@@ -34,10 +34,11 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<IAadService, AadService>();
 builder.Services.AddSingleton<IPbiEmbedService, PbiEmbedService>();
-builder.Services.AddSingleton<IUserService, UserService>();
-builder.Services.AddSingleton<IUserRoleService, UserRoleService>();
-builder.Services.AddSingleton<IStudyService, StudyService>();
-builder.Services.AddSingleton<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IUserRoleService, UserRoleService>();
+builder.Services.AddScoped<IStudyService, StudyService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IGroupService, GroupService>();
 builder.Services.AddSingleton<IAlertService, AlertService>();
 
 // Add Blazorise and Tailwind UI
@@ -66,11 +67,12 @@ var onTokenValidated = async (TokenValidatedContext context) =>
     // Add custom claims to the identity
     var claimsIdentity = (ClaimsIdentity)context.Principal.Identity;
 
-
     var userService = context.HttpContext.RequestServices.GetRequiredService<IUserService>();
     var userRoleService = context.HttpContext.RequestServices.GetRequiredService<IUserRoleService>();
+    var dashboardService = context.HttpContext.RequestServices.GetRequiredService<IDashboardService>();
 
     var userIsRegistered = false;
+    var roleList = "";
 
     if (claimsIdentity.Claims is null)
     {
@@ -107,16 +109,28 @@ var onTokenValidated = async (TokenValidatedContext context) =>
 
     var userRoles = await userRoleService.GetUserRolesAsync(user.UserId);
     var isAdmin = false;
+    var isContentAdmin = false;
     foreach(var role in userRoles)
     {        
         claimsIdentity.AddClaim(new Claim(WRClaimType.Role, role.RoleName));
-        if (role.RoleName == "Administrator")
-        {
+        roleList += role.RoleName + ",";
+        if (role.AdminType == WRAdminType.Super || role.AdminType == WRAdminType.Content)
             isAdmin = true;
-        }
+        if (role.AdminType == WRAdminType.Content)
+            isContentAdmin = true;
     }
-    claimsIdentity.AddClaim(new Claim(WRClaimType.IsAdmin, isAdmin.ToString()));
+    roleList = roleList.TrimEnd(',');
 
+    var dashboardIds = await dashboardService.GetDashboardIdsForUser(user.UserId, isAdmin);
+    var reportIds = await dashboardService.GetReportIdsForUser(user.UserId, isAdmin);
+
+    claimsIdentity.AddClaim(new Claim(WRClaimType.IsAdmin, isAdmin.ToString()));
+    claimsIdentity.AddClaim(new Claim(WRClaimType.IsContentAdmin, isContentAdmin.ToString()));
+    claimsIdentity.AddClaim(new Claim(WRClaimType.Dashboards, dashboardIds));
+    claimsIdentity.AddClaim(new Claim(WRClaimType.Reports, reportIds));
+
+    bool updateLastLoginDate = userService.SaveLastLoginDate(user.UserId);
+    bool saveActivity = userService.SaveActivityLog(user.UserId, WRActivityType.Login, roleList);
     return Task.CompletedTask;
 
 };
