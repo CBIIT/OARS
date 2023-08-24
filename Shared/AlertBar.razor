@@ -10,11 +10,11 @@
 {
     if (this.alertsSessionLoaded)
     {
-        @foreach (var alert in activeAlerts)
+        foreach (var alert in activeAlerts)
         {
-            if (!this.Dismissable || !this.dismissedAlerts.Contains(alert.WRAlertId.ToString()))
+            if (!this.Dismissable || !this.dismissedAlerts.Split('|').Any(x => x == alert.WRAlertId.ToString()))
             {
-                <Alert Color="Color.Warning" Visible>
+                <Alert Color="currentColor" Visible>
                     <AlertDescription TextOverflow="TextOverflow.Wrap">@alert.AlertText</AlertDescription>
                     @if (this.Dismissable)
                     {
@@ -26,14 +26,14 @@
     }
     else
     {
-        <Alert Color="Color.Info" Visible>
+        <Alert Color="infoColor" Visible>
             <AlertDescription TextOverflow="TextOverflow.Wrap">Loading Alerts...</AlertDescription>
         </Alert>
     }
 }
 else if (this.NoAlertsMessage)
 {
-    <Alert Color="Color.Info" Visible>
+    <Alert Color="infoColor" Visible>
         <AlertDescription TextOverflow="TextOverflow.Wrap">No current alerts.</AlertDescription>
     </Alert>
 }
@@ -54,9 +54,10 @@ else if (this.NoAlertsMessage)
     [Inject] private IAlertService alertService { get; set; } = null!;
     private BarItem? alertsItem;
     private BarItem? notesItem;
-    private Color currentColor = Color.Info;
-    private Color alertColor = Color.Warning;
-    private Color noteColor = Color.Info;
+    private Color currentColor = Color.Warning;
+    private Color alertColor = Color.Danger;
+    private Color noteColor = Color.Warning;
+    private Color infoColor = Color.Info;
     private IList<WRAlert> activeAlerts = new List<WRAlert>();
     private string? dismissedAlerts = string.Empty;
 

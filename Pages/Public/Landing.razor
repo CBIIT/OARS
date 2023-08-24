@@ -5,6 +5,8 @@
 @using TheradexPortal.Data.Services;
 @using TheradexPortal.Data;
 @using TheradexPortal.Data.Services.Abstract;
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject ProtectedSessionStorage SessionData
 @layout LoginLayout
 
 <Container Position="Position.Absolute.Top.Is50.Start.Is50.Translate.Middle">
@@ -69,6 +71,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        this.clearSessionData();
         activeAlerts = await alertService.GetActiveLoginAlertsAsync();
         activeNotes = await alertService.GetActiveLoginNotesAsync();
         await base.OnInitializedAsync();
@@ -86,5 +89,11 @@
         Navigation.NavigateTo($"Auth/Login", true);
 
         return Task.CompletedTask;
+    }
+
+    private void clearSessionData()
+    {
+        // Clear dismissed alerts from SessionData
+        SessionData.SetAsync("dismissedAlerts", string.Empty);
     }
 }

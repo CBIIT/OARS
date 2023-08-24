@@ -25,7 +25,7 @@
                                     <Image Source="img/alert-icon.png" height="@iconHeight" />
                                     Alerts
                                 </BarDropdownToggle>
-                                <BarDropdownMenu>
+                                <BarDropdownMenu Class="nci-alert-dropdown">
                                     <AlertBar Alert System NoAlertsMessage Dismissable />
                                 </BarDropdownMenu>
                             </BarDropdown>
@@ -36,7 +36,7 @@
                                     <Image Source="img/notification-icon.png" height="@iconHeight" />
                                     Notes
                                 </BarDropdownToggle>
-                                <BarDropdownMenu>
+                                <BarDropdownMenu Class="nci-alert-dropdown">
                                     <AlertBar Note System NoAlertsMessage Dismissable />
                                 </BarDropdownMenu>
                             </BarDropdown>
@@ -59,14 +59,7 @@
                     <PrimaryNav @ref="@primaryNav" RenderButtons SelectedDashboardPrimaryNavChanged=DashboardChanged />
                 </BarStart>
             </Bar>
-            <Bar Breakpoint="Breakpoint.Desktop" Display="Display.None.Block.OnDesktop" Background="Background.White">
-                <BarStart>
-                    <BarItem>
-                        <AlertBar @ref="@dashboardAlertsBar" Alert Dashboard SelectedDashboard="selectedDashboard" Dismissable />
-                    </BarItem>
-                </BarStart>
-                <BarToggler />
-            </Bar>
+            <AlertBar @ref="@dashboardAlertsBar" Alert Dashboard SelectedDashboard="selectedDashboard" Dismissable />
             <Divider Class="mt-1 mb-0"/>
         </LayoutHeader>
         <LayoutContent>
