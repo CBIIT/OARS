@@ -1,0 +1,171 @@
+﻿@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services;
+@using TheradexPortal.Data;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject ProtectedSessionStorage SessionData
+
+@if (activeAlerts.Count > 0)
+{
+    if (this.alertsSessionLoaded)
+    {
+        foreach (var alert in activeAlerts)
+        {
+            if (!this.Dismissable || !this.dismissedAlerts.Split('|').Any(x => x == alert.WRAlertId.ToString()))
+            {
+                <Alert Color="currentColor" Visible>
+                    <AlertDescription TextOverflow="TextOverflow.Wrap">@alert.AlertText</AlertDescription>
+                    @if (this.Dismissable)
+                    {
+                        <CloseButton  @onclick="() => dismissAlert(alert)" />
+                    }
+                </Alert>
+            }
+        }
+    }
+    else
+    {
+        <Alert Color="infoColor" Visible>
+            <AlertDescription TextOverflow="TextOverflow.Wrap">Loading Alerts...</AlertDescription>
+        </Alert>
+    }
+}
+else if (this.NoAlertsMessage)
+{
+    <Alert Color="infoColor" Visible>
+        <AlertDescription TextOverflow="TextOverflow.Wrap">No current alerts.</AlertDescription>
+    </Alert>
+}
+
+@code {
+    [Parameter] public bool Alert { get; set; } = false;
+    [Parameter] public bool Note { get; set; } = false;
+    [Parameter] public bool LoginScreen { get; set; } = false;
+    [Parameter] public bool System { get; set; } = false;
+    [Parameter] public bool Dashboard { get; set; } = false;
+    [Parameter] public bool Dismissable { get; set; } = false;
+    [Parameter] public bool NoAlertsMessage { get; set; } = false;
+    [Parameter] public Dashboard SelectedDashboard { get; set; } = null!;
+
+    private bool alertsHidden;
+    private bool notesHidden;
+    private bool alertsSessionLoaded;
+    [Inject] private IAlertService alertService { get; set; } = null!;
+    private BarItem? alertsItem;
+    private BarItem? notesItem;
+    private Color currentColor = Color.Warning;
+    private Color alertColor = Color.Danger;
+    private Color noteColor = Color.Warning;
+    private Color infoColor = Color.Info;
+    private IList<WRAlert> activeAlerts = new List<WRAlert>();
+    private string? dismissedAlerts = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        this.setCurrentColor();
+        this.getSystemAlerts();
+        this.getLoginAlerts();
+        this.getDashboardAlerts();
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            this.alertsSessionLoaded = true;
+            await LoadSessionAlerts();
+            StateHasChanged();
+        }
+    }
+
+    public void UpdateDashboard(Dashboard dashboard)
+    {
+        this.SelectedDashboard = dashboard;
+        this.getDashboardAlerts();
+    }
+
+    private async void getSystemAlerts()
+    {
+        if (System)
+        {
+            if (Alert)
+            {
+                this.activeAlerts = await alertService.GetActiveSystemAlertsAsync();
+            }
+            if (Note)
+            {
+                this.activeAlerts = await alertService.GetActiveSystemNotesAsync();
+            }
+        }
+    }
+
+    private async void getLoginAlerts()
+    {
+        if (LoginScreen)
+        {
+            if (Alert)
+            {
+                this.activeAlerts = await alertService.GetActiveLoginAlertsAsync();
+            }
+            if (Note)
+            {
+                this.activeAlerts = await alertService.GetActiveLoginNotesAsync();
+            }
+        }
+    }
+
+    private async void getDashboardAlerts()
+    {
+        if (Dashboard)
+        {
+            if (Alert && this.SelectedDashboard != null)
+            {
+                this.activeAlerts = await alertService.GetActiveDashboardAlertsByIdAsync(this.SelectedDashboard.WRDashboardId);
+            }
+            if (Note && this.SelectedDashboard != null)
+            {
+                this.activeAlerts = await alertService.GetActiveDashboardNotesByIdAsync(this.SelectedDashboard.WRDashboardId);
+            }
+        }
+    }
+
+    private void setCurrentColor()
+    {
+        if (Alert)
+        {
+            this.currentColor = this.alertColor;
+        }
+        if (Note)
+        {
+            this.currentColor = this.noteColor;
+        }
+    }
+
+    private async Task dismissAlert(WRAlert alert)
+    {
+        var alertId = alert.WRAlertId.ToString();
+
+        if (!this.dismissedAlerts!.Contains(alertId))
+        {
+            if (this.dismissedAlerts.Length > 0)
+            {
+                this.dismissedAlerts += '|';
+            }
+            this.dismissedAlerts += alertId;
+            await this.SaveSessionAlerts(this.dismissedAlerts);
+        }
+    }
+
+    private async Task LoadSessionAlerts()
+    {
+        var sessionDismissedAlerts = await SessionData.GetAsync<string>("dismissedAlerts");
+        this.dismissedAlerts = sessionDismissedAlerts.Success ? sessionDismissedAlerts.Value : "";
+    }
+
+    private async Task SaveSessionAlerts(string newData)
+    {
+        await SessionData.SetAsync("dismissedAlerts", newData);
+    }
+}

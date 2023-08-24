@@ -39,6 +39,7 @@ builder.Services.AddScoped<IUserRoleService, UserRoleService>();
 builder.Services.AddScoped<IStudyService, StudyService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IGroupService, GroupService>();
+builder.Services.AddSingleton<IAlertService, AlertService>();
 
 // Add Blazorise and Tailwind UI
 builder.Services

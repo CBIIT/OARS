@@ -46,6 +46,7 @@ namespace TheradexPortal.Data
         public DbSet<Role> Roles { get; set; }
         public DbSet<RoleVisual> Role_Visuals { get; set; }
         public DbSet<UserRole> User_Roles { get; set; }
+        public DbSet<WRAlert> Alerts { get; set; }
         public DbSet<RoleDashboard> Role_Dashboards { get; set; } 
         public DbSet<RoleReport> Role_Reports { get; set; }
         public DbSet<UserProtocol> User_Protocols { get; set; }
@@ -54,7 +55,6 @@ namespace TheradexPortal.Data
         public DbSet<UserGroup> User_Groups { get; set; }
         public DbSet<UserProtocolHistory> User_ProtocolHistory { get; set; }
         public DbSet<UserActivityLog> User_ActivityLog { get; set; }
-
     }
 
 }
