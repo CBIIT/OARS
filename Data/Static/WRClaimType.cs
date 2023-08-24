@@ -6,7 +6,6 @@
         static public String UserId = "UserId";
         static public String Role = "Role";
         static public String IsAdmin = "Admin";
-        static public String AlertsViewed = "AlertsViewed";
         static public String IsContentAdmin = "ContentAdmin";
         static public String Dashboards = "Dashboards";
         static public String Reports = "Reports";
