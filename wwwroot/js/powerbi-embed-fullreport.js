@@ -16,14 +16,14 @@ function embedFullReport(reportContainer, accessToken, filterTargets, embedUrl, 
 
     const study_filter =
     {
-        $schema: "http://powerbi.com/product/schema#basic",
+        $schema: "http://powerbi.com/product/schema#advanced",
         target: {
             table: "PROTOCOL",
             column: "STUDY_ID"
         },
         operator: "In",
         values: studyFilter,
-        filterType: models.FilterType.BasicFilter,
+        filterType: models.FilterType.AdvancedFilter,
         requireSingleSelection: false,
         displaySettings: { isHiddenInViewMode: true }
     }
@@ -66,6 +66,8 @@ function embedFullReport(reportContainer, accessToken, filterTargets, embedUrl, 
 
     // Embed report
     let report = powerbi.embed(reportContainer, config);
+
+    console.log(studyFilter);
 
     report.on('dataSelected', async function () {
         //console.log("Visual clicked event triggred");

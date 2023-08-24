@@ -8,7 +8,7 @@ namespace TheradexPortal.Data.Models
     public class RoleReport
     {
         [Key]
-        [Column("WROLE_REPORT_ID")]
+        [Column("WRROLE_REPORT_ID")]
         public int WRRoleReportId { get; set; }
         public int RoleId { get; set; }
         public int ReportId { get; set; }

@@ -26,5 +26,9 @@ namespace TheradexPortal.Data.Models
         public int? LoginSourceId { get; set; }
         public string? SelectedStudies { get; set; }
         public string? CurrentStudy { get; set; }
+        public bool IsCtepUser { get; set; }
+        public ICollection<UserRole> UserRoles { get; } = new List<UserRole>();
+        public ICollection<UserProtocol> UserProtocols { get; } = new List<UserProtocol>();
+        public ICollection<UserGroup> UserGroups { get; } = new List<UserGroup>();
     }
 }

@@ -14,6 +14,7 @@ namespace TheradexPortal.Data.Models
         public int GroupId { get; set; }
         [Column("Expiration_Date")]
         public DateTime? ExpirationDate { get; set; }
+        [Column("Create_Date")]
         public DateTime? CreateDate { get; set; }
         [Column("Update_Date")]
         public DateTime? UpdateDate { get; set; }

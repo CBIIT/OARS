@@ -34,6 +34,7 @@
     <PackageReference Include="Blazorise.DataGrid" Version="1.2.2" />
     <PackageReference Include="Blazorise.Icons.FontAwesome" Version="1.2.2" />
     <PackageReference Include="Blazorise.LoadingIndicator" Version="1.2.3" />
+    <PackageReference Include="Blazorise.TreeView" Version="1.2.3" />
     <PackageReference Include="ITfoxtec.Identity.Saml2" Version="4.8.6" />
     <PackageReference Include="ITfoxtec.Identity.Saml2.MvcCore" Version="4.8.6" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="6.0.4" />

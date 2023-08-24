@@ -95,16 +95,44 @@
         content: "An error has occurred."
     }
 
-.studygrid table hr td tr
-{
-    background-color:red;
-    font-size:x-small;
+.studygrid tr td {
+    background-color: #FCE3BA;
+    font-size: small;
+    vertical-align: middle;
+    margin-left: 1px;
+    padding: 1px;
 }
 
 .table-row-selectable {
     /*background-color: cornsilk;*/
     font: x-small;
-    height: 10px;
+    height: 1px;
     margin-top: 2px;
     /*margin-bottom: 200px;*/
+}
+
+.admindatagrid tr td {
+    background-color: #FCE3BA;
+    font-size: small;
+    vertical-align: middle;
+    margin-left: 5px;
+    padding: 5px;
+    vertical-align: middle;
+}
+.admindatagrid thead tr th {
+    /*color: black;
+    background-color:aquamarine;*/
+}
+
+.admindataeditgrid tr td {
+    font-size: small;
+    vertical-align: middle;
+    margin-left: 2px;
+    padding: 2px;
+    vertical-align: middle;
+}
+
+.table-striped > tbody > tr:nth-child(odd) > td,
+.table-striped > tbody > tr:nth-child(odd) > th {
+    background-color: white;
 }

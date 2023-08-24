@@ -1,6 +1,7 @@
 ﻿@using TheradexPortal.Data.Identity;
 @using TheradexPortal.Data.Services.Abstract;
 @using TheradexPortal.Data.Static;
+@using System.Security.Claims;
 @inject IHttpContextAccessor httpContextAccessor
 @inject IConfiguration configuration
 
@@ -108,8 +109,8 @@
 </AuthorizeView>
 
 @code {
-    [Inject] public NavigationManager Navigation { get; set; }
-    [Inject] private IUserService userService { get; set; } = null!;
+        [Inject] public NavigationManager Navigation { get; set; }
+        [Inject] private IUserService userService { get; set; } = null!;
 
     public string CurrentEnvironment { get; set; }
     public bool isContentAdmin { get; set; }

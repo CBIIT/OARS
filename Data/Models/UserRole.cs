@@ -21,7 +21,7 @@ namespace TheradexPortal.Data.Models
 
         [ForeignKey(nameof(UserId))]
         public User User { get; set; }
-        [ForeignKey(nameof(RoleId))]
+        //[ForeignKey(nameof(RoleId))]
         public Role Role { get; set; }
 
         public UserRole()
@@ -29,8 +29,8 @@ namespace TheradexPortal.Data.Models
             CreateDate = DateTime.Now;
             UpdateDate = DateTime.Now;
 
-            User = new User();
-            Role = new Role();
+            //User = new User();
+            //Role = new Role();
         }
 
     }

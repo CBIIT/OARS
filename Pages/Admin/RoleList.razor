@@ -9,6 +9,7 @@
 <Row Background="Background.Light">
     <Column ColumnSize="ColumnSize.IsFull">
         <DataGrid TItem="Role"
+                  Class="admindatagrid"
                   Data="@roleList"
                   Responsive
                   Filterable
@@ -26,9 +27,9 @@
                 <DataGridColumn Field="@nameof(Role.IsPrimary)" Caption="Is Primary Role">
                     <DisplayTemplate>
                         @{
-                            var isActive = (context as Role)?.IsPrimary ?? false;
+                            var isPrimary = (context as Role)?.IsPrimary ?? false;
 
-                            if(isActive)
+                            if(isPrimary)
                             {
                                 @("Yes")
                             }

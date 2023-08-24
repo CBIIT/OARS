@@ -19,7 +19,8 @@
                     TItem="Protocol"
                     Data="@studyList"
                     SelectionMode="DataGridSelectionMode.Multiple"
-                    @bind-SelectedRows="@selectedStudies"
+                    @bind-SelectedRow="@selectedStudy"
+                    @bind-SelectedRows="selectedStudies"
                     Responsive
                     Sortable
                     SortMode="DataGridSortMode.Single"
@@ -38,8 +39,8 @@
                     <DataGridCommandColumn />
                     <DataGridColumn Width="20px" Caption="Hx" Filterable="false" Field="@nameof(Protocol.RecentOrder)" SortDirection="SortDirection.Descending">
                         <DisplayTemplate>
-                            <Figure Size="FigureSize.Is32x32">
-                                <FigureImage Source="img/recent.jpg" Visibility="@CheckRecentStudy(context as Protocol)" AlternateText="Recently Selected" />
+                            <Figure Size="FigureSize.Is32x32" Class="mx-auto">
+                                <FigureImage Source="img/recent.jpg" Class="mx-auto" Visibility="@CheckRecentStudy(context as Protocol)" AlternateText="Recently Selected" />
                             </Figure>
                         </DisplayTemplate>
                     </DataGridColumn> 
@@ -139,8 +140,9 @@
 
     [Parameter] public Action<List<Protocol>?>? OnSave { get; set; } = null!;
 
-    private IList<Protocol>? studyList;
-    private List<Protocol>? selectedStudies;
+    private List<Protocol> studyList;
+    private Protocol selectedStudy;
+    private List<Protocol> selectedStudies;
     private IReadOnlyList<DateTime?> selectedDates;
     private Modal? overviewRef;
     private Protocol overviewProtocol = new Protocol();
@@ -156,7 +158,7 @@
         alertVisible = false;
         bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsAdmin, "True");
         int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
-        studyList = studyService.GetProtocolsForUserAsync(userId, isAdmin);
+        studyList = studyService.GetProtocolsForUserAsync(userId, isAdmin).ToList();
 
         List<Protocol> defaultStudies = studyService.GetSelectedStudiesForUser(userId);
         if (defaultStudies.Count == 0)
@@ -171,9 +173,13 @@
                 foundStudy.RecentOrder = recentStudies.Count - iOrder + 1;  // Show most recent first
         }
 
-        // TRYING TO RE_SELECT SELECTED STUDIES
         // Get the selected studies from the user
-        //IList<Protocol> protocols = studyService.GetFilteredStudiesForUser(userId);
+        //selectedStudies = studyService.GetSelectedStudiesForUser(userId);
+
+        await base.OnInitializedAsync();
+
+        // TRYING TO RE_SELECT SELECTED STUDIES
+
         //IList<Protocol> protocols = studyService.GetProtocolsForUserAsync(1, false);
         //await datagridRef.Select(protocols[0]);
         //await datagridRef.Refresh();

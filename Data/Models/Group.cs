@@ -16,5 +16,6 @@ namespace TheradexPortal.Data.Models
         public DateTime? CreateDate { get; set; }
         [Column("Update_Date")]
         public DateTime? UpdateDate { get; set; }
+        public ICollection<GroupProtocol> GroupProtocols { get; } = new List<GroupProtocol>();
     }
 }

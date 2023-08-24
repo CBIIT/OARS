@@ -1,0 +1,269 @@
+﻿@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@using Blazorise.TreeView;
+@layout AdminLayout
+
+@page "/admin/role/{roleid:int?}"
+<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1 mb-3"><h2>@AddOrEdit</h2></Div>
+<Div Padding="Padding.Is2" Background="Background.Light">
+<Fields>
+    <Field>
+        <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Role Name</FieldLabel>
+        <FieldBody ColumnSize="ColumnSize.Is4">
+            <Validations @ref="validations" Mode="ValidationMode.Manual">
+            <Validation Validator="@ValidationRule.IsNotEmpty">
+                <TextEdit Placeholder="Group Name" MaxLength="50" @bind-Text="@roleName">
+                    <Feedback>
+                        <ValidationError>Please enter a Role Name</ValidationError>
+                    </Feedback>
+                </TextEdit>
+            </Validation>
+            </Validations>
+        </FieldBody>
+    </Field>
+    <Field>
+        <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Admin Type</FieldLabel>
+        <FieldBody ColumnSize="ColumnSize.Is4" Margin="Margin.IsAuto">
+            <Select TValue="int" SelectedValue="@adminType" SelectedValueChanged="@OnAdminTypeChanged">
+                <SelectItem Value="0">None</SelectItem>
+                <SelectItem Value="1">Super</SelectItem>
+                <SelectItem Value="2">Content</SelectItem>
+            </Select>
+        </FieldBody>
+    </Field>
+    <Field>
+        <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Is Primary Role</FieldLabel>
+        <FieldBody ColumnSize="ColumnSize.Is3">
+            <Switch TValue="bool" @bind-Checked="@isPrimary"></Switch>
+        </FieldBody>
+    </Field>
+</Fields>
+</Div>
+<Div Padding="Padding.Is2" Background="Background.Light">
+    <Text TextColor="TextColor.Dark" TextWeight="TextWeight.Bold" Class="mb-2">Dashboard/Report permissions</Text>
+</Div>
+<Div Padding="Padding.Is2" Background="Background.Light" Display="@showTree">
+    <TreeView Nodes="dashRepItems" Style="@flexContainerStyle"
+              GetChildNodes="@(item => item.Children)"
+              HasChildNodes="@(item => item.Children?.Any() == true)"
+              SelectionMode="TreeViewSelectionMode.Multiple"
+              @bind-SelectedNodes="selectedNodes">
+            <NodeContent><Icon Name="IconName.Folder" Class="ps-2 me-2" />@context.Text</NodeContent>
+    </TreeView>
+</Div>
+<Div Padding="Padding.Is2" Background="Background.Light" Display="@showIsAdmin">
+    <Text TextColor="TextColor.Dark">Admin users have permissions to all Dashboards and Reports</Text>
+</Div>
+<Divider />
+<Field Flex="Flex.JustifyContent.Between">
+    <Button Color="Color.Danger" Visibility="@visibilityDelete" Clicked="@Delete">Delete Role</Button>
+    <Div>
+        <Button Color="Color.Light" Clicked="@Cancel">Cancel</Button>
+        <Button Color="Color.Primary" Type="ButtonType.Submit" PreventDefaultOnSubmit Clicked="@Save">Save Role</Button>
+    </Div>
+</Field>
+@code {
+    [Inject] IUserRoleService roleService { get; set; } = null!;
+    [Inject] IStudyService studyService { get; set; } = null!;
+    [Inject] IDashboardService dashboardService { get; set; } = null;
+    [Inject] private NavigationManager navigation {get; set; } = null!;
+    [Inject] INotificationService NotificationService { get; set; }
+
+    [Parameter] public int? RoleId { get; set; }
+
+    public string AddOrEdit { get; set; }
+    string roleName = "";
+    Role curRole;
+    int adminType = 0;
+    bool isPrimary = false;
+    IFluentDisplay showTree = Display.None;
+    IFluentDisplay showIsAdmin = Display.None;
+    Visibility visibilityDelete = Visibility.Invisible;
+    Validations validations;
+    IList<DashOrRepNode> selectedNodes = new List<DashOrRepNode>();
+
+    string flexContainerStyle = $"width:100%;";
+
+    #region Tree view stuff
+    public class DashOrRepNode
+    {
+        public string Text { get; set; }
+        public int Id { get; set; }
+        public string NodeType { get; set; }
+        public List<DashOrRepNode> Children { get; set; }
+    }
+
+    List<DashOrRepNode> dashRepItems = new List<DashOrRepNode>();
+
+    #endregion
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (RoleId == null )
+        {
+            AddOrEdit = "Create Role";
+            visibilityDelete = Visibility.Invisible;
+            showTree = Display.Block;
+            showIsAdmin = Display.None;
+            curRole = new Role();
+        }
+        else
+        {
+            AddOrEdit = "Edit Role";
+            visibilityDelete = Visibility.Visible;
+            GetRole(RoleId);
+        }
+        LoadPermissionTree();
+
+    }
+
+    private async void GetRole(int? roleId)
+    {
+        curRole = await roleService.GetRoleByIdAsync(Convert.ToInt32(roleId));
+        roleName = curRole.RoleName;
+        switch (curRole.AdminType)
+        {
+            case "Super":
+                adminType = 1;
+                break;
+            case "Content":
+                adminType = 2;
+                break;
+            default:
+                adminType = 0;
+                break;
+        }
+        isPrimary = curRole.IsPrimary;
+        ShowHideTree(adminType);
+    }
+
+    private async void LoadPermissionTree()
+    {
+        List<RoleDashboard> allowedDash = curRole.RoleDashboards.ToList();
+        List<RoleReport> allowedReps = curRole.RoleReports.ToList();
+
+        IList<Dashboard> allDashboards = await dashboardService.GetAllDashboardsForAdminAsync();
+        foreach (Dashboard dashboard in allDashboards)
+        {
+            DashOrRepNode newDAR = new DashOrRepNode { Text = dashboard.Name, Id = dashboard.WRDashboardId, NodeType="Dash", Children = new List<DashOrRepNode>() };
+            foreach (Report report in dashboard.Reports)
+            {
+                DashOrRepNode newDARChild = new DashOrRepNode { Text = (report.StudyType == null) ? report.Name : report.Name + "-" + report.StudyType, Id = report.WRReportId, NodeType="Rep" };
+                newDAR.Children.Add(newDARChild);
+                // See if dashRepItem is in allowedReps
+                RoleReport findAllowedRep = allowedReps.Find(ar => ar.ReportId == newDARChild.Id);
+                if (findAllowedRep != null)
+                    selectedNodes.Add(newDARChild);
+            }
+            dashRepItems.Add(newDAR);
+            // See if dashRepItem is in allowedDash
+            RoleDashboard findAllowedDash = allowedDash.Find(ad => ad.DashboardId == newDAR.Id);
+            if (findAllowedDash != null)
+                selectedNodes.Add(newDAR);
+        }
+    }
+
+    Task OnAdminTypeChanged( int value )
+    {
+        adminType = value;
+        ShowHideTree(value);
+        return Task.CompletedTask;
+    }
+
+    private void ShowHideTree(int adminType)
+    {
+        switch (adminType)
+        {
+            case 1:
+            case 2:
+                showTree = Display.None;
+                showIsAdmin = Display.Block;
+                break;
+            default:
+                showTree = Display.Block;
+                showIsAdmin = Display.None;
+                break;
+        }
+    }
+
+    private async void Save()
+    {
+        bool saved = false;
+
+        DateTime curDateTime = DateTime.UtcNow;
+        if (await validations.ValidateAll())
+        {
+            Role saveRole = new Role();
+            if (RoleId != null)
+                saveRole.RoleId = (int)RoleId;
+            else
+                saveRole.CreateDate = curDateTime;
+
+            saveRole.RoleName = roleName;
+            switch (adminType)
+            {
+                case 0:
+                    saveRole.AdminType = "None";
+                    break;
+                case 1:
+                    saveRole.AdminType = "Super";
+                    break;
+                case 2:
+                    saveRole.AdminType = "Content";
+                    break;
+            }
+            saveRole.IsPrimary = isPrimary;
+            // Iterate through selected nodes to create RoleDashboard and RoleReport records (only for non-admins)
+            if (adminType == 0)
+            {
+                foreach (DashOrRepNode dashOrRep in selectedNodes)
+                {
+                    if (dashOrRep.NodeType == "Dash")
+                    {
+                        RoleDashboard newRD = new RoleDashboard();
+                        newRD.DashboardId = dashOrRep.Id;
+                        newRD.CreateDate = curDateTime;
+                        saveRole.RoleDashboards.Add(newRD);
+
+                    }
+                    else
+                    {
+                        RoleReport newRR = new RoleReport();
+                        newRR.ReportId = dashOrRep.Id;
+                        newRR.CreateDate = curDateTime;
+                        saveRole.RoleReports.Add(newRR);
+                    }
+                }
+            }
+            saved = roleService.SaveRole(saveRole);
+
+            if (saved)
+            {
+                await NotificationService.Success( "Role successfully saved");
+                navigation.NavigateTo("/admin/roles");
+            }
+            else
+            {
+                await NotificationService.Error( "Error saving role");
+                navigation.NavigateTo("/admin/roles");
+            }
+        }
+    }
+
+    private void Cancel()
+    {
+        navigation.NavigateTo("/admin/roles");
+    }
+
+    private async void Delete()
+    {
+        Tuple<bool, string> delete = roleService.DeleteRole((int)RoleId);
+        if (delete.Item1 == true)
+            await NotificationService.Success(delete.Item2);
+        else
+            await NotificationService.Error(delete.Item2);
+
+        navigation.NavigateTo("/admin/roles");
+    }
+}

@@ -37,7 +37,8 @@ builder.Services.AddSingleton<IPbiEmbedService, PbiEmbedService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserRoleService, UserRoleService>();
 builder.Services.AddScoped<IStudyService, StudyService>();
-builder.Services.AddScoped<IDashboardService, DashboardService>(); 
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IGroupService, GroupService>();
 
 // Add Blazorise and Tailwind UI
 builder.Services

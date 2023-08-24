@@ -14,6 +14,11 @@ namespace TheradexPortal.Data.Services
             return await context.Dashboards.OrderBy(d => d.DisplayOrder).ToListAsync();
         }
 
+        public async Task<IList<Dashboard>> GetAllDashboardsForAdminAsync()
+        {
+            return await context.Dashboards.OrderBy(d => d.DisplayOrder).Include(r => r.Reports.OrderBy(r2 => r2.DisplayOrder)).ToListAsync();
+        }
+
         public async Task<String> GetDashboardIdsForUser(int userId, bool isAdmin)
         {
             string dashboardList = "";

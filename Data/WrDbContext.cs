@@ -18,7 +18,7 @@ namespace TheradexPortal.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            var converter = new BoolToStringConverter("n","Y");
+            var converter = new BoolToStringConverter("N","Y");
 
             foreach (var entity in modelBuilder.Model.GetEntityTypes())
             {

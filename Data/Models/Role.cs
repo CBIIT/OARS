@@ -23,9 +23,10 @@ namespace TheradexPortal.Data.Models
         public Role() 
         {
             CreateDate = DateTime.Now;
-            UpdateDate = DateTime.Now;
 
             RoleName = "";
         }
+        public ICollection<RoleDashboard> RoleDashboards { get; } = new List<RoleDashboard>();
+        public ICollection<RoleReport> RoleReports { get; } = new List<RoleReport>();
     }
 }

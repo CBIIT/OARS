@@ -7,6 +7,7 @@
 <Row Background="Background.Light">
     <Column ColumnSize="ColumnSize.IsFull">
         <DataGrid TItem="User"
+                  Class="admindatagrid"
                   Data="@userList"
                   Responsive
                   Filterable
@@ -21,7 +22,7 @@
                 <DataGridMultiSelectColumn Width="30px"> </DataGridMultiSelectColumn>
                 <DataGridCommandColumn />
                 <DataGridColumn Field="@nameof(User.FirstName)" Caption="First Name" />
-                <DataGridColumn Field="@nameof(User.LastName)" Caption="Last Name" />
+                <DataGridColumn Field="@nameof(User.LastName)" Caption="Last Name" SortDirection="SortDirection.Ascending" />
                 <DataGridColumn Field="@nameof(User.EmailAddress)" Caption="Email" />
                 <DataGridColumn Field="@nameof(User.CtepUserId)" Caption="CTEP ID" />
                 <DataGridColumn Field="@nameof(User.IsActive)" Filterable="false" Caption="Active" Width="125px">
@@ -53,30 +54,64 @@
                         }
                     </DisplayTemplate>
                 </DataGridDateColumn>
-                <DataGridColumn Sortable="false" Filterable="false" Width="125px">
+                <DataGridColumn Sortable="false" Filterable="false" Width="75px">
                     <DisplayTemplate>
                         <Button Color="Color.Info" Clicked="@(()=>EditUserClick(context as User))">
                             Edit
                         </Button>
                     </DisplayTemplate>
                 </DataGridColumn>
+                <DataGridColumn Sortable="false" Filterable="false" Width="125px">
+                    <DisplayTemplate>
+                        <Button Color="Color.Danger" Clicked="@(()=>ShowDeactivateModal(context as User))"
+                            Visibility="@IsDeactivatable(context as User)">
+                            Deactivate
+                        </Button>
+                    </DisplayTemplate>
+                </DataGridColumn>
             </DataGridColumns>
             <ButtonRowTemplate>
-                <Button Color="Color.Primary" Clicked="@NewUserClick">Create User</Button>
+                <Button Color="Color.Primary"  Clicked="@NewUserClick">Create User</Button>
             </ButtonRowTemplate>
         </DataGrid>
     </Column>
 </Row>
-
+<Modal @ref="deactivateModalRef">
+    <ModalContent Centered>
+        <ModalHeader Background="Background.Primary">
+            <ModalTitle>Deactivate User: @userToDeactivate</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            Warning:  Continuing will deactivate this user.
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Danger" Clicked="@DeactivateUserClick">Deactivate</Button>
+            <Button Color="Color.Light" Clicked="@HideModal">Cancel</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
 @code {
     [Inject] private NavigationManager navigation {get; set; } = null!;
     [Inject] IUserService userService { get; set; } = null!;
+    [Inject] INotificationService NotificationService { get; set; }
 
     private IList<User> userList = new List<User>();
+    private Modal deactivateModalRef;
+    private string userToDeactivate;
+    private int userToDeactivateId;
 
     protected override async Task OnInitializedAsync()
     {
         userList = await userService.GetAllUsersAsync();
+    }
+
+    private Visibility IsDeactivatable(User u)
+    {
+        if (u.IsActive)
+            return Visibility.Visible;
+        else
+            return Visibility.Invisible;
     }
 
     private async void NewUserClick()
@@ -87,5 +122,31 @@
     private async void EditUserClick(User u)
     {
         navigation.NavigateTo($"/admin/user/{u.UserId}");
+    }
+
+    private Task ShowDeactivateModal(User u)
+    {
+        userToDeactivate = u.FirstName + " " + u.LastName;
+        userToDeactivateId = u.UserId;
+        return deactivateModalRef.Show();
+    }
+
+    private Task HideModal()
+    {
+        return deactivateModalRef.Hide();
+    }
+
+    private async void DeactivateUserClick()
+    {
+        deactivateModalRef.Hide();
+        bool success = userService.DeactivateUser(userToDeactivateId);
+        if (success)
+        {
+            await NotificationService.Success( "User deactivated");
+        }
+        else
+        {
+            await NotificationService.Error( "Error deactivating user");
+        }
     }
 }

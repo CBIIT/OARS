@@ -12,17 +12,63 @@ namespace TheradexPortal.Data.Services
         {
             return await context.Users.ToListAsync();
         }
-
         public async Task<User?> GetUserAsync(int userId)
         {
             return await context.Users.FirstOrDefaultAsync(u => u.UserId == userId);
         }
-
         public async Task<User?> GetUserByEmailAsync(string emailAddress)
         {
             return await context.Users.FirstOrDefaultAsync(u => u.EmailAddress == emailAddress);
         }
+        public bool SaveUser(User user, List<UserRole> userRoles)
+        {
+            try
+            {
+                // if user.UserId is 0 or null, save new user, else edit user
+                DateTime curDateTime = DateTime.UtcNow;
+                if (user.UserId == 0)
+                {
+                    user.CreateDate = curDateTime;
+                    //UserRole newUR = new UserRole();
+                    //foreach (UserRole ur in userRoles)
+                    //{
+                    //    UserRole newUR = new UserRole();
+                    //    newUR.RoleId = ur.RoleId;
+                    //    newUR.CreateDate = DateTime.UtcNow;
+                    //    user.UserRoles.Add(newUR);
+                    //}
+                    context.Users.Add(user);
 
+                    context.SaveChanges();
+                }
+                else
+                {
+                    // Get the user, roles, protocols & groups, update the values & save
+                    User dbUser = context.Users.FirstOrDefault(u => u.UserId == user.UserId);
+                    if (dbUser != null)
+                    {
+                        dbUser.FirstName = user.FirstName;
+                        dbUser.LastName = user.LastName;
+                        dbUser.EmailAddress = user.EmailAddress;
+                        dbUser.Title = user.Title;
+                        dbUser.IsActive = user.IsActive;
+                        dbUser.IsCtepUser = user.IsCtepUser;
+                        dbUser.CtepUserId = user.CtepUserId;
+                        dbUser.IsLockedOut = user.IsLockedOut;
+                        dbUser.UpdateDate = curDateTime;
+
+                        context.SaveChanges();
+                    }
+                }
+
+                return true;
+
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
         public bool SaveLastLoginDate(int userId)
         {
             try
@@ -81,7 +127,6 @@ namespace TheradexPortal.Data.Services
                 return false;
             }
         }
-
         public bool SaveCurrentStudy(int userId, string study)
         {
             try
@@ -98,11 +143,27 @@ namespace TheradexPortal.Data.Services
                 return false;
             }
         }
+        public bool DeactivateUser(int userId)
+        {
+            try
+            {
+                // Get the user, update and save.
+                User user = context.Users.FirstOrDefault(u => u.UserId == userId);
+                user.IsActive = false;
+                user.UpdateDate = DateTime.UtcNow;
+                context.SaveChanges();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
         public async Task<IList<string>> GetProtocolHistoryAsync(int userId, int count)
         {
             return await context.User_ProtocolHistory.Where(p1=>p1.UserId == userId).OrderByDescending(p=>p.WRUserProtocolHistoryId).Select(p=>p.StudyId).Take(count).ToListAsync();
         }
-
         public bool SaveActivityLog(int userId, string activityType)
         {
             return SaveActivityLog(userId, activityType, null);
