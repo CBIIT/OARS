@@ -14,29 +14,23 @@ namespace TheradexPortal.Data.Services
         }
         public async Task<User?> GetUserAsync(int userId)
         {
-            return await context.Users.FirstOrDefaultAsync(u => u.UserId == userId);
+            return await context.Users.Include(ur=>ur.UserRoles).ThenInclude(r=>r.Role).Include(up=>up.UserProtocols).Include(ug=>ug.UserGroups).ThenInclude(g=>g.Group).FirstOrDefaultAsync(u => u.UserId == userId);
         }
         public async Task<User?> GetUserByEmailAsync(string emailAddress)
         {
             return await context.Users.FirstOrDefaultAsync(u => u.EmailAddress == emailAddress);
         }
-        public bool SaveUser(User user, List<UserRole> userRoles)
+        public bool SaveUser(User user)
         {
             try
             {
-                // if user.UserId is 0 or null, save new user, else edit user
                 DateTime curDateTime = DateTime.UtcNow;
+                DateTime updDateTime = curDateTime;
+
+                // if user.UserId is 0 or null, save new user, else edit user
                 if (user.UserId == 0)
                 {
                     user.CreateDate = curDateTime;
-                    //UserRole newUR = new UserRole();
-                    //foreach (UserRole ur in userRoles)
-                    //{
-                    //    UserRole newUR = new UserRole();
-                    //    newUR.RoleId = ur.RoleId;
-                    //    newUR.CreateDate = DateTime.UtcNow;
-                    //    user.UserRoles.Add(newUR);
-                    //}
                     context.Users.Add(user);
 
                     context.SaveChanges();
@@ -47,6 +41,7 @@ namespace TheradexPortal.Data.Services
                     User dbUser = context.Users.FirstOrDefault(u => u.UserId == user.UserId);
                     if (dbUser != null)
                     {
+                        // User Info
                         dbUser.FirstName = user.FirstName;
                         dbUser.LastName = user.LastName;
                         dbUser.EmailAddress = user.EmailAddress;
@@ -56,6 +51,99 @@ namespace TheradexPortal.Data.Services
                         dbUser.CtepUserId = user.CtepUserId;
                         dbUser.IsLockedOut = user.IsLockedOut;
                         dbUser.UpdateDate = curDateTime;
+
+                        // User Roles
+                        foreach (UserRole ur in user.UserRoles)
+                        {
+                            UserRole foundUR = dbUser.UserRoles.FirstOrDefault(ur2 => ur2.RoleId == ur.RoleId);
+                            if (foundUR != null)
+                            {
+                                // UserRole already exists
+                                foundUR.ExpirationDate = ur.ExpirationDate;
+                                foundUR.UpdateDate = updDateTime;
+                            }
+                            else
+                            {
+                                // UserRole doesn't exist in db
+                                UserRole newUR = new UserRole();
+                                newUR.RoleId = ur.RoleId;
+                                newUR.ExpirationDate = ur.ExpirationDate;
+                                newUR.CreateDate = curDateTime;
+                                dbUser.UserRoles.Add(newUR);
+                            }
+                        }
+                        // Remove UserRoles in db not in new list
+                        List<UserRole> urToRemove = new List<UserRole>();
+                        foreach (UserRole dur in dbUser.UserRoles)
+                        {
+                            UserRole foundUR = user.UserRoles.FirstOrDefault(ur2 => ur2.RoleId == dur.RoleId);
+                            if (foundUR == null)
+                                urToRemove.Add(dur);
+                        }
+                        foreach (UserRole del in urToRemove)
+                            dbUser.UserRoles.Remove(del);
+
+                        // User Protocols
+                        foreach (UserProtocol up in user.UserProtocols)
+                        {
+                            UserProtocol foundUP = dbUser.UserProtocols.FirstOrDefault(up2 => up2.StudyId == up.StudyId);
+                            if (foundUP != null)
+                            {
+                                // UserProtocol already exists
+                                foundUP.ExpirationDate = up.ExpirationDate;
+                                foundUP.UpdateDate = updDateTime;
+                            }
+                            else
+                            {
+                                // UserProtocol doesn't exist in db
+                                UserProtocol newUP = new UserProtocol();
+                                newUP.StudyId = up.StudyId;
+                                newUP.ExpirationDate = up.ExpirationDate;
+                                newUP.CreateDate = curDateTime;
+                                dbUser.UserProtocols.Add(newUP);
+                            }
+                        }
+                        // Remove UserProtocols in db not in new list
+                        List<UserProtocol> upToRemove = new List<UserProtocol>();
+                        foreach (UserProtocol dup in dbUser.UserProtocols)
+                        {
+                            UserProtocol foundUP = user.UserProtocols.FirstOrDefault(up2 => up2.StudyId == dup.StudyId);
+                            if (foundUP == null)
+                                upToRemove.Add(dup);
+                        }
+                        foreach (UserProtocol del in upToRemove)
+                            dbUser.UserProtocols.Remove(del);
+
+                        // User Groups
+                        foreach (UserGroup ug in user.UserGroups)
+                        {
+                            UserGroup foundUG = dbUser.UserGroups.FirstOrDefault(ug2 => ug2.GroupId == ug.GroupId);
+                            if (foundUG != null)
+                            {
+                                // UserGroup already exists
+                                foundUG.ExpirationDate = ug.ExpirationDate;
+                                foundUG.UpdateDate = updDateTime;
+                            }
+                            else
+                            {
+                                // UserGroup doesn't exist in db
+                                UserGroup newUG = new UserGroup();
+                                newUG.GroupId = ug.GroupId;
+                                newUG.ExpirationDate = ug.ExpirationDate;
+                                newUG.CreateDate = curDateTime;
+                                dbUser.UserGroups.Add(newUG);
+                            }
+                        }
+                        // Remove UserGroups in db not in new list
+                        List<UserGroup> ugToRemove = new List<UserGroup>();
+                        foreach (UserGroup dug in dbUser.UserGroups)
+                        {
+                            UserGroup foundUG = user.UserGroups.FirstOrDefault(ug2 => ug2.GroupId == dug.GroupId);
+                            if (foundUG == null)
+                                ugToRemove.Add(dug);
+                        }
+                        foreach (UserGroup del in ugToRemove)
+                            dbUser.UserGroups.Remove(del);
 
                         context.SaveChanges();
                     }
