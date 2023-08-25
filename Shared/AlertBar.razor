@@ -12,9 +12,9 @@
     {
         foreach (var alert in activeAlerts)
         {
-            if (!this.Dismissable || !this.dismissedAlerts.Split('|').Any(x => x == alert.WRAlertId.ToString()))
+            if (!this.Dismissable || !this.alertDismissed(this.dismissedAlerts!, alert))
             {
-                <Alert Color="currentColor" Visible>
+                <Alert Color="currentColor" Visible Class="@CSS">
                     <AlertDescription TextOverflow="TextOverflow.Wrap">@alert.AlertText</AlertDescription>
                     @if (this.Dismissable)
                     {
@@ -46,6 +46,8 @@ else if (this.NoAlertsMessage)
     [Parameter] public bool Dashboard { get; set; } = false;
     [Parameter] public bool Dismissable { get; set; } = false;
     [Parameter] public bool NoAlertsMessage { get; set; } = false;
+    [Parameter] public string CSS { get; set; } = string.Empty;
+    [Parameter] public EventCallback<int> AlertsCountChanged { get; set; }
     [Parameter] public Dashboard SelectedDashboard { get; set; } = null!;
 
     private bool alertsHidden;
@@ -74,8 +76,9 @@ else if (this.NoAlertsMessage)
     {
         if (firstRender)
         {
-            this.alertsSessionLoaded = true;
             await LoadSessionAlerts();
+            this.alertsSessionLoaded = true;
+            await this.updateAlertsCount();
             StateHasChanged();
         }
     }
@@ -143,19 +146,27 @@ else if (this.NoAlertsMessage)
         }
     }
 
+    private bool alertDismissed(string dismissedAlerts, WRAlert alert)
+    {
+        return dismissedAlerts.Split('|').Any(x => x == alert.WRAlertId.ToString());
+    }
+
     private async Task dismissAlert(WRAlert alert)
     {
         var alertId = alert.WRAlertId.ToString();
 
-        if (!this.dismissedAlerts!.Contains(alertId))
+        if (alert != null && !this.dismissedAlerts!.Contains(alertId))
         {
             if (this.dismissedAlerts.Length > 0)
             {
                 this.dismissedAlerts += '|';
             }
             this.dismissedAlerts += alertId;
-            await this.SaveSessionAlerts(this.dismissedAlerts);
+            await this.saveSessionAlerts(this.dismissedAlerts);
+            await this.updateAlertsCount();
         }
+
+        // if empty after removing, add no notes messages
     }
 
     private async Task LoadSessionAlerts()
@@ -164,8 +175,23 @@ else if (this.NoAlertsMessage)
         this.dismissedAlerts = sessionDismissedAlerts.Success ? sessionDismissedAlerts.Value : "";
     }
 
-    private async Task SaveSessionAlerts(string newData)
+    private async Task saveSessionAlerts(string newData)
     {
         await SessionData.SetAsync("dismissedAlerts", newData);
+    }
+
+    private async Task updateAlertsCount()
+    {
+        var alertsCount = 0;
+
+        foreach (var alert in this.activeAlerts)
+        {
+            if (!this.alertDismissed(this.dismissedAlerts!, alert))
+            {
+                alertsCount++;
+            }
+        }
+
+        await this.AlertsCountChanged.InvokeAsync(alertsCount);
     }
 }
