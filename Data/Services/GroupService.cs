@@ -43,7 +43,7 @@ namespace TheradexPortal.Data.Services
                     if (dbGroup != null)
                     {
                         dbGroup.GroupName = group.GroupName;
-                        dbGroup.UpdateDate = group.UpdateDate;
+                        dbGroup.UpdateDate = curDateTime;
 
                         // iterate from site defined list - add or update as needed
                         foreach (GroupProtocol gp in group.GroupProtocols)

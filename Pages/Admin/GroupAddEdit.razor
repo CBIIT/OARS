@@ -35,46 +35,60 @@
                     Multiple />
             </FieldBody>
         </Field>
+        <Button Color="Color.Primary" Clicked="@AddToGroup">Add to Assigned</Button>
     </Div>
-    <Div Padding="Padding.Is1" Style="@flexContainerStyle3">
-        <Button Color="Color.Primary" Clicked="@MoveToSelectedActive">Add to Group/Active</Button>
-        <Divider />
-        <Button Color="Color.Primary" Clicked="@MoveToAvailable">Remove from Group/Active</Button>
-    </Div>
-    <Div Padding="Padding.Is2" Style="@flexContainerStyle2">
+    <Div Padding="Padding.Is2">
         <Field>
-            <FieldLabel ColumnSize="ColumnSize.Is5" TextWeight="TextWeight.Bold">Group Studies/Active</FieldLabel>
-            <FieldBody ColumnSize="ColumnSize.Is2">
-                <SelectList TItem="Protocol"
-                    MaxVisibleItems="20"
-                    TValue="string"
-                    Data="@protocolsInGroupActive"
-                    TextField="@((protocol)=>protocol.StudyId)"
-                    ValueField="@((protocol)=>protocol.StudyId)"
-                    @bind-SelectedValues="@groupSelectedActive"
-                    Multiple />
+            <FieldLabel TextWeight="TextWeight.Bold">Assigned Studies</FieldLabel>
+            <FieldBody>
+                <DataGrid TItem="GroupProtocol"
+                            Class="admindataeditgrid"
+                            Data="@selectedGroupProtocolList"
+                            @bind-SelectedRow="@selectedGroupProtocol"
+                            @bind-SelectedRows="@selectedGroupProtocols"
+                            Editable
+                            Responsive
+                            PageSize="2000"
+                            FixedHeader
+                            FixedHeaderDataGridHeight="454px"
+                            FixedHeaderDataGridMaxHeight="454px"
+                            SelectionMode = "DataGridSelectionMode.Multiple"
+                            CommandMode="DataGridCommandMode.Commands"
+                            EditMode="DataGridEditMode.Inline">
+                    <DataGridColumns>
+                        <DataGridColumn Width="260px" Field="@nameof(GroupProtocol.StudyId)"  Caption="Study Id" />
+                        <DataGridColumn Field="@nameof(GroupProtocol.IsActive)" Width="150" Caption="Is Active" Editable>
+                            <DisplayTemplate>
+                                @{
+                                    bool isActive = (bool)(context as GroupProtocol)?.IsActive;
+
+                                    if (isActive)
+                                    {
+                                        @("Yes")
+                                    }
+                                    else
+                                    {
+                                        @("No")
+                                    }
+                                }
+                            </DisplayTemplate>
+                        </DataGridColumn>
+                        <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
+                            <SaveCommandTemplate>
+                                <Button ElementId="btnSave" Size="Size.ExtraSmall" Type="ButtonType.Submit" PreventDefaultOnSubmit Color="Color.Primary" Clicked="@context.Clicked">@context.LocalizationString</Button>
+                            </SaveCommandTemplate>
+                            <CancelCommandTemplate>
+                                <Button ElementId="btnCancel" Size="Size.ExtraSmall" Color="Color.Secondary" Clicked="@context.Clicked">Cancel</Button>
+                            </CancelCommandTemplate>
+                        </DataGridCommandColumn>
+                    </DataGridColumns>
+                    <ButtonRowTemplate>
+                        <Button Color="Color.Primary" Size="Size.ExtraSmall" Disabled="(selectedGroupProtocol is null)" Clicked="context.EditCommand.Clicked">Edit</Button>
+                    </ButtonRowTemplate>
+                </DataGrid>
             </FieldBody>
         </Field>
-    </Div>
-    <Div Padding="Padding.Is1" Style="@flexContainerStyle3">
-        <Button Color="Color.Primary" Clicked="@MoveToSelectedInactive">Add to Group/Inactive</Button>
-        <Divider />
-        <Button Color="Color.Primary" Clicked="@MoveBackToSelectedActive">Remove from Group/Inactive</Button>
-    </Div>
-    <Div Padding="Padding.Is2" Style="@flexContainerStyle2">
-        <Field>
-            <FieldLabel ColumnSize="ColumnSize.Is5" TextWeight="TextWeight.Bold">Group Studies/Inactive</FieldLabel>
-            <FieldBody ColumnSize="ColumnSize.Is2">
-                <SelectList TItem="Protocol"
-                    MaxVisibleItems="20"
-                    TValue="string"
-                    Data="@protocolsInGroupInactive"
-                    TextField="@((protocol)=>protocol.StudyId)"
-                    ValueField="@((protocol)=>protocol.StudyId)"
-                    @bind-SelectedValues="@groupSelectedInactive"
-                    Multiple />
-            </FieldBody>
-        </Field>
+        <Button Color="Color.Primary" Clicked="@RemoveFromGroup">Remove from Assigned</Button>                    
     </Div>
 </Div>
 <Divider />
@@ -100,11 +114,10 @@
     Validations validations;
 
     IReadOnlyList<string> availableSelected { get; set; }
-    IReadOnlyList<string> groupSelectedActive { get; set; }
-    IReadOnlyList<string> groupSelectedInactive { get; set; }
+    IList<GroupProtocol> selectedGroupProtocolList = new List<GroupProtocol>();
+    private GroupProtocol selectedGroupProtocol;
+    List<GroupProtocol> selectedGroupProtocols { get; set; }
     IList<Protocol> protocolsAvailable;
-    IList<Protocol> protocolsInGroupActive;
-    IList<Protocol> protocolsInGroupInactive;
 
     string flexContainerStyle = $"width:30%;";
     string flexContainerStyle2 = $"width:30%;";
@@ -113,8 +126,6 @@
     protected override async Task OnInitializedAsync()
     {
         protocolsAvailable = (await studyService.GetAllProtocolsAsync()).OrderBy(p=>p.StudyId).ToList();
-        protocolsInGroupActive = new List<Protocol>();
-        protocolsInGroupInactive = new List<Protocol>();
 
         if (GroupId == null )
         {
@@ -126,30 +137,31 @@
             AddOrEdit = "Edit Group";
             visibilityDelete = Visibility.Visible;
             GetGroup(GroupId);
+            AddOrEdit = "Edit Group - " + groupName;
         }
     }
 
     private async void GetGroup(int? groupId)
     {
         Group curGroup = await groupService.GetGroupAsync(Convert.ToInt32(groupId));
+
         groupName = curGroup.GroupName;
 
-        foreach (GroupProtocol gp in curGroup.GroupProtocols)
+        // Add to assigned groups
+        selectedGroupProtocolList = curGroup.GroupProtocols.ToList();
+        // Remove assigned from group list
+        foreach (GroupProtocol gp in selectedGroupProtocolList)
         {
             Protocol foundProtocol = protocolsAvailable.First(p => p.StudyId == gp.StudyId);
             protocolsAvailable.Remove(foundProtocol);
-            if (gp.IsActive)
-                protocolsInGroupActive.Add(foundProtocol);
-            else
-                protocolsInGroupInactive.Add(foundProtocol);
         }
+
         // Re-sort
         protocolsAvailable = protocolsAvailable.OrderBy(p => p.StudyId).ToList();
-        protocolsInGroupActive = protocolsInGroupActive.OrderBy(p => p.StudyId).ToList();
-        protocolsInGroupInactive = protocolsInGroupInactive.OrderBy(p => p.StudyId).ToList();
+        selectedGroupProtocolList = selectedGroupProtocolList.OrderBy(p => p.StudyId).ToList();
     }
 
-    private async void MoveToSelectedActive()
+    private async void AddToGroup()
     {
         // Add studies to selected protocol select control
         if (availableSelected != null)
@@ -158,59 +170,35 @@
             {
                 Protocol foundProtocol = protocolsAvailable.First(p => p.StudyId == availStudy);
                 protocolsAvailable.Remove(foundProtocol);
-                protocolsInGroupActive.Add(foundProtocol);
-                protocolsInGroupActive = protocolsInGroupActive.OrderBy(p => p.StudyId).ToList();
+                GroupProtocol newGP = new GroupProtocol();
+                newGP.StudyId = foundProtocol.StudyId;
+                newGP.IsActive = true;
+                selectedGroupProtocolList.Add(newGP);
             }
+            selectedGroupProtocolList = selectedGroupProtocolList.OrderBy(sup => sup.StudyId).ToList();
+
         }
-        availableSelected = null;
+        availableSelected = null;        
     }
 
-    private async void MoveToAvailable()
+    private async void RemoveFromGroup()
     {
-        // Add studies to selected protocol select control
-        if (groupSelectedActive != null)
+        // Remove studies from assigned grid
+        if (selectedGroupProtocols != null)
         {
-            foreach (string groupStudy in groupSelectedActive)
+            foreach (GroupProtocol selGroupProtocol in selectedGroupProtocols)
             {
-                Protocol foundProtocol = protocolsInGroupActive.First(p => p.StudyId == groupStudy);
-                protocolsInGroupActive.Remove(foundProtocol);
-                protocolsAvailable.Add(foundProtocol);
-                protocolsAvailable = protocolsAvailable.OrderBy(p => p.StudyId).ToList();
-            }
-        }
-        groupSelectedActive = null;
-    }
+                // Remove from Assigned list
+                selectedGroupProtocolList.Remove(selGroupProtocol);
 
-    private async void MoveToSelectedInactive()
-    {
-        // Add studies to selected protocol select control
-        if (groupSelectedActive != null)
-        {
-            foreach (string activeStudy in groupSelectedActive)
-            {
-                Protocol foundProtocol = protocolsInGroupActive.First(p => p.StudyId == activeStudy);
-                protocolsInGroupActive.Remove(foundProtocol);
-                protocolsInGroupInactive.Add(foundProtocol);
-                protocolsInGroupInactive = protocolsInGroupInactive.OrderBy(p => p.StudyId).ToList();
+                //Add to Available list
+                Protocol newP = new Protocol();
+                newP.StudyId = selGroupProtocol.StudyId;
+                protocolsAvailable.Add(newP);
             }
+            protocolsAvailable = protocolsAvailable.OrderBy(pa => pa.StudyId).ToList();
         }
-        groupSelectedActive = null;
-    }
-
-    private async void MoveBackToSelectedActive()
-    {
-        // Add studies to selected protocol select control
-        if (groupSelectedInactive != null)
-        {
-            foreach (string inactiveStudy in groupSelectedInactive)
-            {
-                Protocol foundProtocol = protocolsInGroupInactive.First(p => p.StudyId == inactiveStudy);
-                protocolsInGroupInactive.Remove(foundProtocol);
-                protocolsInGroupActive.Add(foundProtocol);
-                protocolsInGroupActive = protocolsInGroupActive.OrderBy(p => p.StudyId).ToList();
-            }
-        }
-        groupSelectedInactive = null;
+        selectedGroupProtocols = null;        
     }
 
     private async void Save()
@@ -227,19 +215,12 @@
             }
             saveGroup.GroupName = groupName;
 
-            // Iterate through Active & Inactive selects to create GroupProtocol records
-            foreach (Protocol activeProt in protocolsInGroupActive)
+            // Iterate through assigned protocols to create GroupProtocol records
+            foreach (GroupProtocol groupProt in selectedGroupProtocolList)
             {
                 GroupProtocol newGP = new GroupProtocol();
-                newGP.StudyId = activeProt.StudyId;
-                newGP.IsActive = true;
-                saveGroup.GroupProtocols.Add(newGP);
-            }
-            foreach (Protocol inactiveProt in protocolsInGroupInactive)
-            {
-                GroupProtocol newGP = new GroupProtocol();
-                newGP.StudyId = inactiveProt.StudyId;
-                newGP.IsActive = false;
+                newGP.StudyId = groupProt.StudyId;
+                newGP.IsActive = groupProt.IsActive;
                 saveGroup.GroupProtocols.Add(newGP);
             }
 
