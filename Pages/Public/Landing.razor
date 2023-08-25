@@ -7,60 +7,79 @@
 @using TheradexPortal.Data.Services.Abstract;
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @inject ProtectedSessionStorage SessionData
+@inject IConfiguration configuration
 @layout LoginLayout
-
-<Container Position="Position.Absolute.Top.Is50.Start.Is50.Translate.Middle">
-    <Row>
-        <Column ColumnSize="ColumnSize.Is4.Is4.WithOffset">
-            <Card>
-                <CardBody>
-                    <CardTitle Size="5">
-                        Web Reporting 3.0
-                    </CardTitle>
-                </CardBody>
-                <CardBody>
-                    <Div Class="my-2" Flex="Flex.JustifyContent.Center">
-                        <!--Button Flex="Flex.JustifyContent.Center" Block Color="Color.Secondary" Type="ButtonType.Link" To="/Login/Login">Theradex Sign In</!--Button-->
-                        <Button Flex="Flex.JustifyContent.Center" Block Color="Color.Primary" TextColor="TextColor.White" Clicked="@OnButtonClicked">Theradex Sign In</Button>
-                    </Div>
-                    <Div Class="my-2" Flex="Flex.JustifyContent.Center">
-                        <Button Flex="Flex.JustifyContent.Center" Block Color="Color.Primary" TextColor="TextColor.White" Clicked="@OnSAMLButtonClicked">CTEP/NIH Sign In</Button>
-                    </Div>
-                </CardBody>
-            </Card>
-            <br />
-        </Column>
-        <Column ColumnSize="ColumnSize.Is4.Is4.WithOffset">
-            <Accordion>
-                <Collapse Visible>
-                    <CollapseHeader>
-                        <AccordionToggle>
-                            <Image Source="img/alert-icon.png" height="@iconHeight" />
-                            Alerts
-                        </AccordionToggle>
-                    </CollapseHeader>
-                    <CollapseBody>
-                        <AlertBar Alert LoginScreen NoAlertsMessage />
-                    </CollapseBody>
-                </Collapse>
-            </Accordion>
-            <br />
-            <Accordion>
-                <Collapse Visible="false">
-                    <CollapseHeader>
-                        <AccordionToggle>
-                            <Image Source="img/notification-icon.png" height="@iconHeight" />
-                            Notes
-                        </AccordionToggle>
-                    </CollapseHeader>
-                    <CollapseBody>
-                        <AlertBar Note LoginScreen NoAlertsMessage  />
-                    </CollapseBody>
-                </Collapse>
-            </Accordion>
-        </Column>
-    </Row>
-</Container>
+<Div Flex="Flex.JustifyContent.Between" Margin="Margin.Is3.FromBottom">
+    <Div>
+        <Image Source="img/DNA-Left.jpg"></Image>
+    </Div>
+    <Div Margin="Margin.Is5.FromTop">
+        <h2>Web Reporting</h2>
+    </Div>
+    <Div Margin="Margin.Is4.FromTop">
+        <Image Source="img/theradex-logo.png"></Image>
+    </Div>
+    <Div Margin="Margin.Is5.FromTop">
+        <h3>Focused. Connected.  Nimble.</h3>
+    </Div>
+    <Div>
+        <Image Source="img/DNA-Right.jpg"></Image>
+    </Div>
+</Div>
+<div class="loginVideoDiv">
+    <video id="loginVideo" src="/video/Oncology CRO Services.mp4" autoplay loop muted defaultmuted playsinline></video>
+</div>
+<Div Flex="Flex.AlignItems.Stretch" Style="@border">
+    <Div Padding="Padding.Is2" Style="@loginPaneStyle">
+        <Card Height="Height.Auto">
+            <CardBody>
+                <CardTitle Size="5">
+                    Sign in
+                </CardTitle>
+            </CardBody>
+            <CardBody>
+                <Div Class="my-2" Flex="Flex.JustifyContent.Center">
+                    <Button Flex="Flex.JustifyContent.Center" Block Color="Color.Primary" TextColor="TextColor.White" Clicked="@OnButtonClicked">Theradex Sign In</Button>
+                </Div>
+                <Div Class="my-2" Flex="Flex.JustifyContent.Center">
+                    <Button Flex="Flex.JustifyContent.Center" Block Color="Color.Primary" TextColor="TextColor.White" Clicked="@OnSAMLButtonClicked">CTEP/NIH Sign In</Button>
+                </Div>
+                <Div Class="my-2" TextAlignment="TextAlignment.Center" Flex="Flex.JustifyContent.Center">
+                    <h4 style="color:gray;">@CurrentEnvironment</h4>
+                </Div>
+            </CardBody>
+        </Card>
+    </Div>
+    <Div Padding="Padding.Is2" Style="@border">
+        <Accordion>
+            <Collapse Visible>
+                <CollapseHeader>
+                    <AccordionToggle>
+                        <Image Source="img/alert-icon.png" height="@iconHeight" />
+                        Alerts
+                    </AccordionToggle>
+                </CollapseHeader>
+                <CollapseBody>
+                    <AlertBar Alert LoginScreen NoAlertsMessage />
+                </CollapseBody>
+            </Collapse>
+        </Accordion>
+        <br />
+        <Accordion>
+            <Collapse Visible="false">
+                <CollapseHeader>
+                    <AccordionToggle>
+                        <Image Source="img/notification-icon.png" height="@iconHeight" />
+                        Notes
+                    </AccordionToggle>
+                </CollapseHeader>
+                <CollapseBody>
+                    <AlertBar Note LoginScreen NoAlertsMessage  />
+                </CollapseBody>
+            </Collapse>
+        </Accordion>
+    </Div>
+</Div>
 
 @code {
     [Inject] public NavigationManager Navigation { get; set; }
@@ -68,12 +87,23 @@
     private IList<WRAlert> activeAlerts = new List<WRAlert>();
     private IList<WRAlert> activeNotes = new List<WRAlert>();
     private int iconHeight = 24;
+    public string CurrentEnvironment { get; set; }
+
+    string loginPaneStyle = $"width:35%";
+    string border = $"width:100%;";
 
     protected override async Task OnInitializedAsync()
     {
         this.clearSessionData();
         activeAlerts = await alertService.GetActiveLoginAlertsAsync();
         activeNotes = await alertService.GetActiveLoginNotesAsync();
+        
+        string currentEnvironment = configuration.GetValue<string>("System:Environment");
+        if (currentEnvironment != "Prod")
+            CurrentEnvironment = currentEnvironment;
+        else
+            CurrentEnvironment = "";
+
         await base.OnInitializedAsync();
     }
 
