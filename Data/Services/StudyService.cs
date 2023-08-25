@@ -24,12 +24,12 @@ namespace TheradexPortal.Data.Services
             { 
             protocols = (from up in context.User_Protocols
                              join p in context.Protocols on up.StudyId equals p.StudyId
-                             where up.UserId == userId && (up.ExpirationDate == null || up.ExpirationDate.Value.Date >= DateTime.Today)
+                             where up.UserId == userId && (up.ExpirationDate == null || up.ExpirationDate.Value.Date >= DateTime.UtcNow.Date)
                              select p)
                              .Union(from ug in context.User_Groups
                                     join ugp in context.Group_Protocols on ug.GroupId equals ugp.GroupId where ugp.IsActive
                                     join p in context.Protocols on ugp.StudyId equals p.StudyId
-                                    where ug.UserId == userId && (ug.ExpirationDate == null || ug.ExpirationDate.Value.Date >= DateTime.Today)
+                                    where ug.UserId == userId && (ug.ExpirationDate == null || ug.ExpirationDate.Value.Date >= DateTime.UtcNow.Date)
                                     select p)
                              .OrderBy(p1 => p1.StudyId).ToList();
             }
