@@ -85,15 +85,17 @@
                                         Data="@primaryRoles"
                                         TextField="@((role)=>role.RoleName)"
                                         ValueField="@((role)=>role.RoleId)"
-                                        @bind-SelectedValue="@primaryRoleId"
+                                        SelectedValue = "@primaryRoleId"
+                                        SelectedValueChanged = "@OnChangeRole"
+                                        
                                         DefaultItemText="Select the Primary Role" />
                         </FieldBody>
                     </Field>
                 </Div>
                 <Div Style="@flexItemStyleSpacer"></Div>
-                <Div Padding="Padding.Is2" Style="@flexItemStylePrimRole">
+                <Div Padding="Padding.Is2" Style="@flexItemStyleSecRole" Display="@showSecondaryRoles">
                     <Field>
-                        <FieldLabel ColumnSize="ColumnSize.Is12" TextWeight="TextWeight.Bold">Available Secondary Roles</FieldLabel>
+                        <FieldLabel ColumnSize="ColumnSize.Is10" TextWeight="TextWeight.Bold">Available Secondary Roles</FieldLabel>
                         <FieldBody ColumnSize="ColumnSize.Is4" Margin="Margin.IsAuto">
                             <SelectList TItem="Role"
                                         TValue="int"
@@ -107,24 +109,24 @@
                     </Field>
                     <Button Color="Color.Primary" Clicked="@MoveToSelectedRole">Add to Assigned</Button>
                 </Div>
-                <Div Padding="Padding.Is2" Style="@flexItemStyleSecRole">
+                <Div Padding="Padding.Is2" Style="@flexItemStyleSecRole2" Display="@showSecondaryRoles">
                     <Field>
                         <FieldLabel TextWeight="TextWeight.Bold">Assigned Seconday Roles</FieldLabel>
                         <FieldBody>
                             <DataGrid TItem="UserRole"
-                                      Class="admindataeditgrid"
-                                      Data="@selectedUserRoleList"
-                                      @bind-SelectedRow="@selectedUserRole"
-                                      @bind-SelectedRows="@selectedUserRoles"
-                                      Editable
-                                      Responsive
-                                      PageSize="2000"
-                                      FixedHeader
-                                      FixedHeaderDataGridHeight="278px"
-                                      FixedHeaderDataGridMaxHeight="278px"
-                                      SelectionMode = "DataGridSelectionMode.Multiple"
-                                      CommandMode="DataGridCommandMode.Commands"
-                                      EditMode="DataGridEditMode.Inline">
+                                        Class="admindataeditgrid"
+                                        Data="@selectedUserRoleList"
+                                        @bind-SelectedRow="@selectedUserRole"
+                                        @bind-SelectedRows="@selectedUserRoles"
+                                        Editable
+                                        Responsive
+                                        PageSize="2000"
+                                        FixedHeader
+                                        FixedHeaderDataGridHeight="278px"
+                                        FixedHeaderDataGridMaxHeight="278px"
+                                        SelectionMode = "DataGridSelectionMode.Multiple"
+                                        CommandMode="DataGridCommandMode.Commands"
+                                        EditMode="DataGridEditMode.Inline">
                                 <DataGridColumns>
                                     <DataGridColumn Width="260px"  Caption="Role Name">
                         	            <DisplayTemplate>
@@ -308,9 +310,10 @@
     IFluentDisplay displayNext = Display.Block;
     IFluentDisplay displaySave = Display.None;
     string flexContainerStyle = $"width:50%;";
-    string flexItemStylePrimRole = $"width:400px;";
-    string flexItemStyleSecRole = $"width:450px;";
-    string flexItemStyleProts = $"width:250px;";
+    string flexItemStylePrimRole = $"width:300px;";
+    string flexItemStyleSecRole = $"width:340px;";
+    string flexItemStyleSecRole2 = $"width:600px;";
+    string flexItemStyleProts = $"width:400px;";
     string flexItemStyleProtsGrid = $"width:450px;";
     string flexItemStyleSpacer = $"width:1px;background-color: gray;";
 
@@ -322,8 +325,10 @@
     bool isActive = false;
     bool isCTEPUser = false;
     string ctepUserId = "";
+    bool isAdmin = false;
 
     // Step 2 vars (Role assignment)
+    IFluentDisplay showSecondaryRoles = Display.None;
     int primaryRoleId = 0;
     List<Role> allRoles;
     IList<Role> primaryRoles;
@@ -401,11 +406,21 @@
             displaySave = Display.None;
         }
 
+        // Roles step
+        if (stepsRef.SelectedStep == "step2")
+        {
+            if (isAdmin)
+                showSecondaryRoles = Display.None;
+            else
+                showSecondaryRoles = Display.Block;
+        }
+
         // Protocol & Group div
         if  (stepsRef.SelectedStep == "step3")
         {
-            Role selectedRole = allRoles.FirstOrDefault(r => r.RoleId == primaryRoleId);
-            if (selectedRole != null && selectedRole.AdminType != WRAdminType.None)
+            //Role selectedRole = allRoles.FirstOrDefault(r => r.RoleId == primaryRoleId);
+            //if (selectedRole != null && selectedRole.AdminType != WRAdminType.None)
+            if (isAdmin)
             {
                 showStudies = Display.None;
                 showIsAdmin = Display.Block;
@@ -456,9 +471,6 @@
             Role foundRole = rolesAvailable.First(r=>r.RoleId == ur.RoleId);
             rolesAvailable.Remove(foundRole);
         }
-        //primaryRoleId = (curUser.UserRoles.Where(r => r.Role.IsPrimary == true)); //FirstOrDefault(ur=>ur).Where(curUser.UserRoles.Roles)
-        //primaryRoleId = curRoles.FirstOrDefault(r => r.IsPrimary).RoleId;
-        //secondaryRoleIds = curRoles.Where(r => r.IsPrimary == false).Select(r => r.RoleId).ToList();
 
         // Step 3
         // Add to assigned studies
@@ -478,6 +490,23 @@
             Group foundGroup = groupsAvailable.First(g=>g.WRGroupId == ug.GroupId);
             groupsAvailable.Remove(foundGroup);
         }
+    }
+
+    private Task OnChangeRole( int value )
+    {
+        primaryRoleId = value;
+        Role selectedRole = allRoles.FirstOrDefault(r => r.RoleId == primaryRoleId);
+        if (selectedRole != null && selectedRole.AdminType != WRAdminType.None)
+            isAdmin = true;
+        else
+            isAdmin = false;
+
+        if (isAdmin)
+            showSecondaryRoles = Display.None;
+        else
+            showSecondaryRoles = Display.Block;
+
+        return Task.CompletedTask;
     }
 
     private async void MoveToSelectedProtocol()
@@ -639,33 +668,36 @@
         newUR.CreateDate = createDateTime;
         saveUser.UserRoles.Add(newUR);
 
-        //  Save Secondary Roles
-        foreach (UserRole userRole in selectedUserRoleList)
+        if (!isAdmin)
         {
-            UserRole newUR2 = new UserRole();
-            newUR2.RoleId = userRole.RoleId;
-            newUR2.ExpirationDate = userRole.ExpirationDate;
-            newUR2.CreateDate = createDateTime;
-            saveUser.UserRoles.Add(newUR2);
-        }
+            //  Save Secondary Roles
+            foreach (UserRole userRole in selectedUserRoleList)
+            {
+                UserRole newUR2 = new UserRole();
+                newUR2.RoleId = userRole.RoleId;
+                newUR2.ExpirationDate = userRole.ExpirationDate;
+                newUR2.CreateDate = createDateTime;
+                saveUser.UserRoles.Add(newUR2);
+            }
 
-        //Step 3 - Protocols & Groups
-        foreach (UserProtocol userProt in selectedUserProtocolList)
-        {
-            UserProtocol newUP = new UserProtocol();
-            newUP.StudyId = userProt.StudyId;
-            newUP.ExpirationDate = userProt.ExpirationDate;
-            newUP.CreateDate = createDateTime;
-            saveUser.UserProtocols.Add(newUP);
-        }
-                 
-        foreach (UserGroup userGroup in selectedUserGroupList)
-        {
-            UserGroup newUG = new UserGroup();
-            newUG.GroupId = userGroup.GroupId;
-            newUG.ExpirationDate = userGroup.ExpirationDate;
-            newUG.CreateDate = createDateTime;
-            saveUser.UserGroups.Add(newUG);
+            //Step 3 - Protocols & Groups
+            foreach (UserProtocol userProt in selectedUserProtocolList)
+            {
+                UserProtocol newUP = new UserProtocol();
+                newUP.StudyId = userProt.StudyId;
+                newUP.ExpirationDate = userProt.ExpirationDate;
+                newUP.CreateDate = createDateTime;
+                saveUser.UserProtocols.Add(newUP);
+            }
+
+            foreach (UserGroup userGroup in selectedUserGroupList)
+            {
+                UserGroup newUG = new UserGroup();
+                newUG.GroupId = userGroup.GroupId;
+                newUG.ExpirationDate = userGroup.ExpirationDate;
+                newUG.CreateDate = createDateTime;
+                saveUser.UserGroups.Add(newUG);
+            }
         }
 
         saved = userService.SaveUser(saveUser);
