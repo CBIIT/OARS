@@ -53,7 +53,7 @@ namespace TheradexPortal.Data.Services
                             {
                                 // Study already exists
                                 foundGP.IsActive = gp.IsActive;
-                                //foundGP.UpdateDate = curDateTime;
+                                foundGP.UpdateDate = curDateTime;
                             }
                             else
                             {
@@ -61,7 +61,7 @@ namespace TheradexPortal.Data.Services
                                 GroupProtocol newGP = new GroupProtocol();
                                 newGP.StudyId = gp.StudyId;
                                 newGP.IsActive = gp.IsActive;
-                                //newGP.CreateDate = curDateTime;
+                                newGP.CreateDate = curDateTime;
                                 dbGroup.GroupProtocols.Add(newGP);
                             }
                         }

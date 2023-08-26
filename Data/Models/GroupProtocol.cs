@@ -13,5 +13,9 @@ namespace TheradexPortal.Data.Models
         public int GroupId { get; set; }
         public Boolean IsActive { get; set; }
         public string? StudyId { get; set; }
+        [Column("Create_Date")]
+        public DateTime? CreateDate { get; set; }
+        [Column("Update_Date")]
+        public DateTime? UpdateDate { get; set; }
     }
 }
