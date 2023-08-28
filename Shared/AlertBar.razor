@@ -28,7 +28,7 @@
             if (!this.Dismissable || !this.alertDismissed(this.dismissedAlerts!, alert))
             {
                 <Alert Color="currentColor" Visible Class="@CSS">
-                    <AlertDescription TextOverflow="TextOverflow.Wrap">@alert.AlertText</AlertDescription>
+                    <AlertDescription TextOverflow="TextOverflow.Wrap">@((MarkupString)alert.AlertText!)</AlertDescription>
                     @if (this.Dismissable)
                     {
                         <CloseButton  @onclick="() => dismissAlert(alert)" />
