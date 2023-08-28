@@ -58,6 +58,11 @@
     height:20px;
 }
 
+.nci-bar-dropdown {
+    margin-right: -7px;
+    margin-left: 20px;
+}
+
 /* Alert Display */
 .nci-alert-dropdown {
     width: 600px;
@@ -65,6 +70,15 @@
     max-height: 350px;
     overflow-x: auto;
     overflow-y: auto;
+}
+
+.nci-alert-component {
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+.nci-alert-icon {
+    padding-right: 5px;
 }
 
 /* PBI Embed */

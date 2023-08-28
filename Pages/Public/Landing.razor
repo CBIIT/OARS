@@ -9,6 +9,7 @@
 @inject ProtectedSessionStorage SessionData
 @inject IConfiguration configuration
 @layout LoginLayout
+
 <Div Flex="Flex.JustifyContent.Between" Margin="Margin.Is3.FromBottom">
     <Div>
         <Image Source="img/DNA-Left.jpg"></Image>
@@ -55,26 +56,26 @@
             <Collapse Visible>
                 <CollapseHeader>
                     <AccordionToggle>
-                        <Image Source="img/alert-icon.png" height="@iconHeight" />
+                        <Image Source="img/alert-icon.png" height="@iconHeight" Class="nci-alert-icon" />
                         Alerts
                     </AccordionToggle>
                 </CollapseHeader>
                 <CollapseBody>
-                    <AlertBar Alert LoginScreen NoAlertsMessage />
+                    <AlertBar Alert LoginScreen NoAlertsMessage CSS="nci-alert-component" />
                 </CollapseBody>
             </Collapse>
         </Accordion>
         <br />
         <Accordion>
-            <Collapse Visible="false">
+           <Collapse Visible="false">
                 <CollapseHeader>
                     <AccordionToggle>
-                        <Image Source="img/notification-icon.png" height="@iconHeight" />
+                        <Image Source="img/notification-icon.png" height="@iconHeight" Class="nci-alert-icon" />
                         Notes
                     </AccordionToggle>
                 </CollapseHeader>
                 <CollapseBody>
-                    <AlertBar Note LoginScreen NoAlertsMessage  />
+                    <AlertBar Note LoginScreen NoAlertsMessage CSS="nci-alert-component" />
                 </CollapseBody>
             </Collapse>
         </Accordion>
