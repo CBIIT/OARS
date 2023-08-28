@@ -24,31 +24,31 @@
                     </BarStart>
                     <BarEnd>
                         <BarItem>
-                            <BarDropdown RightAligned Visible>
-                                <BarDropdownToggle>
-                                    <Image Source="img/alert-icon.png" height="@iconHeight" />
+                            <BarDropdown RightAligned>
+                                <BarDropdownToggle Class="nci-bar-dropdown">
+                                    <Badge Color="Color.Danger" Pill Position="Position.Absolute.Top.Is50.Start.Is100.Translate.Middle">@systemAlertsCount</Badge>
+                                    <Image Source="img/alert-icon.png" height="@iconHeight" Class="nci-alert-icon" />
                                     Alerts
                                 </BarDropdownToggle>
                                 <BarDropdownMenu Class="nci-alert-dropdown">
-                                    <AlertBar Alert System NoAlertsMessage Dismissable />
+                                    <AlertBar @ref="@systemAlerts" Alert System NoAlertsMessage Dismissable AlertsCountChanged=SystemAlertsCountChanged CSS="nci-alert-component" />
                                 </BarDropdownMenu>
                             </BarDropdown>
                         </BarItem>
                         <BarItem>
                             <BarDropdown RightAligned>
-                                <BarDropdownToggle>
-                                    <Image Source="img/notification-icon.png" height="@iconHeight" />
+                                <BarDropdownToggle Class="nci-bar-dropdown">
+                                    <Badge Color="Color.Info" Pill Position="Position.Absolute.Top.Is50.Start.Is100.Translate.Middle">@systemNotesCount</Badge>
+                                    <Image Source="img/notification-icon.png" height="@iconHeight" Class="nci-alert-icon" />
                                     Notes
                                 </BarDropdownToggle>
                                 <BarDropdownMenu Class="nci-alert-dropdown">
-                                    <AlertBar Note System NoAlertsMessage Dismissable />
+                                    <AlertBar @ref="@systemNotes" Note System NoAlertsMessage Dismissable AlertsCountChanged=SystemNotesCountChanged CSS="nci-alert-component" />
                                 </BarDropdownMenu>
                             </BarDropdown>
                         </BarItem>
                         <BarItem>
-                            <BarLink To="#Profile">
-                                <Icon Name="IconName.UserCircle" IconSize="IconSize.Large" />
-                            </BarLink>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                         </BarItem>
                         <BarItem>
                             <Button Flex="Flex.JustifyContent.Center" Block Color="Color.Secondary" Clicked="@OnButtonClicked">
@@ -63,7 +63,7 @@
                     <PrimaryNav @ref="@primaryNav" RenderButtons SelectedDashboardPrimaryNavChanged=DashboardChanged />
                 </BarStart>
             </Bar>
-            <AlertBar @ref="@dashboardAlertsBar" Alert Dashboard SelectedDashboard="selectedDashboard" Dismissable />
+            <AlertBar @ref="@dashboardAlerts" Alert Dashboard SelectedDashboard="selectedDashboard" Dismissable CSS="nci-alert-component" />
             <Divider Class="mt-1 mb-0"/>
         </LayoutHeader>
         <LayoutContent>
@@ -79,19 +79,19 @@
 
 @code {
     private PrimaryNav? primaryNav;
-    private AlertBar? dashboardAlertsBar;
+    private AlertBar? systemAlerts;
+    private AlertBar? systemNotes;
+    private AlertBar? dashboardAlerts;
     private Dashboard? selectedDashboard { get; set; } = null!;
     [Inject] public NavigationManager Navigation { get; set; }
     [Inject] private IUserService userService { get; set; } = null!;
     [Inject] private IAlertService alertService { get; set; } = null!;
     private int iconHeight = 24;
-    private IList<WRAlert> activeAlerts = new List<WRAlert>();
-    private IList<WRAlert> activeNotes = new List<WRAlert>();
+    private int systemAlertsCount;
+    private int systemNotesCount;
 
     protected override async Task OnInitializedAsync()
     {
-        this.activeAlerts = await this.alertService.GetActiveLoginAlertsAsync();
-        this.activeNotes = await this.alertService.GetActiveLoginNotesAsync();
         await base.OnInitializedAsync();
     }
 
@@ -107,6 +107,16 @@
     protected async Task DashboardChanged()
     {
         this.selectedDashboard = this.primaryNav!.SelectedDashboardPrimaryNav;
-        this.dashboardAlertsBar?.UpdateDashboard(this.selectedDashboard);
+        this.dashboardAlerts?.UpdateDashboard(this.selectedDashboard);
+    }
+
+    protected async Task SystemAlertsCountChanged(int count)
+    {
+        this.systemAlertsCount = count;
+    }
+
+    protected async Task SystemNotesCountChanged(int count)
+    {
+        this.systemNotesCount = count;
     }
 }

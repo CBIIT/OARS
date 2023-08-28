@@ -26,8 +26,8 @@ namespace TheradexPortal.Data.Models
 
         public UserRole()
         {
-            CreateDate = DateTime.Now;
-            UpdateDate = DateTime.Now;
+            //CreateDate = DateTime.Now;
+            //UpdateDate = DateTime.Now;
 
             //User = new User();
             //Role = new Role();

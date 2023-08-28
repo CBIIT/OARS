@@ -10,8 +10,8 @@
 
 <AuthorizeView Policy="IsAdmin">
     <Authorized>
-        <Div Class="nci-main-wrapper">
-        <Layout Class="nci-main-layout">
+        <Div Class="nci-main-wrapper" Background="Background.Light">
+        <Layout Class="nci-main-layout" Background="Background.Light">
             <LayoutHeader>
                 <Bar Breakpoint="Breakpoint.Desktop" NavigationBreakpoint="Breakpoint.Desktop" Background="Background.Light" Class="nci-navbar px-4">
                     <BarBrand>
@@ -39,58 +39,60 @@
             </LayoutHeader>
             <Layout Sider>
                 <LayoutSider>
-                    <LayoutSiderContent>
-                        <Bar Mode="BarMode.VerticalInline"
-                                CollapseMode="BarCollapseMode.Small"
-                                Breakpoint="Breakpoint.Desktop"
-                                NavigationBreakpoint="Breakpoint.Tablet"
-                                ThemeContrast="ThemeContrast.Light">
-                            <BarBrand>
-                                <BarItem>
-                                    <BarLink To="/admin">
-                                        <BarIcon IconName="IconName.Dashboard" />
-                                        Admin Home
-                                    </BarLink>
-                                </BarItem>
-                            </BarBrand>
-                            <BarMenu>
-                                <BarStart>
+                    <LayoutSiderContent Background="Background.Light">
+                        <Div Class="nci-secondary-nav" Background="Background.Light">
+                            <Bar Mode="BarMode.VerticalInline"
+                                    CollapseMode="BarCollapseMode.Small"
+                                    Breakpoint="Breakpoint.Desktop"
+                                    NavigationBreakpoint="Breakpoint.Tablet"
+                                    ThemeContrast="ThemeContrast.Light">
+                                <BarBrand>
                                     <BarItem>
-                                        <BarLink To="/admin/alerts">
-                                            <BarIcon IconName="IconName.ExclamationCircle" />
-                                            Alerts/Notes
+                                        <BarLink To="/admin">
+                                            <BarIcon IconName="IconName.Dashboard" />
+                                            Admin Home
                                         </BarLink>
                                     </BarItem>
-                                        @if (!isContentAdmin)
-                                        {
-                                            <BarItem>
-                                                <BarLink To="/admin/users">
-                                                    <BarIcon IconName="IconName.Users" />
-                                                    Users
-                                                </BarLink>
-                                            </BarItem>
-                                            <BarItem>
-                                                <BarLink To="/admin/roles">
-                                                    <BarIcon IconName="IconName.Coffee" />
-                                                    Roles
-                                                </BarLink>
-                                            </BarItem>
-                                            <BarItem>
-                                                <BarLink To="/admin/groups">
-                                                    <BarIcon IconName="IconName.PuzzlePiece" />
-                                                    Groups
-                                                </BarLink>
-                                            </BarItem>
-                                            <BarItem>
-                                                <BarLink To="/admin/dashboards">
-                                            <BarIcon IconName="IconName.ChartPie" />
-                                            Dashboards
-                                        </BarLink>
-                                    </BarItem>
-                                    }
-                                </BarStart>
-                            </BarMenu>
-                        </Bar>
+                                </BarBrand>
+                                <BarMenu>
+                                    <BarStart>
+                                        <BarItem>
+                                            <BarLink To="/admin/alerts">
+                                                <BarIcon IconName="IconName.ExclamationCircle"  />
+                                                Alerts/Notes
+                                            </BarLink>
+                                        </BarItem>
+                                            @if (!isContentAdmin)
+                                            {
+                                                <BarItem>
+                                                    <BarLink To="/admin/users">
+                                                        <BarIcon IconName="IconName.Users" />
+                                                        Users
+                                                    </BarLink>
+                                                </BarItem>
+                                                <BarItem>
+                                                    <BarLink To="/admin/roles">
+                                                        <BarIcon IconName="IconName.Coffee" />
+                                                        Roles
+                                                    </BarLink>
+                                                </BarItem>
+                                                <BarItem>
+                                                    <BarLink To="/admin/groups">
+                                                        <BarIcon IconName="IconName.PuzzlePiece" />
+                                                        Groups
+                                                    </BarLink>
+                                                </BarItem>
+                                                <BarItem>
+                                                    <BarLink To="/admin/dashboards">
+                                                <BarIcon IconName="IconName.ChartPie" />
+                                                Dashboards
+                                            </BarLink>
+                                        </BarItem>
+                                        }
+                                    </BarStart>
+                                </BarMenu>
+                            </Bar>
+                        </Div>
                     </LayoutSiderContent>
                 </LayoutSider>
                 <Layout>
@@ -99,18 +101,21 @@
                     </LayoutContent>
                 </Layout>
             </Layout>
+            <LayoutFooter>
+                <Footer />
+            </LayoutFooter>
         </Layout>
         </Div>
     </Authorized>
     <NotAuthorized>
-        Not an admin 
+        <NotFound />
     </NotAuthorized>
 
 </AuthorizeView>
 
 @code {
-        [Inject] public NavigationManager Navigation { get; set; }
-        [Inject] private IUserService userService { get; set; } = null!;
+    [Inject] public NavigationManager Navigation { get; set; }
+    [Inject] private IUserService userService { get; set; } = null!;
 
     public string CurrentEnvironment { get; set; }
     public bool isContentAdmin { get; set; }

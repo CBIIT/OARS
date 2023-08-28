@@ -31,11 +31,11 @@ namespace TheradexPortal.Data.Services
             else
             {
                 dashboards = (from ur in context.User_Roles
-                                  join rd in context.Role_Dashboards on ur.RoleId equals rd.RoleId
-                                  join d in context.Dashboards on rd.DashboardId equals d.WRDashboardId
-                                  where ur.UserId == userId
-                                  orderby d.DisplayOrder
-                                  select d.WRDashboardId).ToList();
+                              join rd in context.Role_Dashboards on ur.RoleId equals rd.RoleId
+                              join d in context.Dashboards on rd.DashboardId equals d.WRDashboardId
+                              where ur.UserId == userId && (ur.ExpirationDate == null || ur.ExpirationDate.Value.Date >= DateTime.UtcNow.Date)
+                              orderby d.DisplayOrder
+                              select d.WRDashboardId).ToList();
             }
 
             foreach (int dashboard in dashboards)
@@ -56,8 +56,8 @@ namespace TheradexPortal.Data.Services
                 var dashboards = (from ur in context.User_Roles
                                     join rd in context.Role_Dashboards on ur.RoleId equals rd.RoleId
                                     join d in context.Dashboards on rd.DashboardId equals d.WRDashboardId
-                                    where ur.UserId == userId
-                                    select d).OrderBy(d => d.DisplayOrder).ToList();
+                                    where ur.UserId == userId && (ur.ExpirationDate == null || ur.ExpirationDate.Value.Date >= DateTime.UtcNow.Date)
+                                  select d).OrderBy(d => d.DisplayOrder).ToList();
 
                 return dashboards;
             }
@@ -91,7 +91,7 @@ namespace TheradexPortal.Data.Services
                 reports = (from ur in context.User_Roles
                            join rr in context.Role_Reports on ur.RoleId equals rr.RoleId
                            join r in context.Reports on rr.ReportId equals r.WRReportId
-                           where ur.UserId == userId
+                           where ur.UserId == userId && (ur.ExpirationDate == null || ur.ExpirationDate.Value.Date >= DateTime.UtcNow.Date)
                            select r.WRReportId).ToList();
             }
 
@@ -113,7 +113,7 @@ namespace TheradexPortal.Data.Services
                 var reports = (from ur in context.User_Roles
                                   join rr in context.Role_Reports on ur.RoleId equals rr.RoleId
                                   join r in context.Reports on rr.ReportId equals r.WRReportId
-                                  where ur.UserId == userId && r.DashboardId == id
+                                  where ur.UserId == userId && (ur.ExpirationDate == null || ur.ExpirationDate.Value.Date >= DateTime.UtcNow.Date) && r.DashboardId == id
                                   select r).OrderBy(r => r.DisplayOrder).ToList();
 
                 return reports;
