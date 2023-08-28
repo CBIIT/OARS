@@ -72,9 +72,13 @@
     overflow-y: auto;
 }
 
-.nci-alert-dashboard {
+.nci-alert-component {
     margin-top: 0px;
     margin-bottom: 0px;
+}
+
+.nci-alert-icon {
+    padding-right: 5px;
 }
 
 /* PBI Embed */

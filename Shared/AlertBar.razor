@@ -6,7 +6,20 @@
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @inject ProtectedSessionStorage SessionData
 
-@if (activeAlerts.Count > 0)
+@if (this.NoAlertsMessage && this.Alert)
+{
+    <Alert Color="infoColor" Visible="@this.defaultAlertVisible">
+        <AlertDescription TextOverflow="TextOverflow.Wrap">No current alerts.</AlertDescription>
+    </Alert>
+}
+@if (this.NoAlertsMessage && this.Note)
+{
+    <Alert Color="infoColor" Visible="@this.defaultAlertVisible">
+        <AlertDescription TextOverflow="TextOverflow.Wrap">No current notes.</AlertDescription>
+    </Alert>
+}
+
+@if (this.activeAlerts.Count > 0)
 {
     if (this.alertsSessionLoaded)
     {
@@ -31,11 +44,9 @@
         </Alert>
     }
 }
-else if (this.NoAlertsMessage)
+else
 {
-    <Alert Color="infoColor" Visible>
-        <AlertDescription TextOverflow="TextOverflow.Wrap">No current alerts.</AlertDescription>
-    </Alert>
+    this.defaultAlertVisible = true;
 }
 
 @code {
@@ -52,6 +63,7 @@ else if (this.NoAlertsMessage)
 
     private bool alertsHidden;
     private bool notesHidden;
+    private bool defaultAlertVisible;
     private bool alertsSessionLoaded;
     [Inject] private IAlertService alertService { get; set; } = null!;
     private BarItem? alertsItem;
@@ -78,7 +90,7 @@ else if (this.NoAlertsMessage)
         {
             await LoadSessionAlerts();
             this.alertsSessionLoaded = true;
-            await this.updateAlertsCount();
+            await this.updateAlertsCount(this.getActiveAlertsCount());
             StateHasChanged();
         }
     }
@@ -151,6 +163,21 @@ else if (this.NoAlertsMessage)
         return dismissedAlerts.Split('|').Any(x => x == alert.WRAlertId.ToString());
     }
 
+    private int getActiveAlertsCount()
+    {
+        var alertsCount = 0;
+
+        foreach (var activeAlert in this.activeAlerts)
+        {
+            if (!this.alertDismissed(this.dismissedAlerts!, activeAlert))
+            {
+                alertsCount++;
+            }
+        }
+
+        return alertsCount;
+    }
+
     private async Task dismissAlert(WRAlert alert)
     {
         var alertId = alert.WRAlertId.ToString();
@@ -163,10 +190,16 @@ else if (this.NoAlertsMessage)
             }
             this.dismissedAlerts += alertId;
             await this.saveSessionAlerts(this.dismissedAlerts);
-            await this.updateAlertsCount();
-        }
 
-        // if empty after removing, add no notes messages
+            var alertsCount = this.getActiveAlertsCount();
+
+            if (alertsCount.Equals(0))
+            {
+                this.defaultAlertVisible = true;
+            }
+
+            await this.updateAlertsCount(alertsCount);
+        }
     }
 
     private async Task LoadSessionAlerts()
@@ -180,17 +213,9 @@ else if (this.NoAlertsMessage)
         await SessionData.SetAsync("dismissedAlerts", newData);
     }
 
-    private async Task updateAlertsCount()
+    private async Task updateAlertsCount(int alertsCount)
     {
-        var alertsCount = 0;
-
-        foreach (var alert in this.activeAlerts)
-        {
-            if (!this.alertDismissed(this.dismissedAlerts!, alert))
-            {
-                alertsCount++;
-            }
-        }
+        
 
         await this.AlertsCountChanged.InvokeAsync(alertsCount);
     }

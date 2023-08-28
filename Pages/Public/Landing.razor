@@ -35,12 +35,12 @@
                 <Collapse Visible>
                     <CollapseHeader>
                         <AccordionToggle>
-                            <Image Source="img/alert-icon.png" height="@iconHeight" />
+                            <Image Source="img/alert-icon.png" height="@iconHeight" Class="nci-alert-icon" />
                             Alerts
                         </AccordionToggle>
                     </CollapseHeader>
                     <CollapseBody>
-                        <AlertBar Alert LoginScreen NoAlertsMessage />
+                        <AlertBar Alert LoginScreen NoAlertsMessage CSS="nci-alert-component" />
                     </CollapseBody>
                 </Collapse>
             </Accordion>
@@ -49,12 +49,12 @@
                 <Collapse Visible="false">
                     <CollapseHeader>
                         <AccordionToggle>
-                            <Image Source="img/notification-icon.png" height="@iconHeight" />
+                            <Image Source="img/notification-icon.png" height="@iconHeight" Class="nci-alert-icon" />
                             Notes
                         </AccordionToggle>
                     </CollapseHeader>
                     <CollapseBody>
-                        <AlertBar Note LoginScreen NoAlertsMessage  />
+                        <AlertBar Note LoginScreen NoAlertsMessage CSS="nci-alert-component" />
                     </CollapseBody>
                 </Collapse>
             </Accordion>

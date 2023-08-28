@@ -24,32 +24,31 @@
                     </BarStart>
                     <BarEnd>
                         <BarItem>
-                            <BarDropdown RightAligned Visible="@alertsDropdownExpanded">
-                                <BarDropdownToggle Class="nci-bar-dropdown" Clicked="@OnAlertDropdownToggleClicked">
+                            <BarDropdown RightAligned>
+                                <BarDropdownToggle Class="nci-bar-dropdown">
                                     <Badge Color="Color.Danger" Pill Position="Position.Absolute.Top.Is50.Start.Is100.Translate.Middle">@systemAlertsCount</Badge>
-                                    <Image Source="img/alert-icon.png" height="@iconHeight" />
+                                    <Image Source="img/alert-icon.png" height="@iconHeight" Class="nci-alert-icon" />
                                     Alerts
                                 </BarDropdownToggle>
                                 <BarDropdownMenu Class="nci-alert-dropdown">
-                                    <AlertBar @ref="@systemAlerts" Alert System NoAlertsMessage Dismissable AlertsCountChanged=SystemAlertsCountChanged />
+                                    <AlertBar @ref="@systemAlerts" Alert System NoAlertsMessage Dismissable AlertsCountChanged=SystemAlertsCountChanged CSS="nci-alert-component" />
                                 </BarDropdownMenu>
                             </BarDropdown>
                         </BarItem>
                         <BarItem>
                             <BarDropdown RightAligned>
                                 <BarDropdownToggle Class="nci-bar-dropdown">
-                                    <Image Source="img/notification-icon.png" height="@iconHeight" />
+                                    <Badge Color="Color.Info" Pill Position="Position.Absolute.Top.Is50.Start.Is100.Translate.Middle">@systemNotesCount</Badge>
+                                    <Image Source="img/notification-icon.png" height="@iconHeight" Class="nci-alert-icon" />
                                     Notes
                                 </BarDropdownToggle>
                                 <BarDropdownMenu Class="nci-alert-dropdown">
-                                    <AlertBar @ref="@systemNotes" Note System NoAlertsMessage Dismissable AlertsCountChanged=SystemNotesCountChanged />
+                                    <AlertBar @ref="@systemNotes" Note System NoAlertsMessage Dismissable AlertsCountChanged=SystemNotesCountChanged CSS="nci-alert-component" />
                                 </BarDropdownMenu>
                             </BarDropdown>
                         </BarItem>
                         <BarItem>
-                            <BarLink To="#Profile">
-                                <Icon Name="IconName.UserCircle" IconSize="IconSize.Large" />
-                            </BarLink>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                         </BarItem>
                         <BarItem>
                             <Button Flex="Flex.JustifyContent.Center" Block Color="Color.Secondary" Clicked="@OnButtonClicked">
@@ -64,7 +63,7 @@
                     <PrimaryNav @ref="@primaryNav" RenderButtons SelectedDashboardPrimaryNavChanged=DashboardChanged />
                 </BarStart>
             </Bar>
-            <AlertBar @ref="@dashboardAlerts" Alert Dashboard SelectedDashboard="selectedDashboard" Dismissable CSS="nci-alert-dashboard" />
+            <AlertBar @ref="@dashboardAlerts" Alert Dashboard SelectedDashboard="selectedDashboard" Dismissable CSS="nci-alert-component" />
             <Divider Class="mt-1 mb-0"/>
         </LayoutHeader>
         <LayoutContent>
@@ -84,7 +83,6 @@
     private AlertBar? systemNotes;
     private AlertBar? dashboardAlerts;
     private Dashboard? selectedDashboard { get; set; } = null!;
-    private bool alertsDropdownExpanded { get; set; }
     [Inject] public NavigationManager Navigation { get; set; }
     [Inject] private IUserService userService { get; set; } = null!;
     [Inject] private IAlertService alertService { get; set; } = null!;
@@ -97,33 +95,11 @@
         await base.OnInitializedAsync();
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            this.alertsDropdownExpanded = true;
-        }
-    }
-
     Task OnButtonClicked()
     {
         int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
         userService.SaveActivityLog(userId, WRActivityType.Logout);
         Navigation.NavigateTo($"Signout", true);
-
-        return Task.CompletedTask;
-    }
-
-    Task OnAlertDropdownToggleClicked()
-    {
-        if (this.alertsDropdownExpanded)
-        {
-            this.alertsDropdownExpanded = false;
-        }
-        else
-        {
-            this.alertsDropdownExpanded = true;
-        }
 
         return Task.CompletedTask;
     }
