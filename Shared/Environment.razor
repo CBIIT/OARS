@@ -1,0 +1,16 @@
+﻿@inject IConfiguration configuration
+
+<h4 style="color:gray;">@CurrentEnvironment</h4>
+
+@code {
+    public string CurrentEnvironment { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        string currentEnvironment = configuration.GetValue<string>("System:Environment");
+        if (currentEnvironment != "Prod")
+            CurrentEnvironment = currentEnvironment;
+        else
+            CurrentEnvironment = "";        
+    }
+}
