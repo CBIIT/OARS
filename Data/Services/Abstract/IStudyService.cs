@@ -6,7 +6,7 @@ namespace TheradexPortal.Data.Services.Abstract
     {
         public Task<IList<Protocol>> GetAllProtocolsAsync();
         public IList<Protocol> GetProtocolsForUserAsync(int userId, bool isAdmin);
-        public IList<Protocol> GetCurrentStudiesForUser(int userId);
+        public string GetCurrentStudiesForUser(int userId);
         public string GetSelectedStudyIdsForUser(int userId);
         public List<Protocol> GetSelectedStudiesForUser(int userId);
     }

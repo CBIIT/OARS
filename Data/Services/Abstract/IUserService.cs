@@ -11,6 +11,7 @@ namespace TheradexPortal.Data.Services.Abstract
         public bool SaveLastLoginDate(int userId);
         public bool SaveSelectedStudies(int userId, string studies, bool saveRecent);
         public bool SaveCurrentStudy(int userId, string study);
+        public Task<bool> SetStartingStudies(int userId, int count);
         public bool DeactivateUser(int userId);
         public Task<IList<string>> GetProtocolHistoryAsync(int userId, int count);
         public bool SaveActivityLog(int userId, string activityType);

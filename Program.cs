@@ -131,6 +131,8 @@ var onTokenValidated = async (TokenValidatedContext context) =>
 
     bool updateLastLoginDate = userService.SaveLastLoginDate(user.UserId);
     bool saveActivity = userService.SaveActivityLog(user.UserId, WRActivityType.Login, roleList);
+    int recentCount = Convert.ToInt32(builder.Configuration["System:RecentHistoryCount"]);
+    bool setStartingStudies = await userService.SetStartingStudies(user.UserId, recentCount);
     return Task.CompletedTask;
 
 };
