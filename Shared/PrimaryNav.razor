@@ -10,7 +10,7 @@
     <BarLink Match="Match.Prefix" To="/studies">
         @if (RenderButtons)
         {
-            <Button Color="Color.Primary" TextWeight="TextWeight.Bold" Outline Class="text-nowrap">My Studies</Button>
+            <Button Color="Color.Primary" TextWeight="TextWeight.Bold" @onclick="() => updateDashboard()" Outline Class="text-nowrap">My Studies</Button>
         }
         else
         {
@@ -62,6 +62,12 @@
         {
             return $"{WrConstants.DASHBOARD_PAGE_PATH}/{dashboard.WRDashboardId}";
         }
+    }
+
+    private async Task updateDashboard()
+    {
+        var dashboard = new Dashboard() { WRDashboardId = 0 };
+        await this.updateDashboard(dashboard);
     }
 
     private async Task updateDashboard(Dashboard dashboard)
