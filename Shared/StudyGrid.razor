@@ -156,9 +156,10 @@
     protected override async Task OnInitializedAsync()
     {
         alertVisible = false;
-        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsAdmin, "True");
+        //bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsAdmin, "True");
         int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
-        studyList = studyService.GetProtocolsForUserAsync(userId, isAdmin).ToList();
+        User curUser = await userService.GetUserAsync(userId);
+        studyList = studyService.GetProtocolsForUserAsync(userId, curUser.AllStudies).ToList();
 
         List<Protocol> defaultStudies = studyService.GetSelectedStudiesForUser(userId);
         if (defaultStudies.Count == 0)

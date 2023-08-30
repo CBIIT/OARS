@@ -157,121 +157,135 @@
         <StepPanel Name="step3">
             <h4>Study and Group Assignment</h4>
             <Divider />
-            <Div Flex="Flex.JustifyContent.Start" Margin="Margin.Is4.FromBottom" Display="@showStudies" Background="Background.Light">
-                <Div Padding="Padding.Is2" Style="@flexItemStyleProts">
-                    <Field>
-                        <FieldLabel TextWeight="TextWeight.Bold">Available Studies</FieldLabel>
-                        <FieldBody>
-                            <SelectList TItem="Protocol"
-                                MaxVisibleItems = "18"
-                                TValue="string"
-                                Data="@protocolsAvailable"
-                                TextField="@((protocol)=>protocol.StudyId)"
-                                ValueField="@((protocol)=>protocol.StudyId)"
-                                @bind-SelectedValues="@availableSelected"
-                                Multiple />
+            <Div Display="@showStudies">
+                <Div Padding="Padding.Is2">
+                    <Field ColumnSize="ColumnSize.Is4">
+                        <FieldLabel ColumnSize="ColumnSize.Is8" TextWeight="TextWeight.Bold">Study Assignment options</FieldLabel>
+                        <FieldBody ColumnSize="ColumnSize.Is2" Margin="Margin.IsAuto">
+                            <Select TValue="int" SelectedValue="@studySelectionType" SelectedValueChanged="@OnStudySelectionChanged">
+                                <SelectItem Value="0">Please select an option</SelectItem>
+                                <SelectItem Value="1">Access by Study and Group Assignments</SelectItem>
+                                <SelectItem Value="2">All Studies Assigned</SelectItem>
+                            </Select>
                         </FieldBody>
                     </Field>
-                    <Button Color="Color.Primary" Clicked="@MoveToSelectedProtocol">Add to Assigned</Button>
                 </Div>
-                <Div Padding="Padding.Is2" Style="@flexItemStyleProtsGrid">
-                    <Field>
-                        <FieldLabel TextWeight="TextWeight.Bold">Assigned Studies</FieldLabel>
-                        <FieldBody>
-                            <DataGrid TItem="UserProtocol"
-                                      Class="admindataeditgrid"
-                                      Data="@selectedUserProtocolList"
-                                      @bind-SelectedRow="@selectedUserProtocol"
-                                      @bind-SelectedRows="@selectedUserProtocols"
-                                      Editable
-                                      Responsive
-                                      PageSize="2000"
-                                      FixedHeader
-                                      FixedHeaderDataGridHeight="410px"
-                                      FixedHeaderDataGridMaxHeight="410px"
-                                      SelectionMode = "DataGridSelectionMode.Multiple"
-                                      CommandMode="DataGridCommandMode.Commands"
-                                      EditMode="DataGridEditMode.Inline">
-                                <DataGridColumns>
-                                    <DataGridColumn Field="@nameof(UserProtocol.StudyId)" Width="100px" Caption="Study Id" />
-                                    <DataGridColumn Field="@nameof(UserProtocol.ExpirationDate)" Width="150px" Caption="Exp Date" Editable DisplayFormat="{0:dd-MMM-yyyy}">
-                                    </DataGridColumn>
-                                    <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
-                                        <SaveCommandTemplate>
-                                            <Button ElementId="btnSave" Size="Size.ExtraSmall" Type="ButtonType.Submit" PreventDefaultOnSubmit Color="Color.Primary" Clicked="@context.Clicked">@context.LocalizationString</Button>
-                                        </SaveCommandTemplate>
-                                        <CancelCommandTemplate>
-                                            <Button ElementId="btnCancel" Size="Size.ExtraSmall" Color="Color.Secondary" Clicked="@context.Clicked">Cancel</Button>
-                                        </CancelCommandTemplate>
-                                    </DataGridCommandColumn>
-                                </DataGridColumns>
-                                <ButtonRowTemplate>
-                                    <Button Color="Color.Primary" Size="Size.ExtraSmall" Disabled="(selectedUserProtocol is null)" Clicked="context.EditCommand.Clicked">Edit</Button>
-                                </ButtonRowTemplate>
-                            </DataGrid>
-                        </FieldBody>
-                    </Field>
-                    <Button Color="Color.Primary" Clicked="@RemoveFromSelectedProtocol">Remove from Assigned</Button>
-                </Div>
-                <Div Style="@flexItemStyleSpacer"></Div>
-                <Div Padding="Padding.Is2" Style="@flexItemStyleProts">
-                    <Field>
-                        <FieldLabel TextWeight="TextWeight.Bold">Available Groups</FieldLabel>
-                        <FieldBody>
-                            <SelectList TItem="Group"
-                                MaxVisibleItems = "18"
-                                TValue="int"
-                                Data="@groupsAvailable"
-                                TextField="@((group)=>group.GroupName)"
-                                ValueField="@((group)=>group.WRGroupId)"
-                                @bind-SelectedValues="@availableGroupsSelected"
-                                Multiple />
-                        </FieldBody>
-                    </Field>
-                    <Button Color="Color.Primary" Clicked="@MoveToSelectedGroup">Add to Assigned</Button>
-                </Div>
-                <Div Padding="Padding.Is2" Style="@flexItemStyleProtsGrid">
-                    <Field>
-                        <FieldLabel TextWeight="TextWeight.Bold">Assigned Groups</FieldLabel>
-                        <FieldBody>
-                            <DataGrid TItem="UserGroup"
-                                      Class="admindataeditgrid"
-                                      Data="@selectedUserGroupList"
-                                      @bind-SelectedRow="@selectedUserGroup"
-                                      @bind-SelectedRows="@selectedUserGroups"
-                                      Editable
-                                      Responsive
-                                      PageSize="2000"
-                                      FixedHeader
-                                      FixedHeaderDataGridHeight="410px"
-                                      FixedHeaderDataGridMaxHeight="410px"
-                                      SelectionMode = "DataGridSelectionMode.Multiple"
-                                      CommandMode="DataGridCommandMode.Commands"
-                                      EditMode="DataGridEditMode.Inline">
-                                <DataGridColumns>
-                                    <DataGridColumn Width="240px"  Caption="Group Name">
-                        	            <DisplayTemplate>
-                                                <Text>@GetGroupName((context as UserGroup).GroupId)</Text>
-                                        </DisplayTemplate>
-                                    </DataGridColumn> 
-                                    <DataGridColumn Field="@nameof(UserGroup.ExpirationDate)" Width="150" Caption="Exp Date" Editable DisplayFormat="{0:dd-MMM-yyyy}">
-                                    </DataGridColumn>
-                                    <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
-                                        <SaveCommandTemplate>
-                                            <Button ElementId="btnSave" Size="Size.ExtraSmall" Type="ButtonType.Submit" PreventDefaultOnSubmit Color="Color.Primary" Clicked="@context.Clicked">@context.LocalizationString</Button>
-                                        </SaveCommandTemplate>
-                                        <CancelCommandTemplate>
-                                            <Button ElementId="btnCancel" Size="Size.ExtraSmall" Color="Color.Secondary" Clicked="@context.Clicked">Cancel</Button>
-                                        </CancelCommandTemplate>
-                                    </DataGridCommandColumn>
-                                </DataGridColumns>
-                                <ButtonRowTemplate>
-                                    <Button Color="Color.Primary" Size="Size.ExtraSmall" Disabled="(selectedUserGroup is null)" Clicked="context.EditCommand.Clicked">Edit</Button>
-                                </ButtonRowTemplate>
-                            </DataGrid>
-                        </FieldBody>
-                    </Field>
-                    <Button Color="Color.Primary" Clicked="@RemoveFromSelectedGroup">Remove from Assigned</Button>
+                <Div Flex="Flex.JustifyContent.Start" Margin="Margin.Is4.FromBottom" Background="Background.Light" Display="@studyGroupAssignmentDiv">
+                    <Div Padding="Padding.Is2" Style="@flexItemStyleProts">
+                        <Field>
+                            <FieldLabel TextWeight="TextWeight.Bold">Available Studies</FieldLabel>
+                            <FieldBody>
+                                <SelectList TItem="Protocol"
+                                    MaxVisibleItems = "14"
+                                    TValue="string"
+                                    Data="@protocolsAvailable"
+                                    TextField="@((protocol)=>protocol.StudyId)"
+                                    ValueField="@((protocol)=>protocol.StudyId)"
+                                    @bind-SelectedValues="@availableSelected"
+                                    Multiple />
+                            </FieldBody>
+                        </Field>
+                        <Button Color="Color.Primary" Clicked="@MoveToSelectedProtocol">Add to Assigned</Button>
+                    </Div>
+                    <Div Padding="Padding.Is2" Style="@flexItemStyleProtsGrid">
+                        <Field>
+                            <FieldLabel TextWeight="TextWeight.Bold">Assigned Studies</FieldLabel>
+                            <FieldBody>
+                                <DataGrid TItem="UserProtocol"
+                                          Class="admindataeditgrid"
+                                          Data="@selectedUserProtocolList"
+                                          @bind-SelectedRow="@selectedUserProtocol"
+                                          @bind-SelectedRows="@selectedUserProtocols"
+                                          Editable
+                                          Responsive
+                                          PageSize="2000"
+                                          FixedHeader
+                                          FixedHeaderDataGridHeight="324px"
+                                          FixedHeaderDataGridMaxHeight="324px"
+                                          SelectionMode = "DataGridSelectionMode.Multiple"
+                                          CommandMode="DataGridCommandMode.Commands"
+                                          EditMode="DataGridEditMode.Inline">
+                                    <DataGridColumns>
+                                        <DataGridColumn Field="@nameof(UserProtocol.StudyId)" Width="100px" Caption="Study Id" />
+                                        <DataGridColumn Field="@nameof(UserProtocol.ExpirationDate)" Width="150px" Caption="Exp Date" Editable DisplayFormat="{0:dd-MMM-yyyy}">
+                                        </DataGridColumn>
+                                        <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
+                                            <SaveCommandTemplate>
+                                                <Button ElementId="btnSave" Size="Size.ExtraSmall" Type="ButtonType.Submit" PreventDefaultOnSubmit Color="Color.Primary" Clicked="@context.Clicked">@context.LocalizationString</Button>
+                                            </SaveCommandTemplate>
+                                            <CancelCommandTemplate>
+                                                <Button ElementId="btnCancel" Size="Size.ExtraSmall" Color="Color.Secondary" Clicked="@context.Clicked">Cancel</Button>
+                                            </CancelCommandTemplate>
+                                        </DataGridCommandColumn>
+                                    </DataGridColumns>
+                                    <ButtonRowTemplate>
+                                        <Button Color="Color.Primary" Size="Size.ExtraSmall" Disabled="(selectedUserProtocol is null)" Clicked="context.EditCommand.Clicked">Edit</Button>
+                                    </ButtonRowTemplate>
+                                </DataGrid>
+                            </FieldBody>
+                        </Field>
+                        <Button Color="Color.Primary" Clicked="@RemoveFromSelectedProtocol">Remove from Assigned</Button>
+                    </Div>
+                    <Div Style="@flexItemStyleSpacer"></Div>
+                    <Div Padding="Padding.Is2" Style="@flexItemStyleProts">
+                        <Field>
+                            <FieldLabel TextWeight="TextWeight.Bold">Available Groups</FieldLabel>
+                            <FieldBody>
+                                <SelectList TItem="Group"
+                                    MaxVisibleItems = "14"
+                                    TValue="int"
+                                    Data="@groupsAvailable"
+                                    TextField="@((group)=>group.GroupName)"
+                                    ValueField="@((group)=>group.WRGroupId)"
+                                    @bind-SelectedValues="@availableGroupsSelected"
+                                    Multiple />
+                            </FieldBody>
+                        </Field>
+                        <Button Color="Color.Primary" Clicked="@MoveToSelectedGroup">Add to Assigned</Button>
+                    </Div>
+                    <Div Padding="Padding.Is2" Style="@flexItemStyleProtsGrid">
+                        <Field>
+                            <FieldLabel TextWeight="TextWeight.Bold">Assigned Groups</FieldLabel>
+                            <FieldBody>
+                                <DataGrid TItem="UserGroup"
+                                          Class="admindataeditgrid"
+                                          Data="@selectedUserGroupList"
+                                          @bind-SelectedRow="@selectedUserGroup"
+                                          @bind-SelectedRows="@selectedUserGroups"
+                                          Editable
+                                          Responsive
+                                          PageSize="2000"
+                                          FixedHeader
+                                          FixedHeaderDataGridHeight="320px"
+                                          FixedHeaderDataGridMaxHeight="320px"
+                                          SelectionMode = "DataGridSelectionMode.Multiple"
+                                          CommandMode="DataGridCommandMode.Commands"
+                                          EditMode="DataGridEditMode.Inline">
+                                    <DataGridColumns>
+                                        <DataGridColumn Width="240px"  Caption="Group Name">
+                        	                <DisplayTemplate>
+                                                    <Text>@GetGroupName((context as UserGroup).GroupId)</Text>
+                                            </DisplayTemplate>
+                                        </DataGridColumn> 
+                                        <DataGridColumn Field="@nameof(UserGroup.ExpirationDate)" Width="150" Caption="Exp Date" Editable DisplayFormat="{0:dd-MMM-yyyy}">
+                                        </DataGridColumn>
+                                        <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
+                                            <SaveCommandTemplate>
+                                                <Button ElementId="btnSave" Size="Size.ExtraSmall" Type="ButtonType.Submit" PreventDefaultOnSubmit Color="Color.Primary" Clicked="@context.Clicked">@context.LocalizationString</Button>
+                                            </SaveCommandTemplate>
+                                            <CancelCommandTemplate>
+                                                <Button ElementId="btnCancel" Size="Size.ExtraSmall" Color="Color.Secondary" Clicked="@context.Clicked">Cancel</Button>
+                                            </CancelCommandTemplate>
+                                        </DataGridCommandColumn>
+                                    </DataGridColumns>
+                                    <ButtonRowTemplate>
+                                        <Button Color="Color.Primary" Size="Size.ExtraSmall" Disabled="(selectedUserGroup is null)" Clicked="context.EditCommand.Clicked">Edit</Button>
+                                    </ButtonRowTemplate>
+                                </DataGrid>
+                            </FieldBody>
+                        </Field>
+                        <Button Color="Color.Primary" Clicked="@RemoveFromSelectedGroup">Remove from Assigned</Button>
+                    </Div>
                 </Div>
             </Div>
             <Div Padding="Padding.Is2" Background="Background.Light" Display="@showIsAdmin">
@@ -341,8 +355,10 @@
     // Step 3 vars (Protocol & Group Assignment)
     IFluentDisplay showStudies = Display.None;
     IFluentDisplay showIsAdmin = Display.None;
+    IFluentDisplay studyGroupAssignmentDiv = Display.None;
 
     //  Protocol vars
+    int studySelectionType;
     List<Group> allGroups;
     IList<Protocol> protocolsAvailable;
     IReadOnlyList<string> availableSelected { get; set; }
@@ -419,8 +435,6 @@
         // Protocol & Group div
         if  (stepsRef.SelectedStep == "step3")
         {
-            //Role selectedRole = allRoles.FirstOrDefault(r => r.RoleId == primaryRoleId);
-            //if (selectedRole != null && selectedRole.AdminType != WRAdminType.None)
             if (isAdmin)
             {
                 showStudies = Display.None;
@@ -474,6 +488,13 @@
         }
 
         // Step 3
+        if (curPrimRole.FirstOrDefault().Role.AdminType == WRAdminType.None && curUser.AllStudies)
+            studySelectionType = 2;
+        else
+            studySelectionType = 1;
+
+         await OnStudySelectionChanged(studySelectionType);
+
         // Add to assigned studies
         selectedUserProtocolList = curUser.UserProtocols.ToList();
         // Remove assigned from study list
@@ -548,6 +569,17 @@
             protocolsAvailable = protocolsAvailable.OrderBy(pa => pa.StudyId).ToList();
         }
         selectedUserProtocols = null;
+    }
+
+    private Task OnStudySelectionChanged(int value)
+    {
+        studySelectionType = value;
+        if (studySelectionType == 1)
+            studyGroupAssignmentDiv = Display.Block;
+        else
+            studyGroupAssignmentDiv = Display.None;
+
+        return Task.CompletedTask;
     }
 
     private string GetGroupName(int groupId)
@@ -661,6 +693,7 @@
         saveUser.CtepUserId = ctepUserId;
         saveUser.IsLockedOut = false;
         saveUser.CreateDate = createDateTime;
+        saveUser.AllStudies = isAdmin;
 
         //Step 2 - Roles
         //  Save Primary role
@@ -682,23 +715,29 @@
             }
 
             //Step 3 - Protocols & Groups
-            foreach (UserProtocol userProt in selectedUserProtocolList)
+            if (studySelectionType == 1)
             {
-                UserProtocol newUP = new UserProtocol();
-                newUP.StudyId = userProt.StudyId;
-                newUP.ExpirationDate = userProt.ExpirationDate;
-                newUP.CreateDate = createDateTime;
-                saveUser.UserProtocols.Add(newUP);
-            }
+                // Use study and protocols for assignments
+                foreach (UserProtocol userProt in selectedUserProtocolList)
+                {
+                    UserProtocol newUP = new UserProtocol();
+                    newUP.StudyId = userProt.StudyId;
+                    newUP.ExpirationDate = userProt.ExpirationDate;
+                    newUP.CreateDate = createDateTime;
+                    saveUser.UserProtocols.Add(newUP);
+                }
 
-            foreach (UserGroup userGroup in selectedUserGroupList)
-            {
-                UserGroup newUG = new UserGroup();
-                newUG.GroupId = userGroup.GroupId;
-                newUG.ExpirationDate = userGroup.ExpirationDate;
-                newUG.CreateDate = createDateTime;
-                saveUser.UserGroups.Add(newUG);
+                foreach (UserGroup userGroup in selectedUserGroupList)
+                {
+                    UserGroup newUG = new UserGroup();
+                    newUG.GroupId = userGroup.GroupId;
+                    newUG.ExpirationDate = userGroup.ExpirationDate;
+                    newUG.CreateDate = createDateTime;
+                    saveUser.UserGroups.Add(newUG);
+                }
             }
+            else if (studySelectionType == 2)
+                saveUser.AllStudies = true;
         }
 
         saved = userService.SaveUser(saveUser);

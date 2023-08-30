@@ -15,12 +15,12 @@ namespace TheradexPortal.Data.Services
             return await context.Protocols.ToListAsync();
         }
 
-        public IList<Protocol> GetProtocolsForUserAsync(int userId, bool isAdmin)
+        public IList<Protocol> GetProtocolsForUserAsync(int userId, bool allStudies)
         {
             List<Protocol> protocols = new List<Protocol>();
 
             // Use tables WRUSER_PROTOCOL, WR_USER_GROUP and WR_GROUPPROTOCOL to get list of studies for the user
-            if (!isAdmin)
+            if (!allStudies)
             { 
             protocols = (from up in context.User_Protocols
                              join p in context.Protocols on up.StudyId equals p.StudyId
