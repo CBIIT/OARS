@@ -15,12 +15,12 @@ namespace TheradexPortal.Data.Services
             return await context.Protocols.ToListAsync();
         }
 
-        public IList<Protocol> GetProtocolsForUserAsync(int userId, bool isAdmin)
+        public IList<Protocol> GetProtocolsForUserAsync(int userId, bool allStudies)
         {
             List<Protocol> protocols = new List<Protocol>();
 
             // Use tables WRUSER_PROTOCOL, WR_USER_GROUP and WR_GROUPPROTOCOL to get list of studies for the user
-            if (!isAdmin)
+            if (!allStudies)
             { 
             protocols = (from up in context.User_Protocols
                              join p in context.Protocols on up.StudyId equals p.StudyId
@@ -40,24 +40,14 @@ namespace TheradexPortal.Data.Services
             return protocols;
         }
 
-        public IList<Protocol> GetCurrentStudiesForUser(int userId)
+        public string GetCurrentStudiesForUser(int userId)
         {
 
             var protocolList = (from u in context.Users
                                 where u.UserId == userId
                                 select u.CurrentStudy).SingleOrDefault();
 
-            if (protocolList != null)
-            {
-                string[] protocolArray = protocolList.Split(',');
-                var protocols = (from p in context.Protocols
-                                 where protocolArray.Contains(p.StudyId)
-                                 select p).ToList();
-
-                return protocols;
-            }
-            else
-                return new List<Protocol>();
+            return protocolList;
         }
 
         public string GetSelectedStudyIdsForUser(int userId)

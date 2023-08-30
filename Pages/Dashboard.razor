@@ -133,18 +133,18 @@ else
         }
 
         // Check if at least one study has been selected by the user
-        IList<Protocol> currentStudies = studyService.GetCurrentStudiesForUser(userId);
-        if (currentStudies.Count == 0)
-            navigation.NavigateTo("Studies");
-        else
-        {
+        string currentStudies = studyService.GetCurrentStudiesForUser(userId);
+        //if (currentStudies == null || currentStudies.Length == 0)
+        //    navigation.NavigateTo("Studies");
+        //else
+        //{
             // First navigation to Dashboard creates a duplicate record.
             if (report.WRReportId != previousReport)
             {
                 userService.SaveActivityLog(userId, WRActivityType.Navigation, dashboard.Name, report.Name);
                 previousReport = report.WRReportId;
             }
-        }
+        //}
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

@@ -21,7 +21,7 @@
                     <BarMenu>
                         <BarEnd>
                             <BarItem Width="Width.Max100" Class="pe-4">
-                                <Heading Size="HeadingSize.Is3" TextColor="TextColor.Secondary">@CurrentEnvironment</Heading>
+                                <EnvironmentLbl/>
                             </BarItem>
                             <BarItem>
                                 <BarLink To="studies">
@@ -117,18 +117,11 @@
     [Inject] public NavigationManager Navigation { get; set; }
     [Inject] private IUserService userService { get; set; } = null!;
 
-    public string CurrentEnvironment { get; set; }
     public bool isContentAdmin { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        string currentEnvironment = configuration.GetValue<string>("System:Environment");
-        if (currentEnvironment != "Prod")
-            CurrentEnvironment = currentEnvironment;
-        else
-            CurrentEnvironment = "";
-
-        isContentAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsContentAdmin, "True");
+       
     }
     
     Task OnButtonClicked()

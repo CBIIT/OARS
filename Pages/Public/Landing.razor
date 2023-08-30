@@ -29,30 +29,28 @@
 </Div>
 <div class="loginVideoDiv">
     <video id="loginVideo" src="/video/Oncology CRO Services.mp4" autoplay loop muted defaultmuted playsinline></video>
+    <Div Padding="Padding.Is2" Class="nci-centered-div">
+        <Card Height="Height.Auto" Class="nci-login-card">
+            <CardBody>
+                <CardTitle Size="5">
+                    Sign in
+                </CardTitle>
+            </CardBody>
+            <CardBody>
+                <Div Class="my-2" Flex="Flex.JustifyContent.Center">
+                    <Button Flex="Flex.JustifyContent.Center" Block Color="Color.Primary" TextColor="TextColor.White" Clicked="@OnButtonClicked">Theradex Sign In</Button>
+                </Div>
+                <Div Class="my-2" Flex="Flex.JustifyContent.Center">
+                    <Button Flex="Flex.JustifyContent.Center" Block Color="Color.Primary" TextColor="TextColor.White" Clicked="@OnSAMLButtonClicked">CTEP/NIH Sign In</Button>
+                </Div>
+                <Div Class="my-2" TextAlignment="TextAlignment.Center" Flex="Flex.JustifyContent.Center">
+                    <EnvironmentLbl />
+                </Div>
+            </CardBody>
+        </Card>
+    </Div>
 </div>
 <Div Flex="Flex.AlignItems.Stretch" Style="@border" >
-    <Column>
-        <Div Padding="Padding.Is2">
-            <Card Height="Height.Auto">
-                <CardBody>
-                    <CardTitle Size="5">
-                        Sign in
-                    </CardTitle>
-                </CardBody>
-                <CardBody>
-                    <Div Class="my-2" Flex="Flex.JustifyContent.Center">
-                        <Button Flex="Flex.JustifyContent.Center" Block Color="Color.Primary" TextColor="TextColor.White" Clicked="@OnButtonClicked">Theradex Sign In</Button>
-                    </Div>
-                    <Div Class="my-2" Flex="Flex.JustifyContent.Center">
-                        <Button Flex="Flex.JustifyContent.Center" Block Color="Color.Primary" TextColor="TextColor.White" Clicked="@OnSAMLButtonClicked">CTEP/NIH Sign In</Button>
-                    </Div>
-                    <Div Class="my-2" TextAlignment="TextAlignment.Center" Flex="Flex.JustifyContent.Center">
-                        <h4 style="color:gray;">@CurrentEnvironment</h4>
-                    </Div>
-                </CardBody>
-            </Card>
-        </Div>
-    </Column>
     <Column>
         <Div Padding="Padding.Is2" Style="@border">
             <Accordion Class="nci-alert-accordion">

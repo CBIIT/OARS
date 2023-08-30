@@ -64,16 +64,24 @@
         int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
         var currentStudy = "";
 
-        IList<Protocol> protocols = studyService.GetCurrentStudiesForUser(userId);
+        // Send in list of protocols - this is the list that will populate the STUDY_ID filter.
+        string filteredStudies = studyService.GetSelectedStudyIdsForUser(userId); 
 
-        // For now, limit to one study filter at a time.
-        if (protocols.Count == 0)
-            currentStudy = null;
-        else
-            currentStudy = protocols[0].StudyId;
+        // This is the list that will start as checked in the STUDY_ID filter.
+        string protocols = studyService.GetCurrentStudiesForUser(userId);
+        //if (protocols == null || protocols.Length == 0)
+        //    protocols = filteredStudies;
 
-        string filteredStudies = studyService.GetSelectedStudyIdsForUser(userId);
+        string filterURLString = "";
+        if (protocols != null && protocols.Length > 0)
+        {
+            string[] studies = protocols.Split(',');
+            foreach (string study in studies)
+                filterURLString = filterURLString + "'" + study + "',";
 
+            filterURLString = "&filter=PROTOCOL/STUDY_ID in (" + filterURLString.TrimEnd(',') + ")";
+
+        }
 
         if (string.IsNullOrEmpty(userEmail))
             throw new ArgumentNullException("Email address not found");
@@ -103,6 +111,8 @@
             slicerGuid = studySlicer.PowerBIVisualId;
         }
 
+        //embedUrl += "&filter=PROTOCOL/STUDY_ID in ('10507','10505')";
+        embedUrl += filterURLString;
         reportRef = await pbiEmbedModule.InvokeAsync<IJSObjectReference>(
             "embedFullReport",
             pbiElement,
@@ -120,11 +130,14 @@
     {
         int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
         
-        IList<Protocol> curStudies = studyService.GetCurrentStudiesForUser(userId);
+        //IList<Protocol> curStudies = studyService.GetCurrentStudiesForUser(userId);
+        string curStudies = studyService.GetCurrentStudiesForUser(userId);
 
         bool saved = userService.SaveCurrentStudy(userId, value);
 
-        if (curStudies[0].StudyId != value)
+        //if (curStudies != value)
+        //if ((curStudies == null && value != "") && curStudies != value)
+        if (curStudies != value && !(curStudies == null && value == ""))
             saved = userService.SaveActivityLog(userId, WRActivityType.Study, "Select Study", value);
     }
 

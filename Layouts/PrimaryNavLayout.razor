@@ -24,35 +24,50 @@
                     </BarStart>
                     <BarEnd>
                         <BarItem>
-                            <BarDropdown RightAligned>
-                                <BarDropdownToggle Class="nci-bar-dropdown">
-                                    <Badge Color="Color.Danger" Pill Position="Position.Absolute.Top.Is50.Start.Is100.Translate.Middle">@systemAlertsCount</Badge>
-                                    <Image Source="img/alert-icon.png" height="@iconHeight" Class="nci-alert-icon" />
-                                    Alerts
-                                </BarDropdownToggle>
-                                <BarDropdownMenu Class="nci-alert-dropdown">
-                                    <AlertBar @ref="@systemAlerts" Alert System NoAlertsMessage Dismissable AlertsCountChanged=SystemAlertsCountChanged CSS="nci-alert-component" />
-                                </BarDropdownMenu>
-                            </BarDropdown>
+                            <Tooltip Text="Alerts">
+                                <BarDropdown RightAligned >
+                                    <BarDropdownToggle Class="nci-bar-dropdown">
+                                        <Badge Color="Color.Danger" Pill Position="Position.Absolute.Top.Is50.Start.Is100.Translate.Middle">@systemAlertsCount</Badge>
+                                        <Image Source="img/alert-icon.png" height="@iconHeight" Class="nci-alert-icon" />
+                                    </BarDropdownToggle>
+                                    <BarDropdownMenu Class="nci-alert-dropdown">
+                                        <AlertBar @ref="@systemAlerts" Alert System NoAlertsMessage Dismissable AlertsCountChanged=SystemAlertsCountChanged CSS="nci-alert-component" />
+                                    </BarDropdownMenu>
+                                </BarDropdown>
+                            </Tooltip>
                         </BarItem>
                         <BarItem>
-                            <BarDropdown RightAligned>
-                                <BarDropdownToggle Class="nci-bar-dropdown">
-                                    <Badge Color="Color.Info" Pill Position="Position.Absolute.Top.Is50.Start.Is100.Translate.Middle">@systemNotesCount</Badge>
-                                    <Image Source="img/notification-icon.png" height="@iconHeight" Class="nci-alert-icon" />
-                                    Notes
-                                </BarDropdownToggle>
-                                <BarDropdownMenu Class="nci-alert-dropdown">
-                                    <AlertBar @ref="@systemNotes" Note System NoAlertsMessage Dismissable AlertsCountChanged=SystemNotesCountChanged CSS="nci-alert-component" />
-                                </BarDropdownMenu>
-                            </BarDropdown>
+                            <Tooltip Text="Notes">
+                                <BarDropdown RightAligned>
+                                    <BarDropdownToggle Class="nci-bar-dropdown">
+                                        <Badge Color="Color.Info" Pill Position="Position.Absolute.Top.Is50.Start.Is100.Translate.Middle">@systemNotesCount</Badge>
+                                        <Image Source="img/notification-icon.png" height="@iconHeight" Class="nci-alert-icon" />
+                                    </BarDropdownToggle>
+                                    <BarDropdownMenu Class="nci-alert-dropdown">
+                                        <AlertBar @ref="@systemNotes" Note System NoAlertsMessage Dismissable AlertsCountChanged=SystemNotesCountChanged CSS="nci-alert-component" />
+                                    </BarDropdownMenu>
+                                </BarDropdown>
+                            </Tooltip>
                         </BarItem>
                         <BarItem>
                             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                         </BarItem>
                         <BarItem>
-                            <Button Flex="Flex.JustifyContent.Center" Block Color="Color.Secondary" Clicked="@OnButtonClicked">
-                                <Image Source="img/logout-icon.png" height="@iconHeight" />
+                            <EnvironmentLbl/>
+                        </BarItem>
+                        <BarItem>
+                            <Button Flex="Flex.JustifyContent.Center" Type="ButtonType.Link" To="#">
+                                <Image Source="img/contact.png" height="@iconHeight" />
+                            </Button>
+                        </BarItem>
+                        <BarItem>
+                            <Button Flex="Flex.JustifyContent.Center" Display="@adminDisplay" Type="ButtonType.Link" To="admin">
+                                <Image Source="img/gear.jpg" height="@iconHeight" />
+                            </Button>
+                        </BarItem>
+                        <BarItem>
+                            <Button Flex="Flex.JustifyContent.Center" Block Clicked="@OnButtonClicked">
+                                <Image Source="img/logout.png" height="@iconHeight" />
                             </Button>
                         </BarItem>
                     </BarEnd>
@@ -89,9 +104,18 @@
     private int iconHeight = 24;
     private int systemAlertsCount;
     private int systemNotesCount;
+    IFluentDisplay adminDisplay = Display.None;
+
 
     protected override async Task OnInitializedAsync()
     {
+        // Display or Hide Admin button
+        bool isAdmin = Convert.ToBoolean(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.IsAdmin).Value);
+        if (isAdmin)
+            adminDisplay = Display.Block;
+        else
+            adminDisplay = Display.None;
+
         await base.OnInitializedAsync();
     }
 

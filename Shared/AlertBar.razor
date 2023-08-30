@@ -135,13 +135,13 @@ else
     {
         if (Dashboard)
         {
-            if (Alert && this.SelectedDashboard != null)
+            if (Alert && this.SelectedDashboard != null && this.SelectedDashboard.WRDashboardId != 0)
             {
                 this.activeAlerts = await alertService.GetActiveDashboardAlertsByIdAsync(this.SelectedDashboard.WRDashboardId);
             }
-            if (Note && this.SelectedDashboard != null)
+            else 
             {
-                this.activeAlerts = await alertService.GetActiveDashboardNotesByIdAsync(this.SelectedDashboard.WRDashboardId);
+                this.activeAlerts = new List<WRAlert>();
             }
         }
     }

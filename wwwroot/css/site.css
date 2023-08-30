@@ -58,12 +58,27 @@
     height:20px;
 }
 
+.nci-centered-div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nci-login-card {
+    width: 35%;
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+}
+
+/* Alert Display */
 .nci-bar-dropdown {
     margin-right: -7px;
     margin-left: 20px;
 }
 
-/* Alert Display */
 .nci-alert-dropdown {
     width: 600px;
     height: auto;

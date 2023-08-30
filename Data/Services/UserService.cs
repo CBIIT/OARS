@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Services.Abstract;
+using TheradexPortal.Data.Static;
 
 namespace TheradexPortal.Data.Services
 {
@@ -50,6 +51,7 @@ namespace TheradexPortal.Data.Services
                         dbUser.IsCtepUser = user.IsCtepUser;
                         dbUser.CtepUserId = user.CtepUserId;
                         dbUser.IsLockedOut = user.IsLockedOut;
+                        dbUser.AllStudies = user.AllStudies;
                         dbUser.UpdateDate = curDateTime;
 
                         // User Roles
@@ -230,6 +232,26 @@ namespace TheradexPortal.Data.Services
             {
                 return false;
             }
+        }
+
+        public async Task<bool> SetStartingStudies(int userId, int count)
+        {
+            string studyList = "";
+            bool saved = true;
+            IList<string> studies = await GetProtocolHistoryAsync(userId, count);
+            // Reverse it
+
+            if (studies != null && studies.Count != 0)
+            {
+                for (int i = studies.Count-1; i >= 0; i--)
+                    studyList += studies[i] + ",";
+                studyList = studyList.Trim(',');
+                saved = SaveSelectedStudies(userId, studyList, true);
+            }
+
+            saved = SaveActivityLog(userId, WRActivityType.Study, "Filter Studies-Login", studyList);
+
+            return saved;
         }
         public bool DeactivateUser(int userId)
         {
