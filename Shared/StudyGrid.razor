@@ -28,10 +28,10 @@
                     Editable
                     Striped
                     ShowPager
+                    PageSize="25"
                     FixedHeader
                     FixedHeaderDataGridHeight="calc(100vh - 240px)"
                     FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
-                    PageSize="25"
                     CommandMode="DataGridCommandMode.ButtonRow">
                 <DataGridColumns>
                     <DataGridMultiSelectColumn Width="30px">
@@ -63,7 +63,7 @@
                     <DataGridColumn Width="120px" Field="@nameof(Protocol.StudyId)" Sortable="false" Filterable="false">
                         <DisplayTemplate>
                             <div @onclick:stopPropagation="true" @onclick:preventDefault="true">
-                                <Button Color="Color.Info" Clicked="@(()=>OnOverviewClicked(context as Protocol))">
+                                <Button Color="Color.Info" Size="Size.Small" Clicked="@(()=>OnOverviewClicked(context as Protocol))">
                                     Overview
                                 </Button>
                             </div>

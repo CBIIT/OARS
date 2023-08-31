@@ -69,6 +69,8 @@
     margin: 0;
     position: absolute;
     top: 50%;
+    border: 3px solid red;
+    background-color:aliceblue;
     -ms-transform: translateY(-50%);
     transform: translateY(-50%);
 }
@@ -147,7 +149,7 @@
     font-size: small;
     vertical-align: middle;
     margin-left: 1px;
-    padding: 1px;
+    padding: 0px;
 }
 
 .table-row-selectable {

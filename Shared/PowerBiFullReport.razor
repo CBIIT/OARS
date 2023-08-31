@@ -65,22 +65,17 @@
         var currentStudy = "";
 
         // Send in list of protocols - this is the list that will populate the STUDY_ID filter.
-        string filteredStudies = studyService.GetSelectedStudyIdsForUser(userId); 
+        string filteredStudies = studyService.GetSelectedStudyIdsForUser(userId);
 
         // This is the list that will start as checked in the STUDY_ID filter.
         string protocols = studyService.GetCurrentStudiesForUser(userId);
-        //if (protocols == null || protocols.Length == 0)
-        //    protocols = filteredStudies;
 
-        string filterURLString = "";
+        //string filterURLString = "";
         if (protocols != null && protocols.Length > 0)
         {
+            // Should only have one current study - but if there are more, only select the first.
             string[] studies = protocols.Split(',');
-            foreach (string study in studies)
-                filterURLString = filterURLString + "'" + study + "',";
-
-            filterURLString = "&filter=PROTOCOL/STUDY_ID in (" + filterURLString.TrimEnd(',') + ")";
-
+            currentStudy = studies[0];
         }
 
         if (string.IsNullOrEmpty(userEmail))
@@ -97,22 +92,24 @@
         }
 
         var embedUrl = embedParams.EmbedReport[0].EmbedUrl + "&pageName=" + Report.PowerBIPageName;
-        var visuals = await dashboardService.GetAllVisualsByReportIdAsync(Report.WRReportId);
-        Visual studySlicer = visuals.Where(v => v.VisualDescription == "STUDYID" && v.VisualType == "slicer").SingleOrDefault();
-        var slicerGuid = "";
+        
+        
+        //var visuals = await dashboardService.GetAllVisualsByReportIdAsync(Report.WRReportId);
+        //Visual studySlicer = visuals.Where(v => v.VisualDescription == "STUDYID" && v.VisualType == "slicer").SingleOrDefault();
+        //var slicerGuid = "";
 
-        if (studySlicer == null)
-        {
-            currentStudy = "";
-            slicerGuid = "";
-        }
-        else
-        {
-            slicerGuid = studySlicer.PowerBIVisualId;
-        }
+        //if (studySlicer == null)
+        //{
+        //    currentStudy = "";
+        //    slicerGuid = "";
+        //}
+        //else
+        //{
+        //    slicerGuid = studySlicer.PowerBIVisualId;
+        //}
 
-        //embedUrl += "&filter=PROTOCOL/STUDY_ID in ('10507','10505')";
-        embedUrl += filterURLString;
+        //embedUrl += "&filter=PROTOCOL/STUDY_ID in ('10204')";
+        //embedUrl += filterURLString;
         reportRef = await pbiEmbedModule.InvokeAsync<IJSObjectReference>(
             "embedFullReport",
             pbiElement,
@@ -121,8 +118,7 @@
             embedUrl,
             embedParams.EmbedReport[0].ReportId.ToString(),
             (filteredStudies == null || filteredStudies == "") ? "" : filteredStudies.Split(','),
-            currentStudy,
-            slicerGuid
+            currentStudy
         );
     }
 

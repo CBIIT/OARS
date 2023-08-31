@@ -24,6 +24,9 @@
                     </BarStart>
                     <BarEnd>
                         <BarItem>
+                            <EnvironmentLbl/>
+                        </BarItem>
+                        <BarItem>
                             <Tooltip Text="Alerts">
                                 <BarDropdown RightAligned >
                                     <BarDropdownToggle Class="nci-bar-dropdown">
@@ -53,22 +56,25 @@
                             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                         </BarItem>
                         <BarItem>
-                            <EnvironmentLbl/>
+                            <Tooltip Text="Contact Us">
+                                <Button Flex="Flex.JustifyContent.Center" Type="ButtonType.Link" To="#">
+                                    <Image Source="img/contact.png" height="@iconHeight" />
+                                </Button>
+                            </Tooltip>
                         </BarItem>
                         <BarItem>
-                            <Button Flex="Flex.JustifyContent.Center" Type="ButtonType.Link" To="#">
-                                <Image Source="img/contact.png" height="@iconHeight" />
-                            </Button>
+                            <Tooltip Text="Administration">
+                                <Button Flex="Flex.JustifyContent.Center" Display="@adminDisplay" Type="ButtonType.Link" To="admin">
+                                    <Image Source="img/gear.jpg" height="@iconHeight" />
+                                </Button>
+                            </Tooltip>
                         </BarItem>
                         <BarItem>
-                            <Button Flex="Flex.JustifyContent.Center" Display="@adminDisplay" Type="ButtonType.Link" To="admin">
-                                <Image Source="img/gear.jpg" height="@iconHeight" />
-                            </Button>
-                        </BarItem>
-                        <BarItem>
-                            <Button Flex="Flex.JustifyContent.Center" Block Clicked="@OnButtonClicked">
-                                <Image Source="img/logout.png" height="@iconHeight" />
-                            </Button>
+                            <Tooltip Text="Logout">
+                                <Button Flex="Flex.JustifyContent.Center" Block Clicked="@OnButtonClicked">
+                                    <Image Source="img/logout.png" height="@iconHeight" />
+                                </Button>
+                            </Tooltip>
                         </BarItem>
                     </BarEnd>
                 </BarMenu>

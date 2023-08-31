@@ -24,14 +24,18 @@
                                 <EnvironmentLbl/>
                             </BarItem>
                             <BarItem>
-                                <BarLink To="studies">
-                                    <img src="img/home.jpg" alt="Home" style="width:25px;height:25px;" />
-                                </BarLink>
+                                <Tooltip Text="Home">
+                                    <BarLink To="studies">
+                                        <img src="img/home.jpg" alt="Home" style="width:25px;height:25px;" />
+                                    </BarLink>
+                                </Tooltip>
                             </BarItem>
                             <BarItem>
-                                <BarLink onclick="@OnButtonClicked">
-                                    <img src="img/logout.png" alt="Logout" style="width:25px;height:25px;" />
-                                </BarLink>
+                                <Tooltip Text="Logout">
+                                    <BarLink onclick="@OnButtonClicked">
+                                        <img src="img/logout.png" alt="Logout" style="width:25px;height:25px;" />
+                                    </BarLink>
+                                </Tooltip>
                             </BarItem>
                         </BarEnd>
                     </BarMenu>
