@@ -76,16 +76,16 @@
         </DataGrid>
 
 <Modal @ref="overviewRef">
-    <ModalContent Scrollable Size="ModalSize.ExtraLarge">
+    <ModalContent Size="ModalSize.ExtraLarge">
         <ModalHeader>
             <ModalTitle>Overview</ModalTitle>
             <CloseButton TextColor="TextColor.White" Background="Background.White" />
         </ModalHeader>
-        <ModalBody>
+        <ModalBody Class="overview-Modal-Body">
             <Table Hoverable>
                 <TableBody>
                     <TableRow>
-                        <TableRowHeader>Study ID</TableRowHeader>
+                        <TableRowHeader Background="Background.White" Class="overview-Row-Header">Study ID</TableRowHeader>
                         @if (selectedStudies == null || selectedStudies.Count == 0)
                         {
                             <TableRowCell>@(overviewProtocol.StudyId)</TableRowCell>
@@ -99,7 +99,7 @@
                         }
                     </TableRow>
                     <TableRow>
-                        <TableRowHeader>Title</TableRowHeader>
+                        <TableRowHeader Background="Background.White" Class="overview-Row-Header">Title</TableRowHeader>
                         @if (selectedStudies == null || selectedStudies.Count == 0)
                         {
                             <TableRowCell>@(overviewProtocol.ProtocolTitle)</TableRowCell>
@@ -113,7 +113,7 @@
                         }
                     </TableRow>
                     <TableRow>
-                        <TableRowHeader>Primary Investigator</TableRowHeader>
+                        <TableRowHeader Background="Background.White" Class="overview-Row-Header">Primary Investigator</TableRowHeader>
                         @if (selectedStudies == null || selectedStudies.Count == 0)
                         {
                             <TableRowCell>@(overviewProtocol.Investigator)</TableRowCell>
@@ -127,7 +127,7 @@
                         }
                     </TableRow>
                     <TableRow>
-                        <TableRowHeader>Monitoring Method</TableRowHeader>
+                        <TableRowHeader Background="Background.White" Class="overview-Row-Header">Monitoring Method</TableRowHeader>
                         @if (selectedStudies == null || selectedStudies.Count == 0)
                         {
                             <TableRowCell>@(overviewProtocol.MonitoringMethod)</TableRowCell>
@@ -141,27 +141,27 @@
                         }
                     </TableRow>
                     <TableRow>
-                        <TableRowHeader>Accrual (Screening/Intervention/Other)</TableRowHeader>
+                        <TableRowHeader Background="Background.White" Class="overview-Row-Header">Accrual (Screening/Intervention/Other)</TableRowHeader>
                         <TableRowCell></TableRowCell>
                     </TableRow>
                     <TableRow>
-                        <TableRowHeader>Date of Last EDC Update</TableRowHeader>
+                        <TableRowHeader Background="Background.White" Class="overview-Row-Header">Date of Last EDC Update</TableRowHeader>
                         <TableRowCell></TableRowCell>
                     </TableRow>
                     <TableRow>
-                        <TableRowHeader>Total Patients In Web Reporting</TableRowHeader>
+                        <TableRowHeader Background="Background.White" Class="overview-Row-Header">Total Patients In Web Reporting</TableRowHeader>
                         <TableRowCell></TableRowCell>
                     </TableRow>
                     <TableRow>
-                        <TableRowHeader>Total Patients Treated In Web Reporting</TableRowHeader>
+                        <TableRowHeader Background="Background.White" Class="overview-Row-Header">Total Patients Treated In Web Reporting</TableRowHeader>
                         <TableRowCell></TableRowCell>
                     </TableRow>
                     <TableRow>
-                        <TableRowHeader>Recent Enrollment In Web Reporting</TableRowHeader>
+                        <TableRowHeader Background="Background.White" Class="overview-Row-Header">Recent Enrollment In Web Reporting</TableRowHeader>
                         <TableRowCell></TableRowCell>
                     </TableRow>
                     <TableRow>
-                        <TableRowHeader>Subsequent Phase Activation Date</TableRowHeader>
+                        <TableRowHeader Background="Background.White" Class="overview-Row-Header">Subsequent Phase Activation Date</TableRowHeader>
                         <TableRowCell></TableRowCell>
                     </TableRow>
                 </TableBody>

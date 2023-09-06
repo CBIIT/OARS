@@ -204,3 +204,12 @@
     z-index: -1;
     width: 100%;
 }
+
+.overview-Row-Header {
+    position: sticky;
+    left: 0;
+}
+
+.overview-Modal-Body {
+    overflow-x: scroll;
+}
