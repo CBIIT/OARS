@@ -70,7 +70,7 @@
     </Column>
     <Column>
         <Div Padding="Padding.Is2" Style="@border">
-            <Accordion Class="nci-alert-accordion">
+            <Accordion>
                 <Collapse Visible>
                     <CollapseHeader>
                         <AccordionToggle>
@@ -78,7 +78,7 @@
                             Notes
                         </AccordionToggle>
                     </CollapseHeader>
-                    <CollapseBody>
+                    <CollapseBody Class="nci-alert-accordion">
                         <AlertBar Note LoginScreen NoAlertsMessage CSS="nci-alert-component" />
                     </CollapseBody>
                 </Collapse>
