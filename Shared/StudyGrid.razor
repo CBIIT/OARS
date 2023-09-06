@@ -76,7 +76,7 @@
         </DataGrid>
 
 <Modal @ref="overviewRef">
-    <ModalContent>
+    <ModalContent Scrollable Size="ModalSize.ExtraLarge">
         <ModalHeader>
             <ModalTitle>Overview</ModalTitle>
             <CloseButton TextColor="TextColor.White" Background="Background.White" />
@@ -86,19 +86,59 @@
                 <TableBody>
                     <TableRow>
                         <TableRowHeader>Study ID</TableRowHeader>
-                        <TableRowCell>@(overviewProtocol.StudyId)</TableRowCell>
+                        @if (selectedStudies == null || selectedStudies.Count == 0)
+                        {
+                            <TableRowCell>@(overviewProtocol.StudyId)</TableRowCell>
+                        }
+                        else 
+                        {
+                            foreach (var study in selectedStudies!)
+                            {
+                                <TableRowCell>@(study.StudyId)</TableRowCell>
+                            }
+                        }
                     </TableRow>
                     <TableRow>
                         <TableRowHeader>Title</TableRowHeader>
-                        <TableRowCell>@(overviewProtocol.ProtocolTitle)</TableRowCell>
+                        @if (selectedStudies == null || selectedStudies.Count == 0)
+                        {
+                            <TableRowCell>@(overviewProtocol.ProtocolTitle)</TableRowCell>
+                        }
+                        else
+                        {
+                            foreach (var study in selectedStudies)
+                            {
+                                <TableRowCell>@(study.ProtocolTitle)</TableRowCell>
+                            }
+                        }
                     </TableRow>
                     <TableRow>
                         <TableRowHeader>Primary Investigator</TableRowHeader>
-                        <TableRowCell>@(overviewProtocol.Investigator)</TableRowCell>
+                        @if (selectedStudies == null || selectedStudies.Count == 0)
+                        {
+                            <TableRowCell>@(overviewProtocol.Investigator)</TableRowCell>
+                        }
+                        else
+                        {
+                            foreach (var study in selectedStudies)
+                            {
+                                <TableRowCell>@(study.Investigator)</TableRowCell>
+                            }
+                        }
                     </TableRow>
                     <TableRow>
                         <TableRowHeader>Monitoring Method</TableRowHeader>
-                        <TableRowCell>@(overviewProtocol.MonitoringMethod)</TableRowCell>
+                        @if (selectedStudies == null || selectedStudies.Count == 0)
+                        {
+                            <TableRowCell>@(overviewProtocol.MonitoringMethod)</TableRowCell>
+                        }
+                        else
+                        {
+                            foreach (var study in selectedStudies)
+                            {
+                                <TableRowCell>@(study.MonitoringMethod)</TableRowCell>
+                            }
+                        }
                     </TableRow>
                     <TableRow>
                         <TableRowHeader>Accrual (Screening/Intervention/Other)</TableRowHeader>
@@ -131,7 +171,7 @@
     </ModalContent>
 </Modal>
 
-    @code {
+@code {
     [Inject] IStudyService studyService { get; set; } = null!;
     [Inject] IJSRuntime jsRuntime { get; set; }
     [Inject] INotificationService? notificationService { get; set; } = null!;
