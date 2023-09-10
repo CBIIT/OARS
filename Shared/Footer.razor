@@ -1,4 +1,5 @@
-﻿
+﻿@inject IConfiguration configuration
+
 <Container Fluid Background="Background.Light">
     <Divider />
     <Div Flex="Flex.JustifyContent.Between.AlignItems.Center" Class="py-0 nci-footer">
@@ -6,7 +7,7 @@
             <a href="#" class="hover:underline">Privacy Policy</a> | <a href="#" class="hover:underline">Cookie Policy</a>
         </Paragraph>
         <Paragraph Class="">
-             ©@DateTime.Now.Date.Year <a href="https://theradex.com/" class="hover:underline" target="_blank">Theradex Oncology</a>. All Rights Reserved.
+             ©@DateTime.Now.Date.Year <a href="https://theradex.com/" class="hover:underline" target="_blank">Theradex Oncology</a>. All Rights Reserved. | @versionInfo
         </Paragraph>
         <Paragraph Class="mx-1">
             <a href="https://www.linkedin.com/company/theradex" class="hover:underline" target="_blank">Connect with us <Icon Name="@("fab fa-linkedin")" IconSize="IconSize.Large" /></a>
@@ -16,5 +17,10 @@
 
 
 @code {
+    private string versionInfo = "";
 
+    protected override async Task OnInitializedAsync()
+    {
+        versionInfo = configuration.GetValue<string>("System:VersionInfo");
+    }
 }

@@ -84,11 +84,11 @@
         EmbedParams embedParams;
         if (powerBiConfig.Value.UseRowLevelSecurity)
         {
-            embedParams = pbiEmbedService.GetEmbedParams(new Guid(powerBiConfig.Value.WorkspaceId), new Guid(Dashboard.PowerBIReportId), userEmail, powerBiConfig.Value.IdentityRoles);
+            embedParams = pbiEmbedService.GetEmbedParams(new Guid(powerBiConfig.Value.WorkspaceId), new Guid(Report.PowerBIReportId), userEmail, powerBiConfig.Value.IdentityRoles);
         }
         else
         {
-            embedParams = pbiEmbedService.GetEmbedParams(new Guid(powerBiConfig.Value.WorkspaceId), new Guid(Dashboard.PowerBIReportId));
+            embedParams = pbiEmbedService.GetEmbedParams(new Guid(powerBiConfig.Value.WorkspaceId), new Guid(Report.PowerBIReportId));
         }
 
         var embedUrl = embedParams.EmbedReport[0].EmbedUrl + "&pageName=" + Report.PowerBIPageName;

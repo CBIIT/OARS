@@ -133,7 +133,7 @@
                                                 <Text>@GetRoleName((context as UserRole).RoleId)</Text>
                                         </DisplayTemplate>
                                     </DataGridColumn> 
-                                    <DataGridColumn Field="@nameof(UserRole.ExpirationDate)" Width="150" Caption="Exp Date" Editable DisplayFormat="{0:dd-MMM-yyyy}">
+                                    <DataGridColumn Field="@nameof(UserRole.ExpirationDate)" Width="150" Caption="Last Access Date" Editable DisplayFormat="{0:dd-MMM-yyyy}">
                                     </DataGridColumn>
                                     <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
                                         <SaveCommandTemplate>
@@ -207,7 +207,7 @@
                                           EditMode="DataGridEditMode.Inline">
                                     <DataGridColumns>
                                         <DataGridColumn Field="@nameof(UserProtocol.StudyId)" Width="100px" Caption="Study Id" />
-                                        <DataGridColumn Field="@nameof(UserProtocol.ExpirationDate)" Width="150px" Caption="Exp Date" Editable DisplayFormat="{0:dd-MMM-yyyy}">
+                                        <DataGridColumn Field="@nameof(UserProtocol.ExpirationDate)" Width="200px" Caption="Last Access Date" Editable DisplayFormat="{0:dd-MMM-yyyy}">
                                         </DataGridColumn>
                                         <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
                                             <SaveCommandTemplate>
@@ -267,7 +267,7 @@
                                                     <Text>@GetGroupName((context as UserGroup).GroupId)</Text>
                                             </DisplayTemplate>
                                         </DataGridColumn> 
-                                        <DataGridColumn Field="@nameof(UserGroup.ExpirationDate)" Width="150" Caption="Exp Date" Editable DisplayFormat="{0:dd-MMM-yyyy}">
+                                        <DataGridColumn Field="@nameof(UserGroup.ExpirationDate)" Width="200" Caption="Last Access Date" Editable DisplayFormat="{0:dd-MMM-yyyy}">
                                         </DataGridColumn>
                                         <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
                                             <SaveCommandTemplate>
@@ -297,14 +297,14 @@
         </StepPanel>
     </Content>
 </Steps>
-    <Divider />
+<Divider />
 <Div Display="Display.Flex" Class="justify-content-center pe-5">
     <Button Color="Color.Light" Display="Display.Block" Clicked="@Cancel">Cancel</Button>
     <Div Class="pe-2"></Div>
     <Button Color="Color.Primary" Display="@displayPrev" Clicked="() => stepsRef.PreviousStep()"> Previous</Button>
     <Div Class="pe-2" Display="displayPrev"></Div>
     <Button Color="Color.Primary" Display="@displayNext" Clicked="() => stepsRef.NextStep()">Next</Button>
-    <Button Color="Color.Danger" Display="@displaySave" Clicked="@Save">Save</Button>
+    <Button Color="Color.Danger" Display="@displaySave" Clicked="@Save">Save User</Button>
 </Div>
 @code {
     [Inject] IUserService userService { get; set; } = null!;
@@ -327,8 +327,8 @@
     string flexItemStylePrimRole = $"width:300px;";
     string flexItemStyleSecRole = $"width:340px;";
     string flexItemStyleSecRole2 = $"width:600px;";
-    string flexItemStyleProts = $"width:400px;";
-    string flexItemStyleProtsGrid = $"width:450px;";
+    string flexItemStyleProts = $"width:300px;";
+    string flexItemStyleProtsGrid = $"width:500px;";
     string flexItemStyleSpacer = $"width:1px;background-color: gray;";
 
     // Step 1 vars (User Info)

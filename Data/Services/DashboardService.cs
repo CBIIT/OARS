@@ -141,5 +141,160 @@ namespace TheradexPortal.Data.Services
             else
                 return false;
         }
+
+        public bool SaveDashboard(Dashboard dashboard)
+        {
+            DateTime curDateTime = DateTime.UtcNow;
+            try
+            {
+                if (dashboard.WRDashboardId == 0)
+                {
+                    dashboard.CreateDate = curDateTime;
+                    // Get the highest DisplayOrder from dashboard list
+                    int maxDisplayOrder = context.Dashboards.Max(d => d.DisplayOrder);
+                    dashboard.DisplayOrder = maxDisplayOrder+1;
+                    foreach (Report rep in dashboard.Reports)
+                    {
+                        rep.CreateDate = curDateTime;
+                    }
+                    context.Dashboards.Add(dashboard);
+                    context.SaveChanges();
+                }
+                else
+                {
+                    Dashboard dbDashboard = context.Dashboards.FirstOrDefault(d => d.WRDashboardId == dashboard.WRDashboardId);
+                    if (dbDashboard != null)
+                    {
+                        dbDashboard.Name = dashboard.Name;
+                        dbDashboard.Description = dashboard.Description;
+                        dbDashboard.CustomPagePath = dashboard.CustomPagePath;
+                        dbDashboard.UpdateDate = curDateTime;
+                        context.Dashboards.Update(dbDashboard);
+
+                        // Insert or udpate each report in the list
+                        foreach (Report report in dashboard.Reports)
+                        {
+                            // Determine if it is a new or modified report
+                            if (report.WRReportId == 0)
+                            {
+                                report.CreateDate = curDateTime;
+                                dbDashboard.Reports.Add(report);
+                            }
+                            else
+                            {
+                                Report dbReport = dbDashboard.Reports.FirstOrDefault(d => d.WRReportId == report.WRReportId);
+                                dbReport.WRReportId = report.WRReportId;
+                                dbReport.Name = report.Name;
+                                dbReport.Description = report.Description;
+                                dbReport.DisplayOrder = report.DisplayOrder;
+                                dbReport.CustomPagePath = report.CustomPagePath;
+                                dbReport.DisplayIconName = report.DisplayIconName;
+                                dbReport.StudyType = report.StudyType;
+                                dbReport.PowerBIReportId = report.PowerBIReportId;
+                                dbReport.ReportName = report.ReportName;
+                                dbReport.PowerBIPageName = report.PowerBIPageName;
+                                dbReport.PageName = report.PageName;
+                                dbReport.FilterType = report.FilterType;
+                                dbReport.UpdateDate = curDateTime;
+                                context.Reports.Update(dbReport);
+                            }
+                        }
+
+                        // Delete reports no longer in the collection
+                        List<Report> reportsToRemove = new List<Report>();
+                        foreach (Report dr in dbDashboard.Reports)
+                        {
+                            Report foundReport = dashboard.Reports.FirstOrDefault(r => r.WRReportId == dr.WRReportId);
+                            if (foundReport == null)
+                                reportsToRemove.Add(dr);
+                        }
+                        foreach (Report del in reportsToRemove)
+                            dbDashboard.Reports.Remove(del);
+
+                        context.SaveChanges();
+                    }
+                }
+
+                return true;
+
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        public Tuple<bool, string> CanDeleteDashboard(int dashboardId)
+        {
+            bool canDeleteDash = context.Role_Dashboards.Where(rd => rd.DashboardId == dashboardId).Count() == 0;
+
+            List<Report> reportList = context.Reports.Where(r => r.DashboardId == dashboardId).ToList();
+
+            bool canDeleteReport = true;
+            foreach (Report report in reportList)
+            {
+                canDeleteReport = context.Role_Reports.Where(rr => rr.ReportId == report.WRReportId).Count() == 0;
+                if (!canDeleteReport)
+                    break;
+            }
+
+            if (!canDeleteReport)
+            {
+                return new Tuple<bool, string>(false, "Can not delete. Report(s) in dashboard assigned to role(s).");
+            }
+            else if (!canDeleteDash)
+            {
+                return new Tuple<bool, string>(false, "Can not delete. Dashboard assigned to role(s).");
+            }
+            else
+            {
+                return new Tuple<bool, string>(true, "");
+            }
+        }
+
+        public Tuple<bool, string> DeleteDashboard(int dashboardId)
+        {
+            try
+            {
+                var delDashboard = context.Dashboards.Where(d => d.WRDashboardId == dashboardId).Include(d => d.Reports).First();
+                context.Remove(delDashboard);
+                context.SaveChanges();
+                return new Tuple<bool, string>(true, "Dashboard deleted successfully");
+            }
+            catch (Exception ex)
+            {
+                return new Tuple<bool, string>(false, "Failed to delete dashboard");
+            }
+        }
+
+        public bool CanDeleteReport(int reportId)
+        {
+            return context.Role_Reports.Where(rr => rr.ReportId == reportId).Count() == 0;
+        }
+
+        public bool SaveDashboardOrder(List<int> dashIds)
+        {
+            int dashOrder = 0;
+            DateTime curDateTime = DateTime.UtcNow;
+            try
+            {
+                List<Dashboard> dashboards = context.Dashboards.OrderBy(d => d.DisplayOrder).ToList();
+
+                foreach (int dashId in dashIds)
+                {
+                    dashOrder++;
+                    Dashboard dashboard = dashboards.Find(d => d.WRDashboardId == dashId)!;
+                    dashboard.DisplayOrder = dashOrder;
+                    dashboard.UpdateDate = curDateTime;
+                }
+
+                context.SaveChanges();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
     }
 }

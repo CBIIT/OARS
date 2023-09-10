@@ -56,8 +56,7 @@
     <Text TextColor="TextColor.Dark">Admin users have permissions to all Dashboards and Reports</Text>
 </Div>
 <Divider />
-<Field Flex="Flex.JustifyContent.Between">
-    <Button Color="Color.Danger" Visibility="@visibilityDelete" Clicked="@Delete">Delete Role</Button>
+<Field Flex="Flex.JustifyContent.Center">
     <Div>
         <Button Color="Color.Light" Clicked="@Cancel">Cancel</Button>
         <Button Color="Color.Primary" Type="ButtonType.Submit" PreventDefaultOnSubmit Clicked="@Save">Save Role</Button>
@@ -150,7 +149,7 @@
             DashOrRepNode newDAR = new DashOrRepNode { Text = dashboard.Name, Id = dashboard.WRDashboardId, NodeType="Dash", Children = new List<DashOrRepNode>() };
             foreach (Report report in dashboard.Reports)
             {
-                DashOrRepNode newDARChild = new DashOrRepNode { Text = (report.StudyType == null) ? report.Name : report.Name + "-" + report.StudyType, Id = report.WRReportId, NodeType="Rep" };
+                DashOrRepNode newDARChild = new DashOrRepNode { Text = (String.IsNullOrEmpty(report.StudyType)) ? report.Name : report.Name + "-" + report.StudyType, Id = report.WRReportId, NodeType="Rep" };
                 newDAR.Children.Add(newDARChild);
                 // See if dashRepItem is in allowedReps
                 RoleReport findAllowedRep = allowedReps.Find(ar => ar.ReportId == newDARChild.Id);
@@ -254,17 +253,6 @@
 
     private void Cancel()
     {
-        navigation.NavigateTo("/admin/roles");
-    }
-
-    private async void Delete()
-    {
-        Tuple<bool, string> delete = roleService.DeleteRole((int)RoleId);
-        if (delete.Item1 == true)
-            await NotificationService.Success(delete.Item2);
-        else
-            await NotificationService.Error(delete.Item2);
-
         navigation.NavigateTo("/admin/roles");
     }
 }

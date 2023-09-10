@@ -14,5 +14,10 @@ namespace TheradexPortal.Data.Services.Abstract
         public Task<IList<Report>> GetReportsByDashboardIdForUserAsync(int id, int userId, bool isAdmin);
         public Task<Report?> GetReportByIdAsync(int id, string userReports);
         public Task<IList<Visual>> GetAllVisualsByReportIdAsync(int id);
+        public bool SaveDashboard(Dashboard dashboard);
+        public Tuple<bool, string> CanDeleteDashboard(int dashboardId);
+        public Tuple<bool, string> DeleteDashboard(int dashboardId);
+        public bool CanDeleteReport(int reportId);
+        public bool SaveDashboardOrder(List<int> dashIds);
     }
 }
