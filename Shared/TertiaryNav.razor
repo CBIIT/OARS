@@ -1,0 +1,30 @@
+﻿@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.ViewModels;
+@using TheradexPortal.Data;
+
+@{
+    foreach (Report report in Reports)
+    {
+            <BarDropdownItem Style="padding:0px 0px 0px 0px; margin:0px 0px 0px 0px;">
+                <BarLink To="@GetReportLink(report)" Style="margin-left:0px;padding-left:10px;">
+                    @report.StudyType
+                </BarLink>
+            </BarDropdownItem>        
+    }
+}
+
+@code {
+    [Parameter] public IList<Report> Reports { get; set; } = new List<Report>();
+
+    protected string GetReportLink(Report report)
+    {
+        if(report.CustomPagePath != null)
+        {
+            return report.CustomPagePath;
+        }
+        else
+        {
+            return $"{WrConstants.DASHBOARD_PAGE_PATH}/{report.DashboardId}/{report.WRReportId}";
+        }
+    }
+}
