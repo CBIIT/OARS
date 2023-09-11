@@ -63,9 +63,9 @@ namespace TheradexPortal.Data.Services
             }
         }
 
-        public async Task<Dashboard?> GetDashboardByIdAsync(int id, string userDashboards)
+        public async Task<Dashboard?> GetDashboardByIdAsync(int id, string userDashboards, bool isAdmin)
         {
-            if (!userDashboards.Contains("|" + id.ToString() + "|"))
+            if (!isAdmin && !userDashboards.Contains("|" + id.ToString() + "|"))
                 return null;
             else
                 return await context.Dashboards.FindAsync(id);

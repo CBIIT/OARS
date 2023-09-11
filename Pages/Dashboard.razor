@@ -96,16 +96,16 @@ else
         notFound = false;
 
         // Determine if user has access to requested dashboard & report
+        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsAdmin, "True");
         string userDashboards = httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.Dashboards).Value;
         string userReports = httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.Reports).Value;
-        dashboard = await dashboardService.GetDashboardByIdAsync(DashboardId, userDashboards);
-        if(dashboard == null)
+        dashboard = await dashboardService.GetDashboardByIdAsync(DashboardId, userDashboards, isAdmin);
+        if(dashboard == null && !isAdmin)
         {
             notFound = true;
             return;
         }
 
-        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsAdmin, "True");
         userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
 
         allReports = await dashboardService.GetReportsByDashboardIdForUserAsync(DashboardId, userId, isAdmin);

@@ -389,7 +389,7 @@
 
     private async void GetDashboard(int? dashboardId)
     {
-        Dashboard curDashboard = await dashboardService.GetDashboardByIdAsync((int)dashboardId, "|" + dashboardId + "|");
+        Dashboard curDashboard = await dashboardService.GetDashboardByIdAsync((int)dashboardId, "|" + dashboardId + "|", true);
         reportList = await dashboardService.GetReportsByDashboardIdForUserAsync((int)dashboardId, 0, true);
 
         dashboardName = curDashboard.Name;
