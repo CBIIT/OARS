@@ -1,4 +1,5 @@
 ﻿@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services;
 @using TheradexPortal.Data.Services.Abstract;
 @layout AdminLayout
 
@@ -49,7 +50,7 @@
 
                             if (date != null)
                             {
-                                @(date.Value.ToString("dd-MMM-yyyy"))
+                                @(date.Value.Add(currentOffset).ToString("dd-MMM-yyyy hh:mm:ss tt ") + timeZoneAbbrev)
                             }
                         }
                     </DisplayTemplate>
@@ -95,14 +96,24 @@
     [Inject] private NavigationManager navigation {get; set; } = null!;
     [Inject] IUserService userService { get; set; } = null!;
     [Inject] INotificationService NotificationService { get; set; }
+    [Inject] private IJSRuntime js { get; set; } = null!;
+    [Inject] TimeZoneService timeZoneService { get; set; } = null!;
 
     private IList<User> userList = new List<User>();
     private Modal deactivateModalRef;
     private string userToDeactivate;
     private int userToDeactivateId;
+    DateTimeOffset now;
+    TimeSpan currentOffset;
+    String timeZoneAbbrev;
 
     protected override async Task OnInitializedAsync()
     {
+        TimeZoneService tzs = new TimeZoneService(js);
+        Tuple<string, TimeSpan> timeInfo = await tzs.GetZoneAndOffset();
+        timeZoneAbbrev = timeInfo.Item1;
+        currentOffset = timeInfo.Item2;
+
         userList = await userService.GetAllUsersAsync();
     }
 
