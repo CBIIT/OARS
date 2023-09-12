@@ -42,7 +42,7 @@
                 <Divider Class="my-0" />
             }
 
-            @for (int x = 0; x < Reports.Count(); x++)
+            @for (int x = 0; x < Reports.Count(); x=x)
             {
                 var curReport = Reports[x];
                 var reportCount = Level3Reports(curReport, Reports);
@@ -54,25 +54,25 @@
                             <BarIcon IconName="@GetReportIcon(curReport)" />
                             @curReport.Name
                         </BarLink>
-                        </BarItem>
-                    }
-                    else
-                    {
-                        var startingIndex = x;
-                        <BarItem>
-                            <BarDropdown>
-                                <BarDropdownToggle>
-                                    <BarIcon IconName=@GetReportIcon(curReport) />
-                                    @curReport.Name
-                                </BarDropdownToggle>
-                                <BarDropdownMenu>
-                                    <TertiaryNav Reports="@GetTertiaryReports(startingIndex, reportCount)" />
-                                </BarDropdownMenu>
-                            </BarDropdown>
-                        </BarItem>
-                        x = x + reportCount;
-                    }
+                    </BarItem>
                 }
+                else
+                {
+                    var startingIndex = x;
+                    var subReportCount = reportCount;
+                    <BarItem>
+                        <BarDropdown>
+                            <BarDropdownToggle>
+                                <BarIcon IconName=@GetReportIcon(curReport) />
+                                @curReport.Name
+                            </BarDropdownToggle>
+                            <BarDropdownMenu>
+                                <TertiaryNav Reports="@GetTertiaryReports(startingIndex, subReportCount)" />
+                            </BarDropdownMenu>
+                        </BarDropdown>
+                    </BarItem>
+                }
+                x = x + reportCount;
             }
         </BarStart>
     </BarMenu>
