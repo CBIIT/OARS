@@ -1,17 +1,23 @@
 const models = window['powerbi-client'].models;
 
-function callDotNetSaveStudyMethod(study) {
-    DotNet.invokeMethodAsync("TheradexPortal", "SaveStudyFromSlicer", study)
+function callDotNetSaveStudyMethod(study, operator) {
+    DotNet.invokeMethodAsync("TheradexPortal", "SaveStudyFromSlicer", study, operator)
         .then(data => {
             // once async call is done, this is to display the result returned by .NET call
-            console.log("Slicer data :" + data);
+            console.log("Invoke call :" + data);
         });
 }
 
-function embedFullReport(reportContainer, accessToken, filterTargets, embedUrl, embedReportId, studyFilter, startingStudy) {
+function embedFullReport(reportContainer, accessToken, filterTargets, embedUrl, embedReportId, filterType, studyFilter, startingStudy) {
 
+    // filterType = None, Single, Multi
     // studyFilter = list of studies to show in study id filter
     // startingStudy = the study that should be checked to start
+    let singleSelection = false;
+    if (filterType == "Single")
+        singleSelection = true;
+    else if (filterType == "Multi")
+        singleSelection = false;
 
     const study_filter =
     {
@@ -23,8 +29,11 @@ function embedFullReport(reportContainer, accessToken, filterTargets, embedUrl, 
         operator: "In",
         values: studyFilter,
         filterType: models.FilterType.BasicFilter,
-        requireSingleSelection: true,
-        displaySettings: { isHiddenInViewMode: true }
+        requireSingleSelection: singleSelection,
+        displaySettings: {
+            isHiddenInViewMode: true,
+            displayName: "Study ID"
+        }
     }
 
     const study_filter2 =
@@ -35,10 +44,13 @@ function embedFullReport(reportContainer, accessToken, filterTargets, embedUrl, 
             column: "STUDY_ID"
         },
         operator: "In",
-        values: [startingStudy],
+        values: startingStudy,
         filterType: models.FilterType.BasicFilter,
-        requireSingleSelection: true,
-        displaySettings: { isHiddenInViewMode: false }
+        requireSingleSelection: singleSelection,
+        displaySettings: {
+            isHiddenInViewMode: false,
+            displayName: "Study ID"
+        }
     }
 
     // Build config
@@ -63,17 +75,20 @@ function embedFullReport(reportContainer, accessToken, filterTargets, embedUrl, 
 
     let curStudies = "";
     let newStudies = "";
+    let operator = "";
     let filterCount = 0;
     let i = 0;
 
     report.on('rendered', async function () {
         console.log('rendered event');
         const filters = await report.getFilters();
-        console.log("Report Filters: " + filters);
-        console.log("# of filters: " + filters.length);
+        //console.log("Report Filters: " + filters);
+        //console.log("# of filters: " + filters.length);
         filterCount = filters.length;
-
+        console.log("Study Filter: " + filters[filterCount - 1]);
+        console.log("Operator: " + filters[filterCount - 1].operator);
         newStudies = "";
+        operator = filters[filterCount - 1].operator;
         console.log(filters[filterCount-1].values);
         for (i in filters[filterCount - 1].values) {
             if (newStudies == "") {
@@ -83,12 +98,12 @@ function embedFullReport(reportContainer, accessToken, filterTargets, embedUrl, 
                 newStudies = newStudies + "," + filters[filterCount - 1].values[i];
             }
         }
-        console.log(newStudies);
+        //console.log(newStudies);
         if (newStudies != curStudies) {
             console.log("Saving studies");
             console.log("Curr:" + curStudies + "   New: " + newStudies);
             curStudies = newStudies;
-            await callDotNetSaveStudyMethod(newStudies);
+            await callDotNetSaveStudyMethod(newStudies, operator);
         }
     });
 

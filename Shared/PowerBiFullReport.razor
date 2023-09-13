@@ -30,7 +30,7 @@
     private IJSObjectReference? pbiEmbedModule;
     private IJSObjectReference? reportRef;
     private DotNetObjectReference<PowerBiFullReport>? objRef;
-    private static Func<string, Task> UpdateFilterActionAsync;
+    private static Func<string[], Task> UpdateFilterActionAsync;
 
     protected override void OnInitialized()
     {
@@ -70,12 +70,19 @@
         // This is the list that will start as checked in the STUDY_ID filter.
         string protocols = studyService.GetCurrentStudiesForUser(userId);
 
-        //string filterURLString = "";
         if (protocols != null && protocols.Length > 0)
         {
             // Should only have one current study - but if there are more, only select the first.
-            string[] studies = protocols.Split(',');
-            currentStudy = studies[0];
+            if (Report.FilterType == "Single")
+            {
+                string[] studies = protocols.Split(',');
+                currentStudy = studies[0];
+            }
+            else
+            {
+                currentStudy = protocols;
+            }
+
         }
 
         if (string.IsNullOrEmpty(userEmail))
@@ -92,24 +99,17 @@
         }
 
         var embedUrl = embedParams.EmbedReport[0].EmbedUrl + "&pageName=" + Report.PowerBIPageName;
-        
-        
-        //var visuals = await dashboardService.GetAllVisualsByReportIdAsync(Report.WRReportId);
-        //Visual studySlicer = visuals.Where(v => v.VisualDescription == "STUDYID" && v.VisualType == "slicer").SingleOrDefault();
-        //var slicerGuid = "";
 
-        //if (studySlicer == null)
-        //{
-        //    currentStudy = "";
-        //    slicerGuid = "";
-        //}
-        //else
-        //{
-        //    slicerGuid = studySlicer.PowerBIVisualId;
-        //}
-
-        //embedUrl += "&filter=PROTOCOL/STUDY_ID in ('10204')";
-        //embedUrl += filterURLString;
+        // Parameters to load PowerBI report
+        //      Javacsript method to call
+        //      Reference to report
+        //      AccessToken
+        //      Filter Targets
+        //      Embed URL - used to load report and page requested
+        //      Guid of Power BI Report
+        //      Filter type - single or multi
+        //      List of studies for study Id filter
+        //      Starting filter (stored in WRUSER.CURRENTSTUDY field)
         reportRef = await pbiEmbedModule.InvokeAsync<IJSObjectReference>(
             "embedFullReport",
             pbiElement,
@@ -117,17 +117,56 @@
             WrConstants.PBI_STUDY_FILTER_TARGETS.ToArray(),
             embedUrl,
             embedParams.EmbedReport[0].ReportId.ToString(),
+            Report.FilterType,
             (filteredStudies == null || filteredStudies == "") ? "" : filteredStudies.Split(','),
-            currentStudy
+            currentStudy.Split(',')
+        //(Report.FilterType == "Single") ? "[" + currentStudy + "]" : currentStudy.Split(',')
         );
     }
 
-    private async Task LocalChangUpdateFilterValueAsync(string value)
+    private async Task LocalChangUpdateFilterValueAsync(string[] paramArray)
     {
         int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
-        
-        //IList<Protocol> curStudies = studyService.GetCurrentStudiesForUser(userId);
+
+        string selectOperator = paramArray[0];
+        string value = paramArray[1];
+
         string curStudies = studyService.GetCurrentStudiesForUser(userId);
+        string selStudies = "";
+        var selectedStudies = studyService.GetSelectedStudiesForUser(userId);
+
+        // Options are All, In and NotIn
+        //      All - get list from WRUSER.SELECTEDSTUDIES and save as current studies
+        //      In - use values returned directly from Power BI
+        //      NotIn - Power BI returns the values NOT selected.  Take the list from WRUSER.SELECTEDSTUDIES and remove what is returned from Power BI.
+
+        if (selectOperator == "All")
+        {
+            // Get the list the user has selected from the My studies page
+            foreach (Protocol prot in selectedStudies)
+            {
+                selStudies = selStudies + prot.StudyId + ",";
+            }
+            selStudies = selStudies.Trim(',');
+            value = selStudies;
+        }
+        else if (selectOperator == "NotIn")
+        {
+            // Loop though WRUSER.SELECTEDSTUDIES.  If not in the values returned by Power BI, add to selStudies
+            string[] studies = value.Split(',');
+            foreach (Protocol prot in selectedStudies)
+            {
+                string foundValue = studies.FirstOrDefault(s=>s == prot.StudyId);
+                if (foundValue == null)
+                    selStudies = selStudies + prot.StudyId + ",";
+            }
+            selStudies = selStudies.Trim(',');
+            value = selStudies;
+        }
+        else if (String.IsNullOrEmpty(value))
+        {
+            value = selectedStudies[0].StudyId;
+        }
 
         bool saved = userService.SaveCurrentStudy(userId, value);
 
@@ -138,8 +177,11 @@
     }
 
     [JSInvokable]
-    public static async Task SaveStudyFromSlicer(string study)
+    public static async Task SaveStudyFromSlicer(string study, string selectOperator)
     {
-        await UpdateFilterActionAsync.Invoke(study);
+        string[] paramArray = new string[2];
+        paramArray[0] = selectOperator;
+        paramArray[1] = study;
+        await UpdateFilterActionAsync.Invoke(paramArray);
     }
 }
