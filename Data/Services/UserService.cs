@@ -32,6 +32,8 @@ namespace TheradexPortal.Data.Services
                 if (user.UserId == 0)
                 {
                     user.CreateDate = curDateTime;
+                    user.TimeZoneAbbreviation = "GMT";
+                    user.TimeOffset = 0;
                     context.Users.Add(user);
 
                     context.SaveChanges();
@@ -233,7 +235,6 @@ namespace TheradexPortal.Data.Services
                 return false;
             }
         }
-
         public async Task<bool> SetStartingStudies(int userId, int count)
         {
             string studyList = "";
@@ -273,6 +274,24 @@ namespace TheradexPortal.Data.Services
         public async Task<IList<string>> GetProtocolHistoryAsync(int userId, int count)
         {
             return await context.User_ProtocolHistory.Where(p1=>p1.UserId == userId).OrderByDescending(p=>p.WRUserProtocolHistoryId).Select(p=>p.StudyId).Take(count).ToListAsync();
+        }
+        public void SaveTimeZoneInfo(int userId, string timeZoneAbbrev, TimeSpan currentOffset)
+        {
+            try
+            {
+                User user = context.Users.FirstOrDefault(u => u.UserId == userId);
+                if (user.TimeZoneAbbreviation != timeZoneAbbrev)
+                {
+                    user.TimeZoneAbbreviation = timeZoneAbbrev;
+                    user.TimeOffset = Convert.ToInt32(currentOffset.TotalMinutes);
+
+                    context.SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the error
+            }
         }
         public bool SaveActivityLog(int userId, string activityType)
         {

@@ -1,6 +1,8 @@
 ﻿@using TheradexPortal.Data.Models;
 @using TheradexPortal.Data.Services;
+@using TheradexPortal.Data.Static;
 @using TheradexPortal.Data.Services.Abstract;
+@inject IHttpContextAccessor httpContextAccessor
 @layout AdminLayout
 
 @page "/admin/users"
@@ -50,7 +52,7 @@
 
                             if (date != null)
                             {
-                                @(date.Value.Add(currentOffset).ToString("dd-MMM-yyyy hh:mm:ss tt ") + timeZoneAbbrev)
+                                @(date.Value.Add(timeOffset).ToString("dd-MMM-yyyy hh:mm:ss tt ") + timeZoneAbbrev)
                             }
                         }
                     </DisplayTemplate>
@@ -96,25 +98,23 @@
     [Inject] private NavigationManager navigation {get; set; } = null!;
     [Inject] IUserService userService { get; set; } = null!;
     [Inject] INotificationService NotificationService { get; set; }
-    [Inject] private IJSRuntime js { get; set; } = null!;
     [Inject] TimeZoneService timeZoneService { get; set; } = null!;
 
     private IList<User> userList = new List<User>();
     private Modal deactivateModalRef;
     private string userToDeactivate;
     private int userToDeactivateId;
-    DateTimeOffset now;
-    TimeSpan currentOffset;
-    String timeZoneAbbrev;
+    private string timeZoneAbbrev = "";
+    private TimeSpan timeOffset;
 
     protected override async Task OnInitializedAsync()
     {
-        TimeZoneService tzs = new TimeZoneService(js);
-        Tuple<string, TimeSpan> timeInfo = await tzs.GetZoneAndOffset();
-        timeZoneAbbrev = timeInfo.Item1;
-        currentOffset = timeInfo.Item2;
-
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        User curUser = await userService.GetUserAsync(userId);
         userList = await userService.GetAllUsersAsync();
+
+        timeZoneAbbrev = curUser.TimeZoneAbbreviation;
+        timeOffset = TimeSpan.FromMinutes((double)curUser.TimeOffset);
     }
 
     private Visibility IsDeactivatable(User u)

@@ -149,6 +149,8 @@
     protected DataGrid<Protocol> datagridRef;
     private IList<string> recentStudies;
     //private bool saveNavigationLog = true;
+    private TimeSpan currentOffset;
+    private String timeZoneAbbrev;
 
     private bool alertVisible = false;
 
@@ -199,6 +201,22 @@
         alertVisible = false;
         if (firstRender)
         {
+            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+
+            // Since this is the first page after logging in, here is where we will pull the TimeZone info
+            try
+            {
+                TimeZoneService tzs = new TimeZoneService(jsRuntime);
+                Tuple<string, TimeSpan> timeInfo = await tzs.GetZoneAndOffset();
+                timeZoneAbbrev = timeInfo.Item1;
+                currentOffset = timeInfo.Item2;
+
+                userService.SaveTimeZoneInfo(userId, timeZoneAbbrev, currentOffset);
+            }
+            catch (Exception ex)
+            {
+                // Write to error log - could not retrieve timezone
+            }
             //if (saveNavigationLog)
             //{
             //    int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
