@@ -4,6 +4,7 @@ namespace TheradexPortal.Data.Services.Abstract
 {
     public interface IAlertService
     {
+        public Task<IList<WRAlert>> GetAllWRAlertsAsync();
         public Task<IList<WRAlert>> GetAllAlertsAsync();
         public Task<IList<WRAlert>> GetAllNotesAsync();
         public Task<IList<WRAlert>> GetAllActiveAlertsAsync();
