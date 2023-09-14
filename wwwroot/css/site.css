@@ -212,4 +212,5 @@
 
 .overview-Modal-Body {
     overflow-x: scroll;
+    padding-left: 0;
 }

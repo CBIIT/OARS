@@ -86,58 +86,30 @@
                 <TableBody>
                     <TableRow>
                         <TableRowHeader Background="Background.White" Class="overview-Row-Header">Study ID</TableRowHeader>
-                        @if (selectedStudies == null || selectedStudies.Count == 0)
+                        @foreach (var study in overviewStudies!)
                         {
-                            <TableRowCell>@(overviewProtocol.StudyId)</TableRowCell>
-                        }
-                        else 
-                        {
-                            foreach (var study in selectedStudies!)
-                            {
-                                <TableRowCell>@(study.StudyId)</TableRowCell>
-                            }
+                            <TableRowCell>@(study.StudyId)</TableRowCell>
                         }
                     </TableRow>
                     <TableRow>
                         <TableRowHeader Background="Background.White" Class="overview-Row-Header">Title</TableRowHeader>
-                        @if (selectedStudies == null || selectedStudies.Count == 0)
+                        @foreach (var study in overviewStudies)
                         {
-                            <TableRowCell>@(overviewProtocol.ProtocolTitle)</TableRowCell>
-                        }
-                        else
-                        {
-                            foreach (var study in selectedStudies)
-                            {
-                                <TableRowCell>@(study.ProtocolTitle)</TableRowCell>
-                            }
+                            <TableRowCell>@(study.ProtocolTitle)</TableRowCell>
                         }
                     </TableRow>
                     <TableRow>
                         <TableRowHeader Background="Background.White" Class="overview-Row-Header">Primary Investigator</TableRowHeader>
-                        @if (selectedStudies == null || selectedStudies.Count == 0)
+                        @foreach (var study in overviewStudies)
                         {
-                            <TableRowCell>@(overviewProtocol.Investigator)</TableRowCell>
-                        }
-                        else
-                        {
-                            foreach (var study in selectedStudies)
-                            {
-                                <TableRowCell>@(study.Investigator)</TableRowCell>
-                            }
+                            <TableRowCell>@(study.Investigator)</TableRowCell>
                         }
                     </TableRow>
                     <TableRow>
                         <TableRowHeader Background="Background.White" Class="overview-Row-Header">Monitoring Method</TableRowHeader>
-                        @if (selectedStudies == null || selectedStudies.Count == 0)
+                        @foreach (var study in overviewStudies)
                         {
-                            <TableRowCell>@(overviewProtocol.MonitoringMethod)</TableRowCell>
-                        }
-                        else
-                        {
-                            foreach (var study in selectedStudies)
-                            {
-                                <TableRowCell>@(study.MonitoringMethod)</TableRowCell>
-                            }
+                            <TableRowCell>@(study.MonitoringMethod)</TableRowCell>
                         }
                     </TableRow>
                     <TableRow>
@@ -183,6 +155,7 @@
     private List<Protocol> studyList;
     private Protocol selectedStudy;
     private List<Protocol> selectedStudies;
+    private List<Protocol> overviewStudies = new List<Protocol>();
     private IReadOnlyList<DateTime?> selectedDates;
     private Modal? overviewRef;
     private Protocol overviewProtocol = new Protocol();
@@ -350,7 +323,18 @@
     {
         //feed protocol to overview modal
         overviewProtocol = p;
-        return overviewRef.Show();
+
+        if (selectedStudies != null && selectedStudies.Count > 0)
+        {
+            this.overviewStudies = selectedStudies;
+        }
+        else 
+        {
+            this.overviewStudies.Clear();
+            this.overviewStudies.Add(p);
+        }
+
+        return overviewRef!.Show();
     }
 
     private Blazorise.Visibility CheckRecentStudy(Protocol p)
