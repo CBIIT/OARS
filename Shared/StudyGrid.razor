@@ -75,63 +75,9 @@
             </ButtonRowTemplate>
         </DataGrid>
 
-<Modal @ref="overviewRef">
-    <ModalContent>
-        <ModalHeader>
-            <ModalTitle>Overview</ModalTitle>
-            <CloseButton TextColor="TextColor.White" Background="Background.White" />
-        </ModalHeader>
-        <ModalBody>
-            <Table Hoverable>
-                <TableBody>
-                    <TableRow>
-                        <TableRowHeader>Study ID</TableRowHeader>
-                        <TableRowCell>@(overviewProtocol.StudyId)</TableRowCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableRowHeader>Title</TableRowHeader>
-                        <TableRowCell>@(overviewProtocol.ProtocolTitle)</TableRowCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableRowHeader>Primary Investigator</TableRowHeader>
-                        <TableRowCell>@(overviewProtocol.Investigator)</TableRowCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableRowHeader>Monitoring Method</TableRowHeader>
-                        <TableRowCell>@(overviewProtocol.MonitoringMethod)</TableRowCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableRowHeader>Accrual (Screening/Intervention/Other)</TableRowHeader>
-                        <TableRowCell></TableRowCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableRowHeader>Date of Last EDC Update</TableRowHeader>
-                        <TableRowCell></TableRowCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableRowHeader>Total Patients In Web Reporting</TableRowHeader>
-                        <TableRowCell></TableRowCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableRowHeader>Total Patients Treated In Web Reporting</TableRowHeader>
-                        <TableRowCell></TableRowCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableRowHeader>Recent Enrollment In Web Reporting</TableRowHeader>
-                        <TableRowCell></TableRowCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableRowHeader>Subsequent Phase Activation Date</TableRowHeader>
-                        <TableRowCell></TableRowCell>
-                    </TableRow>
-                </TableBody>
-            </Table>
-        </ModalBody>
-        <ModalFooter></ModalFooter>
-    </ModalContent>
-</Modal>
+<StudyOverview @ref="studyOverview" />
 
-    @code {
+@code {
     [Inject] IStudyService studyService { get; set; } = null!;
     [Inject] IJSRuntime jsRuntime { get; set; }
     [Inject] INotificationService? notificationService { get; set; } = null!;
@@ -144,9 +90,9 @@
     private Protocol selectedStudy;
     private List<Protocol> selectedStudies;
     private IReadOnlyList<DateTime?> selectedDates;
-    private Modal? overviewRef;
+    private StudyOverview? studyOverview;
     private Protocol overviewProtocol = new Protocol();
-    protected DataGrid<Protocol> datagridRef;
+    protected DataGrid<Protocol>? datagridRef;
     private IList<string> recentStudies;
     //private bool saveNavigationLog = true;
     private TimeSpan currentOffset;
@@ -328,7 +274,9 @@
     {
         //feed protocol to overview modal
         overviewProtocol = p;
-        return overviewRef.Show();
+        studyOverview?.ShowStudy(overviewProtocol);
+
+        return Task.CompletedTask;
     }
 
     private Blazorise.Visibility CheckRecentStudy(Protocol p)

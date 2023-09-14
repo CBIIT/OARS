@@ -92,7 +92,7 @@
 
 .nci-alert-accordion {
     overflow-y: auto;
-    max-height: 400px;
+    max-height: 300px;
 }
 
 .nci-alert-component {
@@ -206,4 +206,14 @@
     /*position: fixed;*/
     z-index: -1;
     width: 100%;
+}
+
+.overview-Row-Header {
+    position: sticky;
+    left: 0;
+}
+
+.overview-Modal-Body {
+    overflow-x: scroll;
+    padding-left: 0;
 }
