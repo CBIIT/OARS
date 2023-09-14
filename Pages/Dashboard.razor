@@ -39,17 +39,7 @@ else
     </LayoutContent>
 }
 
-<Modal @ref="modalRef">
-    <ModalContent Centered Size="ModalSize.ExtraLarge">
-        <ModalHeader TextColor="TextColor.White" Background="Background.Primary">
-            <ModalTitle>Filter Studies</ModalTitle>
-            <CloseButton/>
-        </ModalHeader>
-        <ModalBody>
-            <StudyGrid OnSave="@HideFilters"/>
-        </ModalBody>
-    </ModalContent>
-</Modal>
+<StudyOverview @ref="studyOverview" />
 
 
 @code {
@@ -62,7 +52,7 @@ else
     [Parameter] public int ReportId { get; set; }
 
     private bool notFound = false;
-    private Modal? modalRef;
+    private StudyOverview? studyOverview;
     private PowerBiCustomLayout? customReportRef;
     private PowerBiFullReport? fullReportRef;
 
@@ -131,12 +121,12 @@ else
         //    navigation.NavigateTo("Studies");
         //else
         //{
-            // First navigation to Dashboard creates a duplicate record.
-            if (report.WRReportId != previousReport)
-            {
-                userService.SaveActivityLog(userId, WRActivityType.Navigation, dashboard.Name, report.Name);
-                previousReport = report.WRReportId;
-            }
+        // First navigation to Dashboard creates a duplicate record.
+        if (report.WRReportId != previousReport)
+        {
+            userService.SaveActivityLog(userId, WRActivityType.Navigation, dashboard.Name, report.Name);
+            previousReport = report.WRReportId;
+        }
         //}
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -145,42 +135,27 @@ else
         {
         }
     }
-    // Show modal
-    private async void ShowFilters()
-    {
-        if (modalRef != null)
-        {
-            await modalRef.Show();
-        }
-    }
 
-    // Re-render report components and hide modal
-    private async void HideFilters(List<Protocol>? selectedStudies)
-    {
-        if (report != null)
-        {
-            if (!report.IsFullPage && customReportRef != null)
-            {
-                await customReportRef.Update();
-            }
+    //// Re-render report components and hide modal
+    //private async void HideFilters(List<Protocol>? selectedStudies)
+    //{
+    //    if (report != null)
+    //    {
+    //        if (!report.IsFullPage && customReportRef != null)
+    //        {
+    //            await customReportRef.Update();
+    //        }
 
-            if (report.IsFullPage && fullReportRef != null)
-            {
-                await fullReportRef.Update();
-            }
-        }
-
-        if(modalRef != null)
-        {
-            await modalRef.Hide();
-        }
-    }
+    //        if (report.IsFullPage && fullReportRef != null)
+    //        {
+    //            await fullReportRef.Update();
+    //        }
+    //    }
+    //}
 
     private async void ShowOverview()
     {
-        if (modalRef != null)
-        {
-            await modalRef.Show();
-        }
+        var studies = studyService.GetSelectedStudiesForUser(userId);
+        studyOverview?.ShowStudies(studies);
     }
 }
