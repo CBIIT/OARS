@@ -54,7 +54,7 @@
 
     protected string GetLink(Dashboard dashboard)
     {
-        if(dashboard.CustomPagePath != null)
+        if(!String.IsNullOrEmpty(dashboard.CustomPagePath))
         {
             return dashboard.CustomPagePath;
         }

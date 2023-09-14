@@ -14,6 +14,7 @@ namespace TheradexPortal.Data.Services.Abstract
         public Task<bool> SetStartingStudies(int userId, int count);
         public bool DeactivateUser(int userId);
         public Task<IList<string>> GetProtocolHistoryAsync(int userId, int count);
+        public void SaveTimeZoneInfo(int userId, string timeZoneAbbrev, TimeSpan currentOffset);
         public bool SaveActivityLog(int userId, string activityType);
         public bool SaveActivityLog(int userId, string activityType, string data1);
         public bool SaveActivityLog(int userId, string activityType, string data1, string data2);

@@ -55,11 +55,10 @@
                         }
                     </DisplayTemplate>
                 </DataGridColumn>
-                <DataGridColumn Sortable="false" Filterable="false" Width="125px">
+                <DataGridColumn Sortable="false" Filterable="false" Width="140px">
                     <DisplayTemplate>
-                        <Button Color="Color.Info" Clicked="@(()=>EditRoleClick(context as Role))">
-                            Edit
-                        </Button>
+                        <Button Color="Color.Info" Clicked="@(()=>EditRoleClick(context as Role))">Edit</Button>
+                        <Button Color="Color.Secondary" Clicked="@(()=>ShowDeleteModal(context as Role))">Delete</Button>
                     </DisplayTemplate>
                 </DataGridColumn>
             </DataGridColumns>
@@ -69,10 +68,29 @@
         </DataGrid>
     </Column>
 </Row>
+<Modal @ref="deleteModalRef">
+    <ModalContent Centered>
+        <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
+            <ModalTitle>Delete Role: @roleToDelete</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            Warning:  Continuing will delete this role.
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Light" Clicked="@HideDeleteModal">Cancel</Button>
+            <Button Color="Color.Danger" Clicked="@DeleteRoleClick">Delete</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
 @code {
     [Inject] private NavigationManager navigation {get; set; } = null!;
+    [Inject] INotificationService NotificationService { get; set; }
     [Inject] IUserRoleService roleService { get; set; } = null!;
 
+    private Modal deleteModalRef;
+    private string roleToDelete;
+    private int roleToDeleteId;
     private IList<Role> roleList = new List<Role>();
 
     protected override async Task OnInitializedAsync()
@@ -88,5 +106,42 @@
     private async void EditRoleClick(Role r)
     {
         navigation.NavigateTo($"/admin/role/{r.RoleId}");
+    }
+
+    private async Task ShowDeleteModal(Role r)
+    {
+        bool canDelRole = roleService.CanDeleteRole(r.RoleId);
+        if (!canDelRole)
+            await NotificationService.Error("Can not delete. Role assigned to user(s).");
+        else
+        {
+            roleToDelete = r.RoleName;
+            roleToDeleteId = r.RoleId;
+            await deleteModalRef.Show();
+        }
+    }
+
+    private Task HideDeleteModal()
+    {
+        return deleteModalRef.Hide();
+    }
+
+    private async void DeleteRoleClick()
+    {
+        Role roleToDel;
+        // Check if any users assigned to groups - if not ok to delete
+        Tuple<bool, string> delRole = roleService.DeleteRole(roleToDeleteId);
+
+        await deleteModalRef.Hide();
+        if (delRole.Item1)
+        {
+            await NotificationService.Success("Role deleted successfully");
+            roleList = await roleService.GetAllRolesAsync();
+            StateHasChanged();
+        }
+        else
+        {
+             await NotificationService.Error(delRole.Item2);
+        }
     }
 }

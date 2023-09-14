@@ -79,16 +79,16 @@ else
         notFound = false;
 
         // Determine if user has access to requested dashboard & report
+        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsAdmin, "True");
         string userDashboards = httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.Dashboards).Value;
         string userReports = httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.Reports).Value;
-        dashboard = await dashboardService.GetDashboardByIdAsync(DashboardId, userDashboards);
-        if(dashboard == null)
+        dashboard = await dashboardService.GetDashboardByIdAsync(DashboardId, userDashboards, isAdmin);
+        if(dashboard == null && !isAdmin)
         {
             notFound = true;
             return;
         }
 
-        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsAdmin, "True");
         userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
 
         allReports = await dashboardService.GetReportsByDashboardIdForUserAsync(DashboardId, userId, isAdmin);
@@ -117,17 +117,18 @@ else
 
         // Check if at least one study has been selected by the user
         string currentStudies = studyService.GetCurrentStudiesForUser(userId);
-        //if (currentStudies == null || currentStudies.Length == 0)
-        //    navigation.NavigateTo("Studies");
-        //else
-        //{
-        // First navigation to Dashboard creates a duplicate record.
-        if (report.WRReportId != previousReport)
+
+        if (currentStudies == null || currentStudies.Length == 0)
+            navigation.NavigateTo("Studies");
+        else
         {
-            userService.SaveActivityLog(userId, WRActivityType.Navigation, dashboard.Name, report.Name);
-            previousReport = report.WRReportId;
+            // First navigation to Dashboard creates a duplicate record.
+            if (report.WRReportId != previousReport)
+            {
+                userService.SaveActivityLog(userId, WRActivityType.Navigation, dashboard.Name, report.Name);
+                previousReport = report.WRReportId;
+            }
         }
-        //}
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

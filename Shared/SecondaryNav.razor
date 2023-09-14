@@ -42,46 +42,37 @@
                 <Divider Class="my-0" />
             }
 
-            @{
-                for (int x = 0; x < Reports.Count(); x++)
+            @for (int x = 0; x < Reports.Count(); x=x)
+            {
+                var curReport = Reports[x];
+                var reportCount = Level3Reports(curReport, Reports);
+
+                @if (reportCount == 1)
                 {
-                    var curReport = Reports[x];
-                    //var 
-                    @if (!StudyTypesExist(curReport, Reports))
-                    {
-                        <BarItem>
-                            <BarLink To="@GetReportLink(curReport)">
-                                <BarIcon IconName="@GetReportIcon(curReport)" />
-                                @curReport.Name
-                            </BarLink>
-                        </BarItem>
-                    }
-                    else
-                    {
-                        var nextReport = Reports[x+1];
-                        x++;
-                        <BarItem>
-                            <BarDropdown>
-                                <BarDropdownToggle>
-                                    <BarIcon IconName=@GetReportIcon(curReport) />
-                                    @curReport.Name
-                                </BarDropdownToggle>
-                                <BarDropdownMenu>
-                                    <BarDropdownItem Style="padding:0px 0px 0px 0px; margin:0px 0px 0px 0px;">
-                                        <BarLink To="@GetReportLink(curReport)" Style="margin-left:0px;padding-left:10px;">
-                                            @curReport.StudyType
-                                        </BarLink>
-                                    </BarDropdownItem>
-                                    <BarDropdownItem Style="padding:0px 0px 0px 0px; margin:0px 0px 0px 0px;">
-                                        <BarLink To="@GetReportLink(nextReport)" Style="margin-left:0px;padding-left:10px;">
-                                            @nextReport.StudyType
-                                        </BarLink>
-                                    </BarDropdownItem>
-                                </BarDropdownMenu>
-                            </BarDropdown>
-                        </BarItem>                            
-                    }
+                    <BarItem>
+                        <BarLink To="@GetReportLink(curReport)">
+                            <BarIcon IconName="@GetReportIcon(curReport)" />
+                            @curReport.Name
+                        </BarLink>
+                    </BarItem>
                 }
+                else
+                {
+                    var startingIndex = x;
+                    var subReportCount = reportCount;
+                    <BarItem>
+                        <BarDropdown>
+                            <BarDropdownToggle>
+                                <BarIcon IconName=@GetReportIcon(curReport) />
+                                @curReport.Name
+                            </BarDropdownToggle>
+                            <BarDropdownMenu>
+                                <TertiaryNav Reports="@GetTertiaryReports(startingIndex, subReportCount)" />
+                            </BarDropdownMenu>
+                        </BarDropdown>
+                    </BarItem>
+                }
+                x = x + reportCount;
             }
         </BarStart>
     </BarMenu>
@@ -125,9 +116,19 @@
         return report.DisplayIconName ?? "defaultIcon";
     }
 
-    protected bool StudyTypesExist(Report report, IList<Report> reports)
+    protected int Level3Reports(Report report, IList<Report> reports)
     {
-        var dupeReports = reports.Count(r => r.Name == report.Name);
-        return dupeReports > 1;
+        return reports.Count(r => r.Name == report.Name);
+    }
+
+    protected List<Report> reports = new List<Report>();
+
+    protected List<Report> GetTertiaryReports(int startingIndex, int count)
+    {
+        reports.Clear();
+        for (int cnt = 0; cnt < count; cnt++)
+            reports.Add(Reports[startingIndex + cnt]);
+
+        return reports;
     }
 }

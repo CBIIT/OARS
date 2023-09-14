@@ -6,7 +6,7 @@ namespace TheradexPortal.Data.Services
 {
     public class AlertService : BaseService, IAlertService
     {
-        private readonly char active = '1';
+        private readonly bool active = true;
         private readonly string noteType = "Note";
         private readonly string alertType = "Alert";
         private readonly string system = "System";
@@ -14,6 +14,11 @@ namespace TheradexPortal.Data.Services
         private readonly DateTime dateTime = DateTime.Now;
 
         public AlertService(IDbContextFactory<WrDbContext> dbFactory) : base(dbFactory) { }
+
+        public async Task<IList<WRAlert>> GetAllWRAlertsAsync()
+        {
+            return await context.Alerts.ToListAsync();
+        }
 
         public async Task<IList<WRAlert>> GetAllAlertsAsync()
         {

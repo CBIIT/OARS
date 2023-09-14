@@ -1,0 +1,145 @@
+﻿@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services;
+@using TheradexPortal.Data.Static;
+@using TheradexPortal.Data.Services.Abstract;
+@inject IHttpContextAccessor httpContextAccessor
+@layout AdminLayout
+
+@page "/admin/alerts"
+<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>Alert List</h2></Div>
+<Row Background="Background.Light">
+    <Column ColumnSize="ColumnSize.IsFull">
+        <DataGrid TItem="WRAlert"
+                  Class="admindatagrid"
+                  Data="@alertList"
+                  Responsive
+                  Filterable
+                  Striped
+                  ShowPager
+                  FixedHeader
+                  FixedHeaderDataGridHeight="calc(100vh - 240px)"
+                  FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
+                  PageSize="25"
+                  CommandMode="DataGridCommandMode.ButtonRow">
+            <DataGridColumns>
+                <DataGridMultiSelectColumn Width="30px"> </DataGridMultiSelectColumn>
+                <DataGridCommandColumn />
+                <DataGridColumn Field="@nameof(WRAlert.AlertType)" Caption="Type" />
+                <DataGridColumn Field="@nameof(WRAlert.PageName)" Caption="Page">
+                    <DisplayTemplate>
+                        @{
+                            var alert = (context as WRAlert);
+                            if (alert.PageName != null)
+                            {
+                                @(alert.PageName)
+                            }
+                            else
+                            {
+                                @("Dashboard: " + alert.DashboardId)
+                            }
+                        }
+                    </DisplayTemplate>
+                </DataGridColumn>
+                <DataGridColumn Field="@nameof(WRAlert.AlertText)" Caption="Text" />
+                <DataGridColumn Field="@nameof(WRAlert.IsActive)" Filterable="false" Caption="Active" Width="125px">
+                    <DisplayTemplate>
+                        @{
+                            var alert = (context as WRAlert);
+                            var dateTime = DateTime.Now;
+                            var isActive = alert?.IsActive ?? false;
+                            var isDateActive = dateTime >= alert.StartDate && (dateTime <= alert.EndDate || alert.EndDate.Equals(null));
+                            if (isActive && isDateActive)
+                            {
+                                @("Yes")
+                            }
+                            else
+                            {
+                                @("No")
+                            }
+                        }
+                    </DisplayTemplate>
+                </DataGridColumn>
+                <DataGridColumn Sortable="false" Filterable="false" Width="75px">
+                    <DisplayTemplate>
+                        <Button Color="Color.Info" Clicked="@(()=>EditAlertClick(context as WRAlert))">
+                            Edit
+                        </Button>
+                    </DisplayTemplate>
+                </DataGridColumn>
+                <DataGridColumn Sortable="false" Filterable="false" Width="125px">
+                    <DisplayTemplate>
+                        <Button Color="Color.Danger" Clicked="@(()=>ShowDeactivateModal(context as WRAlert))"
+                                Visibility="@IsDeactivatable(context as WRAlert)">
+                            Deactivate
+                        </Button>
+                    </DisplayTemplate>
+                </DataGridColumn>
+            </DataGridColumns>
+        </DataGrid>
+    </Column>
+</Row>
+<Modal @ref="deactivateModalRef">
+    <ModalContent Centered>
+        <ModalHeader Background="Background.Primary">
+            <ModalTitle>Deactivate Alert: @alertToDeactivate</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            Warning:  Continuing will make this alert inactive
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Danger" Clicked="@DeactivateAlertClick">Deactivate</Button>
+            <Button Color="Color.Light" Clicked="@HideModal">Cancel</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+@code {
+    [Inject] IAlertService alertService { get; set; } = null!;
+    [Inject] private NavigationManager navigation {get; set; } = null!;
+
+    private IList<WRAlert> alertList = new List<WRAlert>();
+    private Modal deactivateModalRef;
+    private string alertToDeactivate;
+    private int alertToDeactivateId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        alertList = await alertService.GetAllWRAlertsAsync();
+    }
+
+    private Visibility IsDeactivatable(WRAlert a)
+    {
+        if (a.IsActive) // TODO Adjust
+            return Visibility.Visible;
+        else
+            return Visibility.Invisible;
+    }
+
+    private async void NewAlertClick()
+    {
+        navigation.NavigateTo("/admin/alert");
+    }
+
+    private async void EditAlertClick(WRAlert a)
+    {
+        navigation.NavigateTo($"/admin/alert/{a.WRAlertId}");
+    }
+
+    private Task ShowDeactivateModal(WRAlert a)
+    {
+        
+        return deactivateModalRef.Show();
+    }
+
+    private Task HideModal()
+    {
+        return deactivateModalRef.Hide();
+    }
+
+    private async void DeactivateAlertClick()
+    {
+        deactivateModalRef.Hide();
+        // deactivate
+    }
+}

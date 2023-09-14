@@ -123,25 +123,24 @@ namespace TheradexPortal.Data.Services
             }
         }
 
+        public bool CanDeleteRole(int roleId)
+        {
+            return context.User_Roles.Where(ur => ur.RoleId == roleId).Count() == 0;
+        }
+
         public Tuple<bool, string> DeleteRole(int roleId)
         {
-            bool canDelete = context.User_Roles.Where(r => r.RoleId == roleId).Count() == 0;
-            if (canDelete)
+            try
             {
-                try
-                {
-                    var role = context.Roles.Where(r => r.RoleId == roleId).First();
-                    context.Remove(role);
-                    context.SaveChanges();
-                    return new Tuple<bool, string>(true, "Role deleted successfully");
-                }
-                catch (Exception ex)
-                {
-                    return new Tuple<bool, string>(false, "Failed to delete role");
-                }
+                var role = context.Roles.Where(r => r.RoleId == roleId).First();
+                context.Remove(role);
+                context.SaveChanges();
+                return new Tuple<bool, string>(true, "Role deleted successfully");
             }
-            else
-                return new Tuple<bool, string>(false, "Can not delete. User(s) assigned to role.");
+            catch (Exception ex)
+            {
+                return new Tuple<bool, string>(false, "Failed to delete role");
+            }
         }
     }
 }

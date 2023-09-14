@@ -25,7 +25,7 @@
 
 .nci-secondary-nav {
     --b-vertical-bar-small-width: 50px;
-    --b-vertical-bar-width: 200px;
+    --b-vertical-bar-width: 240px;
     /*min-height: 400px;*/
 }
 
@@ -55,7 +55,8 @@
 }
 
 .nci-footer {
-    height:20px;
+    height:16px;
+    font-size:14px;
 }
 
 .nci-centered-div {
@@ -69,6 +70,8 @@
     margin: 0;
     position: absolute;
     top: 50%;
+    border: 3px solid red;
+    background-color:aliceblue;
     -ms-transform: translateY(-50%);
     transform: translateY(-50%);
 }
@@ -147,7 +150,7 @@
     font-size: small;
     vertical-align: middle;
     margin-left: 1px;
-    padding: 1px;
+    padding: 0px;
 }
 
 .table-row-selectable {
