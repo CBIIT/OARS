@@ -40,7 +40,11 @@ builder.Services.AddScoped<IStudyService, StudyService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IGroupService, GroupService>();
 builder.Services.AddScoped<IAlertService, AlertService>();
-builder.Services.AddScoped<IOktaService, OktaService>();
+//builder.Services.AddHttpClient<IOktaService, OktaService>(client =>
+//{
+//    client.BaseAddress = new Uri(builder.Configuration["Okta:Issuer"]);
+//    client.DefaultRequestHeaders.Add("Accept", "application/json")
+//});
 builder.Services.AddScoped<TimeZoneService>();
 
 // Add Blazorise and Tailwind UI

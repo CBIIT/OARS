@@ -4,14 +4,45 @@ using TheradexPortal.Data.Services.Abstract;
 
 namespace TheradexPortal.Data.Services
 {
-    public class OktaService : BaseService, IOktaService
+    public class OktaService : IOktaService
     {
-        public OktaService(IDbContextFactory<WrDbContext> dbFactory) : base(dbFactory) { }
+        private readonly HttpClient httpClient;
 
-        public async Task<Tuple<bool, string>> CreateCTEPUser(string firstName, string lastName)
+        public OktaService(HttpClient _httpClient)
+        {
+            httpClient = _httpClient;
+        }
+
+        public async Task<Tuple<bool, string>> CallOKTA()
         {
             try
             {
+
+            }
+            catch (Exception ex)
+            {
+
+            }
+        }
+
+        public async Task<Tuple<bool, string>> CreateCTEPUser(string firstName, string lastName, string emailAddress)
+        {
+            // Add an OKTA user with the fields passed in plus:
+            //  initialSite
+            //  loginType (CTEP or Non-CTEP)
+            //  initialURL
+            try
+            {
+                httpClient.DefaultRequestHeaders.Add
+                var options = new HttpClientOptions("https://theradexbeta.oktapreview.com")
+                {
+                    MaxTimeout = -1,
+                };
+                var client = new RestClient(options);
+                var request = new RestRequest("//api/v1/groups?q=Web%20Reporting-NCI", Method.Get);
+                request.AddHeader("Accept", "application/json");
+                request.AddHeader("Content-Type", "application/json");
+                request.AddHeader("Authorization", "SSWS 00zGBSYjaCFyg1B8mcL7mPi9kWSb5ZCvCxaNEgBaL5");
                 // Setup the call for creating a CTEP user
                 //var options = new RestClientOptions("https://theradexbeta.oktapreview.com")
                 //{
