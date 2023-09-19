@@ -1,6 +1,7 @@
 ﻿@using TheradexPortal.Data.Identity;
 @inherits LayoutComponentBase
 @inject IConfiguration configuration
+@inject IHttpContextAccessor httpContextAccessor
 
 <CascadingAuthenticationState>
     <AuthorizeView>
@@ -22,7 +23,7 @@
                                     <p>We apoligize, but you do not have access to the Theradex Web Reporting system at this time.<BR>
                                         If you need assistance, please contact us at <a href="mailto:@supportEmail">support.webreporting@theradex.com</a>.</p>
                                 </CardText>
-                                <Button Color="Color.Primary" Margin="Margin.Is5.FromTop" Type="ButtonType.Link" To="/">
+                                <Button Color="Color.Primary" Margin="Margin.Is5.FromTop" Clicked="@OnHomeClicked">
                                     Home
                                 </Button>
                             </CardBody>
@@ -39,6 +40,7 @@
 </CascadingAuthenticationState>
 
 @code {
+    [Inject] public NavigationManager Navigation { get; set; }
     private string supportEmail = "";
 
     protected override async Task OnInitializedAsync()
@@ -46,5 +48,12 @@
         supportEmail = configuration.GetValue<string>("System:SupportEmail");
 
         await base.OnInitializedAsync();
+    }
+
+    Task OnHomeClicked()
+    {
+        Navigation.NavigateTo($"Signout", true);
+
+        return Task.CompletedTask;
     }
 }
