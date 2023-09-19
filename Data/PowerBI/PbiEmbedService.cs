@@ -232,5 +232,23 @@
 
             return embedToken;
         }
+
+        public async Task<Reports> GetPowerBIReportList(Guid targetWorkspaceId)
+        {
+            PowerBIClient pbiClient = this.GetPowerBIClient();
+
+            var pbiReports = await pbiClient.Reports.GetReportsInGroupAsync(targetWorkspaceId);
+
+            return pbiReports;
+        }
+
+        public async Task<Pages> GetPowerBIReportPages(Guid targetWorkspaceId, Guid powerBIReportId)
+        {
+            PowerBIClient pbiClient = this.GetPowerBIClient();
+
+            var pbiPages = await pbiClient.Reports.GetPagesInGroupAsync(targetWorkspaceId, powerBIReportId);
+
+            return pbiPages;
+        }
     }
 }

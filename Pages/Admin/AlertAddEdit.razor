@@ -1,0 +1,18 @@
+﻿@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@layout AdminLayout
+
+@page "/admin/alert/{wralertid:int?}"
+<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1 mb-3"><h2>@AddOrEdit</h2></Div>
+
+
+@code {
+    [Inject] IAlertService alertService { get; set; } = null!;
+    [Inject] INotificationService NotificationService { get; set; }
+    [Inject] private NavigationManager navigation { get; set; } = null!;
+
+    [Parameter] public int? WRAlertId { get; set; }
+
+    public string AddOrEdit { get; set; }
+}

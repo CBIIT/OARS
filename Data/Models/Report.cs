@@ -28,6 +28,11 @@ namespace TheradexPortal.Data.Models
         [Column("PowerBI_Page_Name")]
         public string? PowerBIPageName { get; set; }
         public string? StudyType { get; set; }
+        [Column("PowerBI_Report_Id")]
+        public string? PowerBIReportId { get; set; }
+        public string? PageName { get; set; }
+        public string? ReportName { get; set; }
+        public string? FilterType { get; set; }
         public Dashboard? Dashboard { get; init; }
 
     }

@@ -10,7 +10,7 @@ namespace TheradexPortal.Data.Services
 
         public async Task<IList<Group>> GetAllGroupsAsync()
         {
-            return await context.Groups.OrderBy(g => g.GroupName).ToListAsync();
+            return await context.Groups.Include(gp=>gp.GroupProtocols).OrderBy(g => g.GroupName).ToListAsync();
         }
 
         public async Task<Group?> GetGroupAsync(int groupId)
@@ -91,23 +91,17 @@ namespace TheradexPortal.Data.Services
 
         public Tuple<bool, string> DeleteGroup(int groupId)
         {
-            bool canDelete = context.User_Groups.Where(g => g.GroupId == groupId).Count() == 0;
-            if (canDelete)
+            try
             {
-                try
-                {
-                    var group = context.Groups.Where(g=>g.WRGroupId==groupId).Include(g => g.GroupProtocols).First();
-                    context.Remove(group);
-                    context.SaveChanges();
-                    return new Tuple<bool, string>(true,"Group deleted successfully");
-                }
-                catch (Exception ex)
-                {
-                    return new Tuple<bool, string>(false,"Failed to delete group");
-                }
+                var group = context.Groups.Where(g=>g.WRGroupId==groupId).Include(g => g.GroupProtocols).First();
+                context.Remove(group);
+                context.SaveChanges();
+                return new Tuple<bool, string>(true,"Group deleted successfully");
             }
-            else
-                return new Tuple<bool, string>(false,"Can not delete. User(s) assigned to group.");
+            catch (Exception ex)
+            {
+                return new Tuple<bool, string>(false,"Failed to delete group");
+            }
         }
     }
 }

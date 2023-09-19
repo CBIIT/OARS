@@ -39,17 +39,7 @@ else
     </LayoutContent>
 }
 
-<Modal @ref="modalRef">
-    <ModalContent Centered Size="ModalSize.ExtraLarge">
-        <ModalHeader TextColor="TextColor.White" Background="Background.Primary">
-            <ModalTitle>Filter Studies</ModalTitle>
-            <CloseButton/>
-        </ModalHeader>
-        <ModalBody>
-            <StudyGrid OnSave="@HideFilters"/>
-        </ModalBody>
-    </ModalContent>
-</Modal>
+<StudyOverview @ref="studyOverview" />
 
 
 @code {
@@ -62,7 +52,7 @@ else
     [Parameter] public int ReportId { get; set; }
 
     private bool notFound = false;
-    private Modal? modalRef;
+    private StudyOverview? studyOverview;
     private PowerBiCustomLayout? customReportRef;
     private PowerBiFullReport? fullReportRef;
 
@@ -78,13 +68,6 @@ else
     {
         new SecondaryNavAction
         {
-            IconName = IconName.Filter,
-            Label = "Filters",
-            OnClick = ShowFilters
-        },
-
-        new SecondaryNavAction
-        {
             IconName = IconName.Receipt,
             Label = "Study Overview",
             OnClick = ShowOverview
@@ -96,16 +79,16 @@ else
         notFound = false;
 
         // Determine if user has access to requested dashboard & report
+        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsAdmin, "True");
         string userDashboards = httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.Dashboards).Value;
         string userReports = httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.Reports).Value;
-        dashboard = await dashboardService.GetDashboardByIdAsync(DashboardId, userDashboards);
-        if(dashboard == null)
+        dashboard = await dashboardService.GetDashboardByIdAsync(DashboardId, userDashboards, isAdmin);
+        if(dashboard == null && !isAdmin)
         {
             notFound = true;
             return;
         }
 
-        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsAdmin, "True");
         userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
 
         allReports = await dashboardService.GetReportsByDashboardIdForUserAsync(DashboardId, userId, isAdmin);
@@ -134,17 +117,18 @@ else
 
         // Check if at least one study has been selected by the user
         string currentStudies = studyService.GetCurrentStudiesForUser(userId);
-        //if (currentStudies == null || currentStudies.Length == 0)
-        //    navigation.NavigateTo("Studies");
-        //else
-        //{
+
+        if (currentStudies == null || currentStudies.Length == 0)
+            navigation.NavigateTo("Studies");
+        else
+        {
             // First navigation to Dashboard creates a duplicate record.
             if (report.WRReportId != previousReport)
             {
                 userService.SaveActivityLog(userId, WRActivityType.Navigation, dashboard.Name, report.Name);
                 previousReport = report.WRReportId;
             }
-        //}
+        }
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -152,42 +136,27 @@ else
         {
         }
     }
-    // Show modal
-    private async void ShowFilters()
-    {
-        if (modalRef != null)
-        {
-            await modalRef.Show();
-        }
-    }
 
-    // Re-render report components and hide modal
-    private async void HideFilters(List<Protocol>? selectedStudies)
-    {
-        if (report != null)
-        {
-            if (!report.IsFullPage && customReportRef != null)
-            {
-                await customReportRef.Update();
-            }
+    //// Re-render report components and hide modal
+    //private async void HideFilters(List<Protocol>? selectedStudies)
+    //{
+    //    if (report != null)
+    //    {
+    //        if (!report.IsFullPage && customReportRef != null)
+    //        {
+    //            await customReportRef.Update();
+    //        }
 
-            if (report.IsFullPage && fullReportRef != null)
-            {
-                await fullReportRef.Update();
-            }
-        }
-
-        if(modalRef != null)
-        {
-            await modalRef.Hide();
-        }
-    }
+    //        if (report.IsFullPage && fullReportRef != null)
+    //        {
+    //            await fullReportRef.Update();
+    //        }
+    //    }
+    //}
 
     private async void ShowOverview()
     {
-        if (modalRef != null)
-        {
-            await modalRef.Show();
-        }
+        var studies = studyService.GetSelectedStudiesForUser(userId);
+        studyOverview?.ShowStudies(studies);
     }
 }

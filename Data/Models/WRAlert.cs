@@ -12,7 +12,7 @@ namespace TheradexPortal.Data.Models
         public int? DashboardId { get; set; }
         public string? AlertType { get; set; }
         public string? AlertText { get; set; }
-        public char IsActive { get; set; }
+        public Boolean IsActive { get; set; }
         public DateTime? CreateDate { get; set; }
         public DateTime? UpdateDate { get; set; }
         public DateTime? StartDate { get; set; }

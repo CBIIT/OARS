@@ -1,0 +1,101 @@
+﻿@using TheradexPortal.Data.Models
+@using TheradexPortal.Data
+@using TheradexPortal.Data.Services
+@using Newtonsoft.Json
+@using Microsoft.JSInterop;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@inject IHttpContextAccessor httpContextAccessor
+@inject IConfiguration configuration
+
+<Modal @ref="overviewModal" >
+    <ModalContent Size="ModalSize.ExtraLarge">
+        <ModalHeader Background="Background.Primary">
+            <ModalTitle TextColor="TextColor.White">Overview</ModalTitle>
+            <CloseButton TextColor="TextColor.White" />
+        </ModalHeader>
+        <ModalBody Class="overview-Modal-Body">
+            <Table Hoverable>
+                <TableBody>
+                    <TableRow>
+                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Study ID</TableRowHeader>
+                        @foreach (var study in SelectedStudies)
+                        {
+                            <TableRowCell>@(study.StudyId)</TableRowCell>
+                        }
+                    </TableRow>
+                    <TableRow>
+                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Title</TableRowHeader>
+                        @foreach (var study in SelectedStudies)
+                        {
+                            <TableRowCell>@(study.ProtocolTitle)</TableRowCell>
+                        }
+                    </TableRow>
+                    <TableRow>
+                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Primary Investigator</TableRowHeader>
+                        @foreach (var study in SelectedStudies)
+                        {
+                            <TableRowCell>@(study.Investigator)</TableRowCell>
+                        }
+                    </TableRow>
+                    <TableRow>
+                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Monitoring Method</TableRowHeader>
+                        @foreach (var study in SelectedStudies)
+                        {
+                            <TableRowCell>@(study.MonitoringMethod)</TableRowCell>
+                        }
+                    </TableRow>
+                    <TableRow>
+                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Accrual (Screening/Intervention/Other)</TableRowHeader>
+                        <TableRowCell></TableRowCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Date of Last EDC Update</TableRowHeader>
+                        <TableRowCell></TableRowCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Total Patients In Web Reporting</TableRowHeader>
+                        <TableRowCell></TableRowCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Total Patients Treated In Web Reporting</TableRowHeader>
+                        <TableRowCell></TableRowCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Recent Enrollment In Web Reporting</TableRowHeader>
+                        <TableRowCell></TableRowCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Subsequent Phase Activation Date</TableRowHeader>
+                        <TableRowCell></TableRowCell>
+                    </TableRow>
+                </TableBody>
+            </Table>
+        </ModalBody>
+        <ModalFooter></ModalFooter>
+    </ModalContent>
+</Modal>
+
+@code {
+    [Parameter] public List<Protocol> SelectedStudies { get; set; } = new List<Protocol>();
+    private Modal? overviewModal;
+
+    public void ShowStudy(Protocol study)
+    {
+        SelectedStudies.Clear();
+        SelectedStudies.Add(study);
+        showModal();
+    }
+
+    public void ShowStudies(List<Protocol> studies)
+    {
+        SelectedStudies = studies;
+        showModal();
+    }
+
+    private void showModal()
+    {
+        StateHasChanged();
+        overviewModal!.Show();
+    }
+}

@@ -57,7 +57,7 @@
                             CommandMode="DataGridCommandMode.Commands"
                             EditMode="DataGridEditMode.Inline">
                     <DataGridColumns>
-                        <DataGridColumn Width="260px" Field="@nameof(GroupProtocol.StudyId)"  Caption="Study Id" />
+                        <DataGridColumn Width="200px" Field="@nameof(GroupProtocol.StudyId)"  Caption="Study Id" />
                         <DataGridColumn Field="@nameof(GroupProtocol.IsActive)" Width="150" Caption="Is Active" Editable>
                             <DisplayTemplate>
                                 @{
@@ -93,8 +93,7 @@
     </Div>
 </Div>
 <Divider />
-<Field Flex="Flex.JustifyContent.Between">
-    <Button Color="Color.Danger" Visibility="@visibilityDelete" Clicked="@Delete">Delete Group</Button>
+<Field Flex="Flex.JustifyContent.Center">
     <Div>
         <Button Color="Color.Light" Clicked="@Cancel">Cancel</Button>
         <Button Color="Color.Primary" Type="ButtonType.Submit" PreventDefaultOnSubmit Clicked="@Save">Save Group</Button>
@@ -246,15 +245,5 @@
         navigation.NavigateTo("/admin/groups");
     }
 
-    private async void Delete()
-    {
-        // Check if any users are members of the Group before deleting
-        Tuple<bool, string> delete = groupService.DeleteGroup((int)GroupId);
-        if (delete.Item1 == true)
-            await NotificationService.Success(delete.Item2);
-        else
-            await NotificationService.Error(delete.Item2);
 
-        navigation.NavigateTo("/admin/groups");
-    }
 }

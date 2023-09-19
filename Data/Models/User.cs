@@ -28,6 +28,8 @@ namespace TheradexPortal.Data.Models
         public string? CurrentStudy { get; set; }
         public bool IsCtepUser { get; set; }
         public bool AllStudies { get;set;}
+        public string? TimeZoneAbbreviation { get; set; }
+        public int? TimeOffset { get; set; }
         public ICollection<UserRole> UserRoles { get; } = new List<UserRole>();
         public ICollection<UserProtocol> UserProtocols { get; } = new List<UserProtocol>();
         public ICollection<UserGroup> UserGroups { get; } = new List<UserGroup>();
