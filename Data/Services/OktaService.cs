@@ -13,16 +13,16 @@ namespace TheradexPortal.Data.Services
             try
             {
                 // Setup the call for creating a CTEP user
-                var options = new RestClientOptions("https://theradexbeta.oktapreview.com")
-                {
-                    MaxTimeout = -1,
-                };
-                var client = new RestClient(options);
-                var request = new RestRequest("//api/v1/groups?q=Web%20Reporting-NCI", Method.Get);
-                request.AddHeader("Accept", "application/json");
-                request.AddHeader("Content-Type", "application/json");
-                request.AddHeader("Authorization", "SSWS 00zGBSYjaCFyg1B8mcL7mPi9kWSb5ZCvCxaNEgBaL5");
-                RestResponse response = await client.ExecuteAsync(request);
+                //var options = new RestClientOptions("https://theradexbeta.oktapreview.com")
+                //{
+                //    MaxTimeout = -1,
+                //};
+                //var client = new RestClient(options);
+                //var request = new RestRequest("//api/v1/groups?q=Web%20Reporting-NCI", Method.Get);
+                //request.AddHeader("Accept", "application/json");
+                //request.AddHeader("Content-Type", "application/json");
+                //request.AddHeader("Authorization", "SSWS 00zGBSYjaCFyg1B8mcL7mPi9kWSb5ZCvCxaNEgBaL5");
+                //RestResponse response = await client.ExecuteAsync(request);
 
                 return (new Tuple<bool, string>(true, "Success"));
             }
