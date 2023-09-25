@@ -1,11 +1,70 @@
-﻿@using TheradexPortal.Data.Models;
+﻿@using System.Diagnostics.CodeAnalysis
+@using TheradexPortal.Data.Models;
 @using TheradexPortal.Data.Services.Abstract;
 @using TheradexPortal.Data.Static;
+@using Blazorise.Markdown
 @layout AdminLayout
 
 @page "/admin/alert/{wralertid:int?}"
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1 mb-3"><h2>@AddOrEdit</h2></Div>
+<h4>Alert Info</h4>
+<Divider />
+<Div Flex="Flex.AlignItems.Start" Margin="Margin.Is3.FromBottom" Background="Background.Light">
+    <Div Padding="Padding.Is4" Style="@flexContainerStyle">
+        <Field Horizontal>
+            <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Alert Type</FieldLabel>
+            <FieldBody ColumnSize="ColumnSize.Is6">
+                <RadioGroup @bind-CheckedValue="@alertType">
+                    <Radio Value="@typeAlert">Alert</Radio>
+                    <Radio Value="@typeNote">Note</Radio>
+                </RadioGroup>
+            </FieldBody>
+        </Field>
+        <Field Horizontal>
+            <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Alert Text Editor</FieldLabel>
+            <FieldBody ColumnSize="ColumnSize.Is6">
+                <MemoEdit @bind-Text="@alertText" Rows="5" /><br />
+                Use HTML tags to edit text appearance <br />
+                &lt;b&gt;<b>Bold</b>&lt;/b&gt; &lt;i&gt;<i>Italics</i>&lt;/i&gt; | use &lt;br/&gt; for line break
+            </FieldBody>
+        </Field>
+    </Div>
+    <Div Padding="Padding.Is4" Style="@flexContainerStyle">
+        <Field Horizontal>
+            <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Is Active</FieldLabel>
+            <FieldBody ColumnSize="ColumnSize.Is6">
+                <Switch TValue="bool" @bind-Checked="@isActive" Color="Color.Primary" />
+            </FieldBody>
+        </Field>
+        <Field Horizontal>
+            <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Alert Preview</FieldLabel>
+            <FieldBody ColumnSize="ColumnSize.Is6">
+            <Alert Color="Color.Danger" Visible>
+                <AlertDescription TextOverflow="TextOverflow.Wrap">@((MarkupString)@alertText)</AlertDescription>
+            </Alert>
+            </FieldBody>
+        </Field>
+    </Div>
+</Div>
+<Divider />
+<Div Flex="Flex.AlignItems.Start" Margin="Margin.Is3.FromBottom" Background="Background.Light">
+    <Div Padding="Padding.Is4" Style="@flexContainerStyle">
+        <Field Horizontal>
+            <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Page</FieldLabel>
+            <FieldBody ColumnSize="ColumnSize.Is6">
+                <RadioGroup @bind-CheckedValue="@alertType" Buttons Color="Color.Primary" Orientation="Orientation.Vertical">
+                    <Radio Value="@pageLogin">Login</Radio>
+                    <Radio Value="@pageSystem">System</Radio>
+                    <Radio Value="@pageDashboard">Dashboard</Radio>
+                </RadioGroup>
+            </FieldBody>
+         </Field>
+    </Div>
+</Div>
+<Divider />
+<Div Display="Display.Flex" Class="justify-content-center pe-5">
 
+</Div>
 
 @code {
     [Inject] IAlertService alertService { get; set; } = null!;
@@ -13,6 +72,50 @@
     [Inject] private NavigationManager navigation { get; set; } = null!;
 
     [Parameter] public int? WRAlertId { get; set; }
+    [AllowNull] private Steps stepsRef;
 
     public string AddOrEdit { get; set; }
+
+    private static string firstStep = "step1";
+    private static string secondStep = "step2";
+    private static string thirdStep = "step3";
+    private static string fourthStep = "step4";
+    private string selectedStep = firstStep;
+
+    private static string typeAlert = "Alert";
+    private static string typeNote = "Note";
+    private static string pageLogin = "Login";
+    private static string pageSystem = "System";
+    private static string pageDashboard = "Dashboard";
+
+    private string alertType = string.Empty;
+    private string alertText = string.Empty;
+    private bool isActive = false;
+
+    private string pageName = string.Empty;
+    private int dashboardId = 0;
+
+    private DateTime startDate = new DateTime();
+    private DateTime endDate = new DateTime();
+
+
+    string flexContainerStyle = $"width:50%;";
+    string flexItemStylePrimRole = $"width:300px;";
+    string flexItemStyleSecRole = $"width:340px;";
+    string flexItemStyleSecRole2 = $"width:600px;";
+    string flexItemStyleProts = $"width:300px;";
+    string flexItemStyleProtsGrid = $"width:500px;";
+    string flexItemStyleSpacer = $"width:1px;background-color: gray;";
+
+    private Task OnSelectedStepChanged(string name)
+    {
+
+
+        return Task.CompletedTask;
+    }
+
+    private bool NavigationAllowed(StepNavigationContext context)
+    {
+        return true;
+    }
 }
