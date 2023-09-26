@@ -16,6 +16,7 @@ namespace TheradexPortal.Data.Services.Abstract
         public Task<IList<WRAlert>> GetAllWRAlertsAsync();
         public Task<IList<WRAlert>> GetAllAlertsAsync();
         public Task<IList<WRAlert>> GetAllNotesAsync();
+        public Task<WRAlert> GetAlertById(int id);
         public Task<IList<WRAlert>> GetAllActiveAlertsAsync();
         public Task<IList<WRAlert>> GetAllActiveNotesAsync();
         public Task<IList<WRAlert>> GetActiveSystemAlertsAsync();

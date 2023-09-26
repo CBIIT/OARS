@@ -72,7 +72,7 @@
             <FieldBody ColumnSize="ColumnSize.Is6">
                 <Addons>
                     <Addon AddonType="AddonType.Body">
-                        <DatePicker @ref="@startDatePicker" TValue="DateTime?" Placeholder="DD/MM/YYYY" />
+                            <DatePicker @ref="@startDatePicker" @bind-Date="@startDate" TValue="DateTime?" DisplayFormat="@dateFormat" Placeholder="@datePlaceholder" />
                     </Addon>
                     <Addon AddonType="AddonType.End">
                         <Button Color="Color.Primary" Clicked="@(()=>startDatePicker.ToggleAsync())">
@@ -87,7 +87,7 @@
             <FieldBody ColumnSize="ColumnSize.Is6">
                 <Addons>
                     <Addon AddonType="AddonType.Body">
-                        <DatePicker @ref="@endDatePicker" TValue="DateTime?" Placeholder="DD/MM/YYYY" />
+                            <DatePicker @ref="@endDatePicker" @bind-Date="@endDate" TValue="DateTime?" DisplayFormat="@dateFormat" Placeholder="@datePlaceholder" />
                     </Addon>
                     <Addon AddonType="AddonType.End">
                         <Button Color="Color.Primary" Clicked="@(()=>endDatePicker.ToggleAsync())">
@@ -104,7 +104,7 @@
 
 </Div>
 
-@code {
+    @code {
     [Inject] IAlertService alertService { get; set; } = null!;
     [Inject] INotificationService NotificationService { get; set; }
     [Inject] IDashboardService dashboardService { get; set; } = null!;
@@ -123,12 +123,15 @@
     private string pageLogin = string.Empty;
     private string pageSystem = string.Empty;
     private string pageDashboard = string.Empty;
+    private string dateFormat = "dd-MMM-yyyy";
+    private string datePlaceholder = "DD-MMM-YYYY";
     private Color? alertColor;
     private Color? noteColor;
     private Color? infoColor;
     private Color? currentColor;
-
     private bool dashboardFieldDisabled = true;
+
+    private WRAlert currAlert;
 
     private string alertType = string.Empty;
     private string pageType = string.Empty;
@@ -138,8 +141,8 @@
     private string pageName = string.Empty;
     private int dashboardId = 0;
 
-    private DateTime startDate = new DateTime();
-    private DateTime endDate = new DateTime();
+    private DateTime? startDate = new DateTime();
+    private DateTime? endDate = new DateTime();
     private DatePicker<DateTime?> startDatePicker;
     private DatePicker<DateTime?> endDatePicker;
 
@@ -160,15 +163,56 @@
         this.alertColor = await alertService.AlertColor();
         this.noteColor = await alertService.NoteColor();
         this.infoColor = await alertService.InfoColor();
-        this.currentColor = noteColor;
+        this.currentColor = this.alertColor;
         this.alertType = typeAlert;
         this.pageType = pageLogin;
+
+        if (WRAlertId == null)
+        {
+            AddOrEdit = "Create Alert";
+        }
+        else
+        {
+            AddOrEdit = "Edit Alert";
+            this.LoadAlert((int) WRAlertId);
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            StateHasChanged();
+        }
+
     }
 
     private Task OnAlertTypeValueChanged(string value)
     {
         alertType = value;
 
+        return Task.CompletedTask;
+    }
+
+    private Task OnPageTypeValueChanged(string value)
+    {
+        pageType = value;
+        this.ChangeAlertColor();
+
+        if (pageType.Equals(pageDashboard))
+        {
+            dashboardFieldDisabled = false;
+        }
+        else
+        {
+            dashboardFieldDisabled = true;
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private Task ChangeAlertColor()
+    {
         if (alertType.Equals(typeAlert))
         {
             this.currentColor = alertColor;
@@ -185,20 +229,35 @@
         return Task.CompletedTask;
     }
 
-    private Task OnPageTypeValueChanged(string value)
+    private async Task LoadAlert(int alertId)
     {
-        pageType = value;
+        currAlert = await alertService.GetAlertById(alertId);
+        alertType = currAlert.AlertType;
+        await this.ChangeAlertColor();
 
-        if (pageType.Equals(pageDashboard))
+        if (currAlert.DashboardId != null)
         {
+            pageType = pageDashboard;
+            dashboardId = (int) currAlert.DashboardId;
             dashboardFieldDisabled = false;
+        }
+        else 
+        {
+            pageType = currAlert.PageName;
+        }
+
+        alertText = currAlert.AlertText;
+        isActive = currAlert.IsActive;
+        startDate = (DateTime) currAlert.StartDate;
+
+        if (endDate != null && !endDate.Equals(string.Empty) && endDate > new DateTime(2000,01,01))
+        {
+            endDate = (DateTime)currAlert.EndDate;
         }
         else
         {
-            dashboardFieldDisabled = true;
+            endDate = null;
         }
-
-        return Task.CompletedTask;
     }
 
     private bool NavigationAllowed(StepNavigationContext context)

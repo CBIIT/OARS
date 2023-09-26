@@ -55,6 +55,7 @@ namespace TheradexPortal.Data.Services
 
         public AlertService(IDbContextFactory<WrDbContext> dbFactory) : base(dbFactory) { }
 
+
         public async Task<IList<WRAlert>> GetAllWRAlertsAsync()
         {
             return await context.Alerts.ToListAsync();
@@ -67,6 +68,10 @@ namespace TheradexPortal.Data.Services
         public async Task<IList<WRAlert>> GetAllNotesAsync()
         {
             return await context.Alerts.Where(a => a.AlertType == noteType).ToListAsync();
+        }
+        public async Task<WRAlert?> GetAlertById(int id)
+        {
+            return await context.Alerts.FirstOrDefaultAsync(a => a.WRAlertId == id);
         }
 
         public async Task<IList<WRAlert>> GetAllActiveAlertsAsync()
