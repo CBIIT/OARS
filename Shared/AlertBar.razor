@@ -68,10 +68,10 @@ else
     [Inject] private IAlertService alertService { get; set; } = null!;
     private BarItem? alertsItem;
     private BarItem? notesItem;
-    private Color currentColor = Color.Warning;
-    private Color alertColor = Color.Danger;
-    private Color noteColor = Color.Warning;
-    private Color infoColor = Color.Info;
+    private Color? currentColor;
+    private Color? alertColor;
+    private Color? noteColor;
+    private Color? infoColor;
     private IList<WRAlert> activeAlerts = new List<WRAlert>();
     private string? dismissedAlerts = string.Empty;
 
@@ -89,6 +89,10 @@ else
         if (firstRender)
         {
             await LoadSessionAlerts();
+            this.alertColor = await alertService.AlertColor();
+            this.noteColor = await alertService.NoteColor();
+            this.infoColor = await alertService.InfoColor();
+            this.currentColor = this.noteColor;
             this.alertsSessionLoaded = true;
             await this.updateAlertsCount(this.getActiveAlertsCount());
             StateHasChanged();
@@ -215,8 +219,6 @@ else
 
     private async Task updateAlertsCount(int alertsCount)
     {
-        
-
         await this.AlertsCountChanged.InvokeAsync(alertsCount);
     }
 }

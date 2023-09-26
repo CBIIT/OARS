@@ -3,6 +3,7 @@
 @using TheradexPortal.Data.Services.Abstract;
 @using TheradexPortal.Data.Static;
 @using Blazorise.Markdown
+@inject IHttpContextAccessor httpContextAccessor
 @layout AdminLayout
 
 @page "/admin/alert/{wralertid:int?}"
@@ -39,26 +40,71 @@
         <Field Horizontal>
             <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Alert Preview</FieldLabel>
             <FieldBody ColumnSize="ColumnSize.Is6">
-            <Alert Color="Color.Danger" Visible>
+            <Alert Color="@currentColor" Visible>
                 <AlertDescription TextOverflow="TextOverflow.Wrap">@((MarkupString)@alertText)</AlertDescription>
             </Alert>
             </FieldBody>
         </Field>
     </Div>
 </Div>
-<Divider />
 <Div Flex="Flex.AlignItems.Start" Margin="Margin.Is3.FromBottom" Background="Background.Light">
     <Div Padding="Padding.Is4" Style="@flexContainerStyle">
         <Field Horizontal>
             <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Page</FieldLabel>
             <FieldBody ColumnSize="ColumnSize.Is6">
-                <RadioGroup @bind-CheckedValue="@alertType" Buttons Color="Color.Primary" Orientation="Orientation.Vertical">
-                    <Radio Value="@pageLogin">Login</Radio>
-                    <Radio Value="@pageSystem">System</Radio>
-                    <Radio Value="@pageDashboard">Dashboard</Radio>
+                    <RadioGroup @bind-CheckedValue="@alertType" @onchange="OnAlertTypeValueChanged" Buttons Color="Color.Primary" Orientation="Orientation.Vertical">
+                        <Radio Value="@pageLogin">@pageLogin</Radio>
+                    <Radio Value="@pageSystem">@pageSystem</Radio>
+                        <Radio Value="@pageDashboard">@pageDashboard</Radio>
                 </RadioGroup>
             </FieldBody>
          </Field>
+            <Field Horizontal @bind-Disabled="@dashboardFieldDisabled">
+            <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Dashboard</FieldLabel>
+            <FieldBody ColumnSize="ColumnSize.Is6">
+                <Select TValue="int" @bind-SelectedValue="@dashboardId">
+                    <SelectItem Value="@invalidId">Select Dashboard</SelectItem>
+                    @foreach (var dashboard in dashboards)
+                    {
+                        <SelectItem Value="@dashboard.WRDashboardId">@dashboard.Name</SelectItem>
+                    }
+                </Select>
+            </FieldBody>
+         </Field>
+    </Div>
+</Div>
+<Div Flex="Flex.AlignItems.Start" Margin="Margin.Is3.FromBottom" Background="Background.Light">
+    <Div Padding="Padding.Is4" Style="@flexContainerStyle">
+        <Field Horizontal>
+            <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Start Date</FieldLabel>
+            <FieldBody ColumnSize="ColumnSize.Is6">
+                <Addons>
+                    <Addon AddonType="AddonType.Body">
+                        <DatePicker @ref="@startDatePicker" TValue="DateTime?" />
+                    </Addon>
+                    <Addon AddonType="AddonType.End">
+                        <Button Color="Color.Primary" Clicked="@(()=>startDatePicker.ToggleAsync())">
+                            <Icon Name="IconName.CalendarDay" />
+                        </Button>
+                    </Addon>
+                </Addons>
+            </FieldBody>
+        </Field>
+        <Field Horizontal @bind-Disabled="@dashboardFieldDisabled">
+            <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">End Date (Inclusive)</FieldLabel>
+            <FieldBody ColumnSize="ColumnSize.Is6">
+                <Addons>
+                    <Addon AddonType="AddonType.Body">
+                        <DatePicker @ref="@endDatePicker" TValue="DateTime?" />
+                    </Addon>
+                    <Addon AddonType="AddonType.End">
+                        <Button Color="Color.Primary" Clicked="@(()=>endDatePicker.ToggleAsync())">
+                            <Icon Name="IconName.CalendarDay" />
+                        </Button>
+                    </Addon>
+                </Addons>
+            </FieldBody>
+        </Field>
     </Div>
 </Div>
 <Divider />
@@ -69,24 +115,30 @@
 @code {
     [Inject] IAlertService alertService { get; set; } = null!;
     [Inject] INotificationService NotificationService { get; set; }
+    [Inject] IDashboardService dashboardService { get; set; } = null!;
     [Inject] private NavigationManager navigation { get; set; } = null!;
 
     [Parameter] public int? WRAlertId { get; set; }
-    [AllowNull] private Steps stepsRef;
+    [AllowNull] private Steps stepsRef; 
+    [AllowNull] private DatePicker<DateTime?> startDatePicker;
+    [AllowNull] private DatePicker<DateTime?> endDatePicker;
+
+    private IList<Dashboard> dashboards = new List<Dashboard>();
 
     public string AddOrEdit { get; set; }
 
-    private static string firstStep = "step1";
-    private static string secondStep = "step2";
-    private static string thirdStep = "step3";
-    private static string fourthStep = "step4";
-    private string selectedStep = firstStep;
+    private static int invalidId = -1;
+    private string typeAlert = string.Empty;
+    private string typeNote = string.Empty;
+    private string pageLogin = string.Empty;
+    private string pageSystem = string.Empty;
+    private string pageDashboard = string.Empty;
+    private Color? alertColor;
+    private Color? noteColor;
+    private Color? infoColor;
+    private Color? currentColor;
 
-    private static string typeAlert = "Alert";
-    private static string typeNote = "Note";
-    private static string pageLogin = "Login";
-    private static string pageSystem = "System";
-    private static string pageDashboard = "Dashboard";
+    private bool dashboardFieldDisabled = true;
 
     private string alertType = string.Empty;
     private string alertText = string.Empty;
@@ -98,7 +150,6 @@
     private DateTime startDate = new DateTime();
     private DateTime endDate = new DateTime();
 
-
     string flexContainerStyle = $"width:50%;";
     string flexItemStylePrimRole = $"width:300px;";
     string flexItemStyleSecRole = $"width:340px;";
@@ -107,11 +158,41 @@
     string flexItemStyleProtsGrid = $"width:500px;";
     string flexItemStyleSpacer = $"width:1px;background-color: gray;";
 
-    private Task OnSelectedStepChanged(string name)
+    protected override async Task OnInitializedAsync()
     {
+        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsAdmin, "True");
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
 
+        dashboards = await dashboardService.GetDashboardsForUserAsync(userId, isAdmin);
+    }
 
-        return Task.CompletedTask;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            this.typeAlert = await alertService.AlertType();
+            this.typeNote = await alertService.NoteType();
+            this.pageLogin = await alertService.LoginPage();
+            this.pageSystem = await alertService.SystemPage();
+            this.pageDashboard = await alertService.DashboardPage();
+            this.alertColor = await alertService.AlertColor();
+            this.noteColor = await alertService.NoteColor();
+            this.infoColor = await alertService.InfoColor();
+            this.currentColor = noteColor;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnAlertTypeValueChanged(ChangeEventArgs args)
+    {
+        if (alertType.Equals(pageDashboard))
+        {
+            dashboardFieldDisabled = false;
+        }
+        else
+        {
+            dashboardFieldDisabled = true;
+        }
     }
 
     private bool NavigationAllowed(StepNavigationContext context)

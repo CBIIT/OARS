@@ -1,9 +1,18 @@
-﻿using TheradexPortal.Data.Models;
+﻿using Blazorise;
+using TheradexPortal.Data.Models;
 
 namespace TheradexPortal.Data.Services.Abstract
 {
     public interface IAlertService
     {
+        public Task<string> NoteType();
+        public Task<string> AlertType();
+        public Task<string> SystemPage();
+        public Task<string> LoginPage();
+        public Task<string> DashboardPage();
+        public Task<Color> AlertColor();
+        public Task<Color> NoteColor();
+        public Task<Color> InfoColor();
         public Task<IList<WRAlert>> GetAllWRAlertsAsync();
         public Task<IList<WRAlert>> GetAllAlertsAsync();
         public Task<IList<WRAlert>> GetAllNotesAsync();
