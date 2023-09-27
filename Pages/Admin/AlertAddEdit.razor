@@ -101,7 +101,8 @@
 </Div>
 <Divider />
 <Div Display="Display.Flex" Class="justify-content-center pe-5">
-
+    <Button Color="Color.Light" Display="Display.Block" Clicked="@Cancel">Cancel</Button>
+    <Button Color="Color.Danger" Clicked="@Save">Save Alert</Button>
 </Div>
 
     @code {
@@ -130,6 +131,7 @@
     private Color? infoColor;
     private Color? currentColor;
     private bool dashboardFieldDisabled = true;
+    private bool newAlert = true;
 
     private WRAlert currAlert;
 
@@ -139,7 +141,7 @@
     private bool isActive = false;
 
     private string pageName = string.Empty;
-    private int dashboardId = 0;
+    private int dashboardId = -1;
 
     private DateTime? startDate = new DateTime();
     private DateTime? endDate = new DateTime();
@@ -155,6 +157,7 @@
 
         dashboards = await dashboardService.GetDashboardsForUserAsync(userId, isAdmin);
 
+        // Initialize ref values
         this.typeAlert = await alertService.AlertType();
         this.typeNote = await alertService.NoteType();
         this.pageLogin = await alertService.LoginPage();
@@ -174,6 +177,7 @@
         else
         {
             AddOrEdit = "Edit Alert";
+            this.newAlert = false;
             this.LoadAlert((int) WRAlertId);
         }
     }
@@ -257,6 +261,47 @@
         else
         {
             endDate = null;
+        }
+    }
+
+    private async void Save()
+    {
+        var saved = false;
+        var now = DateTime.UtcNow;
+
+        WRAlert alert;
+        if (newAlert)
+        {
+            alert = new WRAlert();
+            alert.CreateDate = now;
+        }
+        else
+        {
+            alert = currAlert;
+            alert.UpdateDate = now;
+        }
+        alert.PageName = pageName;
+        if (dashboardId != null && pageName.Equals(pageDashboard) && dashboardId > 0)
+        {
+            alert.DashboardId = dashboardId;
+        }
+        alert.AlertType = alertType;
+        alert.AlertText = alertText;
+        alert.IsActive = isActive;
+        alert.StartDate = startDate;
+        alert.EndDate = endDate;
+
+        saved = alertService.SaveAlert(alert);
+        
+        if (saved)
+        {
+            await NotificationService.Success("Alert successfully saved");
+            navigation.NavigateTo("/admin/alerts");
+        }
+        else
+        {
+            await NotificationService.Error("Error saving Alert");
+            navigation.NavigateTo("/admin/alerts");
         }
     }
 

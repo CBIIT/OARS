@@ -25,5 +25,6 @@ namespace TheradexPortal.Data.Services.Abstract
         public Task<IList<WRAlert>> GetActiveLoginNotesAsync();
         public Task<IList<WRAlert>> GetActiveDashboardAlertsByIdAsync(int dashboardId);
         public Task<IList<WRAlert>> GetActiveDashboardNotesByIdAsync(int dashboardId);
+        public bool SaveAlert(WRAlert alert);
     }
 }

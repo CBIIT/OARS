@@ -129,5 +129,43 @@ namespace TheradexPortal.Data.Services
             (dateTime >= a.StartDate!.Value.Date && (dateTime <= a.EndDate!.Value.Date.AddDays(1) || a.EndDate.Equals(null))) &&
             a.AlertType == noteType && a.DashboardId == dashboardId).OrderByDescending(a => a.WRAlertId).ToListAsync();
         }
+
+        public bool SaveAlert(WRAlert alert)
+        {
+            try
+            {
+                if (alert.WRAlertId == 0)
+                {
+                    context.Alerts.Add(alert);
+                    context.SaveChanges();
+                }
+                else
+                {
+                    var dbAlert = context.Alerts.FirstOrDefault(a => a.WRAlertId == alert.WRAlertId);
+
+                    if (dbAlert != null)
+                    {
+                        dbAlert.PageName = alert.PageName;
+                        if (alert.DashboardId != null && alert.DashboardId > 0)
+                        {
+                            dbAlert.DashboardId = alert.DashboardId;
+                        }
+                        dbAlert.AlertType = alert.AlertType;
+                        dbAlert.AlertText = alert.AlertText;
+                        dbAlert.IsActive = alert.IsActive;
+                        dbAlert.StartDate = alert.StartDate;
+                        dbAlert.EndDate = alert.EndDate;
+
+                        context.SaveChanges();
+                    }
+                }
+
+                return true;
+            }
+            catch(Exception ex)
+            {
+                return false;
+            }
+        }
     }
 }
