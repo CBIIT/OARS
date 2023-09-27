@@ -11,7 +11,8 @@
 <h4>Alert Info</h4>
 <Divider />
 <Div Flex="Flex.AlignItems.Start" Margin="Margin.Is3.FromBottom" Background="Background.Light">
-    <Div Padding="Padding.Is4" Style="@flexContainerStyle">
+    <Validations @ref="alertValidations" Mode="ValidationMode.Manual">
+        <Div Padding="Padding.Is4" Style="@flexContainerStyle">
         <Field Horizontal>
             <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Alert Type</FieldLabel>
             <FieldBody ColumnSize="ColumnSize.Is6">
@@ -21,14 +22,16 @@
                 </RadioGroup>
             </FieldBody>
         </Field>
-        <Field Horizontal>
-            <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Alert Text Editor</FieldLabel>
-            <FieldBody ColumnSize="ColumnSize.Is9">
-                <MemoEdit @bind-Text="@alertText" Rows="5" />
-                Use HTML tags to edit text appearance <br />
-                &lt;b&gt;<b>Bold</b>&lt;/b&gt; &lt;i&gt;<i>Italics</i>&lt;/i&gt; | use &lt;br/&gt; for line break
-            </FieldBody>
-        </Field>
+        <Validation Validator="@ValidationRule.IsNotEmpty">
+            <Field Horizontal>
+                <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Alert Text Editor</FieldLabel>
+                <FieldBody ColumnSize="ColumnSize.Is9">
+                    <MemoEdit @bind-Text="@alertText" Rows="5" />
+                    Use HTML tags to edit text appearance <br />
+                    &lt;b&gt;<b>Bold</b>&lt;/b&gt; &lt;i&gt;<i>Italics</i>&lt;/i&gt; | use &lt;br/&gt; for line break
+                </FieldBody>
+            </Field>
+        </Validation>
         <Field Horizontal>
             <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Page</FieldLabel>
             <FieldBody ColumnSize="ColumnSize.Is6">
@@ -67,12 +70,12 @@
                 </Alert>
             </FieldBody>
         </Field>
-         <Field Horizontal>
+        <Field Horizontal>
             <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Start Date</FieldLabel>
             <FieldBody ColumnSize="ColumnSize.Is6">
                 <Addons>
                     <Addon AddonType="AddonType.Body">
-                            <DatePicker @ref="@startDatePicker" @bind-Date="@startDate" TValue="DateTime?" DisplayFormat="@dateFormat" Placeholder="@datePlaceholder" />
+                        <DatePicker @ref="@startDatePicker" @bind-Date="@startDate" TValue="DateTime?" DisplayFormat="@dateFormat" Placeholder="@datePlaceholder" />
                     </Addon>
                     <Addon AddonType="AddonType.End">
                         <Button Color="Color.Primary" Clicked="@(()=>startDatePicker.ToggleAsync())">
@@ -81,7 +84,7 @@
                     </Addon>
                 </Addons>
             </FieldBody>
-         </Field>
+        </Field>
          <Field Horizontal @bind-Disabled="@dashboardFieldDisabled">
             <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">End Date (Inclusive)</FieldLabel>
             <FieldBody ColumnSize="ColumnSize.Is6">
@@ -98,12 +101,15 @@
             </FieldBody>
         </Field>
     </Div>
+    </Validations>
 </Div>
 <Divider />
-<Div Display="Display.Flex" Class="justify-content-center pe-5">
-    <Button Color="Color.Light" Display="Display.Block" Clicked="@Cancel">Cancel</Button>
-    <Button Color="Color.Danger" Clicked="@Save">Save Alert</Button>
-</Div>
+<Field Flex="Flex.JustifyContent.Center">
+    <Div>
+        <Button Color="Color.Light" Clicked="@Cancel">Cancel</Button>
+        <Button Color="Color.Primary" Type="ButtonType.Submit" PreventDefaultOnSubmit Clicked="@Save">Save Alert</Button>
+    </Div>
+</Field>
 
     @code {
     [Inject] IAlertService alertService { get; set; } = null!;
@@ -116,6 +122,7 @@
     private IList<Dashboard> dashboards = new List<Dashboard>();
 
     public string AddOrEdit { get; set; }
+    private Validations? alertValidations;
 
     // Ref Values
     private static int invalidId = 0;
@@ -132,6 +139,7 @@
     private Color? currentColor;
     private bool dashboardFieldDisabled = true;
     private bool newAlert = true;
+    private DateTime defaultDateTime = new DateTime(2000, 01, 01);
 
     private WRAlert currAlert;
 
@@ -141,8 +149,8 @@
     private bool isActive = false;
     private int dashboardId;
 
-    private DateTime? startDate = new DateTime();
-    private DateTime? endDate = new DateTime();
+    private DateTime? startDate;
+    private DateTime? endDate;
     private DatePicker<DateTime?> startDatePicker;
     private DatePicker<DateTime?> endDatePicker;
 
@@ -192,6 +200,7 @@
     private Task OnAlertTypeValueChanged(string value)
     {
         alertType = value;
+        this.ChangeAlertColor();
 
         return Task.CompletedTask;
     }
@@ -199,7 +208,6 @@
     private Task OnPageTypeValueChanged(string value)
     {
         pageName = value;
-        this.ChangeAlertColor();
 
         if (pageName.Equals(pageDashboard))
         {
@@ -252,7 +260,7 @@
         isActive = currAlert.IsActive;
         startDate = (DateTime) currAlert.StartDate;
 
-        if (endDate != null && !endDate.Equals(string.Empty) && endDate > new DateTime(2000,01,01))
+        if (endDate != null && !endDate.Equals(string.Empty) && endDate > defaultDateTime)
         {
             endDate = (DateTime)currAlert.EndDate;
         }
@@ -264,43 +272,46 @@
 
     private async void Save()
     {
-        var saved = false;
-        var now = DateTime.UtcNow;
+        if (await alertValidations.ValidateAll() && startDate != null)
+        {
+            var saved = false;
+            var now = DateTime.UtcNow;
 
-        WRAlert alert;
-        if (newAlert)
-        {
-            alert = new WRAlert();
-            alert.CreateDate = now;
-        }
-        else
-        {
-            alert = currAlert;
-            alert.UpdateDate = now;
-        }
-        alert.PageName = pageName;
-        alert.DashboardId = dashboardId;
-        if (!alert.PageName.Equals(pageDashboard))
-        {
-            alert.DashboardId = null;
-        }
-        alert.AlertType = alertType;
-        alert.AlertText = alertText;
-        alert.IsActive = isActive;
-        alert.StartDate = startDate;
-        alert.EndDate = endDate;
+            WRAlert alert;
+            if (newAlert)
+            {
+                alert = new WRAlert();
+                alert.CreateDate = now;
+            }
+            else
+            {
+                alert = currAlert;
+                alert.UpdateDate = now;
+            }
+            alert.PageName = pageName;
+            alert.DashboardId = dashboardId;
+            if (!alert.PageName.Equals(pageDashboard))
+            {
+                alert.DashboardId = null;
+            }
+            alert.AlertType = alertType;
+            alert.AlertText = alertText;
+            alert.IsActive = isActive;
+            alert.StartDate = startDate;
+            alert.EndDate = endDate;
 
-        saved = alertService.SaveAlert(alert);
-        
-        if (saved)
-        {
-            await NotificationService.Success("Alert successfully saved");
-            navigation.NavigateTo("/admin/alerts");
-        }
-        else
-        {
-            await NotificationService.Error("Error saving Alert");
-            navigation.NavigateTo("/admin/alerts");
+            saved = alertService.SaveAlert(alert);
+
+            if (saved)
+            {
+                await NotificationService.Success("Alert successfully saved");
+                navigation.NavigateTo("/admin/alerts");
+            }
+            else
+            {
+                await NotificationService.Error("Error saving Alert");
+                navigation.NavigateTo("/admin/alerts");
+            }
         }
     }
 

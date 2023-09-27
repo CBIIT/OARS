@@ -30,7 +30,7 @@
                             <Tooltip Text="Alerts">
                                 <BarDropdown RightAligned >
                                     <BarDropdownToggle Class="nci-bar-dropdown">
-                                        <Badge Color="Color.Danger" Pill Position="Position.Absolute.Top.Is50.Start.Is100.Translate.Middle">@systemAlertsCount</Badge>
+                                        <Badge Color="@alertColor" Pill Position="Position.Absolute.Top.Is50.Start.Is100.Translate.Middle">@systemAlertsCount</Badge>
                                         <Image Source="img/alert-icon.png" height="@iconHeight" Class="nci-alert-icon" />
                                     </BarDropdownToggle>
                                     <BarDropdownMenu Class="nci-alert-dropdown">
@@ -43,7 +43,7 @@
                             <Tooltip Text="Notes">
                                 <BarDropdown RightAligned>
                                     <BarDropdownToggle Class="nci-bar-dropdown">
-                                        <Badge Color="Color.Info" Pill Position="Position.Absolute.Top.Is50.Start.Is100.Translate.Middle">@systemNotesCount</Badge>
+                                        <Badge Color="@noteColor" Pill Position="Position.Absolute.Top.Is50.Start.Is100.Translate.Middle">@systemNotesCount</Badge>
                                         <Image Source="img/notification-icon.png" height="@iconHeight" Class="nci-alert-icon" />
                                     </BarDropdownToggle>
                                     <BarDropdownMenu Class="nci-alert-dropdown">
@@ -110,6 +110,8 @@
     private int iconHeight = 24;
     private int systemAlertsCount;
     private int systemNotesCount;
+    private string alertColor = "#CE3436";
+    private string noteColor = "4A86C6";
     IFluentDisplay adminDisplay = Display.None;
 
 
