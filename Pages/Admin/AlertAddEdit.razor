@@ -35,7 +35,7 @@
         <Field Horizontal>
             <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Page</FieldLabel>
             <FieldBody ColumnSize="ColumnSize.Is6">
-                <RadioGroup TValue="string" CheckedValue="@pageName" CheckedValueChanged="OnPageTypeValueChanged" Color="Color.Primary">
+                    <RadioGroup TValue="string" CheckedValue="@pageName" CheckedValueChanged="OnPageTypeValueChanged" Color="Color.Primary">
                     <Radio Value="@pageLogin">@pageLogin</Radio>
                     <Radio Value="@pageSystem">@pageSystem</Radio>
                     <Radio Value="@pageDashboard">@pageDashboard</Radio>
@@ -62,7 +62,7 @@
                 <Switch TValue="bool" @bind-Checked="@isActive" Color="Color.Primary" />
             </FieldBody>
         </Field>
-        <Field Horizontal>
+        <Field Horizontal Class="nci-alert-scroll-y">
             <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Alert Preview</FieldLabel>
             <FieldBody ColumnSize="ColumnSize.Is6">
                 <Alert Color="@currentColor" Visible>
@@ -85,12 +85,12 @@
                 </Addons>
             </FieldBody>
         </Field>
-         <Field Horizontal @bind-Disabled="@dashboardFieldDisabled">
+        <Field Horizontal >
             <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">End Date (Inclusive)</FieldLabel>
             <FieldBody ColumnSize="ColumnSize.Is6">
                 <Addons>
                     <Addon AddonType="AddonType.Body">
-                            <DatePicker @ref="@endDatePicker" @bind-Date="@endDate" TValue="DateTime?" DisplayFormat="@dateFormat" Placeholder="@datePlaceholder" />
+                        <DatePicker @ref="@endDatePicker" @bind-Date="@endDate" TValue="DateTime?" DisplayFormat="@dateFormat" Placeholder="@datePlaceholder" />
                     </Addon>
                     <Addon AddonType="AddonType.End">
                         <Button Color="Color.Primary" Clicked="@(()=>endDatePicker.ToggleAsync())">
@@ -100,6 +100,25 @@
                 </Addons>
             </FieldBody>
         </Field>
+        @if (currAlert != null && currAlert.CreateDate != null)
+        {
+            <Field Horizontal>
+                <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Create Date</FieldLabel>
+                <FieldBody ColumnSize="ColumnSize.Is6">
+                    @currAlert.CreateDate.Value.ToString(dateFormat)
+                </FieldBody>
+            </Field>
+        }
+            @if (currAlert != null && currAlert.UpdateDate != null)
+        {
+            <Field Horizontal>
+                <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Last Updated</FieldLabel>
+                <FieldBody ColumnSize="ColumnSize.Is6">
+                    @currAlert.UpdateDate.Value.ToString(dateFormat)
+                </FieldBody>
+            </Field>
+        }
+        
     </Div>
     </Validations>
 </Div>
