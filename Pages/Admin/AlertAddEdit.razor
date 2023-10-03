@@ -75,7 +75,7 @@
             <FieldBody ColumnSize="ColumnSize.Is6">
                 <Addons>
                     <Addon AddonType="AddonType.Body">
-                        <DatePicker @ref="@startDatePicker" @bind-Date="@startDate" TValue="DateTime?" DisplayFormat="@dateFormat" Placeholder="@datePlaceholder" />
+                        <DatePicker @ref="@startDatePicker" Date="@startDate" TValue="DateTime?" DisplayFormat="@dateFormat" Placeholder="@datePlaceholder" DateChanged="OnStartDateChanged" />
                     </Addon>
                     <Addon AddonType="AddonType.End">
                         <Button Color="Color.Primary" Clicked="@(()=>startDatePicker.ToggleAsync())">
@@ -84,6 +84,7 @@
                     </Addon>
                 </Addons>
             </FieldBody>
+            <FieldHelp Display="@startDateError"><Text TextColor="TextColor.Danger">Please select a start date</Text></FieldHelp>
         </Field>
         <Field Horizontal >
             <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">End Date (Inclusive)</FieldLabel>
@@ -130,7 +131,7 @@
     </Div>
 </Field>
 
-    @code {
+@code {
     [Inject] IAlertService alertService { get; set; } = null!;
     [Inject] INotificationService NotificationService { get; set; }
     [Inject] IDashboardService dashboardService { get; set; } = null!;
@@ -139,6 +140,7 @@
     [Parameter] public int? WRAlertId { get; set; }
 
     private IList<Dashboard> dashboards = new List<Dashboard>();
+    private IFluentDisplay startDateError = Display.None;
 
     public string AddOrEdit { get; set; }
     private Validations? alertValidations;
@@ -240,6 +242,22 @@
         return Task.CompletedTask;
     }
 
+    private Task OnStartDateChanged(DateTime? value)
+    {
+        startDate = value;
+
+        if (startDate != null)
+        {
+            startDateError = Display.None;
+        }
+        else
+        {
+            startDateError = Display.Block;
+        }
+
+        return Task.CompletedTask;
+    }
+
     private Task ChangeAlertColor()
     {
         if (alertType.Equals(typeAlert))
@@ -331,6 +349,10 @@
                 await NotificationService.Error("Error saving Alert");
                 navigation.NavigateTo("/admin/alerts");
             }
+        }
+        else
+        {
+            await OnStartDateChanged(null);
         }
     }
 
