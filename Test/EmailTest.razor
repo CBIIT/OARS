@@ -1,0 +1,186 @@
+﻿@using Amazon;
+@using Amazon.Auth;
+@using System;
+@using System.Collections.Generic;
+@using Amazon.SimpleEmail;
+@using Amazon.SimpleEmail.Model;
+@using System.Net.Mail;
+@using System.Text;
+
+@layout AdminLayout
+
+@page "/test/emailtest"
+<h3>Email Test</h3>
+
+<Field>
+    <FieldLabel ColumnSize="ColumnSize.Is10" TextWeight="TextWeight.Bold">Email</FieldLabel>
+        <FieldBody ColumnSize="ColumnSize.Is6">
+        <TextEdit Placeholder="Email Address" MaxLength="50" @bind-Text="@emailAddress"/>
+        </FieldBody>
+</Field>
+<Button Color="Color.Primary" Margin="Margin.Is5.FromTop" Clicked="@SendEmail">
+    Send Email
+</Button>
+<Button Color="Color.Primary" Margin="Margin.Is5.FromTop" Clicked="@AWSSendRawEmail">
+    Send Raw Email
+</Button>
+<Button Color="Color.Primary" Margin="Margin.Is5.FromTop" Clicked="@SendEmail_NonAWS">
+    Send Email - NON AWS
+</Button>
+@code {
+    string emailAddress = "wfarbman@theradex.com";
+
+    // Replace sender@example.com with your "From" address.
+    // This address must be verified with Amazon SES.
+    static readonly string senderAddress = "local.administrator.webreporting@theradex.com";
+
+    // Replace recipient@example.com with a "To" address. If your account
+    // is still in the sandbox, this address must be verified.
+    static readonly string receiverAddress = "wfarbman@theradex.com";
+
+    // The configuration set to use for this email. If you do not want to use a
+    // configuration set, comment out the following property and the
+    // ConfigurationSetName = configSet argument below. 
+    static readonly string configSet = "ConfigSet";
+
+    // The subject line for the email.
+    static readonly string subject = "Amazon SES test (AWS SDK for .NET)";
+
+    // The email body for recipients with non-HTML email clients.
+    static readonly string textBody = "Amazon SES Test (.NET)\r\n" 
+                                    + "This email was sent through Amazon SES "
+                                    + "using the AWS SDK for .NET.";
+
+    // The HTML body of the email.
+    static readonly string htmlBody = @"<html>
+<head></head>
+<body>
+  <h1>Amazon SES Test (AWS SDK for .NET)</h1>
+  <p>This email was sent with
+    <a href='https://aws.amazon.com/ses/'>Amazon SES</a> using the
+    <a href='https://aws.amazon.com/sdk-for-net/'>
+      AWS SDK for .NET</a>.</p>
+</body>
+</html>";
+
+    private async void SendEmail()
+    {
+        //Amazon.Runtime.AWSCredentials awsCreds = new Amazon.Runtime.BasicAWSCredentials(_endpoints.EmailUsername, _endpoints.EmailPassword);
+        // Replace USWest2 with the AWS Region you're using for Amazon SES.
+        // Acceptable values are EUWest1, USEast1, and USWest2.
+        var chain = new Amazon.Runtime.CredentialManagement.CredentialProfileStoreChain();
+        var result = chain.TryGetAWSCredentials("shared_service_profile", out var credentials);
+
+            using (var client = new AmazonSimpleEmailServiceClient(credentials))
+        {
+            //var sendReq2 = new SendRawEmailRequest
+            var sendRequest = new SendEmailRequest
+                {
+                    Source = senderAddress,
+                    Destination = new Destination
+                    {
+                        ToAddresses = new List<string> { emailAddress }
+                    },
+                    Message = new Message
+                    {
+                        Subject = new Content(subject),
+                        Body = new Body
+                        {
+                            Html = new Content
+                            {
+                                Charset = "UTF-8",
+                                Data = htmlBody
+                            },
+                            Text = new Content
+                            {
+                                Charset = "UTF-8",
+                                Data = textBody
+                            }
+                        }
+                    }
+                    // If you are not using a configuration set, comment
+                    // or remove the following line 
+                    //ConfigurationSetName = configSet
+                };
+            try
+            {
+                Console.WriteLine("Sending email using Amazon SES...");
+                var response = await client.SendEmailAsync(sendRequest);
+                Console.WriteLine("The email was sent successfully.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("The email was not sent.");
+                Console.WriteLine("Error message: " + ex.Message);
+            }
+        }
+    }
+
+    private async void AWSSendRawEmail()
+    {
+        var sesClient = new AmazonSimpleEmailServiceClient(RegionEndpoint.USEast1);
+
+        var stream = new MemoryStream(
+            Encoding.UTF8.GetBytes("From: johndoe@example.com\n" +
+            "To: janedoe@example.com\n" +
+            "Subject: You're invited to the meeting\n" +
+            "Content-Type: text/plain\n\n" +
+            "Please join us Monday at 7:00 PM.")
+        );
+
+        var raw = new RawMessage
+        {
+        Data = stream
+        };
+
+        var to = new List<string>() { emailAddress };
+        var from = "localhost.webreporting@theradex.com";
+
+        var request = new SendRawEmailRequest
+        {
+        Destinations = to,
+        RawMessage = raw,
+        Source = from
+        };
+
+        try
+        {
+            Console.WriteLine("Sending email using Amazon SES...");
+            var response = await sesClient.SendRawEmailAsync(request);
+            Console.WriteLine("The email was sent successfully.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("The email was not sent.");
+            Console.WriteLine("Error message: " + ex.Message);
+        }
+    }
+
+    private void SendEmail_NonAWS()
+    {
+            try
+            {
+                using (MailMessage mm = new MailMessage())
+                {
+                    mm.From = new MailAddress("local.administrator@theradex.com");
+                    mm.To.Add(new MailAddress("wfarbman@theradex.com"));
+                    mm.Subject = "Test Subject";
+                    mm.Body = "Test Body";
+                    mm.IsBodyHtml = false;
+
+                    using (SmtpClient smtp = new SmtpClient())
+                    {
+                        smtp.Host = "theradex-com.mail.protection.outlook.com";
+                        smtp.Port = 25;
+                        smtp.Send(mm);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("The email was not sent.");
+                Console.WriteLine("Error message: " + ex.Message);
+            }        
+    }
+
+}

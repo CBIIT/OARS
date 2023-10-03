@@ -41,6 +41,12 @@ namespace TheradexPortal.Data.Services
             return await context.Role_Reports.Where(ur => ur.RoleId == roleId).ToListAsync();
         }
 
+        public bool CheckRoleName(string roleName, int roleId)
+        {
+            Role foundRole = context.Roles.FirstOrDefault(r => r.RoleName == roleName && r.RoleId != roleId);
+            return foundRole == null;
+        }
+
         public bool SaveRole(Role role)
         {
             DateTime curDateTime = DateTime.UtcNow;

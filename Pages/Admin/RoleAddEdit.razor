@@ -197,6 +197,12 @@
         DateTime curDateTime = DateTime.UtcNow;
         if (await validations.ValidateAll())
         {
+            // Check for existing role name
+            if (!roleService.CheckRoleName(roleName, (int)(RoleId != null ? RoleId : 0)))
+            {
+                await NotificationService.Error( "Role Name already exists.");
+                return;
+            }
             Role saveRole = new Role();
             if (RoleId != null)
                 saveRole.RoleId = (int)RoleId;

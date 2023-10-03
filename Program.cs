@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Newtonsoft.Json;
 using System.Text.Json;
+using System.Net.Http.Headers;
 using TheradexPortal.Data;
 using TheradexPortal.Data.PowerBI;
 using TheradexPortal.Data.PowerBI.Models;
@@ -26,6 +27,8 @@ using TheradexPortal.Data.PowerBI.Abstract;
 using ITfoxtec.Identity.Saml2;
 using ITfoxtec.Identity.Saml2.Schemas.Metadata;
 using ITfoxtec.Identity.Saml2.MvcCore.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Log4Net.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,12 +43,15 @@ builder.Services.AddScoped<IStudyService, StudyService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IGroupService, GroupService>();
 builder.Services.AddScoped<IAlertService, AlertService>();
-//builder.Services.AddHttpClient<IOktaService, OktaService>(client =>
-//{
-//    client.BaseAddress = new Uri(builder.Configuration["Okta:Issuer"]);
-//    client.DefaultRequestHeaders.Add("Accept", "application/json")
-//});
+builder.Services.AddHttpClient<IOktaService, OktaService>(client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["Okta:Issuer"]);
+    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+    client.DefaultRequestHeaders.Add("Authorization", "SSWS " + builder.Configuration["Okta:ApiKey"]);
+});
 builder.Services.AddScoped<TimeZoneService>();
+builder.Logging.ClearProviders();
+builder.Logging.AddLog4Net("log4net.config");
 
 // Add Blazorise and Tailwind UI
 builder.Services

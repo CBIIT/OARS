@@ -25,6 +25,12 @@ namespace TheradexPortal.Data.Services
             return context.User_Groups.Where(ug=>ug.GroupId==groupId).Count() == 0;
         }
 
+        public bool CheckGroupName(string groupName, int groupId)
+        {
+            Group foundGroup = context.Groups.FirstOrDefault(g => g.GroupName == groupName && g.WRGroupId != groupId);
+            return foundGroup == null;
+        }
+
         public bool SaveGroup(Group group)
         {
             DateTime curDateTime = DateTime.UtcNow;

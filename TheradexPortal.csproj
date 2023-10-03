@@ -29,6 +29,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.7.7" />
+    <PackageReference Include="AWSSDK.SimpleEmail" Version="3.7.200.48" />
     <PackageReference Include="Blazorise.Bootstrap5" Version="1.2.3" />
     <PackageReference Include="Blazorise.Components" Version="1.2.3" />
     <PackageReference Include="Blazorise.DataGrid" Version="1.2.2" />
@@ -37,7 +39,9 @@
     <PackageReference Include="Blazorise.TreeView" Version="1.2.3" />
     <PackageReference Include="ITfoxtec.Identity.Saml2" Version="4.8.6" />
     <PackageReference Include="ITfoxtec.Identity.Saml2.MvcCore" Version="4.8.6" />
+    <PackageReference Include="log4net" Version="2.0.15" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="6.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Log4Net.AspNetCore" Version="6.1.0" />
     <PackageReference Include="Microsoft.Identity.Client" Version="4.43.0" />
     <PackageReference Include="Microsoft.PowerBI.Api" Version="4.5.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.14.0" />
