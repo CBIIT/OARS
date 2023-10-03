@@ -69,8 +69,11 @@
         // Replace USWest2 with the AWS Region you're using for Amazon SES.
         // Acceptable values are EUWest1, USEast1, and USWest2.
         var chain = new Amazon.Runtime.CredentialManagement.CredentialProfileStoreChain();
-        var result = chain.TryGetAWSCredentials("shared_service_profile", out var credentials);
-
+        //var result = chain.TryGetAWSCredentials("shared_service_profile", out var credentials);
+        //theradex - development - nci
+        //var result = chain.TryGetAWSCredentials("theradex-shared-service", out var credentials);
+        var result = chain.TryGetAWSCredentials("theradex-development-nci", out var credentials);
+        //theradex - shared - service
             using (var client = new AmazonSimpleEmailServiceClient(credentials))
         {
             //var sendReq2 = new SendRawEmailRequest
