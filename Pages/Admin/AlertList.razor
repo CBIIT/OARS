@@ -71,14 +71,14 @@
                         </Button>
                     </DisplayTemplate>
                 </DataGridColumn>
-                <DataGridColumn Sortable="false" Filterable="false" Width="125px">
+                @*<DataGridColumn Sortable="false" Filterable="false" Width="125px">
                     <DisplayTemplate>
                         <Button Color="Color.Danger" Clicked="@(()=>ShowDeactivateModal(context as WRAlert))"
                                 Visibility="@IsDeactivatable(context as WRAlert)">
                             Deactivate
                         </Button>
                     </DisplayTemplate>
-                </DataGridColumn>
+                </DataGridColumn>*@
             </DataGridColumns>
             <ButtonRowTemplate>
                 <Button Color="Color.Primary" Clicked="@NewAlertClick">Create Alert</Button>
