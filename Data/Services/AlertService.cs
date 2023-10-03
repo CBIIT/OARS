@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Blazorise;
+using Microsoft.EntityFrameworkCore;
 using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Services.Abstract;
 
@@ -7,13 +8,53 @@ namespace TheradexPortal.Data.Services
     public class AlertService : BaseService, IAlertService
     {
         private readonly bool active = true;
-        private readonly string noteType = "Note";
-        private readonly string alertType = "Alert";
-        private readonly string system = "System";
-        private readonly string loginPage = "Login";
         private readonly DateTime dateTime = DateTime.Now;
 
+        private readonly string noteType = "Note";
+        private readonly string alertType = "Alert";
+        private readonly string systemPage = "System";
+        private readonly string loginPage = "Login";
+        private readonly string dashboardPage = "Dashboard";
+
+        private readonly Color alertColor = Color.Danger;
+        private readonly Color noteColor = Color.Warning;
+        private readonly Color infoColor = Color.Info;
+
+        public Task<string> NoteType()
+        {
+            return Task.FromResult(noteType);
+        }
+        public Task<string> AlertType()
+        {
+            return Task.FromResult(alertType);
+        }
+        public Task<string> SystemPage()
+        {
+            return Task.FromResult(systemPage);
+        }
+        public Task<string> LoginPage()
+        {
+            return Task.FromResult(loginPage);
+        }
+        public Task<string> DashboardPage()
+        {
+            return Task.FromResult(dashboardPage);
+        }
+        public Task<Color> AlertColor()
+        {
+            return Task.FromResult(alertColor);
+        }
+        public Task<Color> NoteColor()
+        {
+            return Task.FromResult(noteColor);
+        }
+        public Task<Color> InfoColor()
+        {
+            return Task.FromResult(infoColor);
+        }
+
         public AlertService(IDbContextFactory<WrDbContext> dbFactory) : base(dbFactory) { }
+
 
         public async Task<IList<WRAlert>> GetAllWRAlertsAsync()
         {
@@ -27,6 +68,10 @@ namespace TheradexPortal.Data.Services
         public async Task<IList<WRAlert>> GetAllNotesAsync()
         {
             return await context.Alerts.Where(a => a.AlertType == noteType).ToListAsync();
+        }
+        public async Task<WRAlert?> GetAlertById(int id)
+        {
+            return await context.Alerts.FirstOrDefaultAsync(a => a.WRAlertId == id);
         }
 
         public async Task<IList<WRAlert>> GetAllActiveAlertsAsync()
@@ -47,14 +92,14 @@ namespace TheradexPortal.Data.Services
         {
             return await context.Alerts.Where(a => a.IsActive == active &&
             (dateTime >= a.StartDate!.Value.Date && (dateTime <= a.EndDate!.Value.Date.AddDays(1) || a.EndDate.Equals(null))) &&
-            a.AlertType == alertType && a.PageName == system).OrderByDescending(a => a.WRAlertId).ToListAsync();
+            a.AlertType == alertType && a.PageName == systemPage).OrderByDescending(a => a.WRAlertId).ToListAsync();
         }
 
         public async Task<IList<WRAlert>> GetActiveSystemNotesAsync()
         {
             return await context.Alerts.Where(a => a.IsActive == active &&
             (dateTime >= a.StartDate!.Value.Date && (dateTime <= a.EndDate!.Value.Date.AddDays(1) || a.EndDate.Equals(null))) &&
-            a.AlertType == noteType && a.PageName == system).OrderByDescending(a => a.WRAlertId).ToListAsync();
+            a.AlertType == noteType && a.PageName == systemPage).OrderByDescending(a => a.WRAlertId).ToListAsync();
         }
 
         public async Task<IList<WRAlert>> GetActiveLoginAlertsAsync()
@@ -83,6 +128,44 @@ namespace TheradexPortal.Data.Services
             return await context.Alerts.Where(a => a.IsActive == active &&
             (dateTime >= a.StartDate!.Value.Date && (dateTime <= a.EndDate!.Value.Date.AddDays(1) || a.EndDate.Equals(null))) &&
             a.AlertType == noteType && a.DashboardId == dashboardId).OrderByDescending(a => a.WRAlertId).ToListAsync();
+        }
+
+        public bool SaveAlert(WRAlert alert)
+        {
+            try
+            {
+                if (alert.WRAlertId == 0)
+                {
+                    context.Alerts.Add(alert);
+                    context.SaveChanges();
+                }
+                else
+                {
+                    var dbAlert = context.Alerts.FirstOrDefault(a => a.WRAlertId == alert.WRAlertId);
+
+                    if (dbAlert != null)
+                    {
+                        dbAlert.PageName = alert.PageName;
+                        if (alert.DashboardId != null && alert.DashboardId > 0)
+                        {
+                            dbAlert.DashboardId = alert.DashboardId;
+                        }
+                        dbAlert.AlertType = alert.AlertType;
+                        dbAlert.AlertText = alert.AlertText;
+                        dbAlert.IsActive = alert.IsActive;
+                        dbAlert.StartDate = alert.StartDate;
+                        dbAlert.EndDate = alert.EndDate;
+
+                        context.SaveChanges();
+                    }
+                }
+
+                return true;
+            }
+            catch(Exception ex)
+            {
+                return false;
+            }
         }
     }
 }
