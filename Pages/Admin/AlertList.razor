@@ -71,14 +71,14 @@
                         </Button>
                     </DisplayTemplate>
                 </DataGridColumn>
-                @*<DataGridColumn Sortable="false" Filterable="false" Width="125px">
+                <DataGridColumn Sortable="false" Filterable="false" Width="125px">
                     <DisplayTemplate>
                         <Button Color="Color.Danger" Clicked="@(()=>ShowDeactivateModal(context as WRAlert))"
                                 Visibility="@IsDeactivatable(context as WRAlert)">
                             Deactivate
                         </Button>
                     </DisplayTemplate>
-                </DataGridColumn>*@
+                </DataGridColumn>
             </DataGridColumns>
             <ButtonRowTemplate>
                 <Button Color="Color.Primary" Clicked="@NewAlertClick">Create Alert</Button>
@@ -93,6 +93,9 @@
             <CloseButton />
         </ModalHeader>
         <ModalBody>
+            <Alert Color="@currentColor" Visible>
+                <AlertDescription TextOverflow="TextOverflow.Wrap">@((MarkupString)@alertToDeactivateText)</AlertDescription>
+            </Alert>
             Warning:  Continuing will make this alert inactive
         </ModalBody>
         <ModalFooter>
@@ -102,17 +105,25 @@
     </ModalContent>
 </Modal>
 
-@code {
+    @code {
     [Inject] IAlertService alertService { get; set; } = null!;
     [Inject] IDashboardService dashboardService { get; set; } = null!;
+    [Inject] INotificationService NotificationService { get; set; }
     [Inject] private NavigationManager navigation { get; set; } = null!;
     [AllowNull] private Modal deactivateModalRef;
 
     private IList<WRAlert> alertList = new List<WRAlert>();
     private IList<Dashboard> dashboards = new List<Dashboard>();
     private string alertToDeactivate = string.Empty;
+    private string alertToDeactivateText = string.Empty;
     private string pageDashboard = string.Empty;
+    private string typeAlert = string.Empty;
+    private string typeNote = string.Empty;
     private int alertToDeactivateId;
+    private Color? alertColor;
+    private Color? noteColor;
+    private Color? infoColor;
+    private Color? currentColor;
 
 
     protected override async Task OnInitializedAsync()
@@ -124,6 +135,13 @@
         int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
 
         dashboards = await dashboardService.GetDashboardsForUserAsync(userId, isAdmin);
+
+        this.typeAlert = await alertService.AlertType();
+        this.typeNote = await alertService.NoteType();
+        this.alertColor = await alertService.AlertColor();
+        this.noteColor = await alertService.NoteColor();
+        this.infoColor = await alertService.InfoColor();
+        this.currentColor = this.alertColor;
     }
 
     private Visibility IsDeactivatable(WRAlert a)
@@ -146,7 +164,18 @@
 
     private Task ShowDeactivateModal(WRAlert a)
     {
-        
+        if (a.AlertType.Equals(typeAlert))
+        {
+            currentColor = alertColor;
+        }
+        else if (a.AlertType.Equals(typeNote))
+        {
+            currentColor = noteColor;
+        }
+
+        alertToDeactivate = a.AlertType + " " + a.PageName;
+        alertToDeactivateText = a.AlertText;
+        alertToDeactivateId = a.WRAlertId;
         return deactivateModalRef.Show();
     }
 
@@ -158,6 +187,14 @@
     private async void DeactivateAlertClick()
     {
         deactivateModalRef.Hide();
-        // deactivate
+        bool success = alertService.DeactivateAlert(alertToDeactivateId);
+        if (success)
+        {
+            await NotificationService.Success("User deactivated");
+        }
+        else
+        {
+            await NotificationService.Error("Error deactivating user");
+        }
     }
 }

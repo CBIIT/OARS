@@ -167,5 +167,22 @@ namespace TheradexPortal.Data.Services
                 return false;
             }
         }
+
+        public bool DeactivateAlert(int alertId)
+        {
+            try
+            {
+                var alert = context.Alerts.FirstOrDefault(a => a.WRAlertId == alertId);
+                alert.IsActive = false;
+                alert.UpdateDate = DateTime.UtcNow;
+                context.SaveChanges();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
     }
 }
