@@ -35,12 +35,13 @@
         <Field Horizontal>
             <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Page</FieldLabel>
             <FieldBody ColumnSize="ColumnSize.Is6">
-                    <RadioGroup TValue="string" CheckedValue="@pageName" CheckedValueChanged="OnPageTypeValueChanged" Color="Color.Primary">
+                <RadioGroup TValue="string" CheckedValue="@pageName" CheckedValueChanged="OnPageTypeValueChanged" Color="Color.Primary">
                     <Radio Value="@pageLogin">@pageLogin</Radio>
                     <Radio Value="@pageSystem">@pageSystem</Radio>
                     <Radio Value="@pageDashboard">@pageDashboard</Radio>
                 </RadioGroup>
             </FieldBody>
+            <FieldHelp Display="@noteDashboardError"><Text TextColor="TextColor.Danger">Notes are not available for Dashboards</Text></FieldHelp>
         </Field>
         <Field Horizontal>
             <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Dashboard</FieldLabel>
@@ -141,6 +142,9 @@
 
     private IList<Dashboard> dashboards = new List<Dashboard>();
     private IFluentDisplay startDateError = Display.None;
+    private IFluentDisplay noteDashboardError = Display.None;
+    private IFluentDisplay displayShown = Display.Block;
+    private IFluentDisplay displayHidden = Display.None;
 
     public string AddOrEdit { get; set; }
     private Validations? alertValidations;
@@ -309,51 +313,86 @@
 
     private async void Save()
     {
-        if (await alertValidations.ValidateAll() && startDate != null)
+        if (!await alertValidations.ValidateAll())
         {
-            var saved = false;
-            var now = DateTime.UtcNow;
+            //
+            return;
+        }
+        else if (startDate == null)
+        {
+            await OnStartDateChanged(null);
+            return;
+        }
+        else if (DashboardNote())
+        {
+            await UpdateNoteDashboardError();
+            return;
+        }
 
-            WRAlert alert;
-            if (newAlert)
-            {
-                alert = new WRAlert();
-                alert.CreateDate = now;
-            }
-            else
-            {
-                alert = currAlert;
-                alert.UpdateDate = now;
-            }
-            alert.PageName = pageName;
-            alert.DashboardId = dashboardId;
-            if (!alert.PageName.Equals(pageDashboard))
-            {
-                alert.DashboardId = null;
-            }
-            alert.AlertType = alertType;
-            alert.AlertText = alertText;
-            alert.IsActive = isActive;
-            alert.StartDate = startDate;
-            alert.EndDate = endDate;
+        var saved = false;
+        var now = DateTime.UtcNow;
 
-            saved = alertService.SaveAlert(alert);
-
-            if (saved)
-            {
-                await NotificationService.Success("Alert successfully saved");
-                navigation.NavigateTo("/admin/alerts");
-            }
-            else
-            {
-                await NotificationService.Error("Error saving Alert");
-                navigation.NavigateTo("/admin/alerts");
-            }
+        WRAlert alert;
+        if (newAlert)
+        {
+            alert = new WRAlert();
+            alert.CreateDate = now;
         }
         else
         {
-            await OnStartDateChanged(null);
+            alert = currAlert;
+            alert.UpdateDate = now;
         }
+        alert.PageName = pageName;
+        alert.DashboardId = dashboardId;
+        if (!alert.PageName.Equals(pageDashboard))
+        {
+            alert.DashboardId = null;
+        }
+        alert.AlertType = alertType;
+        alert.AlertText = alertText;
+        alert.IsActive = isActive;
+        alert.StartDate = startDate;
+        alert.EndDate = endDate;
+
+        saved = alertService.SaveAlert(alert);
+
+        if (saved)
+        {
+            await NotificationService.Success("Alert successfully saved");
+        }
+        else
+        {
+            await NotificationService.Error("Error saving Alert");
+        }
+
+        navigation.NavigateTo("/admin/alerts");
+    }
+
+    private bool DashboardNote()
+    {
+        if (pageName.Equals(pageDashboard) && alertType.Equals(typeNote))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    private Task UpdateNoteDashboardError()
+    {
+        if (!pageName.Equals(pageDashboard) && !alertType.Equals(typeNote))
+        {
+            noteDashboardError = displayHidden;
+        }
+        else
+        {
+            noteDashboardError = displayShown;
+        }
+
+        return Task.CompletedTask;
     }
 
     private void Cancel()
