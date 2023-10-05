@@ -5,11 +5,12 @@
 @{
     foreach (Report report in Reports)
     {
-            <BarDropdownItem Style="padding:0px 0px 0px 0px; margin:0px 0px 0px 0px;">
-                <BarLink To="@GetReportLink(report)" Style="margin-left:0px;padding-left:10px;">
-                    @report.StudyType
-                </BarLink>
-            </BarDropdownItem>        
+        <BarDropdownItem Style="padding:0px 0px 0px 0px; margin:0px 0px 0px 0px;">
+            <BarLink To="@GetReportLink(report)" Class="tertiary-bar-link">
+                <BarIcon IconName="@GetReportIcon(report)" Class="tertiary-bar-icon" />
+                @report.StudyType
+            </BarLink>
+        </BarDropdownItem>
     }
 }
 
@@ -26,5 +27,10 @@
         {
             return $"{WrConstants.DASHBOARD_PAGE_PATH}/{report.DashboardId}/{report.WRReportId}";
         }
+    }
+
+    protected string GetReportIcon(Report report)
+    {
+        return report.DisplayIconName ?? "defaultIcon";
     }
 }

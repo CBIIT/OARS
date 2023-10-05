@@ -77,7 +77,6 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        this.setCurrentColor();
         this.getSystemAlerts();
         this.getLoginAlerts();
         this.getDashboardAlerts();
@@ -93,6 +92,7 @@ else
             this.noteColor = await alertService.NoteColor();
             this.infoColor = await alertService.InfoColor();
             this.currentColor = this.noteColor;
+            this.setCurrentColor();
             this.alertsSessionLoaded = true;
             await this.updateAlertsCount(this.getActiveAlertsCount());
             StateHasChanged();

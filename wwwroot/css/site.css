@@ -244,9 +244,9 @@
     font-size: 15px;
 }
 
-    .active, .collapsible:hover {
-        background-color: #ccc;
-    }
+.active, .collapsible:hover {
+    background-color: #ccc;
+}
 
 .content {
     padding: 0 18px;
@@ -265,4 +265,13 @@
 
 .accordion-button.collapsed {
     color: black;
+}
+
+.tertiary-bar-icon {
+    
+}
+
+.tertiary-bar-link {
+    margin-left: 0px;
+    padding-left: 0px;
 }
