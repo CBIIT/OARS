@@ -27,5 +27,7 @@ namespace TheradexPortal.Data.Services.Abstract
         public Task<IList<WRAlert>> GetActiveDashboardNotesByIdAsync(int dashboardId);
         public bool SaveAlert(WRAlert alert);
         public bool DeactivateAlert(int alertId);
+
+        public bool AlertDatesValid(DateTime? startDate, DateTime? endDate);
     }
 }

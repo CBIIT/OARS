@@ -25,7 +25,7 @@
     {
         foreach (var alert in activeAlerts)
         {
-            if (!this.Dismissable || !this.alertDismissed(this.dismissedAlerts!, alert))
+            if (!this.Dismissable || !this.alertDismissed(this.dismissedAlerts!, alert) && alertService.AlertDatesValid(alert.StartDate, alert.EndDate))
             {
                 <Alert Color="currentColor" Visible Class="@CSS">
                     <AlertDescription TextOverflow="TextOverflow.Wrap">@((MarkupString)alert.AlertText!)</AlertDescription>

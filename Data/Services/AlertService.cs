@@ -184,5 +184,17 @@ namespace TheradexPortal.Data.Services
                 return false;
             }
         }
+
+        public bool AlertDatesValid(DateTime? startDate, DateTime? endDate)
+        {
+            if (startDate == null)
+            {
+                return false; 
+            }
+
+            var datesValid = dateTime >= startDate!.Value.Date && (endDate == null || (dateTime <= endDate!.Value.Date.AddDays(1)));
+
+            return datesValid;
+        }
     }
 }
