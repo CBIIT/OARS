@@ -13,7 +13,7 @@
         <Div Class="nci-main-wrapper" Background="Background.Light">
         <Layout Class="nci-main-layout" Background="Background.Light">
             <LayoutHeader>
-                <Bar Breakpoint="Breakpoint.Desktop" NavigationBreakpoint="Breakpoint.Desktop" Background="Background.Light" Class="nci-navbar px-4">
+                <Bar Breakpoint="Breakpoint.Desktop" NavigationBreakpoint="Breakpoint.Desktop" Style="@GetHeaderColor()" Class="nci-navbar px-4">
                     <BarBrand>
                         <Image Source="img/theradex-logo.png" AlternateText="Theradex Oncology" />
                     </BarBrand>
@@ -128,6 +128,12 @@
        
     }
     
+    private string GetHeaderColor()
+    {
+        string color = configuration.GetValue<string>("System:SystemColor");
+        return "background-color:" + color + ";";
+    }
+
     Task OnButtonClicked()
     {
         int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);

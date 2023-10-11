@@ -207,6 +207,12 @@
 
         if (await validations.ValidateAll())
         {
+            // Check for existing group name
+            if (!groupService.CheckGroupName(groupName, (int)(GroupId != null ? GroupId : 0)))
+            {
+                await NotificationService.Error( "Group Name already exists.");
+                return;
+            }
             DateTime saveDateTime = DateTime.UtcNow;
             Group saveGroup = new Group();
             if (GroupId != null)

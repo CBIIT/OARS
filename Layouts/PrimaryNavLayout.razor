@@ -2,18 +2,18 @@
 @using TheradexPortal.Data.Services.Abstract;
 @using TheradexPortal.Data.Static;
 @inject IHttpContextAccessor httpContextAccessor
-
 @inherits LayoutComponentBase
 @using TheradexPortal.Data.Models;
 @using TheradexPortal.Data.Services;
 @using TheradexPortal.Data;
 @using TheradexPortal.Data.Services.Abstract;
+@inject IConfiguration configuration
 @layout AuthLayout
 
 <Div Class="nci-main-wrapper">
     <Layout Class="nci-main-layout">
         <LayoutHeader>
-            <Bar Breakpoint="Breakpoint.Desktop" NavigationBreakpoint="Breakpoint.Desktop" Background="Background.Light" Class="nci-navbar px-4">
+            <Bar Breakpoint="Breakpoint.Desktop" NavigationBreakpoint="Breakpoint.Desktop" Style="@GetHeaderColor()" Class="nci-navbar px-4">
                 <BarBrand>
                     <Image Source="img/theradex-logo.png" AlternateText="Theradex Oncology" />
                 </BarBrand>
@@ -24,7 +24,7 @@
                     </BarStart>
                     <BarEnd>
                         <BarItem>
-                            <EnvironmentLbl/>
+                            <EnvironmentLbl />
                         </BarItem>
                         <BarItem>
                             <Tooltip Text="Alerts">
@@ -123,6 +123,12 @@
             adminDisplay = Display.None;
 
         await base.OnInitializedAsync();
+    }
+
+    private string GetHeaderColor()
+    {
+        string color = configuration.GetValue<string>("System:SystemColor");
+        return "background-color:" + color  + ";";    
     }
 
     Task OnButtonClicked()

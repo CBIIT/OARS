@@ -141,6 +141,11 @@ namespace TheradexPortal.Data.Services
             else
                 return false;
         }
+        public bool CheckDashboardName(string dashboardName, int dashboardId)
+        {
+            Dashboard foundDashboard = context.Dashboards.FirstOrDefault(d => d.Name == dashboardName && d.WRDashboardId != dashboardId);
+            return foundDashboard == null;
+        }
 
         public bool SaveDashboard(Dashboard dashboard)
         {

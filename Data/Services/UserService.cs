@@ -21,6 +21,11 @@ namespace TheradexPortal.Data.Services
         {
             return await context.Users.FirstOrDefaultAsync(u => u.EmailAddress == emailAddress);
         }
+        public bool CheckEmailAddress(string emailAddress, int userId)
+        {
+            User foundUser = context.Users.FirstOrDefault(u=>u.EmailAddress == emailAddress && u.UserId != userId);
+            return foundUser == null;
+        }
         public bool SaveUser(User user)
         {
             try

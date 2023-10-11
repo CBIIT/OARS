@@ -565,6 +565,12 @@
     {
         bool saved = false;
 
+        if (!dashboardService.CheckDashboardName(dashboardName, (int)(DashboardId != null ? DashboardId : 0)))
+        {
+            await NotificationService.Error( "Dashboard name already exists.");
+            return;
+        }
+
         if (String.IsNullOrEmpty(pageName) && (reportList == null || reportList.Count == 0))
         {
             await NotificationService.Error( "Dashboard must navigate to a page or one left menu item must be defined");
