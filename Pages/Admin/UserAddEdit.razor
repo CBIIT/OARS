@@ -1,4 +1,5 @@
-﻿@using TheradexPortal.Data.Models;
+﻿@using System.Diagnostics.CodeAnalysis
+@using TheradexPortal.Data.Models;
 @using TheradexPortal.Data.Services.Abstract;
 @using TheradexPortal.Data.Static;
 @using TheradexPortal.Data.Models.Configuration;
@@ -565,7 +566,7 @@
     // All steps
     public string AddOrEdit { get; set; }
     string selectedStep = "step1";
-    private Steps stepsRef;
+    [AllowNull] private Steps stepsRef;
     IFluentDisplay displayPrev = Display.None;
     IFluentDisplay displayNext = Display.Block;
     IFluentDisplay displaySave = Display.None;
