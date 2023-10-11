@@ -1,6 +1,9 @@
 ﻿@using TheradexPortal.Data.Models;
 @using TheradexPortal.Data.Services.Abstract;
 @using TheradexPortal.Data.Static;
+@using TheradexPortal.Data.Models.Configuration;
+@using Microsoft.Extensions.Options;
+@inject IOptions<EmailSettings> emailSettings;
 @layout AdminLayout
 
 @page "/admin/user/{userid:int?}"
@@ -553,10 +556,10 @@
     [Inject] IStudyService studyService { get; set; } = null!;
     [Inject] IGroupService groupService { get; set; } = null!;
     [Inject] INotificationService NotificationService { get; set; }
-    [Inject] private NavigationManager navigation {get; set; } = null!;
+    [Inject]  NavigationManager navigation {get; set; } = null!;
     [Inject] IOktaService oktaService { get; set; } = null!;
     [Inject] IConfiguration configuration { get; set; } = null!;
-
+    [Inject] IEmailService emailService { get; set; } = null!;
     [Parameter] public int? UserId { get; set; }
 
     // All steps
@@ -1035,7 +1038,7 @@
         // Try to create or update the OKTA user
         bool oktaSuccess = true;
         bool oktaGroupSuccess = true;
-        bool oktaActiveSuccess = true;
+        bool emailSuccess = true;
         if (saved)
         {
             if (UserId == null)
@@ -1043,16 +1046,59 @@
                 string baseURL = navigation.BaseUri;
                 string initialSite = "Web Reporting-" + configuration.GetValue<string>("System:Environment");
                 bool isProd = !initialSite.Contains('-');
-                Tuple<bool, string> oktaResults = await oktaService.CreateUser(isProd, firstName, lastName, email, isCTEPUser, isActive, baseURL, initialSite);
 
-                oktaSuccess = oktaResults.Item1;
+                // Determine if user exists in OKTA (OKTA is for multi-applications (I.e.  WR, IWRS, etc) & environments (i.e.  DEV, UAT, etc)
+                Tuple<bool, string> oktaResults = await oktaService.FindUser(email);
+
+                // If user doesn't exist, create user and send welcome email
+                // If user exists, add them to proper group and send user configured for WR email
+                // Error finding the user in OKTA
+                if (oktaResults.Item1)
+                {
+                    // User exists - add to required group and send email
+                    oktaResults = await oktaService.AddUserGroup(saveUser.EmailAddress, isCTEPUser);
+                    oktaSuccess = oktaResults.Item1;
+                    if (oktaSuccess)
+                    {
+                        if (isActive)
+                            emailSuccess = await emailService.SendNewSystemEmail("Web Reporting-" + configuration.GetValue<string>("System:Environment"), navigation.BaseUri, configuration.GetValue<string>("System:SystemColor"), saveUser);
+                    }
+                }
+                else if (!oktaResults.Item1 && oktaResults.Item2 == "")
+                {
+                    // User does not exist - create the user, but deactivated
+                    oktaResults = await oktaService.CreateUser(isProd, saveUser, isCTEPUser, true, baseURL, initialSite);
+                    oktaSuccess = oktaResults.Item1;
+                    if (oktaSuccess)
+                    {
+                        string userId = oktaResults.Item2;
+                        // User is created - activate it - don't send email from OKTA, send via WR
+                        for (int iTry = 0; iTry < 5; iTry++)
+                        {
+                            oktaResults = await oktaService.UpdateActiveStatus(userId, true, isCTEPUser);
+                            oktaSuccess = oktaResults.Item1;
+                            if (oktaSuccess)
+                                break;
+                        }
+
+                        if (isActive)
+                        {
+                            string activationLink = oktaResults.Item2;
+                            emailSuccess = await emailService.SendNewUserEmail("Web Reporting-" + configuration.GetValue<string>("System:Environment"), navigation.BaseUri, configuration.GetValue<string>("System:SystemColor"), saveUser, activationLink);
+                        }
+                     }
+                }
+                else
+                {
+                    // Error calling okta
+                }
             }
             else
             {
                 // Check if we need to update FirstName, LastName or EmailAddress
                 if (userInfoChanged)
                 {
-                    Tuple<bool, string> oktaResults = await oktaService.UpdateUserInfo(origEmail, firstName, lastName, email, isCTEPUser);
+                    Tuple<bool, string> oktaResults = await oktaService.UpdateUserInfo(origEmail, saveUser);
                     oktaSuccess = oktaResults.Item1;
                 }
 
@@ -1062,13 +1108,6 @@
                     Tuple<bool, string> groupResults = await oktaService.UpdateUserCTEP(email, isCTEPUser);
                     oktaGroupSuccess = groupResults.Item1;
                 }
-
-                //if (activeChanged)
-                //{
-                //    oktaActiveSuccess = true;
-                //    //Tuple<bool, string> groupResults = await oktaService.UpdateActiveStatus(email, isActive, isCTEPUser);
-                //    //oktaActiveSuccess = groupResults.Item1;
-                //}
             }
         }
 

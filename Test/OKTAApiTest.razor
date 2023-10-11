@@ -1,6 +1,8 @@
 ﻿@using TheradexPortal.Data.Services;
 @using TheradexPortal.Data.Static;
 @using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Models;
+
 @layout AdminLayout
 
 @page "/test/oktaapitest"
@@ -66,7 +68,13 @@
         string baseURL = navigation.BaseUri;
         string initialSite = "Web Reporting-" + configuration.GetValue<string>("System:Environment");
         bool isProd = !initialSite.Contains('-');
-        Tuple<bool, string> results = await oktaService.CreateUser(isProd, firstName, lastName, emailAddress, true, isCTEP, baseURL, initialSite);
+
+        User curUser = new User();
+        curUser.FirstName = firstName;
+        curUser.LastName = lastName;
+        curUser.EmailAddress = emailAddress;
+
+        Tuple<bool, string> results = await oktaService.CreateUser(isProd, curUser, true, isCTEP, baseURL, initialSite);
         if (results.Item1)
             resultColor = TextColor.Dark;
         else
