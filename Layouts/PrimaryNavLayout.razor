@@ -64,7 +64,7 @@
                         <BarItem>
                             <Tooltip Text="Administration">
                                 <Button Flex="Flex.JustifyContent.Center" Display="@adminDisplay" Type="ButtonType.Link" To="admin">
-                                    <Image Source="img/gear.jpg" height="@iconHeight" />
+                                    <Image Source="img/admin.png" height="@iconHeight" />
                                 </Button>
                             </Tooltip>
                         </BarItem>
@@ -168,7 +168,7 @@
     [Inject] IContactUsService contactUsCategoryService { get; set; } = null!;
 
     Validations validations;
-    private int iconHeight = 24;
+    private int iconHeight = 30;
     private int systemAlertsCount;
     private int systemNotesCount;
     IFluentDisplay adminDisplay = Display.None;
@@ -248,8 +248,8 @@
     {
         if (await validations.ValidateAll())
         {
-            emailTo = configuration.GetValue<string>("System:SupportEmail");
-            fromEmail = configuration.GetValue<string>("System:FromEmail");
+            emailTo = configuration.GetValue<string>("EmailSettings:SupportEmail");
+            fromEmail = configuration.GetValue<string>("EmailSettings:FromEmail");
 
             ContactUsCategory category = lstContactUsCategory.Where(l => l.WRContactUsCategoryID == Convert.ToInt32(contactUsCategoryID)).FirstOrDefault();
             if(category != null)
