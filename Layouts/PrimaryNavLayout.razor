@@ -2,12 +2,11 @@
 @using TheradexPortal.Data.Services.Abstract;
 @using TheradexPortal.Data.Static;
 @inject IHttpContextAccessor httpContextAccessor
-
+@inject IConfiguration configuration
 @inherits LayoutComponentBase
 @using TheradexPortal.Data.Models;
 @using TheradexPortal.Data.Services;
 @using TheradexPortal.Data;
-@using TheradexPortal.Data.Services.Abstract;
 @layout AuthLayout
 
 <Div Class="nci-main-wrapper">
@@ -57,7 +56,7 @@
                         </BarItem>
                         <BarItem>
                             <Tooltip Text="Contact Us">
-                                <Button Flex="Flex.JustifyContent.Center" Type="ButtonType.Link" To="#">
+                                <Button Flex="Flex.JustifyContent.Center" Type="ButtonType.Button" Clicked="@ShowContactUsModal">
                                     <Image Source="img/contact.png" height="@iconHeight" />
                                 </Button>
                             </Tooltip>
@@ -98,6 +97,64 @@
     </Layout>
 </Div>
 
+ <Modal @ref="modalContactUs">
+     <ModalContent Centered Size="ModalSize.Large" >
+         <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
+            <ModalTitle>Contact Us</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            <Validations @ref="validations" Mode="ValidationMode.Manual">
+                <Validation Validator="@ValidationRule.IsNotEmpty">
+                    <Field>
+                         <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Subject</FieldLabel>
+                        <TextEdit Placeholder="Enter subject"  @bind-Text="@emailTitle" />
+                    </Field>
+                </Validation>
+                 <Validation Validator="@ValidationRule.IsNotEmpty">
+                 <Field>
+                     <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Categories</FieldLabel>
+                     <FieldBody ColumnSize="ColumnSize.Is4" Margin="Margin.IsAuto">
+                             <Select TValue="string" @bind-SelectedValue="@contactUsCategoryID">
+                                   @{
+                                    foreach (var cuTopItem in lstContactUsItems)
+                                       {
+                                           if (cuTopItem.IsGroupLevel)
+                                           {
+                                                <SelectGroup Label="@cuTopItem.Name" Class="categorySelectGroup">
+                                                @foreach (var cuItem in cuTopItem.SecondLevel)
+                                                {
+                                                    <SelectItem Value="@cuItem.CategoryID">@cuItem.Name</SelectItem>
+                                                }
+                                                </SelectGroup>
+                                           }
+                                           else
+                                           {
+                                            <SelectItem Value="@cuTopItem.CategoryID">@cuTopItem.Name</SelectItem>
+                                           }
+                                       }
+                                   }
+                             </Select>
+                     </FieldBody>
+                 </Field>
+                 </Validation>
+                <Validation Validator="@ValidationRule.IsNotEmpty">
+                <Field>
+                    <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Description</FieldLabel>
+                    <FieldBody>
+                             <MemoEdit @bind-Text="@emailDescription" MaxLength="250" Rows="3" Placeholder="Enter description" />
+                    </FieldBody>
+                </Field>
+                </Validation>
+            </Validations>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Primary" Clicked="@HideContactUsModal">Cancel</Button>
+            <Button Color="Color.Primary" Clicked="@SendContactUsEmail">Send Request</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
 @code {
     private PrimaryNav? primaryNav;
     private AlertBar? systemAlerts;
@@ -107,11 +164,18 @@
     [Inject] public NavigationManager Navigation { get; set; }
     [Inject] private IUserService userService { get; set; } = null!;
     [Inject] private IAlertService alertService { get; set; } = null!;
+    [Inject] INotificationService notificationService { get; set; }
+    [Inject] IContactUsService contactUsCategoryService { get; set; } = null!;
+
+    Validations validations;
     private int iconHeight = 24;
     private int systemAlertsCount;
     private int systemNotesCount;
     IFluentDisplay adminDisplay = Display.None;
 
+    private string contactUsCategoryID ="", fromEmail = "", emailTo = "", emailCategory="", emailDescription = "", emailTitle = "", emailMessage = "";
+    private List<ContactUsCategory> lstContactUsCategory;
+    private List<ContactUsCategorySelectItemList> lstContactUsItems;
 
     protected override async Task OnInitializedAsync()
     {
@@ -122,6 +186,8 @@
         else
             adminDisplay = Display.None;
 
+        lstContactUsCategory = contactUsCategoryService.GetContactUsCategories();
+        lstContactUsItems = contactUsCategoryService.GetContactUsCategoriesSelectItems();
         await base.OnInitializedAsync();
     }
 
@@ -149,4 +215,64 @@
     {
         this.systemNotesCount = count;
     }
+
+    private Modal modalContactUs;
+
+    private Task ShowContactUsModal()
+    {
+        emailTitle = "";
+        emailDescription = "";
+        if( lstContactUsItems.Count >0)
+        {
+            if (lstContactUsItems[0].IsGroupLevel && lstContactUsItems[0].SecondLevel!= null && lstContactUsItems[0].SecondLevel.Count > 0)
+            {
+                contactUsCategoryID = lstContactUsItems[0].SecondLevel[0].CategoryID.ToString();
+            }
+        }
+        validations.ClearAll();
+        return modalContactUs.Show();
+    }
+
+    private Task HideContactUsModal()
+    {
+        return modalContactUs.Hide();
+    }
+
+    private async void SendContactUsEmail()
+    {
+        if (await validations.ValidateAll())
+        {
+            emailTo = configuration.GetValue<string>("System:SupportEmail");
+            fromEmail = configuration.GetValue<string>("System:FromEmail");
+
+            ContactUsCategory category = lstContactUsCategory.Where(l => l.WRContactUsCategoryID == Convert.ToInt32(contactUsCategoryID)).FirstOrDefault();
+            if(category != null)
+            {
+                emailCategory = category.Name;
+                emailTo = category.EmailTo;
+            }
+
+            emailMessage = "Category: " + emailCategory + System.Environment.NewLine + "Description: " + emailDescription;
+            bool sendEmailResult = true;
+
+            if ( sendEmailResult)
+            {
+                await notificationService.Success("An email to support has been sent.");         
+            }
+            else
+            {
+                await notificationService.Error("An error occured during sending the email to support.");
+            }
+            ContactUs contactUsLog = new ContactUs();
+            contactUsLog.WRContactUsID = 0;
+            contactUsLog.Subject = emailTitle;
+            contactUsLog.Description = emailMessage;
+            contactUsLog.CategoryID = Convert.ToInt32(contactUsCategoryID);
+            contactUsLog.UserID = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+            contactUsLog.AttachmentName = string.Empty;
+            contactUsCategoryService.SaveContactUs(contactUsLog);
+            modalContactUs.Hide();
+        }
+    }
+
 }

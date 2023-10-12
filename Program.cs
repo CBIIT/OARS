@@ -41,6 +41,7 @@ builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IGroupService, GroupService>();
 builder.Services.AddScoped<IAlertService, AlertService>();
 builder.Services.AddScoped<IOktaService, OktaService>();
+builder.Services.AddScoped<IContactUsService, ContactUsService>();
 builder.Services.AddScoped<TimeZoneService>();
 
 // Add Blazorise and Tailwind UI
