@@ -44,6 +44,9 @@
 <Button Color="Color.Primary" Margin="Margin.Is5.FromTop" Clicked="@PasswordClicked">
     Generate Password
 </Button>
+<Button Color="Color.Primary" Margin="Margin.Is5.FromTop" Clicked="@ShowApiClicked">
+    Check Key
+</Button>
 <Text TextColor="TextColor.Dark">@resultMessage</Text>
 @code {
     [Inject] IOktaService oktaService { get; set; } = null!;
@@ -110,6 +113,14 @@
 
     private void PasswordClicked()
     {
+        resultColor = TextColor.Dark;
+        //resultMessage = oktaService.GeneratedPassword();
+        StateHasChanged();
+    }
+
+    private void ShowApiClicked()
+    {
+        resultMessage = configuration.GetValue<string>("Okta:ApiKey");
         resultColor = TextColor.Dark;
         //resultMessage = oktaService.GeneratedPassword();
         StateHasChanged();
