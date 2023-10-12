@@ -1,6 +1,10 @@
-﻿@using TheradexPortal.Data.Models;
+﻿@using System.Diagnostics.CodeAnalysis
+@using TheradexPortal.Data.Models;
 @using TheradexPortal.Data.Services.Abstract;
 @using TheradexPortal.Data.Static;
+@using TheradexPortal.Data.Models.Configuration;
+@using Microsoft.Extensions.Options;
+@inject IOptions<EmailSettings> emailSettings;
 @layout AdminLayout
 
 @page "/admin/user/{userid:int?}"
@@ -28,19 +32,19 @@
                     <Field Horizontal>
                         <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">First Name</FieldLabel>
                         <FieldBody ColumnSize="ColumnSize.Is6">
-                            <TextEdit Placeholder="First Name" MaxLength="50" @bind-Text="@firstName" />
+                            <TextEdit Placeholder="First Name" MaxLength="50" Text="@firstName" TextChanged="@OnFirstNameChanged" />
                         </FieldBody>
                     </Field>
                     <Field Horizontal>
                         <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Last Name</FieldLabel>
                         <FieldBody ColumnSize="ColumnSize.Is6">
-                            <TextEdit Placeholder="Last Name" MaxLength="50" @bind-Text="@lastName" />
+                            <TextEdit Placeholder="Last Name" MaxLength="50" Text="@lastName" TextChanged="@OnLastNameChanged" />
                         </FieldBody>
                     </Field>
                     <Field Horizontal>
                         <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Email Address</FieldLabel>
                         <FieldBody ColumnSize="ColumnSize.Is6">
-                            <TextEdit Placeholder="Email Address" MaxLength="255" @bind-Text="@email" />
+                            <TextEdit Placeholder="Email Address" MaxLength="255" Text="@email" TextChanged="@OnEmailChanged" />
                         </FieldBody>
                     </Field>
                     <Field Horizontal>
@@ -52,21 +56,27 @@
                 </Div>
                 <Div Padding="Padding.Is4" Style="@flexContainerStyle">
                     <Field Horizontal>
-                        <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Is Active</FieldLabel>
-                        <FieldBody ColumnSize="ColumnSize.Is6">
-                            <Switch TValue="bool" @bind-Checked="@isActive"></Switch>
-                        </FieldBody>
-                    </Field>
-                    <Field Horizontal>
                         <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Is CTEP User</FieldLabel>
                         <FieldBody ColumnSize="ColumnSize.Is6">
-                            <Switch TValue="bool" @bind-Checked="@isCTEPUser"></Switch>
+                            <Switch TValue="bool" Checked="@isCTEPUser" CheckedChanged="@OnCTEPChanged"></Switch>
                         </FieldBody>
                     </Field>
                     <Field Horizontal>
-                        <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">CTEP Id</FieldLabel>
+                        <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">CTEP Username</FieldLabel>
                         <FieldBody ColumnSize="ColumnSize.Is6">
-                            <TextEdit Placeholder="CTEP Id" MaxLength="100" @bind-Text="@ctepUserId" />
+                            <TextEdit Placeholder="CTEP Username" MaxLength="100" @bind-Text="@ctepUserId" />
+                        </FieldBody>
+                    </Field>
+                    <Field Horizontal>
+                        <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Is Active</FieldLabel>
+                        <FieldBody ColumnSize="ColumnSize.Is6">
+                            <Switch TValue="bool" Checked="@isActive" CheckedChanged="@OnActiveChanged"></Switch>
+                        </FieldBody>
+                    </Field>
+                    <Field Horizontal>
+                        <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">OKTA User Status</FieldLabel>
+                        <FieldBody ColumnSize="ColumnSize.Is6">
+                            <TextEdit  Disabled Text="@oktaUserStatus" />&nbsp;&nbsp;<Button Color="Color.Primary" Display="@isUserLocked" Clicked="@UnlockUser"> Unlock User</Button>
                         </FieldBody>
                     </Field>
                 </Div>
@@ -102,7 +112,7 @@
                                         Data="@rolesAvailable"
                                         TextField="@((role)=>role.RoleName)"
                                         ValueField="@((role)=>role.RoleId)"
-                                        @bind-SelectedValues="@availabelRolesSelected"
+                                        @bind-SelectedValues="@availableRolesSelected"
                                         MaxVisibleItems = "12"
                                         Multiple />
                         </FieldBody>
@@ -294,6 +304,241 @@
         </StepPanel>
         <StepPanel Name="step4">
             <h4>Review and Save</h4>
+            <Divider/>
+            <Div Flex="Flex.AlignItems.Start" Margin="Margin.Is3.FromBottom" Background="Background.Light">
+                <Div Padding="Padding.Is2" Style="@flexContainerStyle">
+                    <h5>User Info</h5>
+                    <Table Narrow>              
+                        <TableBody>
+                            <TableRow>
+                                <TableRowHeader>First Name</TableRowHeader>
+                                <TableRowCell>@firstName</TableRowCell>
+                                <TableRowCell>
+                                    <Span TextColor="TextColor.Danger">
+                                    @{
+                                        if (firstName == "")
+                                        { @("Required") }
+                                        else
+                                        { @("") }
+                                    }
+                                    </Span>
+                                </TableRowCell>
+                                <TableRowHeader>Is CTEP User</TableRowHeader>
+                                <TableRowCell>
+                                    @{
+                                        if (isCTEPUser)
+                                         { @("Yes") }
+                                        else
+                                        { @("No") }
+                                    }
+                                </TableRowCell>
+                                <TableRowCell></TableRowCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableRowHeader>Last Name</TableRowHeader>
+                                <TableRowCell>@lastName</TableRowCell>
+                                <TableRowCell>
+                                    <Span TextColor="TextColor.Danger">
+                                    @{
+                                        if (lastName == "")
+                                        { @("Required") }
+                                        else
+                                        { @("") }
+                                    }
+                                    </Span>
+                                </TableRowCell>
+                                <TableRowHeader>CTEP Username</TableRowHeader>
+                                <TableRowCell>@ctepUserId</TableRowCell>
+                                <TableRowCell>
+                                    <Span TextColor="TextColor.Danger">
+                                    @{
+                                        if (isCTEPUser && (ctepUserId == "" || ctepUserId == null))
+                                        { @("Required") }
+                                        else
+                                        { @("") }
+                                    }
+                                    </Span>
+                                </TableRowCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableRowHeader>Email Address</TableRowHeader>
+                                <TableRowCell>@email</TableRowCell>
+                                <TableRowCell>
+                                    <Span TextColor="TextColor.Danger">
+                                    @{
+                                        if (email == "")
+                                        { @("Required") }
+                                        else if (!emailRegexIsValid(email))
+                                        {
+                                            @("Invalid Email")
+                                        }
+                                        else
+                                        {
+                                            @("")
+                                        }
+                                    }
+                                    </Span>
+                                </TableRowCell>
+                                <TableRowHeader>Is Active</TableRowHeader>
+                                <TableRowCell>
+                                    @{
+                                        if (isActive)
+                                         { @("Yes") }
+                                        else
+                                        { @("No") }
+                                    }
+                                </TableRowCell>
+                                <TableRowCell></TableRowCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableRowHeader>Title</TableRowHeader>
+                                <TableRowCell>@title</TableRowCell>
+                                <TableRowCell></TableRowCell>
+                                <TableRowCell></TableRowCell>
+                                <TableRowCell></TableRowCell>
+                                <TableRowCell></TableRowCell>
+                            </TableRow>
+                        </TableBody>
+                    </Table>                   
+                </Div>
+                <Div Padding="Padding.Is2" Style="@flexContainerStyle">
+                    <h5>Role Assignments</h5>
+                    <Table Narrow>              
+                        <TableBody>
+                            <TableRow>
+                                <TableRowHeader Style="width:200px">Primary Role</TableRowHeader>
+                                <TableRowCell>@roleName</TableRowCell>
+                                <TableRowCell>
+                                    <Span TextColor="TextColor.Danger">
+                                    @{
+                                        if (roleName == "")
+                                        { @("Required") }
+                                        else
+                                        { @("") }
+                                    }
+                                    </Span>
+                                </TableRowCell>
+                            </TableRow>
+                            @if (selectedUserRoleList.Count == 0) {
+                            <TableRow>
+                                <TableRowHeader Style="width:200px">Secondary Roles</TableRowHeader>
+                                <TableRowCell>None selected</TableRowCell>
+                                </TableRow>
+                            }
+                            else {
+                                for (int i = 0; i <= selectedUserRoleList.Count - 1; ++i)
+                                {
+                                    var curId = i;
+                                    <TableRow>
+                                        <TableRowHeader Style="width:200px">
+                                            @{
+                                                if (curId == 0)
+                                                { @("Secondary Roles") }
+                                            }
+                                        </TableRowHeader>
+                                        <TableRowCell Style="width:200px">@(GetRoleName(selectedUserRoleList[curId].RoleId))
+                                        </TableRowCell>
+                                        @{ if (selectedUserRoleList[curId].ExpirationDate != null)
+                                        {
+                                        <TableRowCell>
+                                            @("Until " + selectedUserRoleList[curId].ExpirationDate.Value.ToString("dd-MMM-yyyy"))
+                                        </TableRowCell>
+                                        }
+                                        else
+                                        {
+                                            <TableRowCell></TableRowCell>
+                                        }}
+                                </TableRow>
+                                }
+                            }
+                        </TableBody>
+                    </Table>
+                </Div>
+            </Div>
+            <Div Flex="Flex.AlignItems.Start" Margin="Margin.Is3.FromBottom" Background="Background.Light">
+                <Div Padding="Padding.Is2" Style="@flexContainerStyle">
+                    <h5>Study Assignments</h5>
+                    <Table Narrow>              
+                        <TableBody>
+                            @if (studySelectionType == 2) {
+                                <TableRow>
+                                    <TableRowCell>All studies assigned</TableRowCell>
+                                </TableRow>
+                            }
+                            else {
+                                if (selectedUserProtocolList != null && selectedUserProtocolList.Count > 0)
+                                {
+                                    for (int j = 0; j <= selectedUserProtocolList.Count - 1; ++j)
+                                    {
+                                        var curId2 = j;
+                                        <TableRow>
+                                            <TableRowCell Style="width:200px">@selectedUserProtocolList[curId2].StudyId
+                                            </TableRowCell>
+                                            @{ if (selectedUserProtocolList[curId2].ExpirationDate != null)
+                                            {
+                                            <TableRowCell>
+                                                @("Until " + selectedUserProtocolList[curId2].ExpirationDate.Value.ToString("dd-MMM-yyyy"))
+                                            </TableRowCell>
+                                            }
+                                            else
+                                            {
+                                                <TableRowCell></TableRowCell>
+                                            }}
+                                        </TableRow>
+                                    }
+                                }
+                                else
+                                {
+                                   <TableRow>
+                                       <TableRowCell>No studies assigned</TableRowCell>
+                                   </TableRow>
+                                }
+                            }
+                        </TableBody>
+                    </Table>
+                </Div>
+                <Div Padding="Padding.Is2" Style="@flexContainerStyle">
+                    <h5>Group Assignments</h5>
+                    <Table Narrow>              
+                        <TableBody>
+                            @if (studySelectionType == 2) {
+                                <TableRow>
+                                    <TableRowCell>N/A</TableRowCell>
+                                </TableRow>
+                            }
+                            else {
+                                if (selectedUserGroupList != null && selectedUserGroupList.Count > 0)
+                                {
+                                    for (int k = 0; k <= selectedUserGroupList.Count - 1; ++k)
+                                    {
+                                        var curId3 = k;
+                                        <TableRow>
+                                            <TableRowCell Style="width:200px">@selectedUserGroupList[curId3].Group.GroupName
+                                            </TableRowCell>
+                                            @{ if (selectedUserGroupList[curId3].ExpirationDate != null)
+                                            {
+                                            <TableRowCell>
+                                                @("Until " + selectedUserGroupList[curId3].ExpirationDate.Value.ToString("dd-MMM-yyyy"))
+                                            </TableRowCell>
+                                            }
+                                            else
+                                            {
+                                                <TableRowCell></TableRowCell>
+                                            }}
+                                        </TableRow>
+                                    }
+                                }
+                                else
+                                {
+                                   <TableRow>
+                                       <TableRowCell>No groups assigned</TableRowCell>
+                                   </TableRow>
+                                }
+                            }
+                        </TableBody>
+                    </Table>
+                </Div>
+            </Div>
         </StepPanel>
     </Content>
 </Steps>
@@ -312,14 +557,16 @@
     [Inject] IStudyService studyService { get; set; } = null!;
     [Inject] IGroupService groupService { get; set; } = null!;
     [Inject] INotificationService NotificationService { get; set; }
-    [Inject] private NavigationManager navigation {get; set; } = null!;
-
+    [Inject]  NavigationManager navigation {get; set; } = null!;
+    [Inject] IOktaService oktaService { get; set; } = null!;
+    [Inject] IConfiguration configuration { get; set; } = null!;
+    [Inject] IEmailService emailService { get; set; } = null!;
     [Parameter] public int? UserId { get; set; }
 
     // All steps
     public string AddOrEdit { get; set; }
     string selectedStep = "step1";
-    private Steps stepsRef;
+    [AllowNull] private Steps stepsRef;
     IFluentDisplay displayPrev = Display.None;
     IFluentDisplay displayNext = Display.Block;
     IFluentDisplay displaySave = Display.None;
@@ -335,11 +582,17 @@
     string firstName = "";
     string lastName = "";
     string email = "";
+    string origEmail = "";
     string title = "";
     bool isActive = false;
+    bool activeChanged = false;
     bool isCTEPUser = false;
     string ctepUserId = "";
     bool isAdmin = false;
+    string oktaUserStatus = "";
+    bool userInfoChanged = false;
+    bool ctepChanged = false;
+    IFluentDisplay isUserLocked = Display.None;
 
     // Step 2 vars (Role assignment)
     IFluentDisplay showSecondaryRoles = Display.None;
@@ -347,7 +600,7 @@
     List<Role> allRoles;
     IList<Role> primaryRoles;
     IList<Role> rolesAvailable;
-    IReadOnlyList<int> availabelRolesSelected { get; set; }
+    IReadOnlyList<int> availableRolesSelected { get; set; }
     IList<UserRole> selectedUserRoleList = new List<UserRole>();
     private UserRole selectedUserRole;
     List<UserRole> selectedUserRoles { get; set; }
@@ -356,6 +609,9 @@
     IFluentDisplay showStudies = Display.None;
     IFluentDisplay showIsAdmin = Display.None;
     IFluentDisplay studyGroupAssignmentDiv = Display.None;
+
+    // Step 4 vars (Review page)
+    private string roleName = "";
 
     //  Protocol vars
     int studySelectionType = 2;
@@ -397,6 +653,8 @@
             AddOrEdit = "Edit User - " + firstName + " " + lastName;
             OnChangeRole(primaryRoleId);
         }
+        else
+            oktaUserStatus = "N/A";
     }
 
     private Task OnSelectedStepChanged( string name )
@@ -468,15 +726,33 @@
         firstName = curUser.FirstName;
         lastName = curUser.LastName;
         email = curUser.EmailAddress;
+        origEmail = curUser.EmailAddress;
         title = curUser.Title;
         isActive = curUser.IsActive;
         isCTEPUser = curUser.IsCtepUser;
         ctepUserId = curUser.CtepUserId;
 
+        // Step 1 - Get OKTA user
+        Tuple<bool, string> foundOKTAUser = await oktaService.GetUserStatus(email!);
+
+        if (foundOKTAUser.Item1)
+        {
+            oktaUserStatus = foundOKTAUser.Item2;
+            if (oktaUserStatus == "LOCKED_OUT")
+                isUserLocked = Display.Block;
+        }
+        else
+            oktaUserStatus = "Error retrieving OKTA user";
+        StateHasChanged();
+
         // Step 2
         // Get the primary role
         var curPrimRole = curUser.UserRoles.Where(r => r.Role.IsPrimary == true);
+        roleName = curPrimRole.FirstOrDefault().Role.RoleName;
         primaryRoleId = curPrimRole.FirstOrDefault().RoleId;
+        if (curPrimRole.FirstOrDefault().Role.AdminType != WRAdminType.None)
+            isAdmin = true;
+
         // Get the secondary roles
         var curSecondaryRoles = curUser.UserRoles.Where(r=>r.Role.IsPrimary == false);
         selectedUserRoleList = curSecondaryRoles.ToList();
@@ -493,7 +769,7 @@
         else
             studySelectionType = 1;
 
-         await OnStudySelectionChanged(studySelectionType);
+        await OnStudySelectionChanged(studySelectionType);
 
         // Add to assigned studies
         selectedUserProtocolList = curUser.UserProtocols.ToList();
@@ -518,6 +794,11 @@
     {
         primaryRoleId = value;
         Role selectedRole = allRoles.FirstOrDefault(r => r.RoleId == primaryRoleId);
+        if (selectedRole != null)
+            roleName = selectedRole.RoleName;
+        else
+            roleName = "";
+
         if (selectedRole != null && selectedRole.AdminType != WRAdminType.None)
             isAdmin = true;
         else
@@ -633,9 +914,9 @@
 
     private async void MoveToSelectedRole()
     {
-        if (availabelRolesSelected != null)
+        if (availableRolesSelected != null)
         {
-            foreach (int selRole in availabelRolesSelected)
+            foreach (int selRole in availableRolesSelected)
             {
                 // Add to assigned list
                 Role foundRole = rolesAvailable.First(r => r.RoleId == selRole);
@@ -647,7 +928,7 @@
                 selectedUserRoleList.Add(newUR);
             }
         }
-        availabelRolesSelected = null;
+        availableRolesSelected = null;
     }
 
     private async void RemoveFromSelectedRole()
@@ -677,6 +958,19 @@
 
     private async void Save()
     {
+        if (firstName == "" || lastName == "" || email == "" || !emailRegexIsValid(email) || (isCTEPUser && ctepUserId == "") || primaryRoleId == 0)
+        {
+            await NotificationService.Error( "Please fix all errors to save.");
+            return;
+        }
+
+        // Check for duplicate email address
+        if (!userService.CheckEmailAddress(email, (int)(UserId != null ? UserId : 0)))
+        {
+            await NotificationService.Error( "Email Address already exists.");
+            return;
+        }
+
         bool saved = false;
         DateTime createDateTime = DateTime.UtcNow;
 
@@ -742,10 +1036,91 @@
 
         saved = userService.SaveUser(saveUser);
 
+        // Try to create or update the OKTA user
+        bool oktaSuccess = true;
+        bool oktaGroupSuccess = true;
+        bool emailSuccess = true;
         if (saved)
+        {
+            if (UserId == null)
+            {
+                string baseURL = navigation.BaseUri;
+                string initialSite = "Web Reporting-" + configuration.GetValue<string>("System:Environment");
+                bool isProd = !initialSite.Contains('-');
+
+                // Determine if user exists in OKTA (OKTA is for multi-applications (I.e.  WR, IWRS, etc) & environments (i.e.  DEV, UAT, etc)
+                Tuple<bool, string> oktaResults = await oktaService.FindUser(email);
+
+                // If user doesn't exist, create user and send welcome email
+                // If user exists, add them to proper group and send user configured for WR email
+                // Error finding the user in OKTA
+                if (oktaResults.Item1)
+                {
+                    // User exists - add to required group and send email
+                    oktaResults = await oktaService.AddUserGroup(saveUser.EmailAddress, isCTEPUser);
+                    oktaSuccess = oktaResults.Item1;
+                    if (oktaSuccess)
+                    {
+                        if (isActive)
+                            emailSuccess = await emailService.SendNewSystemEmail("Web Reporting-" + configuration.GetValue<string>("System:Environment"), navigation.BaseUri, configuration.GetValue<string>("System:SystemColor"), saveUser);
+                    }
+                }
+                else if (!oktaResults.Item1 && oktaResults.Item2 == "")
+                {
+                    // User does not exist - create the user, but deactivated
+                    oktaResults = await oktaService.CreateUser(isProd, saveUser, isCTEPUser, true, baseURL, initialSite);
+                    oktaSuccess = oktaResults.Item1;
+                    if (oktaSuccess)
+                    {
+                        string userId = oktaResults.Item2;
+                        // User is created - activate it - don't send email from OKTA, send via WR
+                        for (int iTry = 0; iTry < 5; iTry++)
+                        {
+                            oktaResults = await oktaService.UpdateActiveStatus(userId, true, isCTEPUser);
+                            oktaSuccess = oktaResults.Item1;
+                            if (oktaSuccess)
+                                break;
+                        }
+
+                        if (isActive)
+                        {
+                            string activationLink = oktaResults.Item2;
+                            emailSuccess = await emailService.SendNewUserEmail("Web Reporting-" + configuration.GetValue<string>("System:Environment"), navigation.BaseUri, configuration.GetValue<string>("System:SystemColor"), saveUser, activationLink);
+                        }
+                     }
+                }
+                else
+                {
+                    // Error calling okta
+                }
+            }
+            else
+            {
+                // Check if we need to update FirstName, LastName or EmailAddress
+                if (userInfoChanged)
+                {
+                    Tuple<bool, string> oktaResults = await oktaService.UpdateUserInfo(origEmail, saveUser);
+                    oktaSuccess = oktaResults.Item1;
+                }
+
+                // Check if we need to update groups (isCTEP changed)
+                if (ctepChanged)
+                {
+                    Tuple<bool, string> groupResults = await oktaService.UpdateUserCTEP(email, isCTEPUser);
+                    oktaGroupSuccess = groupResults.Item1;
+                }
+            }
+        }
+
+        if (saved && oktaSuccess && oktaGroupSuccess)
         {
             await NotificationService.Success( "User successfully saved");
             navigation.NavigateTo("/admin/users");
+        }
+        else if (saved && (!oktaSuccess || !oktaGroupSuccess))
+        {
+            await NotificationService.Success( "User successfully saved - OKTA save failed");
+            navigation.NavigateTo("/admin/users");            
         }
         else
         {
@@ -761,6 +1136,74 @@
 
     private void OnHelpClicked()
     {
-        
+
+    }
+
+    Task OnFirstNameChanged(string text)
+    {
+        firstName = text;
+        userInfoChanged = true;
+
+        return Task.CompletedTask;
+    }
+
+    Task OnLastNameChanged(string text)
+    {
+        lastName = text;
+        userInfoChanged = true;
+
+        return Task.CompletedTask;
+    }
+
+    Task OnEmailChanged(string text)
+    {
+        email = text;
+        userInfoChanged = true;
+
+        return Task.CompletedTask;
+    }
+
+    Task OnCTEPChanged(bool value)
+    {
+        isCTEPUser = value;
+        userInfoChanged = true;
+        ctepChanged = true;
+
+        return Task.CompletedTask;
+    }
+
+    async Task UnlockUser()
+    {
+        Tuple<bool, string> unlockSuccess = await oktaService.UnlockUser(origEmail);
+        if (unlockSuccess.Item1)
+        {
+            oktaUserStatus = "ACTIVE";
+            isUserLocked = Display.None;
+            await NotificationService.Success( "User unlocked");
+            StateHasChanged();
+        }
+        else
+        {
+            await NotificationService.Error("Error unlocking user");
+        }
+    }
+
+    Task OnActiveChanged(bool value)
+    {
+        isActive = value;
+        activeChanged = true;
+
+        return Task.CompletedTask;        
+    }
+
+    private bool emailRegexIsValid(string emailAddress)
+    {
+        return System.Text.RegularExpressions.Regex.IsMatch(emailAddress, @"^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$", 
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+    }
+
+    private bool isDuplicateEmail(string emailAddress, int userId)
+    {
+        return userService.CheckEmailAddress(emailAddress, userId);
     }
 }

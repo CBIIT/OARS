@@ -2,7 +2,10 @@
 @using TheradexPortal.Data.Services;
 @using TheradexPortal.Data.Static;
 @using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Models.Configuration;
+@using Microsoft.Extensions.Options;
 @inject IHttpContextAccessor httpContextAccessor
+@inject IOptions<EmailSettings> emailSettings;
 @layout AdminLayout
 
 @page "/admin/users"
@@ -57,18 +60,24 @@
                         }
                     </DisplayTemplate>
                 </DataGridDateColumn>
-                <DataGridColumn Sortable="false" Filterable="false" Width="75px">
+                <DataGridColumn Sortable="false" Filterable="false" Width="65px">
                     <DisplayTemplate>
                         <Button Color="Color.Info" Clicked="@(()=>EditUserClick(context as User))">
                             Edit
                         </Button>
                     </DisplayTemplate>
                 </DataGridColumn>
-                <DataGridColumn Sortable="false" Filterable="false" Width="125px">
+                <DataGridColumn Sortable="false" Filterable="false" Width="115px">
                     <DisplayTemplate>
-                        <Button Color="Color.Danger" Clicked="@(()=>ShowDeactivateModal(context as User))"
-                            Visibility="@IsDeactivatable(context as User)">
+                        <Button Color="Color.Danger" Clicked="@(()=>ShowDeactivateModal(context as User))" Visibility="@IsDeactivatable(context as User)">
                             Deactivate
+                        </Button>
+                    </DisplayTemplate>
+                </DataGridColumn>
+                <DataGridColumn Sortable="false" Filterable="false" Width="65px">
+                    <DisplayTemplate>
+                        <Button Color="Color.Success" Clicked="@(()=>EmailUserClick(context as User))" Visibility="@IsDeactivatable(context as User)">
+                            Email
                         </Button>
                     </DisplayTemplate>
                 </DataGridColumn>
@@ -99,6 +108,9 @@
     [Inject] IUserService userService { get; set; } = null!;
     [Inject] INotificationService NotificationService { get; set; }
     [Inject] TimeZoneService timeZoneService { get; set; } = null!;
+    [Inject] IOktaService oktaService { get; set; } = null!;
+    [Inject] IEmailService emailService { get; set; } = null;
+    [Inject] IConfiguration configuration { get; set; } = null!;
 
     private IList<User> userList = new List<User>();
     private Modal deactivateModalRef;
@@ -158,6 +170,73 @@
         else
         {
             await NotificationService.Error( "Error deactivating user");
+        }
+    }
+
+    private async void EmailUserClick(User u)
+    {
+        // Determine which kind of email needs to be sent.
+
+        // Activate user (Theradex-User/Not Active in OKTA)
+        // User active (Theradex or CTEP)
+
+        // What is the status of the user?
+        bool emailSuccess = true;
+        bool oktaSuccess = true;
+
+        Tuple<bool, string> oktaResults = await oktaService.GetUserStatus(u.EmailAddress);
+        if (oktaResults.Item1)
+        {
+            if (oktaResults.Item2 == "ACTIVE")
+            {
+                emailSuccess = await emailService.SendNewSystemEmail(
+                    "Web Reporting-" + configuration.GetValue<string>("System:Environment"),
+                    navigation.BaseUri,
+                    configuration.GetValue<string>("System:SystemColor"),
+                    u);
+
+                await NotificationService.Success("Account Email sent");
+            }
+            else if (oktaResults.Item2 == "STAGED")
+            {
+                // Get activation link for user
+                oktaResults = await oktaService.UpdateActiveStatus(u.EmailAddress, true, u.IsCtepUser);
+                oktaSuccess = oktaResults.Item1;
+
+                string activationLink = oktaResults.Item2;
+                emailSuccess = await emailService.SendNewUserEmail(
+                    "Web Reporting-" + configuration.GetValue<string>("System:Environment"), 
+                    navigation.BaseUri, 
+                    configuration.GetValue<string>("System:SystemColor"), 
+                    u, 
+                    activationLink);
+
+                await NotificationService.Success("Account Email sent");
+            }
+            else if (oktaResults.Item2 == "PROVISIONED")
+            {
+                // Get activation link for user
+                oktaResults = await oktaService.ReActivateUser(u.EmailAddress);
+                oktaSuccess = oktaResults.Item1;
+
+                string activationLink = oktaResults.Item2;
+                emailSuccess = await emailService.SendNewUserEmail(
+                    "Web Reporting-" + configuration.GetValue<string>("System:Environment"), 
+                    navigation.BaseUri, 
+                    configuration.GetValue<string>("System:SystemColor"), 
+                    u, 
+                    activationLink);
+
+                await NotificationService.Success("Account Email sent");
+            }
+            else
+            {
+                await NotificationService.Warning("Unable to send email:  OKTA Status of " + oktaResults.Item2);
+            }
+        }
+        else
+        {
+            await NotificationService.Warning("Unable to determine OKTA status");
         }
     }
 }

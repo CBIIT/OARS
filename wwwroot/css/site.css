@@ -100,6 +100,11 @@
     margin-bottom: 0px;
 }
 
+.nci-alert-scroll-y {
+    overflow-y: auto;
+    max-height: 300px;
+}
+
 .nci-alert-icon {
     padding-right: 5px;
 }
@@ -107,6 +112,15 @@
 .nci-alert-closebutton {
     float: right;
 }
+
+.nci-alert-badge {
+    background-color: #CE3436;
+}
+
+.nci-note-badge {
+    background-color: #4A86C6;
+}
+
 
 /* PBI Embed */
 .pbi-embed-container {
@@ -230,9 +244,9 @@
     font-size: 15px;
 }
 
-    .active, .collapsible:hover {
-        background-color: #ccc;
-    }
+.active, .collapsible:hover {
+    background-color: #ccc;
+}
 
 .content {
     padding: 0 18px;
@@ -260,4 +274,12 @@
 .categorySelectGroup {   
     font-style: normal;
     font-weight: normal;
+
+.tertiary-bar-icon {
+    
+}
+
+.tertiary-bar-link {
+    margin-left: 0px;
+    padding-left: 0px;
 }

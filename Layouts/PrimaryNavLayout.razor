@@ -2,17 +2,17 @@
 @using TheradexPortal.Data.Services.Abstract;
 @using TheradexPortal.Data.Static;
 @inject IHttpContextAccessor httpContextAccessor
-@inject IConfiguration configuration
 @inherits LayoutComponentBase
 @using TheradexPortal.Data.Models;
 @using TheradexPortal.Data.Services;
 @using TheradexPortal.Data;
+@inject IConfiguration configuration
 @layout AuthLayout
 
 <Div Class="nci-main-wrapper">
     <Layout Class="nci-main-layout">
         <LayoutHeader>
-            <Bar Breakpoint="Breakpoint.Desktop" NavigationBreakpoint="Breakpoint.Desktop" Background="Background.Light" Class="nci-navbar px-4">
+            <Bar Breakpoint="Breakpoint.Desktop" NavigationBreakpoint="Breakpoint.Desktop" Style="@GetHeaderColor()" Class="nci-navbar px-4">
                 <BarBrand>
                     <Image Source="img/theradex-logo.png" AlternateText="Theradex Oncology" />
                 </BarBrand>
@@ -23,13 +23,13 @@
                     </BarStart>
                     <BarEnd>
                         <BarItem>
-                            <EnvironmentLbl/>
+                            <EnvironmentLbl />
                         </BarItem>
                         <BarItem>
                             <Tooltip Text="Alerts">
                                 <BarDropdown RightAligned >
                                     <BarDropdownToggle Class="nci-bar-dropdown">
-                                        <Badge Color="Color.Danger" Pill Position="Position.Absolute.Top.Is50.Start.Is100.Translate.Middle">@systemAlertsCount</Badge>
+                                        <Badge Class="nci-alert-badge" Pill Position="Position.Absolute.Top.Is50.Start.Is100.Translate.Middle">@systemAlertsCount</Badge>
                                         <Image Source="img/alert-icon.png" height="@iconHeight" Class="nci-alert-icon" />
                                     </BarDropdownToggle>
                                     <BarDropdownMenu Class="nci-alert-dropdown">
@@ -42,7 +42,7 @@
                             <Tooltip Text="Notes">
                                 <BarDropdown RightAligned>
                                     <BarDropdownToggle Class="nci-bar-dropdown">
-                                        <Badge Color="Color.Info" Pill Position="Position.Absolute.Top.Is50.Start.Is100.Translate.Middle">@systemNotesCount</Badge>
+                                        <Badge Class="nci-note-badge" Pill Position="Position.Absolute.Top.Is50.Start.Is100.Translate.Middle">@systemNotesCount</Badge>
                                         <Image Source="img/notification-icon.png" height="@iconHeight" Class="nci-alert-icon" />
                                     </BarDropdownToggle>
                                     <BarDropdownMenu Class="nci-alert-dropdown">
@@ -189,6 +189,12 @@
         lstContactUsCategory = contactUsCategoryService.GetContactUsCategories();
         lstContactUsItems = contactUsCategoryService.GetContactUsCategoriesSelectItems();
         await base.OnInitializedAsync();
+    }
+
+    private string GetHeaderColor()
+    {
+        string color = configuration.GetValue<string>("System:SystemColor");
+        return "background-color:" + color  + ";";    
     }
 
     Task OnButtonClicked()

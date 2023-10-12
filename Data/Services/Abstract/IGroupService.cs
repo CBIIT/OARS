@@ -7,6 +7,7 @@ namespace TheradexPortal.Data.Services.Abstract
         public Task<IList<Group>> GetAllGroupsAsync();
         public Task<Group?> GetGroupAsync(int groupId);
         public bool CanDeleteGroup(int groupId);
+        public bool CheckGroupName(string groupName, int groupId);
         public bool SaveGroup(Group group);
         public Tuple<bool, string> DeleteGroup(int groupId);
 

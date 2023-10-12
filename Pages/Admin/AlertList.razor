@@ -1,4 +1,5 @@
-﻿@using TheradexPortal.Data.Models;
+﻿@using System.Diagnostics.CodeAnalysis
+@using TheradexPortal.Data.Models;
 @using TheradexPortal.Data.Services;
 @using TheradexPortal.Data.Static;
 @using TheradexPortal.Data.Services.Abstract;
@@ -29,25 +30,31 @@
                     <DisplayTemplate>
                         @{
                             var alert = (context as WRAlert);
-                            if (alert.PageName != null)
+                            if (alert != null)
                             {
+                                if (alert.DashboardId != null && alert.PageName.Equals(pageDashboard))
+                                {
+                                    var dashboard = dashboards.FirstOrDefault(d => d.WRDashboardId == alert.DashboardId);
+                                    if (dashboard != null)
+                                    {
+                                        @(dashboard.Name + " ");
+                                    }
+                                }
                                 @(alert.PageName)
-                            }
-                            else
-                            {
-                                @("Dashboard: " + alert.DashboardId)
                             }
                         }
                     </DisplayTemplate>
                 </DataGridColumn>
                 <DataGridColumn Field="@nameof(WRAlert.AlertText)" Caption="Text" />
-                <DataGridColumn Field="@nameof(WRAlert.IsActive)" Filterable="false" Caption="Active" Width="125px">
+                <DataGridColumn Field="@nameof(WRAlert.StartDate)" Caption="Start Date" />
+                <DataGridColumn Field="@nameof(WRAlert.EndDate)" Caption="End Date" />
+                <DataGridSelectColumn TItem="WRAlert" Field="@nameof(WRAlert.IsActive)" Caption="Active" Width="125px">
                     <DisplayTemplate>
                         @{
                             var alert = (context as WRAlert);
                             var dateTime = DateTime.Now;
                             var isActive = alert?.IsActive ?? false;
-                            var isDateActive = dateTime >= alert.StartDate && (dateTime <= alert.EndDate || alert.EndDate.Equals(null));
+                            var isDateActive = alertService.AlertDatesValid(alert.StartDate, alert.EndDate);
                             if (isActive && isDateActive)
                             {
                                 @("Yes")
@@ -58,7 +65,7 @@
                             }
                         }
                     </DisplayTemplate>
-                </DataGridColumn>
+                </DataGridSelectColumn>
                 <DataGridColumn Sortable="false" Filterable="false" Width="75px">
                     <DisplayTemplate>
                         <Button Color="Color.Info" Clicked="@(()=>EditAlertClick(context as WRAlert))">
@@ -75,6 +82,9 @@
                     </DisplayTemplate>
                 </DataGridColumn>
             </DataGridColumns>
+            <ButtonRowTemplate>
+                <Button Color="Color.Primary" Clicked="@NewAlertClick">Create Alert</Button>
+            </ButtonRowTemplate>
         </DataGrid>
     </Column>
 </Row>
@@ -85,6 +95,9 @@
             <CloseButton />
         </ModalHeader>
         <ModalBody>
+            <Alert Color="@currentColor" Visible>
+                <AlertDescription TextOverflow="TextOverflow.Wrap">@((MarkupString)@alertToDeactivateText)</AlertDescription>
+            </Alert>
             Warning:  Continuing will make this alert inactive
         </ModalBody>
         <ModalFooter>
@@ -94,23 +107,48 @@
     </ModalContent>
 </Modal>
 
-@code {
+    @code {
     [Inject] IAlertService alertService { get; set; } = null!;
-    [Inject] private NavigationManager navigation {get; set; } = null!;
+    [Inject] IDashboardService dashboardService { get; set; } = null!;
+    [Inject] INotificationService NotificationService { get; set; }
+    [Inject] private NavigationManager navigation { get; set; } = null!;
+    [AllowNull] private Modal deactivateModalRef;
 
     private IList<WRAlert> alertList = new List<WRAlert>();
-    private Modal deactivateModalRef;
-    private string alertToDeactivate;
+    private IList<Dashboard> dashboards = new List<Dashboard>();
+    private string alertToDeactivate = string.Empty;
+    private string alertToDeactivateText = string.Empty;
+    private string pageDashboard = string.Empty;
+    private string typeAlert = string.Empty;
+    private string typeNote = string.Empty;
     private int alertToDeactivateId;
+    private Color? alertColor;
+    private Color? noteColor;
+    private Color? infoColor;
+    private Color? currentColor;
+
 
     protected override async Task OnInitializedAsync()
     {
         alertList = await alertService.GetAllWRAlertsAsync();
+        pageDashboard = await alertService.DashboardPage();
+
+        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsAdmin, "True");
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+
+        dashboards = await dashboardService.GetDashboardsForUserAsync(userId, isAdmin);
+
+        this.typeAlert = await alertService.AlertType();
+        this.typeNote = await alertService.NoteType();
+        this.alertColor = await alertService.AlertColor();
+        this.noteColor = await alertService.NoteColor();
+        this.infoColor = await alertService.InfoColor();
+        this.currentColor = this.alertColor;
     }
 
     private Visibility IsDeactivatable(WRAlert a)
     {
-        if (a.IsActive) // TODO Adjust
+        if (a.IsActive) // TODO Do we want to have the ActiveDates check this as well
             return Visibility.Visible;
         else
             return Visibility.Invisible;
@@ -128,7 +166,18 @@
 
     private Task ShowDeactivateModal(WRAlert a)
     {
-        
+        if (a.AlertType.Equals(typeAlert))
+        {
+            currentColor = alertColor;
+        }
+        else if (a.AlertType.Equals(typeNote))
+        {
+            currentColor = noteColor;
+        }
+
+        alertToDeactivate = a.AlertType + " " + a.PageName;
+        alertToDeactivateText = a.AlertText;
+        alertToDeactivateId = a.WRAlertId;
         return deactivateModalRef.Show();
     }
 
@@ -140,6 +189,14 @@
     private async void DeactivateAlertClick()
     {
         deactivateModalRef.Hide();
-        // deactivate
+        bool success = alertService.DeactivateAlert(alertToDeactivateId);
+        if (success)
+        {
+            await NotificationService.Success("User deactivated");
+        }
+        else
+        {
+            await NotificationService.Error("Error deactivating user");
+        }
     }
 }
