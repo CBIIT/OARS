@@ -267,6 +267,14 @@
     color: black;
 }
 
+.mx-auto {
+    margin-top: 5px;
+}
+
+.categorySelectGroup {   
+    font-style: normal;
+    font-weight: normal;
+
 .tertiary-bar-icon {
     
 }

@@ -44,6 +44,7 @@ builder.Services.AddScoped<IStudyService, StudyService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IGroupService, GroupService>();
 builder.Services.AddScoped<IAlertService, AlertService>();
+builder.Services.AddScoped<IContactUsService, ContactUsService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddHttpClient<IOktaService, OktaService>(client =>
 {
@@ -51,6 +52,7 @@ builder.Services.AddHttpClient<IOktaService, OktaService>(client =>
     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
     client.DefaultRequestHeaders.Add("Authorization", "SSWS " + builder.Configuration["Okta:ApiKey"]);
 });
+
 builder.Services.AddScoped<TimeZoneService>();
 
 builder.Host.ConfigureLogging((context, logging) =>

@@ -60,8 +60,4 @@
     <Folder Include="Migrations\" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Include="wwwroot\Privacy.html" />
-  </ItemGroup>
-
 </Project>
