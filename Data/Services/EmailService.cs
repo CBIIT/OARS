@@ -38,12 +38,12 @@ namespace TheradexPortal.Data.Services
                 if (!curUser.IsCtepUser)
                 {
                     //emailText = System.IO.File.ReadAllText($"{System.IO.Directory.GetCurrentDirectory()}{"/wwwroot/emails/NewTheradexUser.txt"}");
-                    emailText = System.IO.File.ReadAllText($"wwwroot/emails/NewTheradexUser.txt");
+                    emailText = System.IO.File.ReadAllText("~/emails/NewTheradexUser.txt");
                 }
                 else
                 {
                     //emailText = System.IO.File.ReadAllText($"{System.IO.Directory.GetCurrentDirectory()}{"wwwroot/emails/NewCTEPUser.txt"}");
-                    emailText = System.IO.File.ReadAllText($"wwwroot/emails/NewCTEPUser.txt");
+                    emailText = System.IO.File.ReadAllText("~/emails/NewCTEPUser.txt");
                 }
                 // Populate the specific fields
                 emailText = emailText.Replace("[[Color]]", primaryColor);
