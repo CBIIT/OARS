@@ -176,11 +176,8 @@
     private async void EmailUserClick(User u)
     {
         // Determine which kind of email needs to be sent.
-
         // Activate user (Theradex-User/Not Active in OKTA)
         // User active (Theradex or CTEP)
-
-        // What is the status of the user?
         bool emailSuccess = true;
         bool oktaSuccess = true;
 
@@ -195,7 +192,10 @@
                     configuration.GetValue<string>("System:SystemColor"),
                     u);
 
-                await NotificationService.Success("Account Email sent");
+                if (emailSuccess)
+                    await NotificationService.Success("Account Email sent");
+                else
+                    await NotificationService.Error("Unable to send email");
             }
             else if (oktaResults.Item2 == "STAGED")
             {
@@ -211,7 +211,10 @@
                     u, 
                     activationLink);
 
-                await NotificationService.Success("Account Email sent");
+                if (emailSuccess)
+                    await NotificationService.Success("Account Email sent");
+                else
+                    await NotificationService.Error("Unable to send email");
             }
             else if (oktaResults.Item2 == "PROVISIONED")
             {
@@ -227,7 +230,10 @@
                     u, 
                     activationLink);
 
-                await NotificationService.Success("Account Email sent");
+                if (emailSuccess)
+                    await NotificationService.Success("Account Email sent");
+                else
+                    await NotificationService.Error("Unable to send email");
             }
             else
             {

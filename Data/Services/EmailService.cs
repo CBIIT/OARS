@@ -33,30 +33,34 @@ namespace TheradexPortal.Data.Services
             try
             {
                 logger.LogInformation("*** Email - NewUserEmail - " + curUser.EmailAddress + " ***");
-                // Get the template to email
+
                 var emailText = "";
+                var emailTemplate = "";
+
                 if (!curUser.IsCtepUser)
+                    emailTemplate = "NewTheradexUser.txt";
+                else
+                    emailTemplate = "NewCTEPUser.txt";
+
+                emailText = await GetEmailTemplate(emailTemplate);
+
+                if (emailText != "")
                 {
-                    //emailText = System.IO.File.ReadAllText($"{System.IO.Directory.GetCurrentDirectory()}{"/wwwroot/emails/NewTheradexUser.txt"}");
-                    emailText = System.IO.File.ReadAllText("~/emails/NewTheradexUser.txt");
+                    // Populate the specific fields
+                    emailText = emailText.Replace("[[Color]]", primaryColor);
+                    emailText = emailText.Replace("[[System]]", siteName);
+                    emailText = emailText.Replace("[[ActivationLink]]", activationLink);
+                    emailText = emailText.Replace("[[URL]]", baseURL);
+                    emailText = emailText.Replace("[[FullName]]", curUser.FirstName + " " + curUser.LastName);
+                    emailText = emailText.Replace("[[Email]]", curUser.EmailAddress);
+                    emailText = emailText.Replace("[[SupportEmail]]", emailSettings.Value.SupportEmail);
+
+                    await SendEmail(curUser.EmailAddress, "Welcome " + curUser.FirstName + " " + curUser.LastName, emailText);
+
+                    return true;
                 }
                 else
-                {
-                    //emailText = System.IO.File.ReadAllText($"{System.IO.Directory.GetCurrentDirectory()}{"wwwroot/emails/NewCTEPUser.txt"}");
-                    emailText = System.IO.File.ReadAllText("~/emails/NewCTEPUser.txt");
-                }
-                // Populate the specific fields
-                emailText = emailText.Replace("[[Color]]", primaryColor);
-                emailText = emailText.Replace("[[System]]", siteName);
-                emailText = emailText.Replace("[[ActivationLink]]", activationLink);
-                emailText = emailText.Replace("[[URL]]", baseURL);
-                emailText = emailText.Replace("[[FullName]]", curUser.FirstName + " " + curUser.LastName);
-                emailText = emailText.Replace("[[Email]]", curUser.EmailAddress);
-                emailText = emailText.Replace("[[SupportEmail]]", emailSettings.Value.SupportEmail);
-
-                await SendEmail(curUser.EmailAddress, "Welcome " + curUser.FirstName + " " + curUser.LastName, emailText);
-
-                return true;
+                    return false;
             }
             catch (Exception ex)
             {
@@ -70,26 +74,33 @@ namespace TheradexPortal.Data.Services
             try
             {
                 logger.LogInformation("*** Email - NewSystemEmail - " + curUser.EmailAddress + " ***");
-                // Get the template to email
+
                 var emailText = "";
+                var emailTemplate = "";
+
                 if (!curUser.IsCtepUser)
+                    emailTemplate = "NewSystemTheradexUser.txt";
+                else
+                    emailTemplate = "NewCTEPUser.txt";
+
+                emailText = await GetEmailTemplate(emailTemplate);
+
+                if (emailText != "")
                 {
-                    emailText = System.IO.File.ReadAllText($"{System.IO.Directory.GetCurrentDirectory()}{@"\wwwroot\emails\NewSystemTheradexUser.txt"}");
+                    // Populate the specific fields
+                    emailText = emailText.Replace("[[Color]]", primaryColor);
+                    emailText = emailText.Replace("[[System]]", siteName);
+                    emailText = emailText.Replace("[[URL]]", baseURL);
+                    emailText = emailText.Replace("[[FullName]]", curUser.FirstName + " " + curUser.LastName);
+                    emailText = emailText.Replace("[[Email]]", curUser.EmailAddress);
+                    emailText = emailText.Replace("[[SupportEmail]]", emailSettings.Value.SupportEmail);
+
+                    await SendEmail(curUser.EmailAddress, "Welcome " + curUser.FirstName + " " + curUser.LastName, emailText);
+
+                    return true;
                 }
                 else
-                    emailText = System.IO.File.ReadAllText($"{System.IO.Directory.GetCurrentDirectory()}{@"\wwwroot\emails\NewCTEPUser.txt"}");
-
-                // Populate the specific fields
-                emailText = emailText.Replace("[[Color]]", primaryColor);
-                emailText = emailText.Replace("[[System]]", siteName);
-                emailText = emailText.Replace("[[URL]]", baseURL);
-                emailText = emailText.Replace("[[FullName]]", curUser.FirstName + " " + curUser.LastName);
-                emailText = emailText.Replace("[[Email]]", curUser.EmailAddress);
-                emailText = emailText.Replace("[[SupportEmail]]", emailSettings.Value.SupportEmail);
-
-                await SendEmail(curUser.EmailAddress, "Welcome " + curUser.FirstName + " " + curUser.LastName, emailText);
-
-                return true;
+                    return false;
             }
             catch (Exception ex)
             {
@@ -122,7 +133,6 @@ namespace TheradexPortal.Data.Services
                         {
                             foreach (string attachment in attachments)
                             {
-                                //var s3Object = await s3Client.GetObjectAsync("theradex-nci-webreporting-dev", attachment);
                                 var s3Object = await s3Client.GetObjectAsync(emailSettings.Value.AWSBucketName, attachment);
                                 bodyBuilder.Attachments.Add(attachment, s3Object.ResponseStream);
                             }
@@ -169,5 +179,29 @@ namespace TheradexPortal.Data.Services
                 return false;
             }
         }
+
+        private async Task<string> GetEmailTemplate(string templateName)
+        {
+            string emailText = "";
+            try
+            {
+                using (var s3Client = new AmazonS3Client(RegionEndpoint.USEast1))
+                {
+                    var s3Object = await s3Client.GetObjectAsync(emailSettings.Value.AWSBucketName, "EmailTemplates/" + templateName);
+                    StreamReader stream = new StreamReader(s3Object.ResponseStream);
+                    emailText = stream.ReadToEnd();
+
+                    return emailText;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogInformation("Email Error: Error retrivieng Email Template - " + templateName);
+                logger.LogInformation("Email Error: " + ex.Message);
+                return "";
+            }
+        }
     }
+
+
 }
