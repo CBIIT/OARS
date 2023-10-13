@@ -32,6 +32,7 @@ namespace TheradexPortal.Data.Services
         {
             try
             {
+                logger.LogInformation("*** Email - NewUserEmail - " + curUser.EmailAddress + " ***");
                 // Get the template to email
                 var emailText = "";
                 if (!curUser.IsCtepUser)
@@ -52,11 +53,11 @@ namespace TheradexPortal.Data.Services
 
                 await SendEmail(curUser.EmailAddress, "Welcome " + curUser.FirstName + " " + curUser.LastName, emailText);
 
-                // Email it out
                 return true;
             }
             catch (Exception ex)
             {
+                logger.LogInformation("Email Error: " + ex.Message);
                 return false;
             }
         }
@@ -65,6 +66,7 @@ namespace TheradexPortal.Data.Services
         {
             try
             {
+                logger.LogInformation("*** Email - NewSystemEmail - " + curUser.EmailAddress + " ***");
                 // Get the template to email
                 var emailText = "";
                 if (!curUser.IsCtepUser)
@@ -84,17 +86,18 @@ namespace TheradexPortal.Data.Services
 
                 await SendEmail(curUser.EmailAddress, "Welcome " + curUser.FirstName + " " + curUser.LastName, emailText);
 
-                // Email it out
                 return true;
             }
             catch (Exception ex)
             {
+                logger.LogInformation("Email Error: " + ex.Message);
                 return false;
             }
         }
 
         public async Task<bool> SendEmail(string toAddress, string subject, string htmlBody)
         {
+            logger.LogInformation("*** Email - Unspecified - " + toAddress + " ***");
             return await SendEmail(new List<String> { toAddress }, null, null, subject, htmlBody, null);
         }
 
@@ -103,6 +106,7 @@ namespace TheradexPortal.Data.Services
             bool emailSuccess = true;
             try
             {
+                logger.LogInformation("*** Email - Send ***");
                 using (var client = new AmazonSimpleEmailServiceClient(RegionEndpoint.USEast1))
                 {
                     // Build the body with attachements
@@ -153,10 +157,12 @@ namespace TheradexPortal.Data.Services
                     }
                 }
 
+                logger.LogInformation("*** Email - Success ***");
                 return true;
             }
             catch (Exception ex)
             {
+                logger.LogInformation("Email Error: " + ex.Message);
                 return false;
             }
         }
