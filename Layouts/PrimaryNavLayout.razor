@@ -26,8 +26,8 @@
                             <EnvironmentLbl />
                         </BarItem>
                         <BarItem>
-                            <Tooltip Text="Alerts">
-                                <BarDropdown RightAligned >
+                            <Tooltip Text="@systemAlertsTooltip">
+                                <BarDropdown RightAligned @ref="@alertBarDropDown" Visible="@systemAlertsDropdownVisible">
                                     <BarDropdownToggle Class="nci-bar-dropdown">
                                         <Badge Class="nci-alert-badge" Pill Position="Position.Absolute.Top.Is50.Start.Is100.Translate.Middle">@systemAlertsCount</Badge>
                                         <Image Source="img/alert-icon.png" height="@iconHeight" Class="nci-alert-icon" />
@@ -39,8 +39,8 @@
                             </Tooltip>
                         </BarItem>
                         <BarItem>
-                            <Tooltip Text="Notes">
-                                <BarDropdown RightAligned>
+                            <Tooltip Text="@systemNotesTooltip">
+                                <BarDropdown RightAligned @ref="@noteBarDropDown">
                                     <BarDropdownToggle Class="nci-bar-dropdown">
                                         <Badge Class="nci-note-badge" Pill Position="Position.Absolute.Top.Is50.Start.Is100.Translate.Middle">@systemNotesCount</Badge>
                                         <Image Source="img/notification-icon.png" height="@iconHeight" Class="nci-alert-icon" />
@@ -161,6 +161,8 @@
     private AlertBar? systemNotes;
     private AlertBar? dashboardAlerts;
     private Dashboard? selectedDashboard { get; set; } = null!;
+    private BarDropdown? alertBarDropDown;
+    private BarDropdown? noteBarDropDown;
     [Inject] public NavigationManager Navigation { get; set; }
     [Inject] private IUserService userService { get; set; } = null!;
     [Inject] private IAlertService alertService { get; set; } = null!;
@@ -170,7 +172,15 @@
     Validations validations;
     private int iconHeight = 30;
     private int systemAlertsCount;
-    private int systemNotesCount;
+    private int systemNotesCount; 
+    private bool systemAlertsDropdownVisible;
+    private string systemAlertsTooltip = string.Empty;
+    private string systemNotesTooltip = string.Empty;
+    private readonly string noSystemAlertsMessage = "No current System Alerts";
+    private readonly string noSystemNotesMessage = "No current System Notes";
+    private readonly string currentSystemAlertsMessage = "System Alerts: ";
+    private readonly string currentSystemNotesMessage = "System Notes: ";
+
     IFluentDisplay adminDisplay = Display.None;
 
     private string contactUsCategoryID ="", fromEmail = "", emailTo = "", emailCategory="", emailDescription = "", emailTitle = "", emailMessage = "";
@@ -215,12 +225,36 @@
     protected async Task SystemAlertsCountChanged(int count)
     {
         this.systemAlertsCount = count;
+
+        if (this.systemAlertsCount < 1)
+        {
+            await this.alertBarDropDown!.Hide();
+            systemAlertsDropdownVisible = false;
+            this.systemAlertsTooltip = this.noSystemAlertsMessage;
+        }
+        else
+        {
+            await this.alertBarDropDown!.Show();
+            systemAlertsDropdownVisible = true;
+            this.systemAlertsTooltip = this.currentSystemAlertsMessage + this.systemAlertsCount;
+        }
     }
 
     protected async Task SystemNotesCountChanged(int count)
     {
         this.systemNotesCount = count;
+
+        if (this.systemNotesCount < 1)
+        {
+            await this.noteBarDropDown!.Hide();
+            this.systemNotesTooltip = this.noSystemNotesMessage;
+        }
+        else
+        {
+            this.systemNotesTooltip = this.currentSystemNotesMessage + this.systemNotesCount;
+        }
     }
+
 
     private Modal modalContactUs;
 
