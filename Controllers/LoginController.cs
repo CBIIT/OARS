@@ -10,7 +10,7 @@ namespace TheradexPortal.Controllers
         [HttpGet("login")]
         public IActionResult Login([FromQuery] string returnUrl)
         {
-            var redirectUri = returnUrl is null ? Url.Content("~/Studies") : "/" + returnUrl;
+            var redirectUri = returnUrl is null ? Url.Content("~/studies") : "/" + returnUrl;
             //var redirectUri = returnUrl is null ? Url.Content("~/") : "/Studies";
 
             if (User.Identity.IsAuthenticated)
