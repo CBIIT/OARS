@@ -4,6 +4,7 @@
 @layout AdminLayout
 
 @page "/admin/dashboards"
+<AdminRoleCheck AllowedRoles="@(new List<string> { "Super" })"></AdminRoleCheck>
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>Dashboard List</h2></Div>
 <Row Background="Background.Light">
     <Column ColumnSize="ColumnSize.IsFull">

@@ -7,6 +7,7 @@
 @layout AdminLayout
 
 @page "/admin/alerts"
+<AdminRoleCheck AllowedRoles="@(new List<string> { "Super", "Content" })"></AdminRoleCheck>
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>Alert List</h2></Div>
 <Row Background="Background.Light">
     <Column ColumnSize="ColumnSize.IsFull">
@@ -127,6 +128,7 @@
     private Color? infoColor;
     private Color? currentColor;
 
+    private string[] allowedRoleList;
 
     protected override async Task OnInitializedAsync()
     {
@@ -144,6 +146,8 @@
         this.noteColor = await alertService.NoteColor();
         this.infoColor = await alertService.InfoColor();
         this.currentColor = this.alertColor;
+
+        allowedRoleList = new string[1] { "Content" };
     }
 
     private Visibility IsDeactivatable(WRAlert a)
