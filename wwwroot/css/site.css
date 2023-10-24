@@ -222,6 +222,9 @@
     width: 100%;
 }
 
+#loginHelp{
+    font-size:10pt;
+}
 .overview-Row-Header {
     position: sticky;
     left: 0;
@@ -244,9 +247,10 @@
     font-size: 15px;
 }
 
+/*
 .active, .collapsible:hover {
     background-color: #ccc;
-}
+}*/
 
 .content {
     padding: 0 18px;

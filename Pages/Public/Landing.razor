@@ -46,6 +46,7 @@
                 <Div Class="my-2" TextAlignment="TextAlignment.Center" Flex="Flex.JustifyContent.Center">
                     <EnvironmentLbl />
                 </Div>
+                <Div Class="my-2" TextAlignment="TextAlignment.Center" id="loginHelp">If you need assistance, please contact us at <a href="mailTo:@supportEmail">@supportEmail</a></Div>
             </CardBody>
         </Card>
     </Div>
@@ -94,6 +95,7 @@
     private IList<WRAlert> activeNotes = new List<WRAlert>();
     private int iconHeight = 24;
     public string CurrentEnvironment { get; set; }
+    private string supportEmail = "";
 
     string loginPaneStyle = $"width:35%";
     string border = $"width:100%;";
@@ -103,13 +105,14 @@
         this.clearSessionData();
         activeAlerts = await alertService.GetActiveLoginAlertsAsync();
         activeNotes = await alertService.GetActiveLoginNotesAsync();
-        
+
         string currentEnvironment = configuration.GetValue<string>("System:Environment");
         if (currentEnvironment != "Prod")
             CurrentEnvironment = currentEnvironment;
         else
             CurrentEnvironment = "";
 
+        supportEmail = configuration.GetValue<string>("EmailSettings:SupportEmail");
         await base.OnInitializedAsync();
     }
 

@@ -22,6 +22,8 @@ using Microsoft.PowerBI.Api.Models;
 using System.Net.Mime;
 using MimeKit.Utils;
 using ITfoxtec.Identity.Saml2.Schemas;
+using System.Threading.Tasks;
+using System;
 
 namespace TheradexPortal.Data.Services
 {
@@ -40,10 +42,12 @@ namespace TheradexPortal.Data.Services
         {
             try
             {
+                logger.LogInformation("*** Email - NewUserEmail - " + curUser.EmailAddress + " ***");
                 using (var s3Client = new AmazonS3Client(RegionEndpoint.USEast1))
                 {
                     // Get the template to email
                     var emailText = "";
+                    // Get the template to email
                     string emailTemplate = "{0}/NewTheradexUser.txt";
                     if (curUser.IsCtepUser)
                     {
@@ -56,21 +60,27 @@ namespace TheradexPortal.Data.Services
                         MemoryStream templateStream = new MemoryStream();
                         responseStream.CopyTo(templateStream);
                         emailText = System.Text.Encoding.UTF8.GetString(templateStream.ToArray());
+
+
                         // Populate the specific fields
                         emailText = emailText.Replace("[[Color]]", primaryColor);
                         emailText = emailText.Replace("[[System]]", siteName);
+                        emailText = emailText.Replace("[[ActivationLink]]", activationLink);
                         emailText = emailText.Replace("[[URL]]", baseURL);
                         emailText = emailText.Replace("[[FullName]]", curUser.FirstName + " " + curUser.LastName);
                         emailText = emailText.Replace("[[Email]]", curUser.EmailAddress);
                         emailText = emailText.Replace("[[SupportEmail]]", emailSettings.Value.SupportEmail);
 
                         await SendEmail(curUser.EmailAddress, "Welcome " + curUser.FirstName + " " + curUser.LastName, emailText);
+
+                        // Email it out
                         return true;
                     }
                 }
             }
             catch (Exception ex)
             {
+                logger.LogInformation("Email Error: " + ex.Message);
                 return false;
             }
         }
@@ -79,6 +89,8 @@ namespace TheradexPortal.Data.Services
         {
             try
             {
+                logger.LogInformation("*** Email - NewSystemEmail - " + curUser.EmailAddress + " ***");
+                // Get the template to email
                 using (var s3Client = new AmazonS3Client(RegionEndpoint.USEast1))
                 {
                     // Get the template to email
@@ -95,6 +107,7 @@ namespace TheradexPortal.Data.Services
                         MemoryStream templateStream = new MemoryStream();
                         responseStream.CopyTo(templateStream);
                         emailText = System.Text.Encoding.UTF8.GetString(templateStream.ToArray());
+
                         // Populate the specific fields
                         emailText = emailText.Replace("[[Color]]", primaryColor);
                         emailText = emailText.Replace("[[System]]", siteName);
@@ -104,27 +117,29 @@ namespace TheradexPortal.Data.Services
                         emailText = emailText.Replace("[[SupportEmail]]", emailSettings.Value.SupportEmail);
 
                         await SendEmail(curUser.EmailAddress, "Welcome " + curUser.FirstName + " " + curUser.LastName, emailText);
+
+                        // Email it out
                         return true;
                     }
                 }
             }
             catch (Exception ex)
             {
+                logger.LogInformation("Email Error: " + ex.Message);
                 return false;
             }
         }
-           
 
         public async Task<bool> SendContactUsEmail(string siteName, string baseURL, string primaryColor, string emailTo, string subject, string category
-            ,string description, string userName, string dateTime, List<string> lstAttachments)
+         , string description, string userName, string dateTime, List<string> lstAttachments)
         {
             try
             {
                 using (var s3Client = new AmazonS3Client(RegionEndpoint.USEast1))
                 {
                     // Get the template to email
-                    GetObjectResponse response = await s3Client.GetObjectAsync(emailSettings.Value.AWSBucketName, string.Format("{0}/SupportRequest.txt", emailSettings.Value.EmailTemplate));                
-                  
+                    GetObjectResponse response = await s3Client.GetObjectAsync(emailSettings.Value.AWSBucketName, string.Format("{0}/SupportRequest.txt", emailSettings.Value.EmailTemplate));
+
                     using (Stream responseStream = response.ResponseStream)
                     {
                         MemoryStream templateStream = new MemoryStream();
@@ -148,12 +163,14 @@ namespace TheradexPortal.Data.Services
             }
             catch (Exception ex)
             {
+                logger.LogInformation("Email Error: " + ex.Message);
                 return false;
             }
         }
 
         public async Task<bool> SendEmail(string toAddress, string subject, string htmlBody)
         {
+            logger.LogInformation("*** Email - Unspecified - " + toAddress + " ***");
             return await SendEmail(new List<String> { toAddress }, null, null, subject, htmlBody, null);
         }
         public async Task<bool> SendEmail(List<string> toAddresses, List<string> ccAddresses, List<string> bccAddresses, string subject, string htmlBody, List<string> attachments)
@@ -161,13 +178,14 @@ namespace TheradexPortal.Data.Services
             bool emailSuccess = true;
             try
             {
+                logger.LogInformation("*** Email - Send ***");
                 using (var client = new AmazonSimpleEmailServiceClient(RegionEndpoint.USEast1))
                 {
                     // Build the body with attachements
                     var bodyBuilder = new BodyBuilder();
 
                     string rootpath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "wwwroot");
-                    var image = bodyBuilder.LinkedResources.Add(Path.Combine(rootpath,@"img\theradex-logo.png"));
+                    var image = bodyBuilder.LinkedResources.Add(Path.Combine(rootpath, @"img\theradex-logo.png"));
                     image.ContentId = MimeUtils.GenerateMessageId();
                     bodyBuilder.HtmlBody = htmlBody.Replace("[[LogoContentId]]", image.ContentId);
 
@@ -178,8 +196,7 @@ namespace TheradexPortal.Data.Services
                             foreach (string attachment in attachments)
                             {
                                 //var s3Object = await s3Client.GetObjectAsync("theradex-nci-webreporting-dev", attachment);
-                                
-                                var s3Object = await s3Client.GetObjectAsync(emailSettings.Value.AWSBucketName, string.Format("{0}/{1}", emailSettings.Value.UploadFolder, attachment));
+                                var s3Object = await s3Client.GetObjectAsync(emailSettings.Value.AWSBucketName, attachment);
                                 bodyBuilder.Attachments.Add(attachment, s3Object.ResponseStream);
                             }
                         }
@@ -216,19 +233,44 @@ namespace TheradexPortal.Data.Services
                     }
                 }
 
+                logger.LogInformation("*** Email - Success ***");
                 return true;
             }
             catch (Exception ex)
             {
+                logger.LogInformation("Email Error: " + ex.Message);
                 return false;
             }
         }
+
+        private async Task<string> GetEmailTemplate(string templateName)
+        {
+            string emailText = "";
+            try
+            {
+                using (var s3Client = new AmazonS3Client(RegionEndpoint.USEast1))
+                {
+                    var s3Object = await s3Client.GetObjectAsync(emailSettings.Value.AWSBucketName, "EmailTemplates/" + templateName);
+                    StreamReader stream = new StreamReader(s3Object.ResponseStream);
+                    emailText = stream.ReadToEnd();
+
+                    return emailText;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogInformation("Email Error: Error retrivieng Email Template - " + templateName);
+                logger.LogInformation("Email Error: " + ex.Message);
+                return "";
+            }
+        }
+
         public async Task UploadFileToS3(string fileName, MemoryStream memoryStream)
         {
             //using (var client = new AmazonS3Client("yourAwsAccessKeyId", "yourAwsSecretAccessKey", RegionEndpoint.USEast1))
             //var chain = new Amazon.Runtime.CredentialManagement.CredentialProfileStoreChain();
             //var result = chain.TryGetAWSCredentials("theradex-development-nci", out var credentials);
-            
+
             using (var client = new AmazonS3Client(RegionEndpoint.USEast1))
             {
                 var uploadRequest = new TransferUtilityUploadRequest
@@ -242,6 +284,6 @@ namespace TheradexPortal.Data.Services
                 await fileTransferUtility.UploadAsync(uploadRequest);
             }
         }
-  
     }
+
 }

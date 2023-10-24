@@ -7,14 +7,17 @@
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>Administration</h2></Div>
 <Div Padding="Padding.Is2" Background="Background.Light">
 <ListGroup Flush Padding="Padding.Is2">
-    <ListGroupItem>
-        <Div Padding="Padding.Is2">
-            <Heading Size="HeadingSize.Is4">Alerts/Notes</Heading>
-            <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart">Define Alerts and Notes for various areas of Web Reporting.</Paragraph>
-        </Div>
-    </ListGroupItem>
-    @if (!isContentAdmin)
+    @if (CheckRole( new List<string> { "Super", "Content" }))
     {
+        <ListGroupItem>
+            <Div Padding="Padding.Is2">
+                <Heading Size="HeadingSize.Is4">Alerts/Notes</Heading>
+                <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart">Define Alerts and Notes for various areas of Web Reporting.</Paragraph>
+            </Div>
+        </ListGroupItem>
+    }
+        @if (CheckRole(new List<string> { "Super" }))
+        {
         <ListGroupItem>
             <Div Padding="Padding.Is2">
                 <Heading Size="HeadingSize.Is4">Users</Heading>
@@ -54,5 +57,15 @@
     {
         isContentAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsContentAdmin, "True");
     }
-    
+   
+    private bool CheckRole(List<string> allowedRoles)
+    {
+        bool roleFound = false;
+        foreach (string allowedRole in allowedRoles)
+        {
+            if (httpContextAccessor.HttpContext.User.HasClaim(c => c.Type == "Admin-" + allowedRole))
+                roleFound = true;
+        }
+        return roleFound;
+    }
 }

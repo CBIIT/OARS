@@ -3,7 +3,7 @@
 @layout AdminLayout
 
 @page "/admin/group/{groupid:int?}"
-<ContentAdmin AdminPage="Group" />
+<AdminRoleCheck AllowedRoles="@(new List<string> { "Super" })"></AdminRoleCheck>
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1 mb-3"><h2>@AddOrEdit</h2></Div>
 <Div Padding="Padding.Is2" Background="Background.Light">
     <Field>

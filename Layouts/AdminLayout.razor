@@ -26,14 +26,14 @@
                             <BarItem>
                                 <Tooltip Text="Home">
                                     <BarLink To="studies">
-                                        <img src="img/home.jpg" alt="Home" style="width:25px;height:25px;" />
+                                            <img src="img/home.png" alt="Home" height="@iconHeight" />
                                     </BarLink>
                                 </Tooltip>
                             </BarItem>
                             <BarItem>
                                 <Tooltip Text="Logout">
                                     <BarLink onclick="@OnButtonClicked">
-                                        <img src="img/logout.png" alt="Logout" style="width:25px;height:25px;" />
+                                            <img src="img/logout.png" alt="Logout" height="@iconHeight" />
                                     </BarLink>
                                 </Tooltip>
                             </BarItem>
@@ -60,39 +60,42 @@
                                 </BarBrand>
                                 <BarMenu>
                                     <BarStart>
-                                        <BarItem>
-                                            <BarLink To="/admin/alerts">
-                                                <BarIcon IconName="IconName.ExclamationCircle"  />
-                                                Alerts/Notes
-                                            </BarLink>
-                                        </BarItem>
-                                            @if (!isContentAdmin)
-                                            {
-                                                <BarItem>
-                                                    <BarLink To="/admin/users">
-                                                        <BarIcon IconName="IconName.Users" />
-                                                        Users
-                                                    </BarLink>
-                                                </BarItem>
-                                                <BarItem>
-                                                    <BarLink To="/admin/roles">
-                                                        <BarIcon IconName="IconName.Coffee" />
-                                                        Roles
-                                                    </BarLink>
-                                                </BarItem>
-                                                <BarItem>
-                                                    <BarLink To="/admin/groups">
-                                                        <BarIcon IconName="IconName.PuzzlePiece" />
-                                                        Groups
-                                                    </BarLink>
-                                                </BarItem>
-                                                <BarItem>
-                                                    <BarLink To="/admin/dashboards">
-                                                <BarIcon IconName="IconName.ChartPie" />
-                                                Dashboards
-                                            </BarLink>
-                                        </BarItem>
+                                        @if (CheckRole( new List<string> { "Super", "Content" }))
+                                        {
+                                            <BarItem>
+                                                <BarLink To="/admin/alerts">
+                                                    <BarIcon IconName="IconName.ExclamationCircle"  />
+                                                    Alerts/Notes
+                                                </BarLink>
+                                            </BarItem>
                                         }
+                                        @if (CheckRole(new List<string> { "Super" }))
+                                        {
+                                            <BarItem>
+                                                <BarLink To="/admin/users">
+                                                    <BarIcon IconName="IconName.Users" />
+                                                    Users
+                                                </BarLink>
+                                            </BarItem>
+                                            <BarItem>
+                                                <BarLink To="/admin/roles">
+                                                    <BarIcon IconName="IconName.Coffee" />
+                                                    Roles
+                                                </BarLink>
+                                            </BarItem>
+                                            <BarItem>
+                                                <BarLink To="/admin/groups">
+                                                    <BarIcon IconName="IconName.PuzzlePiece" />
+                                                    Groups
+                                                </BarLink>
+                                            </BarItem>
+                                            <BarItem>
+                                                <BarLink To="/admin/dashboards">
+                                            <BarIcon IconName="IconName.ChartPie" />
+                                            Dashboards
+                                        </BarLink>
+                                    </BarItem>
+                                    }
                                     </BarStart>
                                 </BarMenu>
                             </Bar>
@@ -122,12 +125,13 @@
     [Inject] private IUserService userService { get; set; } = null!;
 
     public bool isContentAdmin { get; set; }
+    private int iconHeight = 30;
 
     protected override async Task OnInitializedAsync()
     {
-       
+
     }
-    
+
     private string GetHeaderColor()
     {
         string color = configuration.GetValue<string>("System:SystemColor");
@@ -141,5 +145,16 @@
         Navigation.NavigateTo($"Signout", true);
 
         return Task.CompletedTask;
+    }
+
+    private bool CheckRole(List<string> allowedRoles)
+    {
+        bool roleFound = false;
+        foreach (string allowedRole in allowedRoles)
+        {
+            if (httpContextAccessor.HttpContext.User.HasClaim(c => c.Type == "Admin-" + allowedRole))
+                roleFound = true;
+        }
+        return roleFound;
     }
 }

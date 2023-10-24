@@ -45,7 +45,7 @@
 
     protected override async Task OnInitializedAsync()
     { 
-        supportEmail = configuration.GetValue<string>("System:SupportEmail");
+        supportEmail = configuration.GetValue<string>("EmailSettings:SupportEmail");
 
         await base.OnInitializedAsync();
     }

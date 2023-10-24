@@ -34,8 +34,8 @@
                             <EnvironmentLbl />
                         </BarItem>
                         <BarItem>
-                            <Tooltip Text="Alerts">
-                                <BarDropdown RightAligned >
+                            <Tooltip Text="@systemAlertsTooltip">
+                                <BarDropdown RightAligned @ref="@alertBarDropDown" Visible="@systemAlertsDropdownVisible">
                                     <BarDropdownToggle Class="nci-bar-dropdown">
                                         <Badge Class="nci-alert-badge" Pill Position="Position.Absolute.Top.Is50.Start.Is100.Translate.Middle">@systemAlertsCount</Badge>
                                         <Image Source="img/alert-icon.png" height="@iconHeight" Class="nci-alert-icon" />
@@ -47,8 +47,8 @@
                             </Tooltip>
                         </BarItem>
                         <BarItem>
-                            <Tooltip Text="Notes">
-                                <BarDropdown RightAligned>
+                            <Tooltip Text="@systemNotesTooltip">
+                                <BarDropdown RightAligned @ref="@noteBarDropDown">
                                     <BarDropdownToggle Class="nci-bar-dropdown">
                                         <Badge Class="nci-note-badge" Pill Position="Position.Absolute.Top.Is50.Start.Is100.Translate.Middle">@systemNotesCount</Badge>
                                         <Image Source="img/notification-icon.png" height="@iconHeight" Class="nci-alert-icon" />
@@ -72,7 +72,7 @@
                         <BarItem>
                             <Tooltip Text="Administration">
                                 <Button Flex="Flex.JustifyContent.Center" Display="@adminDisplay" Type="ButtonType.Link" To="admin">
-                                    <Image Source="img/gear.jpg" height="@iconHeight" />
+                                    <Image Source="img/admin.png" height="@iconHeight" />
                                 </Button>
                             </Tooltip>
                         </BarItem>
@@ -173,18 +173,28 @@
     private AlertBar? systemNotes;
     private AlertBar? dashboardAlerts;
     private Dashboard? selectedDashboard { get; set; } = null!;
+    private BarDropdown? alertBarDropDown;
+    private BarDropdown? noteBarDropDown;
     [Inject] public NavigationManager Navigation { get; set; }
     [Inject] private IUserService userService { get; set; } = null!;
     [Inject] private IAlertService alertService { get; set; } = null!;
     [Inject] INotificationService notificationService { get; set; }
     [Inject] IContactUsService contactUsCategoryService { get; set; } = null!;
     [Inject] IEmailService emailService { get; set; } = null!;
-    [Inject] NavigationManager navigation { get; set; } = null!;
+
 
     Validations validations;
-    private int iconHeight = 24;
+    private int iconHeight = 30;
     private int systemAlertsCount;
-    private int systemNotesCount;
+    private int systemNotesCount; 
+    private bool systemAlertsDropdownVisible;
+    private string systemAlertsTooltip = string.Empty;
+    private string systemNotesTooltip = string.Empty;
+    private readonly string noSystemAlertsMessage = "No current System Alerts";
+    private readonly string noSystemNotesMessage = "No current System Notes";
+    private readonly string currentSystemAlertsMessage = "System Alerts: ";
+    private readonly string currentSystemNotesMessage = "System Notes: ";
+
     IFluentDisplay adminDisplay = Display.None;
 
     private string contactUsCategoryID ="", emailTo = "", emailCategory="", emailDescription = "", emailTitle = "";
@@ -249,12 +259,36 @@
     protected async Task SystemAlertsCountChanged(int count)
     {
         this.systemAlertsCount = count;
+
+        if (this.systemAlertsCount < 1)
+        {
+            await this.alertBarDropDown!.Hide();
+            systemAlertsDropdownVisible = false;
+            this.systemAlertsTooltip = this.noSystemAlertsMessage;
+        }
+        else
+        {
+            await this.alertBarDropDown!.Show();
+            systemAlertsDropdownVisible = true;
+            this.systemAlertsTooltip = this.currentSystemAlertsMessage + this.systemAlertsCount;
+        }
     }
 
     protected async Task SystemNotesCountChanged(int count)
     {
         this.systemNotesCount = count;
+
+        if (this.systemNotesCount < 1)
+        {
+            await this.noteBarDropDown!.Hide();
+            this.systemNotesTooltip = this.noSystemNotesMessage;
+        }
+        else
+        {
+            this.systemNotesTooltip = this.currentSystemNotesMessage + this.systemNotesCount;
+        }
     }
+
 
     private Modal modalContactUs;
 
@@ -282,76 +316,76 @@
         return modalContactUs.Hide();
     }
 
-    private async void SendContactUsEmail()
-    {
-        if (await validations.ValidateAll())
-        {
-            emailTo = string.Empty;
-            emailCategory = string.Empty;
-            string siteName = "Web Reporting-" + configuration.GetValue<string>("System:Environment");
-            string baseURL = navigation.BaseUri;
-            string color = configuration.GetValue<string>("System:SystemColor");
-            string dateTime = DateTime.Now.ToString("d-MMM-yyyy hh:mm tt");
-            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
-            User curUser = await userService.GetUserAsync(userId);
-            string userName = curUser.FirstName + " " + curUser.LastName;
+     private async void SendContactUsEmail()
+ {
+     if (await validations.ValidateAll())
+     {
+         emailTo = string.Empty;
+         emailCategory = string.Empty;
+         string siteName = "Web Reporting-" + configuration.GetValue<string>("System:Environment");
+         string baseURL = Navigation.BaseUri;
+         string color = configuration.GetValue<string>("System:SystemColor");
+         string dateTime = DateTime.Now.ToString("d-MMM-yyyy hh:mm tt");
+         int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+         User curUser = await userService.GetUserAsync(userId);
+         string userName = curUser.FirstName + " " + curUser.LastName;
 
-            ContactUsCategory category = lstContactUsCategory.Where(l => l.WRContactUsCategoryID == Convert.ToInt32(contactUsCategoryID)).FirstOrDefault();
-            if(category != null)
-            {
-                if(category.ParentCategoryId != null)
-                {
-                    ContactUsCategory parentCategory = lstContactUsCategory.Where(l => l.WRContactUsCategoryID == Convert.ToInt32(category.ParentCategoryId)).FirstOrDefault();
-                    if(parentCategory != null)
-                    {
-                        emailCategory = parentCategory.Name + "-";
-                    }
-                }
-                emailCategory += category.Name;
-                emailTo = category.EmailTo;
-            }
+         ContactUsCategory category = lstContactUsCategory.Where(l => l.WRContactUsCategoryID == Convert.ToInt32(contactUsCategoryID)).FirstOrDefault();
+         if(category != null)
+         {
+             if(category.ParentCategoryId != null)
+             {
+                 ContactUsCategory parentCategory = lstContactUsCategory.Where(l => l.WRContactUsCategoryID == Convert.ToInt32(category.ParentCategoryId)).FirstOrDefault();
+                 if(parentCategory != null)
+                 {
+                     emailCategory = parentCategory.Name + "-";
+                 }
+             }
+             emailCategory += category.Name;
+             emailTo = category.EmailTo;
+         }
 
-            if (selectedFile != null)
-            {
-                try
-                {
-                    var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(selectedFile.Name);
-                    var fileExtension = Path.GetExtension(selectedFile.Name);
-                    uploadFileName = fileNameWithoutExtension + "_" + Guid.NewGuid() + fileExtension;
-                    lstAttachments.Add(uploadFileName);
-                    using (var stream = new MemoryStream())
-                    {
-                        await selectedFile.WriteToStreamAsync(stream);
-                        await emailService.UploadFileToS3(uploadFileName, stream);
-                    }
-                }
-                catch (Exception exc)
-                {
-                    string errorMessage = exc.Message;
-                }
-            }
-            ContactUs contactUsLog = new ContactUs();
-            contactUsLog.WRContactUsID = 0;
-            contactUsLog.Subject = emailTitle;
-            contactUsLog.Description = "Category: " + emailCategory + " Description: " + emailDescription; ;
-            contactUsLog.CategoryID = Convert.ToInt32(contactUsCategoryID);
-            contactUsLog.UserID = userId;
-            contactUsLog.AttachmentName = uploadFileName;
-            
-            contactUsCategoryService.SaveContactUs(contactUsLog);
+         if (selectedFile != null)
+         {
+             try
+             {
+                 var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(selectedFile.Name);
+                 var fileExtension = Path.GetExtension(selectedFile.Name);
+                 uploadFileName = fileNameWithoutExtension + "_" + Guid.NewGuid() + fileExtension;
+                 lstAttachments.Add(uploadFileName);
+                 using (var stream = new MemoryStream())
+                 {
+                     await selectedFile.WriteToStreamAsync(stream);
+                     await emailService.UploadFileToS3(uploadFileName, stream);
+                 }
+             }
+             catch (Exception exc)
+             {
+                 string errorMessage = exc.Message;
+             }
+         }
+         ContactUs contactUsLog = new ContactUs();
+         contactUsLog.WRContactUsID = 0;
+         contactUsLog.Subject = emailTitle;
+         contactUsLog.Description = "Category: " + emailCategory + " Description: " + emailDescription; ;
+         contactUsLog.CategoryID = Convert.ToInt32(contactUsCategoryID);
+         contactUsLog.UserID = userId;
+         contactUsLog.AttachmentName = uploadFileName;
+         
+         contactUsCategoryService.SaveContactUs(contactUsLog);
 
-            bool sendEmailResult = await emailService.SendContactUsEmail(siteName, baseURL, color, emailTo, emailTitle, emailCategory, emailDescription, userName, dateTime, lstAttachments);
-            
-            if ( sendEmailResult)
-            {
-                await notificationService.Success("An email to support has been sent.");         
-            }
-            else
-            {
-                await notificationService.Error("An error occured during sending the email to support.");
-            }
-            modalContactUs.Hide();
-        }
-    }
+         bool sendEmailResult = await emailService.SendContactUsEmail(siteName, baseURL, color, emailTo, emailTitle, emailCategory, emailDescription, userName, dateTime, lstAttachments);
+         
+         if ( sendEmailResult)
+         {
+             await notificationService.Success("An email to support has been sent.");         
+         }
+         else
+         {
+             await notificationService.Error("An error occured during sending the email to support.");
+         }
+         modalContactUs.Hide();
+     }
+ }
 
 }
