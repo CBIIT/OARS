@@ -59,7 +59,9 @@
 
             foreach (var file in e.Files)
             {
-                uploadFileName = file.Name;
+                var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file.Name);
+                var fileExtension = Path.GetExtension(file.Name);
+                uploadFileName = fileNameWithoutExtension + "_" + Guid.NewGuid() + fileExtension;
 
                 // A stream is going to be the destination stream we're writing to.
                 using (var stream = new MemoryStream())
@@ -67,7 +69,7 @@
                     // Here we're telling the FileEdit where to write the upload result
                     await file.WriteToStreamAsync(stream);
 
-                    await UploadFileToS3(uploadFileName, stream);
+                    await emailService.UploadFileToS3(uploadFileName, stream);
                     // Once we reach this line it means the file is fully uploaded.
                     // In this case we're going to offset to the beginning of file
                     // so we can read it.
@@ -92,7 +94,7 @@
         }
     }
 
-    string emailAddress = "wfarbman@theradex.com";
+    string emailAddress = "wenjun.webreporting@gmail.com";
 
     // Replace sender@example.com with your "From" address.
     // This address must be verified with Amazon SES.
@@ -100,7 +102,7 @@
 
     // Replace recipient@example.com with a "To" address. If your account
     // is still in the sandbox, this address must be verified.
-    static readonly string receiverAddress = "wfarbman@theradex.com";
+    static readonly string receiverAddress = "wwu@theradex.com";
 
     // The configuration set to use for this email. If you do not want to use a
     // configuration set, comment out the following property and the
@@ -189,7 +191,7 @@
 
         var stream = new MemoryStream(
             Encoding.UTF8.GetBytes("From: johndoe@example.com\n" +
-            "To: janedoe@example.com\n" +
+            "To: wwu@theradex.com\n" +
             "Subject: You're invited to the meeting\n" +
             "Content-Type: text/plain\n\n" +
             "Please join us Monday at 7:00 PM.")
@@ -272,8 +274,13 @@
         User curUser = await userService.GetUserByEmailAsync(emailAddress);
         if (curUser != null)
         {
-            bool sendSuccess = await emailService.SendEmail(new List<string> { curUser.EmailAddress }, new List<string> { "wfarbman@theradex.com" }, null, "Subject test", $"<B>Test Test</B>", new List<string> { uploadFileName });
-            //bool sendSuccess = await emailService.SendNewUserEmail(initialSite, baseURL, primaryColor, curUser, "Activation Link");
+            bool sendSuccess = await emailService.SendEmail(new List<string> { curUser.EmailAddress }, new List<string> { "wwu@theradex.com" }, null, "Subject test", $"<B>Test Test</B>", new List<string> { uploadFileName });
+
+            await emailService.SendNewSystemEmail(initialSite, baseURL, primaryColor, curUser);
+
+             //sendSuccess = await emailService.SendNewUserEmail(initialSite, baseURL, primaryColor, curUser, "Activation Link");
+            //await emailService.SendEmail(new List<string> { curUser.EmailAddress }, new List<string> { "wfarbman@theradex.com" }, null, "Subject test", $"<B>Test Test</B>", null);
+            //        //bool sendSuccess = await emailService.SendNewUserEmail(initialSite, baseURL, primaryColor, curUser, "Activation Link");
         }
     }
 
@@ -304,25 +311,5 @@
         }
     }
 
-    public async Task UploadFileToS3(string fileName, MemoryStream memoryStream)
-    {
-        //using (var client = new AmazonS3Client("yourAwsAccessKeyId", "yourAwsSecretAccessKey", RegionEndpoint.USEast1))
-        //var chain = new Amazon.Runtime.CredentialManagement.CredentialProfileStoreChain();
-        //var result = chain.TryGetAWSCredentials("theradex-development-nci", out var credentials);
-
-        using (var client = new AmazonS3Client(RegionEndpoint.USEast1))
-        {
-                var uploadRequest = new TransferUtilityUploadRequest
-                    {
-                        InputStream = memoryStream,
-                        Key = fileName,
-                        BucketName = "theradex-nci-webreporting-dev"
-                        //,
-                        //CannedACL = S3CannedACL.PublicRead
-                    };
-
-                var fileTransferUtility = new TransferUtility(client);
-                await fileTransferUtility.UploadAsync(uploadRequest);
-        }
-    }
+    
 }

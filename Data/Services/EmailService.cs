@@ -14,6 +14,14 @@ using MimeKit;
 using Amazon.S3;
 using static TheradexPortal.Data.Services.OktaUser;
 using Amazon;
+using Amazon.S3.Transfer;
+using System.Configuration;
+using Amazon.S3.Model;
+using System.IO;
+using Microsoft.PowerBI.Api.Models;
+using System.Net.Mime;
+using MimeKit.Utils;
+using ITfoxtec.Identity.Saml2.Schemas;
 
 namespace TheradexPortal.Data.Services
 {
@@ -28,32 +36,38 @@ namespace TheradexPortal.Data.Services
             this.logger = logger;
         }
 
-        public async Task<bool> SendNewUserEmail(string siteName, string baseURL, string primaryColor, User curUser, string activationLink)
+        public async Task<bool> SendNewUserEmail(string siteName, string baseURL, string primaryColor, TheradexPortal.Data.Models.User curUser, string activationLink)
         {
             try
             {
-                // Get the template to email
-                var emailText = "";
-                if (!curUser.IsCtepUser)
+                using (var s3Client = new AmazonS3Client(RegionEndpoint.USEast1))
                 {
-                    emailText = System.IO.File.ReadAllText($"{System.IO.Directory.GetCurrentDirectory()}{@"\wwwroot\emails\NewTheradexUser.txt"}");
+                    // Get the template to email
+                    var emailText = "";
+                    string emailTemplate = "{0}/NewTheradexUser.txt";
+                    if (curUser.IsCtepUser)
+                    {
+                        emailTemplate = "{0}/NewCTEPUser.txt";
+                    }
+                    GetObjectResponse response = await s3Client.GetObjectAsync(emailSettings.Value.AWSBucketName, string.Format(emailTemplate, emailSettings.Value.EmailTemplate));
+
+                    using (Stream responseStream = response.ResponseStream)
+                    {
+                        MemoryStream templateStream = new MemoryStream();
+                        responseStream.CopyTo(templateStream);
+                        emailText = System.Text.Encoding.UTF8.GetString(templateStream.ToArray());
+                        // Populate the specific fields
+                        emailText = emailText.Replace("[[Color]]", primaryColor);
+                        emailText = emailText.Replace("[[System]]", siteName);
+                        emailText = emailText.Replace("[[URL]]", baseURL);
+                        emailText = emailText.Replace("[[FullName]]", curUser.FirstName + " " + curUser.LastName);
+                        emailText = emailText.Replace("[[Email]]", curUser.EmailAddress);
+                        emailText = emailText.Replace("[[SupportEmail]]", emailSettings.Value.SupportEmail);
+
+                        await SendEmail(curUser.EmailAddress, "Welcome " + curUser.FirstName + " " + curUser.LastName, emailText);
+                        return true;
+                    }
                 }
-                else
-                    emailText = System.IO.File.ReadAllText($"{System.IO.Directory.GetCurrentDirectory()}{@"\wwwroot\emails\NewCTEPUser.txt"}");
-
-                // Populate the specific fields
-                emailText = emailText.Replace("[[Color]]", primaryColor);
-                emailText = emailText.Replace("[[System]]", siteName);
-                emailText = emailText.Replace("[[ActivationLink]]", activationLink);
-                emailText = emailText.Replace("[[URL]]", baseURL);
-                emailText = emailText.Replace("[[FullName]]", curUser.FirstName + " " + curUser.LastName);
-                emailText = emailText.Replace("[[Email]]", curUser.EmailAddress);
-                emailText = emailText.Replace("[[SupportEmail]]", emailSettings.Value.SupportEmail);
-
-                await SendEmail(curUser.EmailAddress, "Welcome " + curUser.FirstName + " " + curUser.LastName, emailText);
-
-                // Email it out
-                return true;
             }
             catch (Exception ex)
             {
@@ -61,31 +75,76 @@ namespace TheradexPortal.Data.Services
             }
         }
 
-        public async Task<bool> SendNewSystemEmail(string siteName, string baseURL, string primaryColor, User curUser)
+        public async Task<bool> SendNewSystemEmail(string siteName, string baseURL, string primaryColor, TheradexPortal.Data.Models.User curUser)
         {
             try
             {
-                // Get the template to email
-                var emailText = "";
-                if (!curUser.IsCtepUser)
+                using (var s3Client = new AmazonS3Client(RegionEndpoint.USEast1))
                 {
-                    emailText = System.IO.File.ReadAllText($"{System.IO.Directory.GetCurrentDirectory()}{@"\wwwroot\emails\NewSystemTheradexUser.txt"}");
+                    // Get the template to email
+                    var emailText = "";
+                    string emailTemplate = "{0}/NewSystemTheradexUser.txt";
+                    if (curUser.IsCtepUser)
+                    {
+                        emailTemplate = "{0}/NewCTEPUser.txt";
+                    }
+                    GetObjectResponse response = await s3Client.GetObjectAsync(emailSettings.Value.AWSBucketName, string.Format(emailTemplate, emailSettings.Value.EmailTemplate));
+
+                    using (Stream responseStream = response.ResponseStream)
+                    {
+                        MemoryStream templateStream = new MemoryStream();
+                        responseStream.CopyTo(templateStream);
+                        emailText = System.Text.Encoding.UTF8.GetString(templateStream.ToArray());
+                        // Populate the specific fields
+                        emailText = emailText.Replace("[[Color]]", primaryColor);
+                        emailText = emailText.Replace("[[System]]", siteName);
+                        emailText = emailText.Replace("[[URL]]", baseURL);
+                        emailText = emailText.Replace("[[FullName]]", curUser.FirstName + " " + curUser.LastName);
+                        emailText = emailText.Replace("[[Email]]", curUser.EmailAddress);
+                        emailText = emailText.Replace("[[SupportEmail]]", emailSettings.Value.SupportEmail);
+
+                        await SendEmail(curUser.EmailAddress, "Welcome " + curUser.FirstName + " " + curUser.LastName, emailText);
+                        return true;
+                    }
                 }
-                else
-                    emailText = System.IO.File.ReadAllText($"{System.IO.Directory.GetCurrentDirectory()}{@"\wwwroot\emails\NewCTEPUser.txt"}");
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+           
 
-                // Populate the specific fields
-                emailText = emailText.Replace("[[Color]]", primaryColor);
-                emailText = emailText.Replace("[[System]]", siteName);
-                emailText = emailText.Replace("[[URL]]", baseURL);
-                emailText = emailText.Replace("[[FullName]]", curUser.FirstName + " " + curUser.LastName);
-                emailText = emailText.Replace("[[Email]]", curUser.EmailAddress);
-                emailText = emailText.Replace("[[SupportEmail]]", emailSettings.Value.SupportEmail);
+        public async Task<bool> SendContactUsEmail(string siteName, string baseURL, string primaryColor, string emailTo, string subject, string category
+            ,string description, string userName, string dateTime, List<string> lstAttachments)
+        {
+            try
+            {
+                using (var s3Client = new AmazonS3Client(RegionEndpoint.USEast1))
+                {
+                    // Get the template to email
+                    GetObjectResponse response = await s3Client.GetObjectAsync(emailSettings.Value.AWSBucketName, string.Format("{0}/SupportRequest.txt", emailSettings.Value.EmailTemplate));                
+                  
+                    using (Stream responseStream = response.ResponseStream)
+                    {
+                        MemoryStream templateStream = new MemoryStream();
+                        responseStream.CopyTo(templateStream);
+                        string emailText = System.Text.Encoding.UTF8.GetString(templateStream.ToArray());
+                        // Populate the specific fields
+                        emailText = emailText.Replace("[[Color]]", primaryColor);
+                        emailText = emailText.Replace("[[System]]", siteName);
+                        emailText = emailText.Replace("[[URL]]", baseURL);
+                        emailText = emailText.Replace("[[Username]]", userName);
+                        emailText = emailText.Replace("[[Subject]]", subject);
+                        emailText = emailText.Replace("[[Category]]", category);
+                        emailText = emailText.Replace("[[Description]]", description);
+                        emailText = emailText.Replace("[[DateTime]]", dateTime);
 
-                await SendEmail(curUser.EmailAddress, "Welcome " + curUser.FirstName + " " + curUser.LastName, emailText);
+                        await SendEmail(new List<string> { emailTo }, null, null, subject, emailText, lstAttachments);
+                        return true;
+                    }
 
-                // Email it out
-                return true;
+                }
             }
             catch (Exception ex)
             {
@@ -97,7 +156,6 @@ namespace TheradexPortal.Data.Services
         {
             return await SendEmail(new List<String> { toAddress }, null, null, subject, htmlBody, null);
         }
-
         public async Task<bool> SendEmail(List<string> toAddresses, List<string> ccAddresses, List<string> bccAddresses, string subject, string htmlBody, List<string> attachments)
         {
             bool emailSuccess = true;
@@ -107,16 +165,21 @@ namespace TheradexPortal.Data.Services
                 {
                     // Build the body with attachements
                     var bodyBuilder = new BodyBuilder();
-                    bodyBuilder.HtmlBody = htmlBody;
+
+                    string rootpath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "wwwroot");
+                    var image = bodyBuilder.LinkedResources.Add(Path.Combine(rootpath,@"img\theradex-logo.png"));
+                    image.ContentId = MimeUtils.GenerateMessageId();
+                    bodyBuilder.HtmlBody = htmlBody.Replace("[[LogoContentId]]", image.ContentId);
 
                     using (var s3Client = new AmazonS3Client(RegionEndpoint.USEast1))
                     {
-                        if (attachments != null)
+                        if (attachments != null && attachments.Count > 0)
                         {
                             foreach (string attachment in attachments)
                             {
                                 //var s3Object = await s3Client.GetObjectAsync("theradex-nci-webreporting-dev", attachment);
-                                var s3Object = await s3Client.GetObjectAsync(emailSettings.Value.AWSBucketName, attachment);
+                                
+                                var s3Object = await s3Client.GetObjectAsync(emailSettings.Value.AWSBucketName, string.Format("{0}/{1}", emailSettings.Value.UploadFolder, attachment));
                                 bodyBuilder.Attachments.Add(attachment, s3Object.ResponseStream);
                             }
                         }
@@ -160,5 +223,25 @@ namespace TheradexPortal.Data.Services
                 return false;
             }
         }
+        public async Task UploadFileToS3(string fileName, MemoryStream memoryStream)
+        {
+            //using (var client = new AmazonS3Client("yourAwsAccessKeyId", "yourAwsSecretAccessKey", RegionEndpoint.USEast1))
+            //var chain = new Amazon.Runtime.CredentialManagement.CredentialProfileStoreChain();
+            //var result = chain.TryGetAWSCredentials("theradex-development-nci", out var credentials);
+            
+            using (var client = new AmazonS3Client(RegionEndpoint.USEast1))
+            {
+                var uploadRequest = new TransferUtilityUploadRequest
+                {
+                    InputStream = memoryStream,
+                    Key = string.Format("{0}/{1}", emailSettings.Value.UploadFolder, fileName),
+                    BucketName = emailSettings.Value.AWSBucketName
+                };
+
+                var fileTransferUtility = new TransferUtility(client);
+                await fileTransferUtility.UploadAsync(uploadRequest);
+            }
+        }
+  
     }
 }

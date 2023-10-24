@@ -1,4 +1,12 @@
-﻿@using TheradexPortal.Data.Identity;
+﻿@using Amazon;
+@using Amazon.Auth;
+@using Amazon.SimpleEmail;
+@using Amazon.SimpleEmail.Model;
+@using Amazon.S3;
+@using Amazon.S3.Transfer;
+@using System.Text.RegularExpressions;
+@using System.Web;
+@using TheradexPortal.Data.Identity;
 @using TheradexPortal.Data.Services.Abstract;
 @using TheradexPortal.Data.Static;
 @inject IHttpContextAccessor httpContextAccessor
@@ -146,6 +154,10 @@
                     </FieldBody>
                 </Field>
                 </Validation>
+                <Field>                    
+                    <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Attach File</FieldLabel>
+                    <FileEdit @ref="@fileEditRef" AutoReset="false" Changed="@OnChanged" />
+                </Field>           
             </Validations>
         </ModalBody>
         <ModalFooter>
@@ -166,6 +178,8 @@
     [Inject] private IAlertService alertService { get; set; } = null!;
     [Inject] INotificationService notificationService { get; set; }
     [Inject] IContactUsService contactUsCategoryService { get; set; } = null!;
+    [Inject] IEmailService emailService { get; set; } = null!;
+    [Inject] NavigationManager navigation { get; set; } = null!;
 
     Validations validations;
     private int iconHeight = 24;
@@ -173,9 +187,29 @@
     private int systemNotesCount;
     IFluentDisplay adminDisplay = Display.None;
 
-    private string contactUsCategoryID ="", fromEmail = "", emailTo = "", emailCategory="", emailDescription = "", emailTitle = "", emailMessage = "";
+    private string contactUsCategoryID ="", emailTo = "", emailCategory="", emailDescription = "", emailTitle = "";
     private List<ContactUsCategory> lstContactUsCategory;
     private List<ContactUsCategorySelectItemList> lstContactUsItems;
+    FileEdit fileEditRef;
+    string uploadFileName = "";
+    List<string> lstAttachments = new List<string>();
+    IFileEntry selectedFile;
+
+    async Task OnChanged(FileChangedEventArgs e)
+    {
+        try
+        {
+            selectedFile = e.Files.FirstOrDefault();           
+        }
+        catch (Exception exc)
+        {
+            string errorMessage = exc.Message;
+        }
+        finally
+        {
+            this.StateHasChanged();
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -226,8 +260,12 @@
 
     private Task ShowContactUsModal()
     {
-        emailTitle = "";
-        emailDescription = "";
+        emailTitle = string.Empty;
+        emailDescription = string.Empty;
+        lstAttachments = new List<string>();
+        uploadFileName = string.Empty;
+        selectedFile = null;
+        fileEditRef.Reset().AsTask();
         if( lstContactUsItems.Count >0)
         {
             if (lstContactUsItems[0].IsGroupLevel && lstContactUsItems[0].SecondLevel!= null && lstContactUsItems[0].SecondLevel.Count > 0)
@@ -248,19 +286,62 @@
     {
         if (await validations.ValidateAll())
         {
-            emailTo = configuration.GetValue<string>("System:SupportEmail");
-            fromEmail = configuration.GetValue<string>("System:FromEmail");
+            emailTo = string.Empty;
+            emailCategory = string.Empty;
+            string siteName = "Web Reporting-" + configuration.GetValue<string>("System:Environment");
+            string baseURL = navigation.BaseUri;
+            string color = configuration.GetValue<string>("System:SystemColor");
+            string dateTime = DateTime.Now.ToString("d-MMM-yyyy hh:mm tt");
+            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+            User curUser = await userService.GetUserAsync(userId);
+            string userName = curUser.FirstName + " " + curUser.LastName;
 
             ContactUsCategory category = lstContactUsCategory.Where(l => l.WRContactUsCategoryID == Convert.ToInt32(contactUsCategoryID)).FirstOrDefault();
             if(category != null)
             {
-                emailCategory = category.Name;
+                if(category.ParentCategoryId != null)
+                {
+                    ContactUsCategory parentCategory = lstContactUsCategory.Where(l => l.WRContactUsCategoryID == Convert.ToInt32(category.ParentCategoryId)).FirstOrDefault();
+                    if(parentCategory != null)
+                    {
+                        emailCategory = parentCategory.Name + "-";
+                    }
+                }
+                emailCategory += category.Name;
                 emailTo = category.EmailTo;
             }
 
-            emailMessage = "Category: " + emailCategory + System.Environment.NewLine + "Description: " + emailDescription;
-            bool sendEmailResult = true;
+            if (selectedFile != null)
+            {
+                try
+                {
+                    var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(selectedFile.Name);
+                    var fileExtension = Path.GetExtension(selectedFile.Name);
+                    uploadFileName = fileNameWithoutExtension + "_" + Guid.NewGuid() + fileExtension;
+                    lstAttachments.Add(uploadFileName);
+                    using (var stream = new MemoryStream())
+                    {
+                        await selectedFile.WriteToStreamAsync(stream);
+                        await emailService.UploadFileToS3(uploadFileName, stream);
+                    }
+                }
+                catch (Exception exc)
+                {
+                    string errorMessage = exc.Message;
+                }
+            }
+            ContactUs contactUsLog = new ContactUs();
+            contactUsLog.WRContactUsID = 0;
+            contactUsLog.Subject = emailTitle;
+            contactUsLog.Description = "Category: " + emailCategory + " Description: " + emailDescription; ;
+            contactUsLog.CategoryID = Convert.ToInt32(contactUsCategoryID);
+            contactUsLog.UserID = userId;
+            contactUsLog.AttachmentName = uploadFileName;
+            
+            contactUsCategoryService.SaveContactUs(contactUsLog);
 
+            bool sendEmailResult = await emailService.SendContactUsEmail(siteName, baseURL, color, emailTo, emailTitle, emailCategory, emailDescription, userName, dateTime, lstAttachments);
+            
             if ( sendEmailResult)
             {
                 await notificationService.Success("An email to support has been sent.");         
@@ -269,14 +350,6 @@
             {
                 await notificationService.Error("An error occured during sending the email to support.");
             }
-            ContactUs contactUsLog = new ContactUs();
-            contactUsLog.WRContactUsID = 0;
-            contactUsLog.Subject = emailTitle;
-            contactUsLog.Description = emailMessage;
-            contactUsLog.CategoryID = Convert.ToInt32(contactUsCategoryID);
-            contactUsLog.UserID = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
-            contactUsLog.AttachmentName = string.Empty;
-            contactUsCategoryService.SaveContactUs(contactUsLog);
             modalContactUs.Hide();
         }
     }
