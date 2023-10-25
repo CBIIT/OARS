@@ -24,6 +24,7 @@ using MimeKit.Utils;
 using ITfoxtec.Identity.Saml2.Schemas;
 using System.Threading.Tasks;
 using System;
+using Microsoft.AspNetCore.Hosting;
 
 namespace TheradexPortal.Data.Services
 {
@@ -31,11 +32,12 @@ namespace TheradexPortal.Data.Services
     {
         private readonly IOptions<EmailSettings> emailSettings;
         private readonly ILogger<EmailService> logger;
-
-        public EmailService(IOptions<EmailSettings> emailSettings, ILogger<EmailService> logger)
+        private readonly IWebHostEnvironment webHostEnvironment;
+        public EmailService(IOptions<EmailSettings> emailSettings, ILogger<EmailService> logger, IWebHostEnvironment webHostEnvironment)
         {
             this.emailSettings = emailSettings;
             this.logger = logger;
+            this.webHostEnvironment = webHostEnvironment;
         }
 
         public async Task<bool> SendNewUserEmail(string siteName, string baseURL, string primaryColor, TheradexPortal.Data.Models.User curUser, string activationLink)
@@ -183,9 +185,8 @@ namespace TheradexPortal.Data.Services
                 {
                     // Build the body with attachements
                     var bodyBuilder = new BodyBuilder();
-
-                    string rootpath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "wwwroot");
-                    var image = bodyBuilder.LinkedResources.Add(Path.Combine(rootpath, @"img\theradex-logo.png"));
+                   
+                    var image = bodyBuilder.LinkedResources.Add(Path.Combine(webHostEnvironment.WebRootPath, @"img\theradex-logo.png"));
                     image.ContentId = MimeUtils.GenerateMessageId();
                     bodyBuilder.HtmlBody = htmlBody.Replace("[[LogoContentId]]", image.ContentId);
 
