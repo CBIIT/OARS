@@ -25,6 +25,7 @@ using ITfoxtec.Identity.Saml2.Schemas;
 using System.Threading.Tasks;
 using System;
 using Microsoft.AspNetCore.Hosting;
+using Blazorise.Extensions;
 
 namespace TheradexPortal.Data.Services
 {
@@ -185,25 +186,32 @@ namespace TheradexPortal.Data.Services
                 {
                     // Build the body with attachements
                     var bodyBuilder = new BodyBuilder();
-                   
-                    var image = bodyBuilder.LinkedResources.Add(Path.Combine(webHostEnvironment.WebRootPath, @"img\theradex-logo.png"));
-                    image.ContentId = MimeUtils.GenerateMessageId();
-                    bodyBuilder.HtmlBody = htmlBody.Replace("[[LogoContentId]]", image.ContentId);
-
+                    using (var s3Client = new AmazonS3Client(RegionEndpoint.USEast1))
+                    {
+                        GetObjectResponse response = await s3Client.GetObjectAsync(emailSettings.Value.AWSBucketName, string.Format("{0}/theradex-logo.png", emailSettings.Value.EmailTemplate));
+                        using (Stream responseStream = response.ResponseStream)
+                        {
+                            MemoryStream templateStream = new MemoryStream();
+                            responseStream.CopyTo(templateStream);
+                            var imageBytes = templateStream.ToArray();
+                            var image = bodyBuilder.LinkedResources.Add("theradex-logo.png", imageBytes);
+                            image.ContentId = MimeUtils.GenerateMessageId();
+                            bodyBuilder.HtmlBody = htmlBody.Replace("[[LogoContentId]]", image.ContentId);
+                        }                        
+                    }
                     using (var s3Client = new AmazonS3Client(RegionEndpoint.USEast1))
                     {
                         if (attachments != null && attachments.Count > 0)
                         {
                             foreach (string attachment in attachments)
                             {
-                                //var s3Object = await s3Client.GetObjectAsync("theradex-nci-webreporting-dev", attachment);
-                                var s3Object = await s3Client.GetObjectAsync(emailSettings.Value.AWSBucketName, attachment);
+                                var s3Object = await s3Client.GetObjectAsync(emailSettings.Value.AWSBucketName, string.Format("{0}/{1}", emailSettings.Value.UploadFolder, attachment));
                                 bodyBuilder.Attachments.Add(attachment, s3Object.ResponseStream);
                             }
                         }
                     }
 
-                    // Build the mime message with the from, to, cc and bcc addresses (if applicable)
+                        // Build the mime message with the from, to, cc and bcc addresses (if applicable)
                     var mimeMessage = new MimeMessage();
                     mimeMessage.From.Add(new MailboxAddress(string.Empty, emailSettings.Value.FromEmail));
 
