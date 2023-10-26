@@ -133,7 +133,7 @@
     </Div>
 </Field>
 
-@code {
+ @code {
     [Inject] IAlertService alertService { get; set; } = null!;
     [Inject] INotificationService NotificationService { get; set; }
     [Inject] IDashboardService dashboardService { get; set; } = null!;
@@ -301,14 +301,15 @@
         alertText = currAlert.AlertText;
         isActive = currAlert.IsActive;
         startDate = (DateTime) currAlert.StartDate;
+        endDate = (DateTime)currAlert.EndDate;
 
-        if (endDate != null && !endDate.Equals(string.Empty) && endDate > defaultDateTime)
+        if (endDate != null)
         {
-            endDate = (DateTime)currAlert.EndDate;
-        }
-        else
-        {
-            endDate = null;
+            // Set invalid end dates to null
+            if (endDate.Equals(string.Empty) || endDate < defaultDateTime)
+            {
+                endDate = null;
+            }
         }
     }
 

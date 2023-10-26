@@ -15,6 +15,7 @@
                   Class="admindatagrid"
                   Data="@alertList"
                   Responsive
+                  Sortable
                   Filterable
                   Striped
                   ShowPager
@@ -55,8 +56,7 @@
                             var alert = (context as WRAlert);
                             var dateTime = DateTime.Now;
                             var isActive = alert?.IsActive ?? false;
-                            var isDateActive = alertService.AlertDatesValid(alert.StartDate, alert.EndDate);
-                            if (isActive && isDateActive)
+                            if (isActive)
                             {
                                 @("Yes")
                             }
@@ -116,6 +116,7 @@
     [AllowNull] private Modal deactivateModalRef;
 
     private IList<WRAlert> alertList = new List<WRAlert>();
+    private IList<WRAlert> displayedAlertList = new List<WRAlert>();
     private IList<Dashboard> dashboards = new List<Dashboard>();
     private string alertToDeactivate = string.Empty;
     private string alertToDeactivateText = string.Empty;
@@ -132,7 +133,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        alertList = await alertService.GetAllWRAlertsAsync();
+        this.alertList = await alertService.GetAllWRAlertsAsync();
         pageDashboard = await alertService.DashboardPage();
 
         bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsAdmin, "True");
@@ -140,19 +141,14 @@
 
         dashboards = await dashboardService.GetDashboardsForUserAsync(userId, isAdmin);
 
-        this.typeAlert = await alertService.AlertType();
-        this.typeNote = await alertService.NoteType();
-        this.alertColor = await alertService.AlertColor();
-        this.noteColor = await alertService.NoteColor();
-        this.infoColor = await alertService.InfoColor();
-        this.currentColor = this.alertColor;
+        this.RetrieveAlertColorValues();
 
         allowedRoleList = new string[1] { "Content" };
     }
 
     private Visibility IsDeactivatable(WRAlert a)
     {
-        if (a.IsActive) // TODO Do we want to have the ActiveDates check this as well
+        if (a.IsActive)
             return Visibility.Visible;
         else
             return Visibility.Invisible;
@@ -202,5 +198,15 @@
         {
             await NotificationService.Error("Error deactivating user");
         }
+    }
+
+    private async void RetrieveAlertColorValues()
+    {
+        this.typeAlert = await alertService.AlertType();
+        this.typeNote = await alertService.NoteType();
+        this.alertColor = await alertService.AlertColor();
+        this.noteColor = await alertService.NoteColor();
+        this.infoColor = await alertService.InfoColor();
+        this.currentColor = this.alertColor;
     }
 }

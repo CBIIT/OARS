@@ -14,10 +14,14 @@ function embedFullReport(reportContainer, accessToken, filterTargets, embedUrl, 
     // studyFilter = list of studies to show in study id filter
     // startingStudy = the study that should be checked to start
     let singleSelection = false;
+    let filterHidden = false;
+    let filterPaneShown = true;
     if (filterType == "Single")
         singleSelection = true;
     else if (filterType == "Multi")
         singleSelection = false;
+    else if (filterType == "None" || filterType == null)
+        filterHidden = true;
 
     const study_filter =
     {
@@ -48,7 +52,7 @@ function embedFullReport(reportContainer, accessToken, filterTargets, embedUrl, 
         filterType: models.FilterType.BasicFilter,
         requireSingleSelection: singleSelection,
         displaySettings: {
-            isHiddenInViewMode: false,
+            isHiddenInViewMode: filterHidden,
             displayName: "Study ID"
         }
     }
@@ -63,7 +67,7 @@ function embedFullReport(reportContainer, accessToken, filterTargets, embedUrl, 
         permissions: models.Permissions.All,
         background: models.BackgroundType.Transparent,
         settings: {
-            filterPaneEnabled: true,
+            filterPaneEnabled: filterPaneShown,
             navContentPaneEnabled: false,
             background: models.BackgroundType.Transparent
         },
