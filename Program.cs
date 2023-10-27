@@ -127,7 +127,7 @@ var onTokenValidated = async (TokenValidatedContext context) =>
     }
     userIsRegistered = true;
 
-    if(user.IsActive && !user.IsLockedOut)
+    if(user.IsActive)
     {
         claimsIdentity.AddClaim(new Claim(WRClaimType.Registered, userIsRegistered.ToString()));
     }

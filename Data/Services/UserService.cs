@@ -57,7 +57,6 @@ namespace TheradexPortal.Data.Services
                         dbUser.IsActive = user.IsActive;
                         dbUser.IsCtepUser = user.IsCtepUser;
                         dbUser.CtepUserId = user.CtepUserId;
-                        dbUser.IsLockedOut = user.IsLockedOut;
                         dbUser.AllStudies = user.AllStudies;
                         dbUser.UpdateDate = curDateTime;
 
