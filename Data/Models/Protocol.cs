@@ -128,6 +128,9 @@ namespace TheradexPortal.Data.Models
         [Column("PR_Record_Id")]
         public string? PRRecordId { get; set; }
 
+        [Column("Hide_Study")]
+        public string? HideStudy { get; set; }
+
         [NotMapped]
         public int RecentOrder { get; set; }
     }

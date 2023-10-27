@@ -24,7 +24,7 @@ namespace TheradexPortal.Data.Services
             { 
             protocols = (from up in context.User_Protocols
                              join p in context.Protocols on up.StudyId equals p.StudyId
-                             where up.UserId == userId && (up.ExpirationDate == null || up.ExpirationDate.Value.Date >= DateTime.UtcNow.Date)
+                             where up.UserId == userId && (up.ExpirationDate == null || up.ExpirationDate.Value.Date >= DateTime.UtcNow.Date) && p.HideStudy=="No"
                              select p)
                              .Union(from ug in context.User_Groups
                                     join ugp in context.Group_Protocols on ug.GroupId equals ugp.GroupId where ugp.IsActive
@@ -35,6 +35,7 @@ namespace TheradexPortal.Data.Services
             }
             else
                 protocols = (from p in context.Protocols
+                             where p.HideStudy == "No"
                             select p).ToList();
 
             return protocols;
