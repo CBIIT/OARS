@@ -1046,7 +1046,7 @@
             if (UserId == null)
             {
                 string baseURL = navigation.BaseUri;
-                string initialSite = "Web Reporting-" + configuration.GetValue<string>("System:Environment");
+                string initialSite = "NCI Oncology Data Hub-" + configuration.GetValue<string>("System:Environment");
                 bool isProd = !initialSite.Contains('-');
 
                 // Determine if user exists in OKTA (OKTA is for multi-applications (I.e.  WR, IWRS, etc) & environments (i.e.  DEV, UAT, etc)
@@ -1063,7 +1063,7 @@
                     if (oktaSuccess)
                     {
                         if (isActive)
-                            emailSuccess = await emailService.SendNewSystemEmail("Web Reporting-" + configuration.GetValue<string>("System:Environment"), navigation.BaseUri, configuration.GetValue<string>("System:SystemColor"), saveUser);
+                            emailSuccess = await emailService.SendNewSystemEmail("NCI Oncology Data Hub-" + configuration.GetValue<string>("System:Environment"), navigation.BaseUri, configuration.GetValue<string>("System:SystemColor"), saveUser);
                     }
                 }
                 else if (!oktaResults.Item1 && oktaResults.Item2 == "")
@@ -1086,7 +1086,7 @@
                         if (isActive)
                         {
                             string activationLink = oktaResults.Item2;
-                            emailSuccess = await emailService.SendNewUserEmail("Web Reporting-" + configuration.GetValue<string>("System:Environment"), navigation.BaseUri, configuration.GetValue<string>("System:SystemColor"), saveUser, activationLink);
+                            emailSuccess = await emailService.SendNewUserEmail("NCI Oncology Data Hub-" + configuration.GetValue<string>("System:Environment"), navigation.BaseUri, configuration.GetValue<string>("System:SystemColor"), saveUser, activationLink);
                         }
                      }
                 }
