@@ -95,9 +95,11 @@
             <Divider Class="mt-1 mb-0"/>
         </LayoutHeader>
         <LayoutContent>
-            <LoadingIndicator>
-                @Body
-            </LoadingIndicator>
+            <CascadingValue Value="this">
+                <LoadingIndicator>
+                    @Body
+                </LoadingIndicator>
+            </CascadingValue>
         </LayoutContent>
         <LayoutFooter>
             <Footer />
@@ -250,10 +252,15 @@
         return Task.CompletedTask;
     }
 
+    public async Task UpdateDashboard(Dashboard dashboard)
+    {
+        this.dashboardAlerts?.UpdateDashboard(dashboard);
+    }
+
     protected async Task DashboardChanged()
     {
-        this.selectedDashboard = this.primaryNav!.SelectedDashboardPrimaryNav;
-        this.dashboardAlerts?.UpdateDashboard(this.selectedDashboard);
+        // this.selectedDashboard = this.primaryNav!.SelectedDashboardPrimaryNav;
+        // this.dashboardAlerts?.UpdateDashboard(this.selectedDashboard);
     }
 
     protected async Task SystemAlertsCountChanged(int count)

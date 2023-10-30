@@ -85,7 +85,7 @@ else
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if (firstRender) // required for performance. could add a timed bool check to refresh system alerts
         {
             await LoadSessionAlerts();
             this.alertColor = await alertService.AlertColor();
@@ -101,8 +101,12 @@ else
 
     public void UpdateDashboard(Dashboard dashboard)
     {
-        this.SelectedDashboard = dashboard;
-        this.getDashboardAlerts();
+        if (this.SelectedDashboard != dashboard)
+        {
+            this.SelectedDashboard = dashboard;
+            this.getDashboardAlerts();
+            StateHasChanged();
+        }
     }
 
     private async void getSystemAlerts()

@@ -51,6 +51,9 @@ else
     [Parameter] public int DashboardId { get; set; }
     [Parameter] public int ReportId { get; set; }
 
+    [CascadingParameter]
+    public PrimaryNavLayout PrimaryNavLayout { get; set; }
+
     private bool notFound = false;
     private StudyOverview? studyOverview;
     private PowerBiCustomLayout? customReportRef;
@@ -134,6 +137,7 @@ else
     {
         if (firstRender)
         {
+            await PrimaryNavLayout.UpdateDashboard(dashboard);
         }
     }
 
