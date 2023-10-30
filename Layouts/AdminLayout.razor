@@ -15,14 +15,11 @@
             <LayoutHeader>
                 <Bar Breakpoint="Breakpoint.Desktop" NavigationBreakpoint="Breakpoint.Desktop" Style="@GetHeaderColor()" Class="nci-navbar px-4">
                     <BarBrand>
-                        <Image Source="img/theradex-logo.png" AlternateText="Theradex Oncology" />
+                            <Image Source="img/theradex-logo.png" AlternateText="Theradex Oncology" /><span class="navbar-sitename">@environment</span>
                     </BarBrand>
                     <BarToggler />
                     <BarMenu>
                         <BarEnd>
-                            <BarItem Width="Width.Max100" Class="pe-4">
-                                <EnvironmentLbl/>
-                            </BarItem>
                             <BarItem>
                                 <Tooltip Text="Home">
                                     <BarLink To="studies">
@@ -124,12 +121,18 @@
     [Inject] public NavigationManager Navigation { get; set; }
     [Inject] private IUserService userService { get; set; } = null!;
 
+    string environment = "";
     public bool isContentAdmin { get; set; }
     private int iconHeight = 30;
 
     protected override async Task OnInitializedAsync()
     {
 
+        environment = configuration.GetValue<string>("System:Environment");
+        if (environment != "Prod")
+            environment = "NCI Oncology Data Hub-" + environment;
+        else
+            environment = "NCI Oncology Data Hub";
     }
 
     private string GetHeaderColor()
