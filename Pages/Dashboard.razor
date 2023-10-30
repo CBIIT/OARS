@@ -125,7 +125,7 @@ else
             // First navigation to Dashboard creates a duplicate record.
             if (report.WRReportId != previousReport)
             {
-                userService.SaveActivityLog(userId, WRActivityType.Navigation, dashboard.Name, report.Name);
+                userService.SaveActivityLog(userId, WRActivityType.Navigation, dashboard.Name, report.Name + ((String.IsNullOrEmpty(report.StudyType)) ? "" : "-" + report.StudyType));
                 previousReport = report.WRReportId;
             }
         }
