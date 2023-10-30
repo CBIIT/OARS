@@ -88,10 +88,10 @@
             </Bar>
             <Bar Breakpoint="Breakpoint.Desktop" Display="Display.None.Block.OnDesktop" Background="Background.White" Class="px-4 nci-dashboard-navbar">
                 <BarStart>
-                    <PrimaryNav @ref="@primaryNav" RenderButtons SelectedDashboardPrimaryNavChanged=DashboardChanged />
+                    <PrimaryNav @ref="@primaryNav" RenderButtons />
                 </BarStart>
             </Bar>
-            <AlertBar @ref="@dashboardAlerts" Alert Dashboard SelectedDashboard="selectedDashboard" Dismissable CSS="nci-alert-component" />
+            <AlertBar @ref="@dashboardAlerts" Alert Dashboard Dismissable CSS="nci-alert-component" />
             <Divider Class="mt-1 mb-0"/>
         </LayoutHeader>
         <LayoutContent>
@@ -174,7 +174,6 @@
     private AlertBar? systemAlerts;
     private AlertBar? systemNotes;
     private AlertBar? dashboardAlerts;
-    private Dashboard? selectedDashboard { get; set; } = null!;
     private BarDropdown? alertBarDropDown;
     private BarDropdown? noteBarDropDown;
     [Inject] public NavigationManager Navigation { get; set; }
@@ -255,12 +254,6 @@
     public async Task UpdateDashboard(Dashboard dashboard)
     {
         this.dashboardAlerts?.UpdateDashboard(dashboard);
-    }
-
-    protected async Task DashboardChanged()
-    {
-        // this.selectedDashboard = this.primaryNav!.SelectedDashboardPrimaryNav;
-        // this.dashboardAlerts?.UpdateDashboard(this.selectedDashboard);
     }
 
     protected async Task SystemAlertsCountChanged(int count)

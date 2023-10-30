@@ -59,7 +59,6 @@ else
     [Parameter] public bool NoAlertsMessage { get; set; } = false;
     [Parameter] public string CSS { get; set; } = string.Empty;
     [Parameter] public EventCallback<int> AlertsCountChanged { get; set; }
-    [Parameter] public Dashboard SelectedDashboard { get; set; } = null!;
 
     private bool alertsHidden;
     private bool notesHidden;
@@ -72,6 +71,7 @@ else
     private Color? alertColor;
     private Color? noteColor;
     private Color? infoColor;
+    private Dashboard selectedDashboard { get; set; } = null!;
     private IList<WRAlert> activeAlerts = new List<WRAlert>();
     private string? dismissedAlerts = string.Empty;
 
@@ -101,12 +101,9 @@ else
 
     public void UpdateDashboard(Dashboard dashboard)
     {
-        if (this.SelectedDashboard != dashboard)
-        {
-            this.SelectedDashboard = dashboard;
-            this.getDashboardAlerts();
-            StateHasChanged();
-        }
+        this.selectedDashboard = dashboard;
+        this.getDashboardAlerts();
+        StateHasChanged();
     }
 
     private async void getSystemAlerts()
@@ -143,9 +140,9 @@ else
     {
         if (Dashboard)
         {
-            if (Alert && this.SelectedDashboard != null && this.SelectedDashboard.WRDashboardId != 0)
+            if (Alert && this.selectedDashboard != null && this.selectedDashboard.WRDashboardId != 0)
             {
-                this.activeAlerts = await alertService.GetActiveDashboardAlertsByIdAsync(this.SelectedDashboard.WRDashboardId);
+                this.activeAlerts = await alertService.GetActiveDashboardAlertsByIdAsync(this.selectedDashboard.WRDashboardId);
             }
             else 
             {
