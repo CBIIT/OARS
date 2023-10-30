@@ -10,7 +10,7 @@
     <BarLink Match="Match.Prefix" To="/studies">
         @if (RenderButtons)
         {
-            <Button Color="Color.Primary" TextWeight="TextWeight.Bold" @onclick="() => updateDashboard()" Outline Class="text-nowrap">My Studies</Button>
+            <Button Color="Color.Primary" TextWeight="TextWeight.Bold" Outline Class="text-nowrap">My Studies</Button>
         }
         else
         {
@@ -22,7 +22,7 @@
 @foreach(var dashboard in dashboards)
 {
     <BarItem>
-        <BarLink Match="Match.Prefix" @onclick="() => updateDashboard(dashboard)" To="@GetLink(dashboard)">
+        <BarLink Match="Match.Prefix" To="@GetLink(dashboard)">
             @if (RenderButtons)
             {
                 <Button Color="Color.Primary" TextWeight="TextWeight.Bold" Outline Class="text-nowrap">@dashboard.Name</Button>
@@ -37,8 +37,6 @@
 
 @code {
     [Parameter] public bool RenderButtons { get; set; } = false;
-    [Parameter] public Dashboard SelectedDashboardPrimaryNav { get; set; } = null!;
-    [Parameter] public EventCallback<Dashboard> SelectedDashboardPrimaryNavChanged { get; set; }
     [Inject] private IDashboardService dashboardService { get; set; } = null!;
 
     private IList<Dashboard> dashboards = new List<Dashboard>();
@@ -62,17 +60,5 @@
         {
             return $"{WrConstants.DASHBOARD_PAGE_PATH}/{dashboard.WRDashboardId}";
         }
-    }
-
-    private async Task updateDashboard()
-    {
-        var dashboard = new Dashboard() { WRDashboardId = 0 };
-        await this.updateDashboard(dashboard);
-    }
-
-    private async Task updateDashboard(Dashboard dashboard)
-    {
-        this.SelectedDashboardPrimaryNav = dashboard;
-        await this.SelectedDashboardPrimaryNavChanged.InvokeAsync(this.SelectedDashboardPrimaryNav);
     }
 }

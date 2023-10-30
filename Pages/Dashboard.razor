@@ -51,6 +51,9 @@ else
     [Parameter] public int DashboardId { get; set; }
     [Parameter] public int ReportId { get; set; }
 
+    [CascadingParameter]
+    public PrimaryNavLayout PrimaryNavLayout { get; set; }
+
     private bool notFound = false;
     private StudyOverview? studyOverview;
     private PowerBiCustomLayout? customReportRef;
@@ -83,6 +86,7 @@ else
         string userDashboards = httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.Dashboards).Value;
         string userReports = httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.Reports).Value;
         dashboard = await dashboardService.GetDashboardByIdAsync(DashboardId, userDashboards, isAdmin);
+        await PrimaryNavLayout.UpdateDashboard(dashboard);
         if(dashboard == null && !isAdmin)
         {
             notFound = true;
