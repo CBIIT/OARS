@@ -21,18 +21,15 @@
     <Layout Class="nci-main-layout">
         <LayoutHeader>
             <Bar Breakpoint="Breakpoint.Desktop" NavigationBreakpoint="Breakpoint.Desktop" Style="@GetHeaderColor()" Class="nci-navbar px-4">
-                <BarBrand>
-                    <Image Source="img/theradex-logo.png" AlternateText="Theradex Oncology" />
+                <BarBrand >
+                    <Image Source="img/theradex-logo.png" AlternateText="Theradex Oncology" /><span class="navbar-sitename">@environment</span>
                 </BarBrand>
                 <BarToggler />
                 <BarMenu>
                     <BarStart Display="Display.None.OnDesktop">
                         <PrimaryNav />
                     </BarStart>
-                    <BarEnd>
-                        <BarItem>
-                            <EnvironmentLbl />
-                        </BarItem>
+                    <BarEnd>>
                         <BarItem>
                             <Tooltip Text="@systemAlertsTooltip">
                                 <BarDropdown RightAligned @ref="@alertBarDropDown" Visible="@systemAlertsDropdownVisible">
@@ -170,6 +167,7 @@
 </Modal>
 
 @code {
+    private string environment = "";
     private PrimaryNav? primaryNav;
     private AlertBar? systemAlerts;
     private AlertBar? systemNotes;
@@ -224,6 +222,12 @@
 
     protected override async Task OnInitializedAsync()
     {
+        environment = configuration.GetValue<string>("System:Environment");
+        if (environment != "Prod")
+            environment = "NCI Oncology Data Hub-" + environment;
+        else
+            environment = "NCI Oncology Data Hub";
+
         // Display or Hide Admin button
         bool isAdmin = Convert.ToBoolean(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.IsAdmin).Value);
         if (isAdmin)
