@@ -1,5 +1,7 @@
 ﻿@using TheradexPortal.Data.Models;
 @using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@inject IHttpContextAccessor httpContextAccessor
 @layout AdminLayout
 
 @page "/admin/group/{groupid:int?}"
@@ -105,6 +107,7 @@
     [Inject] IStudyService studyService { get; set; } = null!;
     [Inject] private NavigationManager navigation {get; set; } = null!;
     [Inject] INotificationService NotificationService { get; set; }
+    [Inject] IUserService userService { get; set; } = null!;
 
     [Parameter] public int? GroupId { get; set; }
 
@@ -139,6 +142,9 @@
             GetGroup(GroupId);
             AddOrEdit = "Edit Group - " + groupName;
         }
+
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        userService.SaveActivityLog(userId, WRActivityType.Navigation, "User Group", AddOrEdit);
     }
 
     private async void GetGroup(int? groupId)
