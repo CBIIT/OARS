@@ -2,6 +2,7 @@
 @using TheradexPortal.Data.Services.Abstract;
 @using TheradexPortal.Data.Static;
 @using Blazorise.TreeView;
+@inject IHttpContextAccessor httpContextAccessor
 @layout AdminLayout
 
 @page "/admin/role/{roleid:int?}"
@@ -72,6 +73,7 @@
     [Inject] IDashboardService dashboardService { get; set; } = null;
     [Inject] private NavigationManager navigation {get; set; } = null!;
     [Inject] INotificationService NotificationService { get; set; }
+    [Inject] IUserService userService { get; set; } = null!;
 
     [Parameter] public int? RoleId { get; set; }
 
@@ -120,6 +122,8 @@
         }
         LoadPermissionTree();
 
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        userService.SaveActivityLog(userId, WRActivityType.Navigation, "User Role", AddOrEdit);
     }
 
     private async void GetRole(int? roleId)

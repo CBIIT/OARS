@@ -5,6 +5,7 @@
 @using TheradexPortal.Data.Models.Configuration;
 @using Microsoft.Extensions.Options;
 @inject IOptions<EmailSettings> emailSettings;
+@inject IHttpContextAccessor httpContextAccessor
 @layout AdminLayout
 
 @page "/admin/user/{userid:int?}"
@@ -656,6 +657,9 @@
         }
         else
             oktaUserStatus = "N/A";
+
+        int loginUserId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        userService.SaveActivityLog(loginUserId, WRActivityType.Navigation, "User", AddOrEdit);
     }
 
     private Task OnSelectedStepChanged( string name )
