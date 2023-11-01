@@ -144,7 +144,7 @@
         }
 
         int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
-        userService.SaveActivityLog(userId, WRActivityType.Navigation, "User Group", AddOrEdit);
+        userService.SaveActivityLog(userId, WRActivityType.Navigation, "Group", AddOrEdit);
     }
 
     private async void GetGroup(int? groupId)
