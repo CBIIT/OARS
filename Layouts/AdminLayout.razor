@@ -123,7 +123,7 @@
 @code {
     [Inject] public NavigationManager Navigation { get; set; }
     [Inject] private IUserService userService { get; set; } = null!;
-
+    [Parameter] public int? UserId { get; set; }
     public bool isContentAdmin { get; set; }
     private int iconHeight = 30;
 
@@ -156,5 +156,56 @@
                 roleFound = true;
         }
         return roleFound;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        string pageUri = Navigation.ToBaseRelativePath(Navigation.Uri);
+        string pageName = "admin", data1;
+
+        if (pageUri.IndexOf(pageName) >= 0)
+        {
+            int firstPosition = pageUri.IndexOf("/") + 1;
+            int nextPosition = pageUri.IndexOf("/", firstPosition);
+
+            if (nextPosition > 0)
+            {
+                pageName = pageUri.Substring(firstPosition, nextPosition - firstPosition);
+            }
+            else if (firstPosition > 0)
+            {
+                pageName = pageUri.Substring(firstPosition, pageUri.Length - firstPosition);
+            }
+
+            switch (pageName)
+            {
+                case "users":
+                    data1 = "User List";
+                    break;
+                case "groups":
+                    data1 = "Group List";
+                    break;
+                case "alerts":
+                    data1 = "Alert List";
+                    break;
+                case "roles":
+                    data1 = "User Role List";
+                    break;
+                case "dashboards":
+                    data1 = "Dashboard List";
+                    break;
+                case "admin":
+                    data1 = "Admin";
+                    break;
+                default:
+                    data1 = "";
+                    break;
+            }
+            if (!string.IsNullOrEmpty(data1))
+            {
+                userService.SaveActivityLog(userId, WRActivityType.Navigation, data1, "");
+            }
+        }
     }
 }

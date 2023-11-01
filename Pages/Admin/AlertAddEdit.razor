@@ -138,6 +138,7 @@
     [Inject] INotificationService NotificationService { get; set; }
     [Inject] IDashboardService dashboardService { get; set; } = null!;
     [Inject] private NavigationManager navigation { get; set; } = null!;
+    [Inject] IUserService userService { get; set; } = null!;
 
     [Parameter] public int? WRAlertId { get; set; }
 
@@ -212,6 +213,8 @@
             this.newAlert = false;
             this.LoadAlert((int) WRAlertId);
         }
+      
+        userService.SaveActivityLog(userId, WRActivityType.Navigation, "Alert", AddOrEdit);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
