@@ -18,12 +18,7 @@ namespace TheradexPortal.Data.Models
         public string? Password { get; set; }
         public string? PasswordSalt { get; set; }
         public Boolean IsActive { get; set; }
-        public Boolean IsLockedOut { get; set; }
         public DateTime? LastLoginDate { get; set; }
-        public DateTime? LastPasswordChangedDate { get; set; }
-        public DateTime? FailedPasswordAttemptDate { get; set; }
-        public int? FailedPasswordAttemptCount { get; set; }
-        public int? LoginSourceId { get; set; }
         public string? SelectedStudies { get; set; }
         public string? CurrentStudy { get; set; }
         public bool IsCtepUser { get; set; }

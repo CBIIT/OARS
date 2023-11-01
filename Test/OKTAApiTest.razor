@@ -69,7 +69,7 @@
     private async void CreateUserClicked()
     {
         string baseURL = navigation.BaseUri;
-        string initialSite = "Web Reporting-" + configuration.GetValue<string>("System:Environment");
+        string initialSite = "NCI Oncology Data Hub-" + configuration.GetValue<string>("System:Environment");
         bool isProd = !initialSite.Contains('-');
 
         User curUser = new User();

@@ -43,10 +43,10 @@
             // Date of Last EDC Update
             public DateTime DateOfLastEDCUpdate { get; set; }
 
-            // Total Patients in Web Reporting
+            // Total Patients in Oncology Data Hub
             public int totalPatients { get; set; }
 
-            // Recent Enrollment in Web Reporting
+            // Recent Enrollment in Oncology Data Hub
             public int recentEnrollment { get; set; }
 
             // Subsequent Phase Activation Date

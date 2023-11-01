@@ -190,7 +190,7 @@
             if (oktaResults.Item2 == "ACTIVE")
             {
                 emailSuccess = await emailService.SendNewSystemEmail(
-                    "Web Reporting-" + configuration.GetValue<string>("System:Environment"),
+                    "NCI Oncology Data Hub-" + configuration.GetValue<string>("System:Environment"),
                     navigation.BaseUri,
                     configuration.GetValue<string>("System:SystemColor"),
                     u);
@@ -208,7 +208,7 @@
 
                 string activationLink = oktaResults.Item2;
                 emailSuccess = await emailService.SendNewUserEmail(
-                    "Web Reporting-" + configuration.GetValue<string>("System:Environment"), 
+                    "NCI Oncology Data Hub-" + configuration.GetValue<string>("System:Environment"),
                     navigation.BaseUri, 
                     configuration.GetValue<string>("System:SystemColor"), 
                     u, 
@@ -227,7 +227,7 @@
 
                 string activationLink = oktaResults.Item2;
                 emailSuccess = await emailService.SendNewUserEmail(
-                    "Web Reporting-" + configuration.GetValue<string>("System:Environment"), 
+                    "NCI Oncology Data Hub-" + configuration.GetValue<string>("System:Environment"),
                     navigation.BaseUri, 
                     configuration.GetValue<string>("System:SystemColor"), 
                     u, 

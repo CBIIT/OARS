@@ -255,7 +255,7 @@
     private async void SendWelcomeEmail()
     {
         string baseURL = navigation.BaseUri;
-        string initialSite = "Web Reporting-" + configuration.GetValue<string>("System:Environment");
+        string initialSite = "NCI Oncology Data Hub-" + configuration.GetValue<string>("System:Environment");
         string primaryColor = configuration.GetValue<string>("System:SystemColor");
 
         // Get the event Args for the file upload

@@ -21,8 +21,8 @@
     <Layout Class="nci-main-layout">
         <LayoutHeader>
             <Bar Breakpoint="Breakpoint.Desktop" NavigationBreakpoint="Breakpoint.Desktop" Style="@GetHeaderColor()" Class="nci-navbar px-4">
-                <BarBrand>
-                    <Image Source="img/theradex-logo.png" AlternateText="Theradex Oncology" />
+                <BarBrand >
+                    <Image Source="img/theradex-logo.png" AlternateText="Theradex Oncology" /><span class="navbar-sitename">@environment</span>
                 </BarBrand>
                 <BarToggler />
                 <BarMenu>
@@ -30,9 +30,6 @@
                         <PrimaryNav />
                     </BarStart>
                     <BarEnd>
-                        <BarItem>
-                            <EnvironmentLbl />
-                        </BarItem>
                         <BarItem>
                             <Tooltip Text="@systemAlertsTooltip">
                                 <BarDropdown RightAligned @ref="@alertBarDropDown" Visible="@systemAlertsDropdownVisible">
@@ -88,16 +85,18 @@
             </Bar>
             <Bar Breakpoint="Breakpoint.Desktop" Display="Display.None.Block.OnDesktop" Background="Background.White" Class="px-4 nci-dashboard-navbar">
                 <BarStart>
-                    <PrimaryNav @ref="@primaryNav" RenderButtons SelectedDashboardPrimaryNavChanged=DashboardChanged />
+                    <PrimaryNav @ref="@primaryNav" RenderButtons />
                 </BarStart>
             </Bar>
-            <AlertBar @ref="@dashboardAlerts" Alert Dashboard SelectedDashboard="selectedDashboard" Dismissable CSS="nci-alert-component" />
+            <AlertBar @ref="@dashboardAlerts" Alert Dashboard Dismissable CSS="nci-alert-component" />
             <Divider Class="mt-1 mb-0"/>
         </LayoutHeader>
         <LayoutContent>
-            <LoadingIndicator>
-                @Body
-            </LoadingIndicator>
+            <CascadingValue Value="this">
+                <LoadingIndicator>
+                    @Body
+                </LoadingIndicator>
+            </CascadingValue>
         </LayoutContent>
         <LayoutFooter>
             <Footer />
@@ -168,11 +167,11 @@
 </Modal>
 
 @code {
+    private string environment = "";
     private PrimaryNav? primaryNav;
     private AlertBar? systemAlerts;
     private AlertBar? systemNotes;
     private AlertBar? dashboardAlerts;
-    private Dashboard? selectedDashboard { get; set; } = null!;
     private BarDropdown? alertBarDropDown;
     private BarDropdown? noteBarDropDown;
     [Inject] public NavigationManager Navigation { get; set; }
@@ -223,6 +222,12 @@
 
     protected override async Task OnInitializedAsync()
     {
+        environment = configuration.GetValue<string>("System:Environment");
+        if (environment != "Prod")
+            environment = "NCI Oncology Data Hub-" + environment;
+        else
+            environment = "NCI Oncology Data Hub";
+
         // Display or Hide Admin button
         bool isAdmin = Convert.ToBoolean(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.IsAdmin).Value);
         if (isAdmin)
@@ -250,10 +255,9 @@
         return Task.CompletedTask;
     }
 
-    protected async Task DashboardChanged()
+    public async Task UpdateDashboard(Dashboard dashboard)
     {
-        this.selectedDashboard = this.primaryNav!.SelectedDashboardPrimaryNav;
-        this.dashboardAlerts?.UpdateDashboard(this.selectedDashboard);
+        this.dashboardAlerts?.UpdateDashboard(dashboard);
     }
 
     protected async Task SystemAlertsCountChanged(int count)
@@ -322,7 +326,7 @@
      {
          emailTo = string.Empty;
          emailCategory = string.Empty;
-         string siteName = "Web Reporting-" + configuration.GetValue<string>("System:Environment");
+         string siteName = "NCI Oncology Data Hub-" + configuration.GetValue<string>("System:Environment");
          string baseURL = Navigation.BaseUri;
          string color = configuration.GetValue<string>("System:SystemColor");
          string dateTime = DateTime.Now.ToString("d-MMM-yyyy hh:mm tt");
