@@ -15,8 +15,11 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
-        userService.SaveActivityLog(userId, WRActivityType.Navigation, "My Studies");
+        if (firstRender)
+        {
+            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+            userService.SaveActivityLog(userId, WRActivityType.Navigation, "My Studies");
+        }
     }
 
     protected override async Task OnParametersSetAsync()
