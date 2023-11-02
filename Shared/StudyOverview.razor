@@ -47,27 +47,66 @@
                     </TableRow>
                     <TableRow>
                         <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Accrual (Screening/Intervention/Other)</TableRowHeader>
-                        <TableRowCell></TableRowCell>
+                        @foreach (var study in SelectedStudies)
+                        {
+                            <TableRowCell>@(TotalField(study.TotalScreeningCount, study.TotalInterventionCount, study.TotalOtherCount))</TableRowCell>
+                        }
                     </TableRow>
                     <TableRow>
                         <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Date of Last EDC Update</TableRowHeader>
-                        <TableRowCell></TableRowCell>
+                        @foreach (var study in SelectedStudies)
+                        {
+                            <TableRowCell>
+                                @{
+                                    if (study.DateOfEDCUpdate != null)
+                                    {
+                                        @(study.DateOfEDCUpdate.Value.ToString("dd-MMM-yyyy"))
+                                    }
+                                }
+                            </TableRowCell>
+                        }
                     </TableRow>
                     <TableRow>
                         <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Total Patients In ODH</TableRowHeader>
-                        <TableRowCell></TableRowCell>
+                        @foreach (var study in SelectedStudies)
+                        {
+                            <TableRowCell>@(study.PatientsEnrolled)</TableRowCell>
+                        }
                     </TableRow>
                     <TableRow>
                         <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Total Patients Treated In ODH</TableRowHeader>
-                        <TableRowCell></TableRowCell>
+                        @foreach (var study in SelectedStudies)
+                        {
+                            <TableRowCell>@(study.PatientTreated)</TableRowCell>
+                        }
                     </TableRow>
                     <TableRow>
                         <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Recent Enrollment In ODH</TableRowHeader>
-                        <TableRowCell></TableRowCell>
+                        @foreach (var study in SelectedStudies)
+                        {
+                            <TableRowCell>
+                                @{
+                                    if (study.DateOfLastRegistration != null)
+                                    {
+                                        @(study.DateOfLastRegistration.Value.ToString("dd-MMM-yyyy"))
+                                    }
+                                }
+                            </TableRowCell>
+                        }
                     </TableRow>
                     <TableRow>
                         <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Subsequent Phase Activation Date</TableRowHeader>
-                        <TableRowCell></TableRowCell>
+                        @foreach (var study in SelectedStudies)
+                        {
+                            <TableRowCell>
+                                @{
+                                    if (study.PhaseActivationDate != null)
+                                    {
+                                        @(study.PhaseActivationDate.Value.ToString("dd-MMM-yyyy"))
+                                    }
+                                }
+                            </TableRowCell>
+                        }
                     </TableRow>
                 </TableBody>
             </Table>
@@ -97,5 +136,10 @@
     {
         StateHasChanged();
         overviewModal!.Show();
+    }
+
+    private string TotalField(string screening, string intervention, string other)
+    {
+        return screening + "/" + intervention + "/" + other;
     }
 }
