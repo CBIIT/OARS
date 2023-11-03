@@ -20,10 +20,16 @@
                   Filterable
                   Striped
                   ShowPager
-                    FixedHeader
-                    FixedHeaderDataGridHeight="calc(100vh - 240px)"
-                    FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
-                  PageSize="25"
+                  ShowPageSizes
+                  MaxPaginationLinks="5"
+                  PagerPosition="DataGridPagerPosition.Bottom"
+                  PagerOptions="new(){ButtonSize=Size.Default, 
+                                PaginationPosition=PagerElementPosition.Default,
+                                TotalItemsPosition=PagerElementPosition.End,
+                                }"
+                  FixedHeader
+                  FixedHeaderDataGridHeight="calc(100vh - 240px)"
+                  FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
                   CommandMode="DataGridCommandMode.ButtonRow">
             <DataGridColumns>
                 <DataGridMultiSelectColumn Width="30px"> </DataGridMultiSelectColumn>
@@ -120,6 +126,7 @@
     private string timeZoneAbbrev = "";
     private TimeSpan timeOffset;
     private string[] allowedRoleList;
+    private List<int> pagesizes = new List<int>() { 5, 10, 15, 25, 50 }; // For use when customizing. Blazorise will always default to 10 on page load, even when not an option.
 
     protected override async Task OnInitializedAsync()
     {
