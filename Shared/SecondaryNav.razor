@@ -67,7 +67,7 @@
                                 @curReport.Name
                             </BarDropdownToggle>
                             <BarDropdownMenu Style="margin-left: -35px;">
-                                <TertiaryNav Reports="@GetTertiaryReports(startingIndex, subReportCount)" />
+                                    <TertiaryNav DashboardId="@curReport.DashboardId" Level2Name="@curReport.Name"></TertiaryNav>
                             </BarDropdownMenu>
                         </BarDropdown>
                     </BarItem>
@@ -127,8 +127,10 @@
     {
         reports.Clear();
         for (int cnt = 0; cnt < count; cnt++)
-            reports.Add(Reports[startingIndex + cnt]);
-
+        {
+            if (startingIndex + cnt < Reports.Count())
+                reports.Add(Reports[startingIndex + cnt]);
+        }
         return reports;
     }
 }

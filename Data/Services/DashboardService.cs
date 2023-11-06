@@ -127,7 +127,25 @@ namespace TheradexPortal.Data.Services
             else
                 return await context.Reports.FindAsync(id);
         }
-        
+
+        public async Task<IList<Report?>> GetReportsByDashboardIdAndName(int id, string reportName, int userId, bool isAdmin)
+        {
+            if (isAdmin)
+            {
+                return await context.Reports.Where(r => r.DashboardId == id && r.Name == reportName).OrderBy(r => r.DisplayOrder).ToListAsync();
+            }
+            else
+            {
+                var reports = (from ur in context.User_Roles
+                               join rr in context.Role_Reports on ur.RoleId equals rr.RoleId
+                               join r in context.Reports on rr.ReportId equals r.WRReportId
+                               where ur.UserId == userId && (ur.ExpirationDate == null || ur.ExpirationDate.Value.Date >= DateTime.UtcNow.Date) && r.DashboardId == id && r.Name == reportName
+                               select r).OrderBy(r => r.DisplayOrder).ToList();
+
+                return reports;
+            }
+        }
+
         public async Task<IList<Visual>> GetAllVisualsByReportIdAsync(int id)
         {
             var list = await context.Visuals.Where(v => v.ReportId == id).OrderBy(v => v.DisplayOrder).ToListAsync();
