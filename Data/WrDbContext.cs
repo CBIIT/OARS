@@ -57,6 +57,7 @@ namespace TheradexPortal.Data
         public DbSet<UserActivityLog> User_ActivityLog { get; set; }
         public DbSet<ContactUsCategory> ContactUsCategory { get; set; }
         public DbSet<ContactUs> ContactUs { get; set; }
+        public DbSet<ErrorLog> ErrorLog { get; set; }
     }
 
 }
