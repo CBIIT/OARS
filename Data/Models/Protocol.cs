@@ -131,6 +131,30 @@ namespace TheradexPortal.Data.Models
         [Column("Hide_Study")]
         public string? HideStudy { get; set; }
 
+        [Column("Total_Screening_Count")]
+        public string? TotalScreeningCount { get; set; }
+
+        [Column("Total_Intervention_Count")]
+        public string? TotalInterventionCount { get; set; }
+
+        [Column("Total_Other_Count")]
+        public string? TotalOtherCount { get; set; }
+
+        [Column("Date_Of_EDC_Update")]
+        public DateTime? DateOfEDCUpdate { get; set; }
+
+        [Column("Patients_Enrolled")]
+        public string? PatientsEnrolled { get; set; }
+
+        [Column("Patients_Treated")]
+        public string? PatientTreated { get; set; }
+
+        [Column("Date_Of_Last_Registration")]
+        public DateTime? DateOfLastRegistration { get; set; }
+
+        [Column("Phase_Activation_Date")]
+        public DateTime? PhaseActivationDate { get; set; }
+
         [NotMapped]
         public int RecentOrder { get; set; }
     }

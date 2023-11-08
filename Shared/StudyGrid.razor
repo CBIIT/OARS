@@ -28,7 +28,13 @@
                     Editable
                     Striped
                     ShowPager
-                    PageSize="25"
+                    ShowPageSizes
+                    MaxPaginationLinks="5"
+                    PagerPosition="DataGridPagerPosition.Bottom"
+                    PagerOptions="new(){ButtonSize=Size.Default, 
+                                  PaginationPosition=PagerElementPosition.Default,
+                                  TotalItemsPosition=PagerElementPosition.End,
+                                  }"
                     FixedHeader
                     FixedHeaderDataGridHeight="calc(100vh - 240px)"
                     FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"

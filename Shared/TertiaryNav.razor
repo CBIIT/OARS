@@ -1,6 +1,9 @@
 ﻿@using TheradexPortal.Data.Models;
 @using TheradexPortal.Data.ViewModels;
 @using TheradexPortal.Data;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@inject IHttpContextAccessor httpContextAccessor
 
 @{
     foreach (Report report in Reports)
@@ -15,7 +18,20 @@
 }
 
 @code {
-    [Parameter] public IList<Report> Reports { get; set; } = new List<Report>();
+    //[Parameter] public IList<Report> Reports { get; set; } = new List<Report>();
+    [Parameter] public int DashboardId { get; set; } = 0;
+    [Parameter] public string Level2Name { get; set; } = "";
+
+    [Inject] IDashboardService dashboardService { get; set; } = null!;
+
+    IList<Report> Reports;
+    protected override async Task OnParametersSetAsync()
+    {
+        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsAdmin, "True");
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+
+        Reports = await dashboardService.GetReportsByDashboardIdAndName(DashboardId, Level2Name, userId, isAdmin);
+    }
 
     protected string GetReportLink(Report report)
     {
