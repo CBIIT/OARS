@@ -2,12 +2,20 @@
 using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Services.Abstract;
 using TheradexPortal.Data.Static;
+using Microsoft.AspNetCore.Components;
 
 namespace TheradexPortal.Data.Services
 {
     public class UserService : BaseService, IUserService
     {
-        public UserService(IDbContextFactory<WrDbContext> dbFactory) : base(dbFactory) { }
+        private readonly IErrorLogService _errorLogService;
+        private readonly NavigationManager _navManager;
+
+        public UserService(IDbContextFactory<WrDbContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
+        {
+            _errorLogService = errorLogService;
+            _navManager = navigationManager;
+        }
 
         public async Task<IList<User>> GetAllUsersAsync()
         {
@@ -26,7 +34,7 @@ namespace TheradexPortal.Data.Services
             User foundUser = context.Users.FirstOrDefault(u=>u.EmailAddress == emailAddress && u.UserId != userId);
             return foundUser == null;
         }
-        public bool SaveUser(User user)
+        public bool SaveUser(User user, int loggedInUserId)
         {
             try
             {
@@ -162,6 +170,7 @@ namespace TheradexPortal.Data.Services
             }
             catch (Exception ex)
             {
+                _errorLogService.SaveErrorLogAsync(loggedInUserId, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
                 return false;
             }
         }
@@ -177,6 +186,7 @@ namespace TheradexPortal.Data.Services
             }
             catch (Exception ex)
             {
+                _errorLogService.SaveErrorLogAsync(userId, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
                 return false;
             }
         }
@@ -220,6 +230,7 @@ namespace TheradexPortal.Data.Services
             }
             catch (Exception ex)
             {
+                _errorLogService.SaveErrorLogAsync(userId, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
                 return false;
             }
         }
@@ -236,29 +247,38 @@ namespace TheradexPortal.Data.Services
             }
             catch (Exception ex)
             {
+                _errorLogService.SaveErrorLogAsync(userId, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
                 return false;
             }
         }
         public async Task<bool> SetStartingStudies(int userId, int count)
         {
-            string studyList = "";
-            bool saved = true;
-            IList<string> studies = await GetProtocolHistoryAsync(userId, count);
-            // Reverse it
-
-            if (studies != null && studies.Count != 0)
+            try
             {
-                for (int i = studies.Count-1; i >= 0; i--)
-                    studyList += studies[i] + ",";
-                studyList = studyList.Trim(',');
-                saved = SaveSelectedStudies(userId, studyList, true);
+                string studyList = "";
+                bool saved = true;
+                IList<string> studies = await GetProtocolHistoryAsync(userId, count);
+                // Reverse it
+
+                if (studies != null && studies.Count != 0)
+                {
+                    for (int i = studies.Count - 1; i >= 0; i--)
+                        studyList += studies[i] + ",";
+                    studyList = studyList.Trim(',');
+                    saved = SaveSelectedStudies(userId, studyList, true);
+                }
+
+                saved = SaveActivityLog(userId, WRActivityType.Study, "Filter Studies-Login", studyList);
+
+                return saved;
             }
-
-            saved = SaveActivityLog(userId, WRActivityType.Study, "Filter Studies-Login", studyList);
-
-            return saved;
+            catch (Exception ex)
+            {
+                _errorLogService.SaveErrorLogAsync(userId, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+                return false;
+            }
         }
-        public bool DeactivateUser(int userId)
+        public bool DeactivateUser(int userId, int loggedInUserId)
         {
             try
             {
@@ -272,6 +292,7 @@ namespace TheradexPortal.Data.Services
             }
             catch (Exception ex)
             {
+                _errorLogService.SaveErrorLogAsync(loggedInUserId, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
                 return false;
             }
         }
@@ -294,7 +315,7 @@ namespace TheradexPortal.Data.Services
             }
             catch (Exception ex)
             {
-                // Log the error
+                _errorLogService.SaveErrorLogAsync(userId, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
             }
         }
         public bool SaveActivityLog(int userId, string activityType)
@@ -323,6 +344,7 @@ namespace TheradexPortal.Data.Services
             }
             catch (Exception ex)
             {
+                _errorLogService.SaveErrorLogAsync(userId, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
                 return false;
             }
         }

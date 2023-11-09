@@ -1,13 +1,19 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Services.Abstract;
+using Microsoft.AspNetCore.Components;
 
 namespace TheradexPortal.Data.Services
 {
     public class UserRoleService : BaseService, IUserRoleService
     {
-        public UserRoleService(IDbContextFactory<WrDbContext> dbFactory) : base(dbFactory)
+        private readonly IErrorLogService _errorLogService;
+        private readonly NavigationManager _navManager;
+
+        public UserRoleService(IDbContextFactory<WrDbContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
         {
+            _errorLogService = errorLogService;
+            _navManager = navigationManager;
         }
 
         public async Task<IList<Role>> GetAllRolesAsync()
@@ -47,7 +53,7 @@ namespace TheradexPortal.Data.Services
             return foundRole == null;
         }
 
-        public bool SaveRole(Role role)
+        public bool SaveRole(Role role, int userId)
         {
             DateTime curDateTime = DateTime.UtcNow;
             try
@@ -125,6 +131,7 @@ namespace TheradexPortal.Data.Services
             }
             catch (Exception ex)
             {
+                _errorLogService.SaveErrorLogAsync(userId, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
                 return false;
             }
         }
@@ -134,7 +141,7 @@ namespace TheradexPortal.Data.Services
             return context.User_Roles.Where(ur => ur.RoleId == roleId).Count() == 0;
         }
 
-        public Tuple<bool, string> DeleteRole(int roleId)
+        public Tuple<bool, string> DeleteRole(int roleId, int userId)
         {
             try
             {
@@ -145,6 +152,7 @@ namespace TheradexPortal.Data.Services
             }
             catch (Exception ex)
             {
+                _errorLogService.SaveErrorLogAsync(userId, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
                 return new Tuple<bool, string>(false, "Failed to delete role");
             }
         }

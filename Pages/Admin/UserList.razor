@@ -172,7 +172,8 @@
     private async void DeactivateUserClick()
     {
         deactivateModalRef.Hide();
-        bool success = userService.DeactivateUser(userToDeactivateId);
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        bool success = userService.DeactivateUser(userToDeactivateId, userId);
         if (success)
         {
             await NotificationService.Success( "User deactivated");

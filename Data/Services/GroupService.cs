@@ -13,7 +13,7 @@ namespace TheradexPortal.Data.Services
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;
-         }
+        }
 
         public async Task<IList<Group>> GetAllGroupsAsync()
         {
@@ -103,7 +103,7 @@ namespace TheradexPortal.Data.Services
             }
         }
 
-        public Tuple<bool, string> DeleteGroup(int groupId)
+        public Tuple<bool, string> DeleteGroup(int groupId, int userId)
         {
             try
             {
@@ -114,6 +114,7 @@ namespace TheradexPortal.Data.Services
             }
             catch (Exception ex)
             {
+                _errorLogService.SaveErrorLogAsync(userId, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
                 return new Tuple<bool, string>(false,"Failed to delete group");
             }
         }

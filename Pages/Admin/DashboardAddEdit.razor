@@ -607,7 +607,8 @@
                 }
             }
 
-            saved = dashboardService.SaveDashboard(saveDashboard);
+            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+            saved = dashboardService.SaveDashboard(saveDashboard, userId);
 
             if (saved)
             {
