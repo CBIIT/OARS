@@ -144,7 +144,7 @@
         }
 
         int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
-        userService.SaveActivityLog(userId, WRActivityType.Navigation, "User Group", AddOrEdit);
+        userService.SaveActivityLog(userId, WRActivityType.Navigation, "Group", AddOrEdit);
     }
 
     private async void GetGroup(int? groupId)
@@ -210,7 +210,6 @@
     private async void Save()
     {
         bool saved = false;
-
         if (await validations.ValidateAll())
         {
             // Check for existing group name
@@ -237,7 +236,8 @@
                 saveGroup.GroupProtocols.Add(newGP);
             }
 
-            saved = groupService.SaveGroup(saveGroup);
+            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+            saved = groupService.SaveGroup(saveGroup, userId);
 
             if (saved)
             {
