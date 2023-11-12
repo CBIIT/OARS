@@ -11,8 +11,8 @@ namespace TheradexPortal.Data.Services.Abstract
         public Task<List<RoleDashboard>> GetRoleDashboards(int roleId);
         public Task<List<RoleReport>> GetRoleReports(int roleId);
         public bool CheckRoleName(string roleName, int roleId);
-        public bool SaveRole(Role role);
+        public bool SaveRole(Role role, int userId);
         public bool CanDeleteRole(int roleId);
-        public Tuple<bool, string> DeleteRole(int roleId);
+        public Tuple<bool, string> DeleteRole(int roleId, int userId);
     }
 }

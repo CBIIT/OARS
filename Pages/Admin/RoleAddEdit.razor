@@ -250,7 +250,8 @@
                     }
                 }
             }
-            saved = roleService.SaveRole(saveRole);
+            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+            saved = roleService.SaveRole(saveRole, userId);
 
             if (saved)
             {

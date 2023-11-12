@@ -2,12 +2,20 @@
 using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Services.Abstract;
 using TheradexPortal.Data.Static;
+using Microsoft.AspNetCore.Components;
 
 namespace TheradexPortal.Data.Services
 {
     public class DashboardService : BaseService, IDashboardService
     {
-        public DashboardService(IDbContextFactory<WrDbContext> dbFactory) : base(dbFactory) { }
+        private readonly IErrorLogService _errorLogService;
+        private readonly NavigationManager _navManager;
+
+        public DashboardService(IDbContextFactory<WrDbContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
+        {
+            _errorLogService = errorLogService;
+            _navManager = navigationManager;
+        }
 
         public async Task<IList<Dashboard>> GetAllDashboardsAsync()
         {
@@ -165,7 +173,7 @@ namespace TheradexPortal.Data.Services
             return foundDashboard == null;
         }
 
-        public bool SaveDashboard(Dashboard dashboard)
+        public bool SaveDashboard(Dashboard dashboard, int userId)
         {
             DateTime curDateTime = DateTime.UtcNow;
             try
@@ -243,6 +251,7 @@ namespace TheradexPortal.Data.Services
             }
             catch (Exception ex)
             {
+                _errorLogService.SaveErrorLogAsync(userId, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
                 return false;
             }
         }
@@ -275,7 +284,7 @@ namespace TheradexPortal.Data.Services
             }
         }
 
-        public Tuple<bool, string> DeleteDashboard(int dashboardId)
+        public Tuple<bool, string> DeleteDashboard(int dashboardId, int userId)
         {
             try
             {
@@ -286,6 +295,7 @@ namespace TheradexPortal.Data.Services
             }
             catch (Exception ex)
             {
+                _errorLogService.SaveErrorLogAsync(userId, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
                 return new Tuple<bool, string>(false, "Failed to delete dashboard");
             }
         }
@@ -295,7 +305,7 @@ namespace TheradexPortal.Data.Services
             return context.Role_Reports.Where(rr => rr.ReportId == reportId).Count() == 0;
         }
 
-        public bool SaveDashboardOrder(List<int> dashIds)
+        public bool SaveDashboardOrder(List<int> dashIds, int userId)
         {
             int dashOrder = 0;
             DateTime curDateTime = DateTime.UtcNow;
@@ -316,6 +326,7 @@ namespace TheradexPortal.Data.Services
             }
             catch (Exception ex)
             {
+                _errorLogService.SaveErrorLogAsync(userId, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
                 return false;
             }
         }

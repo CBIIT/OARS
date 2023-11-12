@@ -1,12 +1,19 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Services.Abstract;
+using Microsoft.AspNetCore.Components;
 
 namespace TheradexPortal.Data.Services
 {
     public class GroupService : BaseService, IGroupService
     {
-        public GroupService(IDbContextFactory<WrDbContext> dbFactory) : base(dbFactory) { }
+        private readonly IErrorLogService _errorLogService;
+        private readonly NavigationManager _navManager;
+        public GroupService(IDbContextFactory<WrDbContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
+        {
+            _errorLogService = errorLogService;
+            _navManager = navigationManager;
+        }
 
         public async Task<IList<Group>> GetAllGroupsAsync()
         {
@@ -31,7 +38,7 @@ namespace TheradexPortal.Data.Services
             return foundGroup == null;
         }
 
-        public bool SaveGroup(Group group)
+        public bool SaveGroup(Group group, int userId)
         {
             DateTime curDateTime = DateTime.UtcNow;
             try
@@ -91,11 +98,12 @@ namespace TheradexPortal.Data.Services
             }
             catch (Exception ex)
             {
+                _errorLogService.SaveErrorLogAsync(userId, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
                 return false;
             }
         }
 
-        public Tuple<bool, string> DeleteGroup(int groupId)
+        public Tuple<bool, string> DeleteGroup(int groupId, int userId)
         {
             try
             {
@@ -106,6 +114,7 @@ namespace TheradexPortal.Data.Services
             }
             catch (Exception ex)
             {
+                _errorLogService.SaveErrorLogAsync(userId, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
                 return new Tuple<bool, string>(false,"Failed to delete group");
             }
         }

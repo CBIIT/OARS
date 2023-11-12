@@ -1038,7 +1038,8 @@
                 saveUser.AllStudies = true;
         }
 
-        saved = userService.SaveUser(saveUser);
+        int loggedInUserId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        saved = userService.SaveUser(saveUser, loggedInUserId);
 
         // Try to create or update the OKTA user
         bool oktaSuccess = true;

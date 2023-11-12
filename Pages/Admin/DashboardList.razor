@@ -1,6 +1,7 @@
 ﻿@using TheradexPortal.Data.Models;
 @using TheradexPortal.Data.Services.Abstract;
 @using TheradexPortal.Data.Static;
+@inject IHttpContextAccessor httpContextAccessor
 @layout AdminLayout
 
 @page "/admin/dashboards"
@@ -159,7 +160,8 @@
     {
         Dashboard dashToDel;
         // Check if any roles assigned to dashboard - if not ok to delete
-        Tuple<bool, string> delDashboard = dashboardService.DeleteDashboard(dashboardToDeleteId);
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        Tuple<bool, string> delDashboard = dashboardService.DeleteDashboard(dashboardToDeleteId, userId);
 
         await deleteModalRef.Hide();
         if (delDashboard.Item1)
@@ -225,7 +227,8 @@
         dashboardList = dashboardList.OrderBy(d => d.DisplayOrder).ToList();
         StateHasChanged();
 
-        bool saveDashes = dashboardService.SaveDashboardOrder(dashIdOrder);
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        bool saveDashes = dashboardService.SaveDashboardOrder(dashIdOrder, userId);
 
         if (saveDashes)
         {

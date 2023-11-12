@@ -1,6 +1,7 @@
 ﻿@using TheradexPortal.Data.Models;
 @using TheradexPortal.Data.Services.Abstract;
 @using TheradexPortal.Data.Static;
+@inject IHttpContextAccessor httpContextAccessor
 @layout AdminLayout
 
 @page "/admin/roles"
@@ -136,7 +137,8 @@
     {
         Role roleToDel;
         // Check if any users assigned to groups - if not ok to delete
-        Tuple<bool, string> delRole = roleService.DeleteRole(roleToDeleteId);
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        Tuple<bool, string> delRole = roleService.DeleteRole(roleToDeleteId, userId);
 
         await deleteModalRef.Hide();
         if (delRole.Item1)
