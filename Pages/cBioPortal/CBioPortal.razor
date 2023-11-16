@@ -1,0 +1,130 @@
+﻿@page "/cbioportal/cbioportal/{dashboardid:int?}/{reportid:int?}"
+@layout SecondaryNavLayout
+@inject IHttpContextAccessor httpContextAccessor
+
+@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.ViewModels;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+
+@if(notFound)
+{
+    <LayoutContent>
+        <Container Fluid Class="mt-2 text-center">
+            <NotFound />
+        </Container>
+    </LayoutContent>
+}
+else
+{
+    <LayoutSider>
+        <SecondaryNav Actions="Actions" Reports="allReports" />
+    </LayoutSider>
+    <LayoutContent>
+        <Container Fluid Class="mt-2">
+            <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1 mb-3"><h2>cBioPortal Gateway</h2></Div>
+            <Image Source="img/cBioPortalLogo.png" Text="cBioPortal Logo" />
+            <Div Padding="Padding.Is2">
+                <Div TextWeight="TextWeight.Bold">Please be advised that selecting Study Summary or Study Clinical Data buttons will open a new window, redirecting you to an external website.</Div>
+                <BR />
+                <Div Width="Width.Is25">
+                    <Field>
+                        <FieldLabel TextWeight="TextWeight.Bold">Select a Study</FieldLabel>
+                        <FieldBody Margin="Margin.IsAuto">
+                                     <Select TValue="string" @bind-SelectedValue="@cBioPortalStudy">
+                                           @{
+                                            foreach (var protocol in studies)
+                                                {
+                                                    <SelectItem Value="@protocol.StudyId">@protocol.StudyId</SelectItem>
+                                                }
+                                           }
+                                     </Select>
+                        </FieldBody>
+                    </Field>
+                    <BR />
+                    <Field Flex="Flex.JustifyContent.Center">
+                        <Div>
+                            <Button Color="Color.Primary" Type="ButtonType.Link" Clicked="@NavigatedTocBioPortal" To="@cBioPortalLink()" Target="Target.Blank">Launch Study in cBioPortal</Button>
+                        </Div>
+                    </Field>
+                </Div>
+            </Div>
+        </Container>
+    </LayoutContent>
+}
+<StudyOverview @ref="studyOverview" />
+
+@code {
+    [Inject] private IStudyService studyService { get; set; } = null!;
+    [Inject] private IDashboardService dashboardService { get; set; } = null!;
+    [Inject] private IUserService userService { get; set; } = null!;
+    [Inject] private NavigationManager navigation {get; set; } = null!;
+
+    [Parameter] public int DashboardId { get; set; }
+    [Parameter] public int ReportId { get; set; }
+
+    private bool notFound = false;
+    private TheradexPortal.Data.Models.Dashboard? dashboard;
+    private IList<Report> allReports = new List<Report>();
+    private StudyOverview? studyOverview;
+    private int userId;
+    private string cBioPortalStudy = "";
+    private List<Protocol> studies;
+    private Report? report;
+
+    private IList<SecondaryNavAction> Actions => new List<SecondaryNavAction>
+    {
+        new SecondaryNavAction
+        {
+            IconName = IconName.Eye,
+            Label = "Study Overview",
+            OnClick = ShowOverview
+        },
+    };
+
+    protected override async Task OnParametersSetAsync()
+    {
+        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsAdmin, "True");
+        userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        string userDashboards = httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.Dashboards).Value;
+        string userReports = httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.Reports).Value;
+        dashboard = await dashboardService.GetDashboardByIdAsync(DashboardId, userDashboards, isAdmin);
+        allReports = await dashboardService.GetReportsByDashboardIdForUserAsync(DashboardId, userId, isAdmin);
+        studies = studyService.GetSelectedStudiesForUser(userId);
+        if (studies.Count() > 0)
+            cBioPortalStudy = studies[0].StudyId;
+
+        if(dashboard == null && !isAdmin)
+        {
+            notFound = true;
+            return;
+        }
+
+        report = allReports.FirstOrDefault(r => r.WRReportId == ReportId);
+        if (report == null)
+        {
+            notFound = true;
+            return;
+        }
+
+        userService.SaveActivityLog(userId, WRActivityType.Navigation, "cBioPortal");
+    }
+
+    private async void ShowOverview()
+    {
+        var studies = studyService.GetSelectedStudiesForUser(userId);
+        studyOverview?.ShowStudies(studies);
+    }
+
+    private string cBioPortalLink()
+    {
+        // LOG when a user clicks a button to navigate to cbioportal
+        return "https://mocha-cbioportal.cancer.gov/cbioportal/study/summary?studyId=" + cBioPortalStudy; 
+    }
+
+    Task NavigatedTocBioPortal()
+    {
+        userService.SaveActivityLog(userId, WRActivityType.Navigation, "cBioPortal", "Study=" + cBioPortalStudy);
+        return Task.CompletedTask;
+    }
+}

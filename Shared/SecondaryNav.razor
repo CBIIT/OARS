@@ -50,7 +50,7 @@
                 @if (reportCount == 1)
                 {
                     <BarItem>
-                        <BarLink To="@GetReportLink(curReport)">
+                        <BarLink To="@GetReportLink(curReport)" Target="@GetReportTarget(curReport)">
                             <BarIcon IconName="@GetReportIcon(curReport)" />
                             @curReport.Name
                         </BarLink>
@@ -103,7 +103,8 @@
     {
         if(report.CustomPagePath != null)
         {
-            return report.CustomPagePath;
+            return $"{report.CustomPagePath}/{report.DashboardId}/{report.WRReportId}";
+            //return report.CustomPagePath;
         }
         else
         {
@@ -114,6 +115,14 @@
     protected string GetReportIcon(Report report)
     {
         return report.DisplayIconName ?? "defaultIcon";
+    }
+
+    protected Target GetReportTarget(Report report)
+    {
+        if (!String.IsNullOrEmpty(report.CustomPagePath) && report.CustomPagePath.StartsWith("http"))
+            return Target.Blank;
+        else
+            return Target.Self;
     }
 
     protected int Level3Reports(Report report, IList<Report> reports)
