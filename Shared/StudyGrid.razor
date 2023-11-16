@@ -238,7 +238,7 @@
             studiesToSave = studiesToSave.TrimEnd(',');
 
             int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
-            bool saved = userService.SaveSelectedStudies(userId, studiesToSave, string.Empty, true);
+            bool saved = userService.SaveSelectedStudies(userId, studiesToSave, true);
             saved = userService.SaveActivityLog(userId, WRActivityType.Study, "Filter Studies", studiesToSave);
             saved = userService.SaveActivityLog(userId, WRActivityType.Study, "Default Study", firstStudy);
 
