@@ -10,8 +10,8 @@ namespace TheradexPortal.Data.Services.Abstract
         public bool CheckEmailAddress(string emailAddress, int userId);
         public bool SaveUser(User user, int loggedInUserId);
         public bool SaveLastLoginDate(int userId);
-        public bool SaveSelectedStudies(int userId, string studies, bool saveRecent);
-        public bool SaveCurrentStudy(int userId, string study);
+        public bool SaveSelectedStudies(int userId, string selectedStudies, bool saveRecent);
+        public bool SaveCurrentStudy(int userId, string currentStudies);
         public Task<bool> SetStartingStudies(int userId, int count);
         public bool DeactivateUser(int userId, int loggedInUserId);
         public Task<IList<string>> GetProtocolHistoryAsync(int userId, int count);

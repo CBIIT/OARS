@@ -15,12 +15,8 @@ namespace TheradexPortal.Data.Models
         public string? Title { get; set; }
         public DateTime? CreateDate { get; set; }
         public DateTime? UpdateDate { get; set; }
-        public string? Password { get; set; }
-        public string? PasswordSalt { get; set; }
         public Boolean IsActive { get; set; }
         public DateTime? LastLoginDate { get; set; }
-        public string? SelectedStudies { get; set; }
-        public string? CurrentStudy { get; set; }
         public bool IsCtepUser { get; set; }
         public bool AllStudies { get;set;}
         public string? TimeZoneAbbreviation { get; set; }

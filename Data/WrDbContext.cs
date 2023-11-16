@@ -50,6 +50,7 @@ namespace TheradexPortal.Data
         public DbSet<RoleDashboard> Role_Dashboards { get; set; } 
         public DbSet<RoleReport> Role_Reports { get; set; }
         public DbSet<UserProtocol> User_Protocols { get; set; }
+        public DbSet<UserSelectedProtocols> User_Selected_Protocols { get; set; }
         public DbSet<Group> Groups { get; set; }
         public DbSet<GroupProtocol> Group_Protocols { get; set; }
         public DbSet<UserGroup> User_Groups { get; set; }
