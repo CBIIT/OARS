@@ -1,4 +1,4 @@
-﻿@page "/cbioportal/cbioportal/{dashboardid:int?}/{reportid:int?}"
+﻿@page "/cbioportal/{dashboardid:int?}/{reportid:int?}"
 @layout SecondaryNavLayout
 @inject IHttpContextAccessor httpContextAccessor
 
@@ -25,7 +25,7 @@ else
             <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1 mb-3"><h2>cBioPortal Gateway</h2></Div>
             <Image Source="img/cBioPortalLogo.png" Text="cBioPortal Logo" />
             <Div Padding="Padding.Is2">
-                <Div TextWeight="TextWeight.Bold">Please be advised that selecting Study Summary or Study Clinical Data buttons will open a new window, redirecting you to an external website.</Div>
+                <Div TextWeight="TextWeight.Bold">Please be advised that launching a study in cBioPortal will open a new window, redirecting you to an external website.</Div>
                 <BR />
                 <Div Width="Width.Is25">
                     <Field>
