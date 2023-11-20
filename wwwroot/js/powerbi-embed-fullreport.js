@@ -107,8 +107,13 @@ function embedFullReport(reportContainer, accessToken, filterTargets, embedUrl, 
             console.log("Saving studies");
             console.log("Curr:" + curStudies + "   New: " + newStudies);
             curStudies = newStudies;
+
             await callDotNetSaveStudyMethod(newStudies, operator);
         }
+
+        clearTimeout(initial);
+        //console.log("Render: " + timeoutMS);
+        initializeInactivityTimer();
     });
 
     window.fullReport = report;

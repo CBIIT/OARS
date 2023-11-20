@@ -9,7 +9,7 @@
     foreach (Report report in Reports)
     {
         <BarDropdownItem Style="padding:0px 0px 0px 0px; margin:0px 0px 0px 0px;">
-            <BarLink To="@GetReportLink(report)" Class="tertiary-bar-link">
+            <BarLink To="@GetReportLink(report)" Class="tertiary-bar-link" Target="@GetReportTarget(report)">
                 <BarIcon IconName="@GetReportIcon(report)" Class="tertiary-bar-icon" />
                 @report.StudyType
             </BarLink>
@@ -43,6 +43,14 @@
         {
             return $"{WrConstants.DASHBOARD_PAGE_PATH}/{report.DashboardId}/{report.WRReportId}";
         }
+    }
+
+    protected Target GetReportTarget(Report report)
+    {
+        if (!String.IsNullOrEmpty(report.CustomPagePath) && report.CustomPagePath.StartsWith("http"))
+            return Target.Blank;
+        else
+            return Target.Self;
     }
 
     protected string GetReportIcon(Report report)

@@ -42,5 +42,24 @@ namespace TheradexPortal.Controllers
                     CookieAuthenticationDefaults.AuthenticationScheme,
                 });
         }
+
+        [HttpGet("timeout")]
+        public async Task<ActionResult> Timeout([FromQuery] string returnUrl)
+        {
+            //var redirectUri = returnUrl is null ? Url.Content("~/") : "/" + returnUrl;
+            var redirectUri = Url.Content("~/timedout");
+           
+            if (!User.Identity.IsAuthenticated)
+            {
+                return LocalRedirect(redirectUri);
+            }
+
+            return SignOut(new AuthenticationProperties() { RedirectUri = Url.Content("~/timedout") },
+                new[]
+                {
+                    Okta.AspNetCore.OktaDefaults.MvcAuthenticationScheme,
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                });
+        }
     }
 }

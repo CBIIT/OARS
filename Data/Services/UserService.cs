@@ -190,24 +190,33 @@ namespace TheradexPortal.Data.Services
                 return false;
             }
         }
-        public bool SaveSelectedStudies(int userId, string studies, bool saveRecent)
+        public bool SaveSelectedStudies(int userId, string selectedStudies, bool saveRecent)
         {
             try
             {
                 // Get the user, update and save.
-                User user = context.Users.FirstOrDefault(u => u.UserId == userId);
+                var userSelectedProtocols = context.User_Selected_Protocols.FirstOrDefault(u => u.UserId == userId);
+                if (userSelectedProtocols == null)
+                {
+                    userSelectedProtocols = new UserSelectedProtocols();
+                    userSelectedProtocols.UserId = userId;
+                    userSelectedProtocols.Selected_Protocols = selectedStudies;
+                    userSelectedProtocols.Current_Protocols = selectedStudies;
+                    context.User_Selected_Protocols.Add(userSelectedProtocols);
+                    userSelectedProtocols.CreateDate = DateTime.UtcNow;
+                }
+                else
+                {
+                    userSelectedProtocols.Selected_Protocols = selectedStudies;
+                    userSelectedProtocols.Current_Protocols = selectedStudies;
+                    userSelectedProtocols.UpdateDate = DateTime.UtcNow;
+                }
 
-                string[] studyList = studies.Split(',');
-
-                if (!studyList.Contains(user.CurrentStudy))
-                    user.CurrentStudy = studyList[0];
-
-                user.SelectedStudies = studies;
-
+                string[] newSelectedStudies = selectedStudies.Split(',');
                 if (saveRecent)
                 {
                     // Delete old entry in UserProtocolHistory for any newly selected study
-                    foreach (string selectedStudy in studyList)
+                    foreach (string selectedStudy in newSelectedStudies)
                     {
                         List<UserProtocolHistory> histsToDelete = context.User_ProtocolHistory.Where(uph => uph.UserId == userId && uph.StudyId == selectedStudy).ToList();
                         foreach (UserProtocolHistory history in histsToDelete)
@@ -215,7 +224,7 @@ namespace TheradexPortal.Data.Services
 
                     }
                     List<UserProtocolHistory> newHistory = new List<UserProtocolHistory>();
-                    foreach (string selectedStudy in studyList)
+                    foreach (string selectedStudy in newSelectedStudies)
                     {
                         UserProtocolHistory newUPH = new UserProtocolHistory();
                         newUPH.UserId = userId;
@@ -234,13 +243,13 @@ namespace TheradexPortal.Data.Services
                 return false;
             }
         }
-        public bool SaveCurrentStudy(int userId, string study)
+        public bool SaveCurrentStudy(int userId, string currentStudies)
         {
             try
             {
-                // Get the user, update and save.
-                User user = context.Users.FirstOrDefault(u => u.UserId == userId);
-                user.CurrentStudy = study;
+                // Get the user's selected protocols, update and save.
+                UserSelectedProtocols userSelectedProtocols = context.User_Selected_Protocols.FirstOrDefault(u => u.UserId == userId);
+                userSelectedProtocols.Current_Protocols = currentStudies;
 
                 context.SaveChanges();
                 return true;

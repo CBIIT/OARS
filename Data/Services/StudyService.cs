@@ -44,18 +44,18 @@ namespace TheradexPortal.Data.Services
         public string GetCurrentStudiesForUser(int userId)
         {
 
-            var protocolList = (from u in context.Users
+            var protocolList = (from u in context.User_Selected_Protocols
                                 where u.UserId == userId
-                                select u.CurrentStudy).SingleOrDefault();
+                                select u.Current_Protocols).SingleOrDefault();
 
             return protocolList;
         }
 
         public string GetSelectedStudyIdsForUser(int userId)
         {
-            var studyList = (from u in context.Users
+            var studyList = (from u in context.User_Selected_Protocols
                                 where u.UserId == userId
-                                select u.SelectedStudies).SingleOrDefault();
+                                select u.Selected_Protocols).SingleOrDefault();
 
             return studyList;
         }

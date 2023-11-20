@@ -1,4 +1,7 @@
 ﻿@using TheradexPortal.Data.Identity;
+@using Microsoft.JSInterop;
+@using TheradexPortal.Data.Static;
+@using TheradexPortal.Data.Services.Abstract;
 @inherits LayoutComponentBase
 @inject IConfiguration configuration
 @inject IHttpContextAccessor httpContextAccessor
@@ -41,13 +44,24 @@
 
 @code {
     [Inject] public NavigationManager Navigation { get; set; }
+    [Inject] IJSRuntime jsRuntime { get; set; }
+    [Inject] private IUserService userService { get; set; } = null!;
     private string supportEmail = "";
+    private static Func<Task> TimeoutUserAsync;
 
     protected override async Task OnInitializedAsync()
     { 
         supportEmail = configuration.GetValue<string>("EmailSettings:SupportEmail");
-
+        TimeoutUserAsync = LocalTimeoutUserAsync;
         await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await jsRuntime.InvokeVoidAsync("initializeInactivityTimer");
+        }
     }
 
     Task OnHomeClicked()
@@ -55,5 +69,22 @@
         Navigation.NavigateTo($"Signout", true);
 
         return Task.CompletedTask;
+    }
+
+    private async Task LocalTimeoutUserAsync()
+    {
+        if (httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId) != null)
+        {
+            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+            userService.SaveActivityLog(userId, WRActivityType.Logout, "Timeout");
+            Navigation.NavigateTo($"Timeout", true);
+        }
+    }
+
+    [JSInvokable]
+    public static async Task Timeout()
+    {
+        if (TimeoutUserAsync != null)
+            await TimeoutUserAsync.Invoke();
     }
 }
