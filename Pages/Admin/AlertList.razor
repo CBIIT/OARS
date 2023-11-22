@@ -195,14 +195,15 @@
     private async void DeactivateAlertClick()
     {
         deactivateModalRef.Hide();
-        bool success = alertService.DeactivateAlert(alertToDeactivateId);
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        bool success = alertService.DeactivateAlert(userId, alertToDeactivateId);
         if (success)
         {
-            await NotificationService.Success("User deactivated");
+            await NotificationService.Success("Alert deactivated");
         }
         else
         {
-            await NotificationService.Error("Error deactivating user");
+            await NotificationService.Error("Error deactivating alert");
         }
     }
 
