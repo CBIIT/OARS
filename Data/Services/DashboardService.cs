@@ -3,16 +3,28 @@ using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Services.Abstract;
 using TheradexPortal.Data.Static;
 using Microsoft.AspNetCore.Components;
+using Amazon;
+using Amazon.S3;
+using Amazon.S3.Transfer;
+using Microsoft.Extensions.Options;
+using TheradexPortal.Data.Models.Configuration;
+using Amazon.S3.Model;
+using Okta.Sdk.Model;
+using TheradexPortal.Test;
+using System.Security.AccessControl;
+using Org.BouncyCastle.Utilities.Zlib;
 
 namespace TheradexPortal.Data.Services
 {
     public class DashboardService : BaseService, IDashboardService
     {
+        private readonly IOptions<DashboardSettings> dashboardSettings;
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
 
-        public DashboardService(IDbContextFactory<WrDbContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
+        public DashboardService(IOptions<DashboardSettings> dashboardSettings, IDbContextFactory<WrDbContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
         {
+            this.dashboardSettings = dashboardSettings;
             _errorLogService = errorLogService;
             _navManager = navigationManager;
         }
@@ -328,6 +340,38 @@ namespace TheradexPortal.Data.Services
             {
                 _errorLogService.SaveErrorLogAsync(userId, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
                 return false;
+            }
+        }
+
+        public async Task<GetObjectResponse> GetDashboardPdf(string bucketName, string objectName, string filePath)
+        {
+            var memoryStream = new MemoryStream();
+            using (var client = new AmazonS3Client(RegionEndpoint.USEast1))
+            {
+                var request = new GetObjectRequest
+                {
+                    BucketName = bucketName,
+                    Key = objectName,
+                };
+
+                GetObjectResponse response = await client.GetObjectAsync(request);
+                return response;
+            }
+        }
+
+        public async Task UploadFileToS3(string fileName, MemoryStream memoryStream)
+        {
+            using (var client = new AmazonS3Client(RegionEndpoint.USEast1))
+            {
+                var uploadRequest = new TransferUtilityUploadRequest
+                {
+                    InputStream = memoryStream,
+                    Key = string.Format("{0}/{1}", dashboardSettings.Value.UploadFolder, fileName),
+                    BucketName = dashboardSettings.Value.AWSBucketName
+                };
+
+                var fileTransferUtility = new TransferUtility(client);
+                await fileTransferUtility.UploadAsync(uploadRequest);
             }
         }
     }

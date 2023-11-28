@@ -1,0 +1,59 @@
+﻿@using Amazon;
+@using Amazon.S3;
+@using Amazon.S3.Transfer;
+@using Microsoft.Extensions.Options;
+@using TheradexPortal.Data.Models.Configuration;
+@using TheradexPortal.Data.Services.Abstract;
+
+<Modal @ref="helpModal">
+    <ModalContent Size="ModalSize.ExtraLarge">
+        <ModalHeader Background="Background.Primary">
+            <ModalTitle TextColor="TextColor.White">Dashboard Help</ModalTitle>
+            <CloseButton TextColor="TextColor.White"></CloseButton>
+        </ModalHeader>
+        <ModalBody Class="overview-Modal-Body">
+            PDF HERE :)
+            <embed src="@HelpFileName" />
+        </ModalBody>
+    </ModalContent>
+</Modal>
+
+@code {
+    [Parameter] public string HelpFileName { get; set; } = string.Empty;
+    [Inject] private IDashboardService dashboardService { get; set; } = null!;
+    private Modal? helpModal;
+    private readonly IOptions<DashboardSettings> dashboardSettings;
+
+
+    public async Task ShowHelp(string fileName)
+    {
+        if (fileName == null || fileName.Equals(string.Empty))
+        {
+            // #TODO Error Handling goes here
+            return;
+        }
+
+        this.HelpFileName = fileName;
+        await this.retrievePdf();
+        await this.showModal();
+    }
+
+    private async Task retrievePdf()
+    {
+        var memory = new MemoryStream();
+        var response = dashboardService.GetDashboardPdf(dashboardSettings.Value.AWSBucketName, "", "").Result;
+        // #TODO Convert to PDF and save Local? Or find way to reconfigure memorystream to embedded PDF
+        using (var responseStream = response.ResponseStream)
+        {
+            responseStream.CopyTo(memory);
+        }
+
+
+    }
+
+    private async Task showModal()
+    {
+        StateHasChanged();
+        await helpModal!.Show();
+    }
+}

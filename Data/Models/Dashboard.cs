@@ -22,6 +22,8 @@ namespace TheradexPortal.Data.Models
         public string? CustomPagePath { get; set; }
         [Column("PowerBI_Report_Id")]
         public string? PowerBIReportId { get; set; }
+        [Column("Help_FileName")]
+        public string? HelpFileName { get; set; }
 
         public ICollection<Report> Reports { get; } = new List<Report>();
     }

@@ -40,7 +40,7 @@ else
 }
 
 <StudyOverview @ref="studyOverview" />
-
+<DashboardHelp @ref="dashboardHelp" />
 
 @code {
     [Inject] private IDashboardService dashboardService { get; set; } = null!;
@@ -56,6 +56,7 @@ else
 
     private bool notFound = false;
     private StudyOverview? studyOverview;
+    private DashboardHelp? dashboardHelp;
     private PowerBiCustomLayout? customReportRef;
     private PowerBiFullReport? fullReportRef;
 
@@ -74,6 +75,12 @@ else
             IconName = IconName.Eye,
             Label = "Study Overview",
             OnClick = ShowOverview
+        },
+        new SecondaryNavAction
+        {
+            IconName = IconName.Dashboard,
+            Label = "Dashboard Help",
+            OnClick = ShowHelp
         },
     };
 
@@ -162,5 +169,10 @@ else
     {
         var studies = studyService.GetSelectedStudiesForUser(userId);
         studyOverview?.ShowStudies(studies);
+    }
+
+    private async void ShowHelp()
+    {
+        dashboardHelp?.ShowHelp("");
     }
 }
