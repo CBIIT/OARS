@@ -33,25 +33,25 @@
                         <BarItem>
                             <Tooltip Text="@systemAlertsTooltip">
                                 <BarDropdown RightAligned @ref="@alertBarDropDown" Visible="@systemAlertsDropdownVisible">
-                                    <BarDropdownToggle Class="nci-bar-dropdown" onclick="@ToggleSystemAlertDropdown">
+                                    <BarDropdownToggle Class="nci-bar-dropdown" onclick="@ToggleSystemAlertsDropdown">
                                         <Badge Class="nci-alert-badge" Pill Position="Position.Absolute.Top.Is50.Start.Is100.Translate.Middle">@systemAlertsCount</Badge>
                                         <Image Source="img/alert-icon.png" height="@iconHeight" Class="nci-alert-icon" />
                                     </BarDropdownToggle>
                                     <BarDropdownMenu Class="nci-alert-dropdown">
-                                        <AlertBar @ref="@systemAlerts" Alert System NoAlertsMessage AlertsCountChanged=SystemAlertsCountChanged CSS="nci-alert-component" />
+                                        <AlertBar @ref="@systemAlerts" Alert System NoAlertsMessage Toggleable AlertsCountChanged=SystemAlertsCountChanged AlertBarToggled=ToggleSystemAlertsDropdownFromAlertBar CSS="nci-alert-component" />
                                     </BarDropdownMenu>
                                 </BarDropdown>
                             </Tooltip>
                         </BarItem>
                         <BarItem>
                             <Tooltip Text="@systemNotesTooltip">
-                                <BarDropdown RightAligned @ref="@noteBarDropDown">
-                                    <BarDropdownToggle Class="nci-bar-dropdown">
+                                 <BarDropdown RightAligned @ref="@noteBarDropDown" Visible="@systemNotesDropdownVisible">
+                                    <BarDropdownToggle Class="nci-bar-dropdown" onclick="@ToggleSystemNotesDropdown">
                                         <Badge Class="nci-note-badge" Pill Position="Position.Absolute.Top.Is50.Start.Is100.Translate.Middle">@systemNotesCount</Badge>
                                         <Image Source="img/notification-icon.png" height="@iconHeight" Class="nci-alert-icon" />
                                     </BarDropdownToggle>
                                     <BarDropdownMenu Class="nci-alert-dropdown">
-                                        <AlertBar @ref="@systemNotes" Note System NoAlertsMessage AlertsCountChanged=SystemNotesCountChanged CSS="nci-alert-component" />
+                                         <AlertBar @ref="@systemNotes" Note System NoAlertsMessage Toggleable AlertsCountChanged=SystemNotesCountChanged AlertBarToggled=ToggleSystemNotesDropdownFromAlertBar CSS="nci-alert-component" />
                                     </BarDropdownMenu>
                                 </BarDropdown>
                             </Tooltip>
@@ -206,6 +206,7 @@
     private int systemAlertsCount;
     private int systemNotesCount; 
     private bool systemAlertsDropdownVisible = true;
+    private bool systemNotesDropdownVisible = false;
     private string systemAlertsTooltip = string.Empty;
     private string systemNotesTooltip = string.Empty;
     private readonly string noSystemAlertsMessage = "No current System Alerts";
@@ -294,7 +295,7 @@
         if (this.systemAlertsCount < 1)
         {
             await this.alertBarDropDown!.Hide();
-            this.systemAlertsDropdownVisible = false;
+            this.systemAlertsDropdownVisible = false; // Might need to add this to the SystemNotesCountChangedMethod if dismissable returns (currently toggle)
             this.systemAlertsTooltip = this.noSystemAlertsMessage;
         }
         else
@@ -320,7 +321,7 @@
         }
     }
 
-    protected async Task ToggleSystemAlertDropdown()
+    protected async Task ToggleSystemAlertsDropdown()
     {
         if (this.systemAlertsDropdownVisible)
         {
@@ -332,6 +333,30 @@
             await this.alertBarDropDown!.Show();
             this.systemAlertsDropdownVisible = true;
         }
+    }
+
+    protected async Task ToggleSystemNotesDropdown()
+    {
+        if (this.systemNotesDropdownVisible)
+        {
+            await this.noteBarDropDown!.Hide();
+            this.systemNotesDropdownVisible = false;
+        }
+        else
+        {
+            await this.noteBarDropDown!.Show();
+            this.systemNotesDropdownVisible = true;
+        }
+    }
+
+    protected async Task ToggleSystemAlertsDropdownFromAlertBar()
+    {
+        await this.ToggleSystemAlertsDropdown();
+    }
+
+    protected async Task ToggleSystemNotesDropdownFromAlertBar()
+    {
+        await this.ToggleSystemNotesDropdown();
     }
 
     private Task OnModalClosing(ModalClosingEventArgs e)
