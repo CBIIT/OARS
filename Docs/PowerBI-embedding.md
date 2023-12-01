@@ -1,4 +1,4 @@
-# NCI Oncology Data Hub - PowerBI Embedding Inntegration
+# NCI Theradex Oncology Reporting - PowerBI Embedding Inntegration
 
 ## PowerBI Embedded SDK
 PowerBI embedding is using the Javascript SDK.  The SDK provides a set of functions that you can use to embed and control PowerBI reports [Microsoft docs](https://learn.microsoft.com/en-us/javascript/api/overview/powerbi/).

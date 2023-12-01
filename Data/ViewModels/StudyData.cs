@@ -43,10 +43,10 @@
             // Date of Last EDC Update
             public DateTime DateOfLastEDCUpdate { get; set; }
 
-            // Total Patients in Oncology Data Hub
+            // Total Patients in THOR
             public int totalPatients { get; set; }
 
-            // Recent Enrollment in Oncology Data Hub
+            // Recent Enrollment in THOR
             public int recentEnrollment { get; set; }
 
             // Subsequent Phase Activation Date

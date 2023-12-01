@@ -32,12 +32,12 @@ namespace TheradexPortal.Data.Services
             {
                 password = GeneratePassword();
                 loginType = "CTEP";
-                oktaGroup = "Oncology Data Hub-NCI";
+                oktaGroup = "THOR-NCI";
             }
             else
             {
                 loginType = "Non-CTEP";
-                oktaGroup = "Oncology Data Hub-Theradex";
+                oktaGroup = "THOR-Theradex";
             }
 
             try
@@ -171,13 +171,13 @@ namespace TheradexPortal.Data.Services
                 logger.LogInformation("OKTA Get group id to Remove");
                 if (isCTEPUser)
                 {
-                    groupToRemove = await FindGroup("Oncology Data Hub-Theradex");
-                    groupToAdd = await FindGroup("Oncology Data Hub-NCI");
+                    groupToRemove = await FindGroup("THOR-Theradex");
+                    groupToAdd = await FindGroup("THOR-NCI");
                 }
                 else
                 {
-                    groupToRemove = await FindGroup("Oncology Data Hub-NCI");
-                    groupToAdd = await FindGroup("Oncology Data Hub-Theradex");
+                    groupToRemove = await FindGroup("THOR-NCI");
+                    groupToAdd = await FindGroup("THOR-Theradex");
                 }
 
                 if (!groupToRemove.Item1 || !groupToAdd.Item1)
@@ -340,11 +340,11 @@ namespace TheradexPortal.Data.Services
 
                 if (isCTEPUser)
                 {
-                    groupToAdd = await FindGroup("Oncology Data Hub-NCI");
+                    groupToAdd = await FindGroup("THOR-NCI");
                 }
                 else
                 {
-                    groupToAdd = await FindGroup("Oncology Data Hub-Theradex");
+                    groupToAdd = await FindGroup("THOR-Theradex");
                 }
 
                 if (!groupToAdd.Item1)
