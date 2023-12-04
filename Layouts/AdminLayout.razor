@@ -134,9 +134,9 @@
 
         environment = configuration.GetValue<string>("System:Environment");
         if (environment != "Prod")
-            environment = "Theradex Oncology Reporting-" + environment;
+            environment = "NCI-Theradex Oncology Reporting-" + environment;
         else
-            environment = "Theradex Oncology Reporting";
+            environment = "NCI-Theradex Oncology Reporting";
     }
 
     private string GetHeaderColor()

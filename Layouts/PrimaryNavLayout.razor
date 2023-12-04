@@ -248,9 +248,9 @@
     {
         environment = configuration.GetValue<string>("System:Environment");
         if (environment != "Prod")
-            environment = "Theradex Oncology Reporting-" + environment;
+            environment = "NCI-Theradex Oncology Reporting-" + environment;
         else
-            environment = "Theradex Oncology Reporting";
+            environment = "NCI-Theradex Oncology Reporting";
 
         // Display or Hide Admin button
         bool isAdmin = Convert.ToBoolean(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.IsAdmin).Value);
