@@ -343,20 +343,13 @@ namespace TheradexPortal.Data.Services
             }
         }
 
-        public async Task<GetObjectResponse> GetDashboardPdf(string bucketName, string objectName, string filePath)
+        public async Task<string> GetDashboardPdfUrl(int dashboardId)
         {
-            var memoryStream = new MemoryStream();
-            using (var client = new AmazonS3Client(RegionEndpoint.USEast1))
-            {
-                var request = new GetObjectRequest
-                {
-                    BucketName = bucketName,
-                    Key = objectName,
-                };
+            var dashboard = await context.Dashboards.Where(db => db.WRDashboardId.Equals(dashboardId)).FirstAsync();
+            var helpFileName = string.Empty;
+            helpFileName = dashboard.HelpFileName;
 
-                GetObjectResponse response = await client.GetObjectAsync(request);
-                return response;
-            }
+            return helpFileName!;
         }
 
         public async Task UploadFileToS3(string fileName, MemoryStream memoryStream)
@@ -374,5 +367,26 @@ namespace TheradexPortal.Data.Services
                 await fileTransferUtility.UploadAsync(uploadRequest);
             }
         }
+
+        //public async Task<string> GetDashboardPdfUrl(string dashboardName, int userId)
+        //{
+        //    var dashboardUrl = string.Empty;
+        //    try
+        //    {
+        //        using (var s3Client = new AmazonS3Client(RegionEndpoint.USEast1))
+        //        {
+        //            var request = await s3Client.GetObjectAsync(dashboardSettings.Value.AWSBucketName, "DashboardHelp/" + dashboardName);
+        //            StreamReader stream = new StreamReader(request.ResponseStream);
+        //            dashboardUrl = stream.ReadToEnd();
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        await _errorLogService.SaveErrorLogAsync(userId, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+        //        dashboardUrl = string.Empty;
+        //    }
+
+        //    return dashboardUrl;
+        //}
     }
 }

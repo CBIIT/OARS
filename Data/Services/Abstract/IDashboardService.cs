@@ -22,7 +22,7 @@ namespace TheradexPortal.Data.Services.Abstract
         public Tuple<bool, string> DeleteDashboard(int dashboardId, int userId);
         public bool CanDeleteReport(int reportId);
         public bool SaveDashboardOrder(List<int> dashIds, int userId);
-        public Task<GetObjectResponse> GetDashboardPdf(string bucketName, string objectName, string filePath);
+        public Task<string> GetDashboardPdfUrl(int dashboardId);
         public Task UploadFileToS3(string fileName, MemoryStream memoryStream);
     }
 }

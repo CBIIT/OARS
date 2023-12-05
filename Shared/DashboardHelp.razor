@@ -12,47 +12,39 @@
             <CloseButton TextColor="TextColor.White"></CloseButton>
         </ModalHeader>
         <ModalBody Class="overview-Modal-Body">
-            PDF HERE :)
-            <embed src="@HelpFileName" />
+            <embed src="@helpFileName" />
         </ModalBody>
     </ModalContent>
 </Modal>
 
 @code {
-    [Parameter] public string HelpFileName { get; set; } = string.Empty;
+    [Parameter] public int DashboardId { get; set; }
     [Inject] private IDashboardService dashboardService { get; set; } = null!;
     private Modal? helpModal;
-    private readonly IOptions<DashboardSettings> dashboardSettings;
+    private string helpFileName;
 
-
-    public async Task ShowHelp(string fileName)
+    public DashboardHelp()
     {
-        if (fileName == null || fileName.Equals(string.Empty))
-        {
-            // #TODO Error Handling goes here
-            return;
-        }
+        this.helpFileName = string.Empty;
+    }
 
-        this.HelpFileName = fileName;
-        await this.retrievePdf();
+    public async Task ShowHelp()
+    {
         await this.showModal();
     }
 
-    private async Task retrievePdf()
+    public async Task RetrievePdfUrl()
     {
-        var memory = new MemoryStream();
-        var response = dashboardService.GetDashboardPdf(dashboardSettings.Value.AWSBucketName, "", "").Result;
-        // #TODO Convert to PDF and save Local? Or find way to reconfigure memorystream to embedded PDF
-        using (var responseStream = response.ResponseStream)
-        {
-            responseStream.CopyTo(memory);
-        }
-
-
+        this.helpFileName = await dashboardService.GetDashboardPdfUrl(DashboardId);
     }
 
     private async Task showModal()
     {
+        if (this.helpFileName == null || this.helpFileName.Equals(string.Empty))
+        {
+            await this.RetrievePdfUrl();
+        }
+
         StateHasChanged();
         await helpModal!.Show();
     }

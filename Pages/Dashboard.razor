@@ -40,7 +40,7 @@ else
 }
 
 <StudyOverview @ref="studyOverview" />
-<DashboardHelp @ref="dashboardHelp" />
+<DashboardHelp @ref="dashboardHelp" DashboardId="DashboardId" />
 
 @code {
     [Inject] private IDashboardService dashboardService { get; set; } = null!;
@@ -140,6 +140,8 @@ else
                 previousReport = report.WRReportId;
             }
         }
+
+        this.SetHelpFile();
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -171,8 +173,13 @@ else
         studyOverview?.ShowStudies(studies);
     }
 
-    private async void ShowHelp()
+    private void ShowHelp()
     {
-        dashboardHelp?.ShowHelp("");
+        this.dashboardHelp?.ShowHelp();
+    }
+
+    private void SetHelpFile()
+    {
+        this.dashboardHelp?.RetrievePdfUrl();
     }
 }
