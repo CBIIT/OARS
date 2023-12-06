@@ -1,5 +1,6 @@
 ﻿@attribute [Route(WrConstants.DASHBOARD_PAGE_PATH + "/{dashboardid:int}/{reportid:int?}")]
 @layout SecondaryNavLayout
+@inject IConfiguration configuration
 @inject IHttpContextAccessor httpContextAccessor
 
 @using System.Net.Http
@@ -41,7 +42,6 @@ else
 
 <StudyOverview @ref="studyOverview" />
 
-
 @code {
     [Inject] private IDashboardService dashboardService { get; set; } = null!;
     [Inject] private IStudyService studyService { get; set; } = null!;
@@ -64,6 +64,8 @@ else
     private Report? report;
     private string dashboardName;
     private string reportName;
+    private string helpFileUrl;
+    private int currentDashboardId;
     private int userId;
     private int previousReport = 0;
 
@@ -74,6 +76,13 @@ else
             IconName = IconName.Eye,
             Label = "Study Overview",
             OnClick = ShowOverview
+        },
+        new SecondaryNavAction
+        {
+            IconName = IconName.Download,
+            Label = "Dashboard Help",
+            Target = Target.Blank,
+            To = this.getHelpUrl()
         },
     };
 
@@ -162,5 +171,24 @@ else
     {
         var studies = studyService.GetSelectedStudiesForUser(userId);
         studyOverview?.ShowStudies(studies);
+    }
+
+    private string getHelpUrl()
+    {
+        // Minimize SQL calls
+        if (this.helpFileUrl == null || this.helpFileUrl.Equals(string.Empty) || currentDashboardId != this.DashboardId)
+        {
+            currentDashboardId = this.DashboardId;
+            this.helpFileUrl = configuration.GetValue<string>("System:DashboardHelpURL");
+            var helpFileName = this.dashboardService.GetDashboardHelpFileName(this.DashboardId).Result;
+            if (helpFileName.Equals(string.Empty))
+            {
+                helpFileName = "System:DashboardHelpURLDefault";
+            }
+            this.helpFileUrl += helpFileName;
+            this.helpFileUrl = String.Format("javascript:void(window.open('" + this.helpFileUrl + "','_blank'));");
+        }
+
+        return this.helpFileUrl;
     }
 }

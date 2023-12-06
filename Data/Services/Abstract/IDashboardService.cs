@@ -1,4 +1,5 @@
-﻿using TheradexPortal.Data.Models;
+﻿using Amazon.S3.Model;
+using TheradexPortal.Data.Models;
 
 namespace TheradexPortal.Data.Services.Abstract
 {
@@ -21,5 +22,7 @@ namespace TheradexPortal.Data.Services.Abstract
         public Tuple<bool, string> DeleteDashboard(int dashboardId, int userId);
         public bool CanDeleteReport(int reportId);
         public bool SaveDashboardOrder(List<int> dashIds, int userId);
+        public Task<string> GetDashboardHelpFileName(int dashboardId);
+        public Task UploadFileToS3(string fileName, MemoryStream memoryStream);
     }
 }

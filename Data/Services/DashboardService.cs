@@ -1,8 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Services.Abstract;
-using TheradexPortal.Data.Static;
 using Microsoft.AspNetCore.Components;
+using Amazon;
+using Amazon.S3;
 
 namespace TheradexPortal.Data.Services
 {
@@ -328,6 +329,25 @@ namespace TheradexPortal.Data.Services
             {
                 _errorLogService.SaveErrorLogAsync(userId, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
                 return false;
+            }
+        }
+
+        public async Task<string> GetDashboardHelpFileName(int dashboardId)
+        {
+            var helpUrl = string.Empty;
+            var dashboard = await context.Dashboards.Where(db => db.WRDashboardId.Equals(dashboardId)).FirstOrDefaultAsync();
+            if (dashboard != null && dashboard.HelpFileName != null)
+            {
+                helpUrl = dashboard.HelpFileName!.ToString();
+            }
+            return helpUrl;
+        }
+
+        public async Task UploadFileToS3(string fileName, MemoryStream memoryStream)
+        {
+            using (var client = new AmazonS3Client(RegionEndpoint.USEast1))
+            {
+                
             }
         }
     }
