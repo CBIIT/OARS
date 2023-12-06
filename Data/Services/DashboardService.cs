@@ -341,10 +341,15 @@ namespace TheradexPortal.Data.Services
             }
         }
 
-        public async Task<string> GetDashboardHelpUrl(int dashboardId)
+        public async Task<string> GetDashboardHelpFileName(int dashboardId)
         {
-            var dashboard = await context.Dashboards.Where(db => db.WRDashboardId.Equals(dashboardId)).FirstAsync();
-            return dashboard.HelpFileName!.ToString();
+            var helpUrl = string.Empty;
+            var dashboard = await context.Dashboards.Where(db => db.WRDashboardId.Equals(dashboardId)).FirstOrDefaultAsync();
+            if (dashboard != null && dashboard.HelpFileName != null)
+            {
+                helpUrl = dashboard.HelpFileName!.ToString();
+            }
+            return helpUrl;
         }
 
         public async Task UploadFileToS3(string fileName, MemoryStream memoryStream)

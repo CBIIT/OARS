@@ -56,7 +56,6 @@ else
 
     private bool notFound = false;
     private StudyOverview? studyOverview;
-    private DashboardHelp? dashboardHelp;
     private PowerBiCustomLayout? customReportRef;
     private PowerBiFullReport? fullReportRef;
 
@@ -65,7 +64,7 @@ else
     private Report? report;
     private string dashboardName;
     private string reportName;
-    private string helpFileName;
+    private string helpFileUrl;
     private int currentDashboardId;
     private int userId;
     private int previousReport = 0;
@@ -177,14 +176,19 @@ else
     private string getHelpUrl()
     {
         // Minimize SQL calls
-        if (this.helpFileName == null || this.helpFileName.Equals(string.Empty) || currentDashboardId != this.DashboardId)
+        if (this.helpFileUrl == null || this.helpFileUrl.Equals(string.Empty) || currentDashboardId != this.DashboardId)
         {
             currentDashboardId = this.DashboardId;
-            this.helpFileName = configuration.GetValue<string>("System:DashboardHelpURL")
-                + this.dashboardService.GetDashboardHelpUrl(this.DashboardId).Result;
-            this.helpFileName = String.Format("javascript:void(window.open('" + this.helpFileName + "','_blank'));");
+            this.helpFileUrl = configuration.GetValue<string>("System:DashboardHelpURL");
+            var helpFileName = this.dashboardService.GetDashboardHelpFileName(this.DashboardId).Result;
+            if (helpFileName.Equals(string.Empty))
+            {
+                helpFileName = "System:DashboardHelpURLDefault";
+            }
+            this.helpFileUrl += helpFileName;
+            this.helpFileUrl = String.Format("javascript:void(window.open('" + this.helpFileUrl + "','_blank'));");
         }
 
-        return this.helpFileName;
+        return this.helpFileUrl;
     }
 }
