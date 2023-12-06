@@ -29,9 +29,13 @@
             {
                 <Alert Color="currentColor" Visible Class="@CSS">
                     <AlertDescription TextOverflow="TextOverflow.Wrap">@((MarkupString)alert.AlertText!)</AlertDescription>
-                    @if (this.Dismissable)
+                    @if (this.Dismissable && !this.Toggleable)
                     {
                         <CloseButton @onclick="() => dismissAlert(alert)" Class="nci-alert-closebutton" />
+                    }
+                    @if (this.Toggleable && !this.Dismissable)
+                    {
+                        <CloseButton @onclick="() => toggleAlert(alert)" Class="nci-alert-closebutton" />
                     }
                 </Alert>
             }
@@ -56,9 +60,11 @@ else
     [Parameter] public bool System { get; set; } = false;
     [Parameter] public bool Dashboard { get; set; } = false;
     [Parameter] public bool Dismissable { get; set; } = false;
+    [Parameter] public bool Toggleable { get; set; } = false;
     [Parameter] public bool NoAlertsMessage { get; set; } = false;
     [Parameter] public string CSS { get; set; } = string.Empty;
     [Parameter] public EventCallback<int> AlertsCountChanged { get; set; }
+    [Parameter] public EventCallback AlertBarToggled { get; set; }
 
     private bool alertsHidden;
     private bool notesHidden;
@@ -205,6 +211,11 @@ else
 
             await this.updateAlertsCount(alertsCount);
         }
+    }
+
+    private async Task toggleAlert(WRAlert alert)
+    {
+        await this.AlertBarToggled.InvokeAsync();
     }
 
     private async Task LoadSessionAlerts()

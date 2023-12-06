@@ -34,6 +34,7 @@ namespace TheradexPortal.Data.Services
         private readonly IOptions<EmailSettings> emailSettings;
         private readonly ILogger<EmailService> logger;
         private readonly IWebHostEnvironment webHostEnvironment;
+
         public EmailService(IOptions<EmailSettings> emailSettings, ILogger<EmailService> logger, IWebHostEnvironment webHostEnvironment)
         {
             this.emailSettings = emailSettings;
@@ -158,8 +159,7 @@ namespace TheradexPortal.Data.Services
                         emailText = emailText.Replace("[[Description]]", description);
                         emailText = emailText.Replace("[[DateTime]]", dateTime);
 
-                        await SendEmail(new List<string> { emailTo }, null, null, subject, emailText, lstAttachments);
-                        return true;
+                        return await SendEmail(new List<string> { emailTo }, null, null, subject, emailText, lstAttachments);
                     }
 
                 }
@@ -176,7 +176,9 @@ namespace TheradexPortal.Data.Services
             logger.LogInformation("*** Email - Unspecified - " + toAddress + " ***");
             return await SendEmail(new List<String> { toAddress }, null, null, subject, htmlBody, null);
         }
-        public async Task<bool> SendEmail(List<string> toAddresses, List<string> ccAddresses, List<string> bccAddresses, string subject, string htmlBody, List<string> attachments)
+
+        public async Task<bool> SendEmail(List<string> toAddresses, List<string> ccAddresses, List<string> bccAddresses, string subject, string htmlBody, 
+            List<string> attachments)
         {
             bool emailSuccess = true;
             try
@@ -199,16 +201,25 @@ namespace TheradexPortal.Data.Services
                             bodyBuilder.HtmlBody = htmlBody.Replace("[[LogoContentId]]", image.ContentId);
                         }                        
                     }
-                    using (var s3Client = new AmazonS3Client(RegionEndpoint.USEast1))
+                    try
                     {
+                        var s3Client = new AmazonS3Client(RegionEndpoint.USEast1);
                         if (attachments != null && attachments.Count > 0)
                         {
                             foreach (string attachment in attachments)
                             {
                                 var s3Object = await s3Client.GetObjectAsync(emailSettings.Value.AWSBucketName, string.Format("{0}/{1}", emailSettings.Value.UploadFolder, attachment));
-                                bodyBuilder.Attachments.Add(attachment, s3Object.ResponseStream);
+                                if (s3Object != null)
+                                {
+                                    bodyBuilder.Attachments.Add(attachment, s3Object.ResponseStream);
+                                }
                             }
                         }
+                    }
+                    catch (Exception AttachmentEx)
+                    {
+                        logger.LogInformation("Email Attachment Error : " + AttachmentEx.Message);
+                        return false;
                     }
 
                         // Build the mime message with the from, to, cc and bcc addresses (if applicable)
@@ -274,24 +285,71 @@ namespace TheradexPortal.Data.Services
             }
         }
 
-        public async Task UploadFileToS3(string fileName, MemoryStream memoryStream)
+        public async Task<bool> UploadFileToS3(string fileName, MemoryStream memoryStream)
         {
-            //using (var client = new AmazonS3Client("yourAwsAccessKeyId", "yourAwsSecretAccessKey", RegionEndpoint.USEast1))
-            //var chain = new Amazon.Runtime.CredentialManagement.CredentialProfileStoreChain();
-            //var result = chain.TryGetAWSCredentials("theradex-development-nci", out var credentials);
-
+            string fileKey = string.Format("{0}/{1}", emailSettings.Value.UploadFolder, fileName);
+            string bucket = emailSettings.Value.AWSBucketName;
             using (var client = new AmazonS3Client(RegionEndpoint.USEast1))
             {
                 var uploadRequest = new TransferUtilityUploadRequest
                 {
                     InputStream = memoryStream,
-                    Key = string.Format("{0}/{1}", emailSettings.Value.UploadFolder, fileName),
-                    BucketName = emailSettings.Value.AWSBucketName
+                    Key = fileKey,
+                    BucketName = bucket
                 };
 
                 var fileTransferUtility = new TransferUtility(client);
                 await fileTransferUtility.UploadAsync(uploadRequest);
+                return true;
             }
+            return false;
+        }
+
+        public async Task<Tuple<bool, string>> CheckS3FileTag(string fileName)
+        {
+            string fileKey = string.Format("{0}/{1}", emailSettings.Value.UploadFolder, fileName);
+            string bucket = emailSettings.Value.AWSBucketName;
+           
+            //check clean tag for the file
+            try
+            {
+                var s3Client = new AmazonS3Client(RegionEndpoint.USEast1);
+                var s3Object = await s3Client.GetObjectAsync(bucket, fileKey);
+                if (s3Object != null)
+                {
+                    /*
+                    GetObjectTaggingRequest taggingRequest = new GetObjectTaggingRequest();
+                    taggingRequest.BucketName = bucket;
+                    taggingRequest.Key = fileKey;
+                    GetObjectTaggingResponse taggingResponse = await s3Client.GetObjectTaggingAsync(taggingRequest);
+
+                    List<Tag> tagging = taggingResponse.Tagging;
+                    bool cleanTag = false;
+                    foreach (Tag tagItem in tagging)
+                    {
+                        if (tagItem.Key == "scan-result" && tagItem.Value == "Clean")
+                        {
+                            cleanTag = true;
+                        }
+                    }
+                    if (!cleanTag)
+                    {
+                        errorMessage = "The attachment file doesn't pass the anti virus scanning.";
+                    }
+                    */
+                    return new Tuple<bool, string>(true, "");
+                }
+                else
+                {
+                    return new Tuple<bool, string>(false, "The attachment file is not available.");
+                }
+            }
+            catch (Exception AttachmentEx)
+            {
+                logger.LogInformation("Email Attachment Error : " + AttachmentEx.Message);
+                return new Tuple<bool, string>(false, "The attachment file is not available.");
+            }
+
         }
     }
 

@@ -1,4 +1,6 @@
 ﻿using Blazorise;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Server.IIS.Core;
 using Microsoft.EntityFrameworkCore;
 using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Services.Abstract;
@@ -7,6 +9,9 @@ namespace TheradexPortal.Data.Services
 {
     public class AlertService : BaseService, IAlertService
     {
+        private readonly IErrorLogService _errorLogService;
+        private readonly NavigationManager _navManager;
+
         private readonly bool active = true;
         private readonly DateTime dateTime = DateTime.Now;
 
@@ -53,7 +58,11 @@ namespace TheradexPortal.Data.Services
             return Task.FromResult(infoColor);
         }
 
-        public AlertService(IDbContextFactory<WrDbContext> dbFactory) : base(dbFactory) { }
+        public AlertService(IDbContextFactory<WrDbContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
+        {
+            _errorLogService = errorLogService;
+            _navManager = navigationManager;
+        }
 
 
         public async Task<IList<WRAlert>> GetAllWRAlertsAsync()
@@ -130,7 +139,7 @@ namespace TheradexPortal.Data.Services
             a.AlertType == noteType && a.DashboardId == dashboardId).OrderByDescending(a => a.WRAlertId).ToListAsync();
         }
 
-        public bool SaveAlert(WRAlert alert)
+        public bool SaveAlert(int userId, WRAlert alert)
         {
             try
             {
@@ -164,11 +173,12 @@ namespace TheradexPortal.Data.Services
             }
             catch(Exception ex)
             {
+                _errorLogService.SaveErrorLogAsync(userId, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
                 return false;
             }
         }
 
-        public bool DeactivateAlert(int alertId)
+        public bool DeactivateAlert(int userId, int alertId)
         {
             try
             {
@@ -181,6 +191,7 @@ namespace TheradexPortal.Data.Services
             }
             catch (Exception ex)
             {
+                _errorLogService.SaveErrorLogAsync(userId, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
                 return false;
             }
         }

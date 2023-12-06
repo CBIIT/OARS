@@ -318,6 +318,7 @@
 
     private async void Save()
     {
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
         if (!await alertValidations.ValidateAll())
         {
             //
@@ -360,7 +361,7 @@
         alert.StartDate = startDate;
         alert.EndDate = endDate;
 
-        saved = alertService.SaveAlert(alert);
+        saved = alertService.SaveAlert(userId, alert);
 
         if (saved)
         {

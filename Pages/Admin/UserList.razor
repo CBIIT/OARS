@@ -198,7 +198,7 @@
             if (oktaResults.Item2 == "ACTIVE")
             {
                 emailSuccess = await emailService.SendNewSystemEmail(
-                    "NCI Oncology Data Hub-" + configuration.GetValue<string>("System:Environment"),
+                    "Theradex Oncology Reporting-" + configuration.GetValue<string>("System:Environment"),
                     navigation.BaseUri,
                     configuration.GetValue<string>("System:SystemColor"),
                     u);
@@ -216,7 +216,7 @@
 
                 string activationLink = oktaResults.Item2;
                 emailSuccess = await emailService.SendNewUserEmail(
-                    "NCI Oncology Data Hub-" + configuration.GetValue<string>("System:Environment"),
+                    "Theradex Oncology Reporting-" + configuration.GetValue<string>("System:Environment"),
                     navigation.BaseUri, 
                     configuration.GetValue<string>("System:SystemColor"), 
                     u, 
@@ -235,7 +235,7 @@
 
                 string activationLink = oktaResults.Item2;
                 emailSuccess = await emailService.SendNewUserEmail(
-                    "NCI Oncology Data Hub-" + configuration.GetValue<string>("System:Environment"),
+                    "Theradex Oncology Reporting-" + configuration.GetValue<string>("System:Environment"),
                     navigation.BaseUri, 
                     configuration.GetValue<string>("System:SystemColor"), 
                     u, 

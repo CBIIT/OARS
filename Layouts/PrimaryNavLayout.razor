@@ -33,25 +33,25 @@
                         <BarItem>
                             <Tooltip Text="@systemAlertsTooltip">
                                 <BarDropdown RightAligned @ref="@alertBarDropDown" Visible="@systemAlertsDropdownVisible">
-                                    <BarDropdownToggle Class="nci-bar-dropdown" onclick="@ToggleSystemAlertDropdown">
+                                    <BarDropdownToggle Class="nci-bar-dropdown" onclick="@ToggleSystemAlertsDropdown">
                                         <Badge Class="nci-alert-badge" Pill Position="Position.Absolute.Top.Is50.Start.Is100.Translate.Middle">@systemAlertsCount</Badge>
                                         <Image Source="img/alert-icon.png" height="@iconHeight" Class="nci-alert-icon" />
                                     </BarDropdownToggle>
                                     <BarDropdownMenu Class="nci-alert-dropdown">
-                                        <AlertBar @ref="@systemAlerts" Alert System NoAlertsMessage AlertsCountChanged=SystemAlertsCountChanged CSS="nci-alert-component" />
+                                        <AlertBar @ref="@systemAlerts" Alert System NoAlertsMessage Toggleable AlertsCountChanged=SystemAlertsCountChanged AlertBarToggled=ToggleSystemAlertsDropdownFromAlertBar CSS="nci-alert-component" />
                                     </BarDropdownMenu>
                                 </BarDropdown>
                             </Tooltip>
                         </BarItem>
                         <BarItem>
                             <Tooltip Text="@systemNotesTooltip">
-                                <BarDropdown RightAligned @ref="@noteBarDropDown">
-                                    <BarDropdownToggle Class="nci-bar-dropdown">
+                                 <BarDropdown RightAligned @ref="@noteBarDropDown" Visible="@systemNotesDropdownVisible">
+                                    <BarDropdownToggle Class="nci-bar-dropdown" onclick="@ToggleSystemNotesDropdown">
                                         <Badge Class="nci-note-badge" Pill Position="Position.Absolute.Top.Is50.Start.Is100.Translate.Middle">@systemNotesCount</Badge>
                                         <Image Source="img/notification-icon.png" height="@iconHeight" Class="nci-alert-icon" />
                                     </BarDropdownToggle>
                                     <BarDropdownMenu Class="nci-alert-dropdown">
-                                        <AlertBar @ref="@systemNotes" Note System NoAlertsMessage AlertsCountChanged=SystemNotesCountChanged CSS="nci-alert-component" />
+                                         <AlertBar @ref="@systemNotes" Note System NoAlertsMessage Toggleable AlertsCountChanged=SystemNotesCountChanged AlertBarToggled=ToggleSystemNotesDropdownFromAlertBar CSS="nci-alert-component" />
                                     </BarDropdownMenu>
                                 </BarDropdown>
                             </Tooltip>
@@ -104,7 +104,7 @@
     </Layout>
 </Div>
 
- <Modal @ref="modalContactUs">
+ <Modal @ref="modalContactUs" Closing="@OnModalClosing">
      <ModalContent Centered Size="ModalSize.Large" >
          <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
             <ModalTitle>Contact Us</ModalTitle>
@@ -115,7 +115,11 @@
                 <Validation Validator="@ValidationRule.IsNotEmpty">
                     <Field>
                          <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Subject</FieldLabel>
-                        <TextEdit Placeholder="Enter subject"  @bind-Text="@emailTitle" />
+                        <TextEdit Placeholder="Enter subject"  @bind-Text="@emailTitle">
+                             <Feedback>
+                                 <ValidationError>Subject can't be empty</ValidationError>
+                             </Feedback>
+                            </TextEdit>
                     </Field>
                 </Validation>
                  <Validation Validator="@ValidationRule.IsNotEmpty">
@@ -149,13 +153,28 @@
                 <Field>
                     <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Description</FieldLabel>
                     <FieldBody>
-                             <MemoEdit @bind-Text="@emailDescription" MaxLength="250" Rows="3" Placeholder="Enter description" />
+                            <MemoEdit @bind-Text="@emailDescription" MaxLength="250" Rows="3" Placeholder="Enter description"  
+                            onkeydown="@OnDescriptionChanged">
+                            <Feedback>
+                                <ValidationError>Description can't be empty</ValidationError>
+                            </Feedback>
+                            </MemoEdit>
+                           
+                            <FieldLabel ColumnSize="ColumnSize.Is5">@emailDescriptionLabel</FieldLabel>
                     </FieldBody>
                 </Field>
                 </Validation>
                 <Field>                    
                     <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Attach File</FieldLabel>
-                    <FileEdit @ref="@fileEditRef" AutoReset="false" Changed="@OnChanged" />
+                    <FieldLabel>Accepted File Types: PDF, DOC/DOCX, ODT, RTF, TXT, CSV, JPG/JPEG, PNG, GIF, BMP, TIFF and XLS/XLSX</FieldLabel>
+                    <Validation Validator="@ValidateFileExtension">
+                        <FileEdit @ref="@fileEditRef" AutoReset="false" Changed="@OnChanged" 
+                            Filter=".jpeg, .jpg, .gif, .pdf, .pdc, .docx, .odt, .rtf, .txt, .csv, .png, .bmp, .tiff, .xls, .xlsx">                          
+                            <Feedback>
+                                <ValidationError>Wrong File Type</ValidationError>                                  
+                            </Feedback>
+                        </FileEdit>
+                     </Validation>
                 </Field>           
             </Validations>
         </ModalBody>
@@ -180,13 +199,14 @@
     [Inject] INotificationService notificationService { get; set; }
     [Inject] IContactUsService contactUsCategoryService { get; set; } = null!;
     [Inject] IEmailService emailService { get; set; } = null!;
-
+    [Inject] IErrorLogService errorLogService { get; set; } = null!;
 
     Validations validations;
     private int iconHeight = 30;
     private int systemAlertsCount;
     private int systemNotesCount; 
     private bool systemAlertsDropdownVisible = true;
+    private bool systemNotesDropdownVisible = false;
     private string systemAlertsTooltip = string.Empty;
     private string systemNotesTooltip = string.Empty;
     private readonly string noSystemAlertsMessage = "No current System Alerts";
@@ -196,7 +216,10 @@
 
     IFluentDisplay adminDisplay = Display.None;
 
-    private string contactUsCategoryID ="", emailTo = "", emailCategory="", emailDescription = "", emailTitle = "";
+    private Modal modalContactUs;
+    private bool cancelClose;
+
+    private string contactUsCategoryID ="", emailTo = "", emailCategory="", emailDescription = "", emailTitle = "", emailDescriptionLabel="";
     private List<ContactUsCategory> lstContactUsCategory;
     private List<ContactUsCategorySelectItemList> lstContactUsItems;
     FileEdit fileEditRef;
@@ -210,9 +233,10 @@
         {
             selectedFile = e.Files.FirstOrDefault();           
         }
-        catch (Exception exc)
+        catch (Exception ex)
         {
-            string errorMessage = exc.Message;
+            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+            errorLogService.SaveErrorLogAsync(userId, Navigation.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
         }
         finally
         {
@@ -224,9 +248,9 @@
     {
         environment = configuration.GetValue<string>("System:Environment");
         if (environment != "Prod")
-            environment = "NCI Oncology Data Hub-" + environment;
+            environment = "NCI-Theradex Oncology Reporting-" + environment;
         else
-            environment = "NCI Oncology Data Hub";
+            environment = "NCI-Theradex Oncology Reporting";
 
         // Display or Hide Admin button
         bool isAdmin = Convert.ToBoolean(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.IsAdmin).Value);
@@ -271,7 +295,7 @@
         if (this.systemAlertsCount < 1)
         {
             await this.alertBarDropDown!.Hide();
-            this.systemAlertsDropdownVisible = false;
+            this.systemAlertsDropdownVisible = false; // Might need to add this to the SystemNotesCountChangedMethod if dismissable returns (currently toggle)
             this.systemAlertsTooltip = this.noSystemAlertsMessage;
         }
         else
@@ -297,7 +321,7 @@
         }
     }
 
-    protected async Task ToggleSystemAlertDropdown()
+    protected async Task ToggleSystemAlertsDropdown()
     {
         if (this.systemAlertsDropdownVisible)
         {
@@ -311,7 +335,37 @@
         }
     }
 
-    private Modal modalContactUs;
+    protected async Task ToggleSystemNotesDropdown()
+    {
+        if (this.systemNotesDropdownVisible)
+        {
+            await this.noteBarDropDown!.Hide();
+            this.systemNotesDropdownVisible = false;
+        }
+        else
+        {
+            await this.noteBarDropDown!.Show();
+            this.systemNotesDropdownVisible = true;
+        }
+    }
+
+    protected async Task ToggleSystemAlertsDropdownFromAlertBar()
+    {
+        await this.ToggleSystemAlertsDropdown();
+    }
+
+    protected async Task ToggleSystemNotesDropdownFromAlertBar()
+    {
+        await this.ToggleSystemNotesDropdown();
+    }
+
+    private Task OnModalClosing(ModalClosingEventArgs e)
+    {
+        e.Cancel = cancelClose
+            || e.CloseReason != CloseReason.UserClosing;
+
+        return Task.CompletedTask;
+    }
 
     private Task ShowContactUsModal()
     {
@@ -334,79 +388,132 @@
 
     private Task HideContactUsModal()
     {
+        cancelClose = false;
         return modalContactUs.Hide();
     }
 
-     private async void SendContactUsEmail()
- {
-     if (await validations.ValidateAll())
-     {
-         emailTo = string.Empty;
-         emailCategory = string.Empty;
-         string siteName = "NCI Oncology Data Hub-" + configuration.GetValue<string>("System:Environment");
-         string baseURL = Navigation.BaseUri;
-         string color = configuration.GetValue<string>("System:SystemColor");
-         string dateTime = DateTime.Now.ToString("d-MMM-yyyy hh:mm tt");
-         int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
-         User curUser = await userService.GetUserAsync(userId);
-         string userName = curUser.FirstName + " " + curUser.LastName;
+    void ValidateFileExtension(ValidatorEventArgs e)
+    {
+        if (selectedFile != null)
+        {
+            try
+            {
+                string allowedFileExtension = ".jpeg, .jpg, .gif, .pdf, .pdc, .docx, .odt, .rtf, .txt, .csv, .png, .bmp, .tiff, .xls, .xlsx";
+                var fileExtension = Path.GetExtension(selectedFile.Name);
+                if (allowedFileExtension.IndexOf(fileExtension) < 0)
+                {
+                    e.Status = ValidationStatus.Error;
+                    notificationService.Error("Please upload the file with the extension in the list.");
+                }
+            }
+            catch (Exception ex)
+            {
+                int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+                errorLogService.SaveErrorLogAsync(userId, Navigation.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+            }
+        }
+    }
 
-         ContactUsCategory category = lstContactUsCategory.Where(l => l.WRContactUsCategoryID == Convert.ToInt32(contactUsCategoryID)).FirstOrDefault();
-         if(category != null)
-         {
-             if(category.ParentCategoryId != null)
-             {
-                 ContactUsCategory parentCategory = lstContactUsCategory.Where(l => l.WRContactUsCategoryID == Convert.ToInt32(category.ParentCategoryId)).FirstOrDefault();
-                 if(parentCategory != null)
-                 {
-                     emailCategory = parentCategory.Name + "-";
-                 }
-             }
-             emailCategory += category.Name;
-             emailTo = category.EmailTo;
-         }
+    public void OnDescriptionChanged(KeyboardEventArgs e)
+    {
+        if (emailDescription.Trim().Length == 0)
+        {
+            emailDescriptionLabel = "Max 250 characters.";
+        }
+        else
+        {
+            emailDescriptionLabel = "Max 250 characters. Currently " + emailDescription.Trim().Length+" characters";
+        }
+    }
 
-         if (selectedFile != null)
-         {
-             try
-             {
-                 var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(selectedFile.Name);
-                 var fileExtension = Path.GetExtension(selectedFile.Name);
-                 uploadFileName = fileNameWithoutExtension + "_" + Guid.NewGuid() + fileExtension;
-                 lstAttachments.Add(uploadFileName);
-                 using (var stream = new MemoryStream())
-                 {
-                     await selectedFile.WriteToStreamAsync(stream);
-                     await emailService.UploadFileToS3(uploadFileName, stream);
-                 }
-             }
-             catch (Exception exc)
-             {
-                 string errorMessage = exc.Message;
-             }
-         }
-         ContactUs contactUsLog = new ContactUs();
-         contactUsLog.WRContactUsID = 0;
-         contactUsLog.Subject = emailTitle;
-         contactUsLog.Description = "Category: " + emailCategory + " Description: " + emailDescription; ;
-         contactUsLog.CategoryID = Convert.ToInt32(contactUsCategoryID);
-         contactUsLog.UserID = userId;
-         contactUsLog.AttachmentName = uploadFileName;
-         
-         contactUsCategoryService.SaveContactUs(contactUsLog);
+    private async void SendContactUsEmail()
+    {
+        if (await validations.ValidateAll())
+        {
+            emailTo = string.Empty;
+            emailCategory = string.Empty;
+            string siteName = "Theradex Oncology Reporting-" + configuration.GetValue<string>("System:Environment");
+            string baseURL = Navigation.BaseUri;
+            string color = configuration.GetValue<string>("System:SystemColor");
+            string dateTime = DateTime.Now.ToString("d-MMM-yyyy hh:mm tt");
+            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+            User curUser = await userService.GetUserAsync(userId);
+            string userName = curUser.FirstName + " " + curUser.LastName;
 
-         bool sendEmailResult = await emailService.SendContactUsEmail(siteName, baseURL, color, emailTo, emailTitle, emailCategory, emailDescription, userName, dateTime, lstAttachments);
-         
-         if ( sendEmailResult)
-         {
-             await notificationService.Success("An email to support has been sent.");         
-         }
-         else
-         {
-             await notificationService.Error("An error occured during sending the email to support.");
-         }
-         modalContactUs.Hide();
-     }
- }
+            ContactUsCategory category = lstContactUsCategory.Where(l => l.WRContactUsCategoryID == Convert.ToInt32(contactUsCategoryID)).FirstOrDefault();
+            if (category != null)
+            {
+                if (category.ParentCategoryId != null)
+                {
+                    ContactUsCategory parentCategory = lstContactUsCategory.Where(l => l.WRContactUsCategoryID == Convert.ToInt32(category.ParentCategoryId)).FirstOrDefault();
+                    if (parentCategory != null)
+                    {
+                        emailCategory = parentCategory.Name + "-";
+                    }
+                }
+                emailCategory += category.Name;
+                emailTo = category.EmailTo;
+            }
+
+            if (selectedFile != null)
+            {
+                try
+                {
+                    var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(selectedFile.Name);
+                    string allowedFileExtension = ".jpeg, .jpg, .gif, .pdf, .pdc, .docx, .odt, .rtf, .txt, .csv, .png, .bmp, .tiff, .xls, .xlsx";
+                    var fileExtension = Path.GetExtension(selectedFile.Name);
+                    if (allowedFileExtension.IndexOf(fileExtension) >= 0)
+                    {
+                        uploadFileName = fileNameWithoutExtension + "_" + Guid.NewGuid() + fileExtension;
+                        lstAttachments.Add(uploadFileName);
+                        using (var stream = new MemoryStream())
+                        {
+                            await selectedFile.WriteToStreamAsync(stream);
+                            bool uplodateResult =  await emailService.UploadFileToS3(uploadFileName, stream);
+                            if (!uplodateResult)
+                            {
+                                await notificationService.Error("An error occured during uploading the attachment file.");
+                                return;
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    errorLogService.SaveErrorLogAsync(userId, Navigation.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+                }
+            }
+
+            ContactUs contactUsLog = new ContactUs();
+            contactUsLog.WRContactUsID = 0;
+            contactUsLog.Subject = emailTitle;
+            contactUsLog.Description = emailDescription; ;
+            contactUsLog.CategoryID = Convert.ToInt32(contactUsCategoryID);
+            contactUsLog.UserID = userId;
+            contactUsLog.AttachmentName = uploadFileName;
+
+            contactUsCategoryService.SaveContactUs(contactUsLog);
+
+            Tuple<bool, string> uploadResult = await emailService.CheckS3FileTag(uploadFileName);
+            if (!uploadResult.Item1)
+            {
+                await notificationService.Error(uploadResult.Item2);
+                return;
+            }
+            bool sendEmailResult = await emailService.SendContactUsEmail(siteName, baseURL, color, emailTo, emailTitle, emailCategory, emailDescription,
+                userName, dateTime, lstAttachments);
+            if (sendEmailResult)
+            {
+                await notificationService.Success("An email to support has been sent.");
+            }
+            else
+            {
+                await notificationService.Error("An error occured during sending the email to support.");
+
+            }
+            cancelClose = false;
+            modalContactUs.Hide();
+        }
+    }
 
 }

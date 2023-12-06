@@ -1,4 +1,5 @@
 ﻿@using Microsoft.AspNetCore.Components.Web
+@inject IConfiguration configuration
 @namespace TheradexPortal.Pages
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
@@ -40,6 +41,10 @@
     <script src="js/powerbi.min.js"></script>
     <script src="js/bootstrap.bundle.min.js" integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ" crossorigin="anonymous"></script>
     <script src="js/timezone-info.js"></script>
+    <script>
+        var timeoutMS = @Json.Serialize(@configuration.GetSection("System").GetSection("TimeoutMS").Value)
+    </script>
+    <script src="js/timeout-user.js"></script>
     <script src="_framework/blazor.server.js"></script>
 </body>
 </html>
