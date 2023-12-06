@@ -54,8 +54,28 @@
                     </DisplayTemplate>
                 </DataGridColumn>
                 <DataGridColumn Field="@nameof(WRAlert.AlertText)" Caption="Text" />
-                <DataGridColumn Field="@nameof(WRAlert.StartDate)" Caption="Start Date" />
-                <DataGridColumn Field="@nameof(WRAlert.EndDate)" Caption="End Date" />
+                <DataGridColumn Field="@nameof(WRAlert.StartDate)" Caption="Start Date">
+                    <DisplayTemplate>
+                        @{
+                            var startDate = (context as WRAlert)?.StartDate;
+                            if (startDate != null)
+                            {
+                                @(startDate.Value.ToString("dd-MMM-yyyy"));
+                            }
+                        }
+                    </DisplayTemplate>
+                </DataGridColumn>
+                <DataGridColumn Field="@nameof(WRAlert.EndDate)" Caption="End Date">
+                    <DisplayTemplate>
+                        @{
+                            var endDate = (context as WRAlert)?.EndDate;
+                            if (endDate != null)
+                            {
+                                @(endDate.Value.ToString("dd-MMM-yyyy"));
+                            }
+                        }
+                    </DisplayTemplate>
+                </DataGridColumn>
                 <DataGridSelectColumn TItem="WRAlert" Field="@nameof(WRAlert.IsActive)" Caption="Active" Width="125px">
                     <DisplayTemplate>
                         @{

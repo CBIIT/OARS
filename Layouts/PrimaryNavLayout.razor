@@ -492,7 +492,7 @@
             contactUsLog.UserID = userId;
             contactUsLog.AttachmentName = uploadFileName;
 
-            contactUsCategoryService.SaveContactUs(contactUsLog);
+            contactUsCategoryService.SaveContactUs(userId, contactUsLog);
 
             Tuple<bool, string> uploadResult = await emailService.CheckS3FileTag(uploadFileName);
             if (!uploadResult.Item1)

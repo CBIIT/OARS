@@ -1,7 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TheradexPortal.Data.Models;
+using TheradexPortal.Data;
 using TheradexPortal.Data.Services.Abstract;
 using Microsoft.AspNetCore.Components;
+using System.Security.Claims;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace TheradexPortal.Data.Services
 {
@@ -43,12 +46,13 @@ namespace TheradexPortal.Data.Services
             DateTime curDateTime = DateTime.UtcNow;
             try
             {
-                // if user.UserId is 0 or null, save new user, else edit user
+                var primaryTable = context.Model.FindEntityType(typeof(Group)).ToString().Replace("EntityType: ", "");
+
                 if (group.WRGroupId == 0)
                 {
                     group.CreateDate = curDateTime;
                     context.Groups.Add(group);
-                    context.SaveChanges();
+                    context.SaveChangesAsync(userId, primaryTable);
                 }
                 else
                 {
@@ -56,7 +60,6 @@ namespace TheradexPortal.Data.Services
                     if (dbGroup != null)
                     {
                         dbGroup.GroupName = group.GroupName;
-                        dbGroup.UpdateDate = curDateTime;
 
                         // iterate from site defined list - add or update as needed
                         foreach (GroupProtocol gp in group.GroupProtocols)
@@ -66,7 +69,11 @@ namespace TheradexPortal.Data.Services
                             {
                                 // Study already exists
                                 foundGP.IsActive = gp.IsActive;
-                                foundGP.UpdateDate = curDateTime;
+                                if (context.Entry(foundGP).State == EntityState.Modified)
+                                {
+                                    dbGroup.UpdateDate = curDateTime;
+                                    foundGP.UpdateDate = curDateTime;
+                                }
                             }
                             else
                             {
@@ -75,6 +82,7 @@ namespace TheradexPortal.Data.Services
                                 newGP.StudyId = gp.StudyId;
                                 newGP.IsActive = gp.IsActive;
                                 newGP.CreateDate = curDateTime;
+                                dbGroup.UpdateDate = curDateTime;
                                 dbGroup.GroupProtocols.Add(newGP);
                             }
                         }
@@ -84,12 +92,21 @@ namespace TheradexPortal.Data.Services
                         {
                             GroupProtocol foundGP = group.GroupProtocols.FirstOrDefault(og => og.StudyId == gp.StudyId);
                             if (foundGP == null)
+                            {
+                                dbGroup.UpdateDate = curDateTime;
                                 gpToRemove.Add(gp);
+                            }
                         }
                         foreach (GroupProtocol del in gpToRemove)
                             dbGroup.GroupProtocols.Remove(del);
 
-                        context.SaveChanges();
+                        // If anything changed in the Group or GroupProtocols, then the set the update date.
+                        if (context.Entry(dbGroup).State == EntityState.Modified)
+                        {
+                            dbGroup.UpdateDate = curDateTime;
+                        }
+
+                        context.SaveChangesAsync(userId, primaryTable);
                     }
                 }
 
@@ -107,9 +124,10 @@ namespace TheradexPortal.Data.Services
         {
             try
             {
+                var primaryTable = context.Model.FindEntityType(typeof(Group)).ToString().Replace("EntityType: ", "");
                 var group = context.Groups.Where(g=>g.WRGroupId==groupId).Include(g => g.GroupProtocols).First();
                 context.Remove(group);
-                context.SaveChanges();
+                context.SaveChangesAsync(userId, primaryTable);
                 return new Tuple<bool, string>(true,"Group deleted successfully");
             }
             catch (Exception ex)

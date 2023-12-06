@@ -7,6 +7,6 @@ namespace TheradexPortal.Data.Services.Abstract
         public List<ContactUsCategory> GetContactUsCategories();
         public List<ContactUsCategorySelectItemList> GetContactUsCategoriesSelectItems();
 
-        public bool SaveContactUs(ContactUs contactUSEmail);
+        public bool SaveContactUs(int userId, ContactUs contactUSEmail);
     }
 }
