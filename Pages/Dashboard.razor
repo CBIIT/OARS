@@ -1,5 +1,6 @@
 ﻿@attribute [Route(WrConstants.DASHBOARD_PAGE_PATH + "/{dashboardid:int}/{reportid:int?}")]
 @layout SecondaryNavLayout
+@inject IConfiguration configuration
 @inject IHttpContextAccessor httpContextAccessor
 
 @using System.Net.Http
@@ -40,7 +41,6 @@ else
 }
 
 <StudyOverview @ref="studyOverview" />
-<DashboardHelp @ref="dashboardHelp" DashboardId="DashboardId" />
 
 @code {
     [Inject] private IDashboardService dashboardService { get; set; } = null!;
@@ -65,6 +65,8 @@ else
     private Report? report;
     private string dashboardName;
     private string reportName;
+    private string helpFileName;
+    private int currentDashboardId;
     private int userId;
     private int previousReport = 0;
 
@@ -78,9 +80,10 @@ else
         },
         new SecondaryNavAction
         {
-            IconName = IconName.Dashboard,
+            IconName = IconName.Download,
             Label = "Dashboard Help",
-            OnClick = ShowHelp
+            Target = Target.Blank,
+            To = this.getHelpUrl()
         },
     };
 
@@ -140,8 +143,6 @@ else
                 previousReport = report.WRReportId;
             }
         }
-
-        this.SetHelpFile();
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -173,13 +174,17 @@ else
         studyOverview?.ShowStudies(studies);
     }
 
-    private void ShowHelp()
+    private string getHelpUrl()
     {
-        this.dashboardHelp?.ShowHelp();
-    }
+        // Minimize SQL calls
+        if (this.helpFileName == null || this.helpFileName.Equals(string.Empty) || currentDashboardId != this.DashboardId)
+        {
+            currentDashboardId = this.DashboardId;
+            this.helpFileName = configuration.GetValue<string>("System:DashboardHelpURL")
+                + this.dashboardService.GetDashboardHelpUrl(this.DashboardId).Result;
+            this.helpFileName = String.Format("javascript:void(window.open('" + this.helpFileName + "','_blank'));");
+        }
 
-    private void SetHelpFile()
-    {
-        this.dashboardHelp?.RetrievePdfUrl();
+        return this.helpFileName;
     }
 }

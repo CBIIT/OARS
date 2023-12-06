@@ -8,5 +8,6 @@ namespace TheradexPortal.Data.ViewModels
         public IconName IconName { get; set; } = IconName.Add;
         public Action? OnClick { get; set; }
         public string? To { get; set; }
+        public Target? Target { get; set; }
     }
 }

@@ -18,13 +18,11 @@ namespace TheradexPortal.Data.Services
 {
     public class DashboardService : BaseService, IDashboardService
     {
-        private readonly IOptions<DashboardSettings> dashboardSettings;
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
 
-        public DashboardService(IOptions<DashboardSettings> dashboardSettings, IDbContextFactory<WrDbContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
+        public DashboardService(IDbContextFactory<WrDbContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
         {
-            this.dashboardSettings = dashboardSettings;
             _errorLogService = errorLogService;
             _navManager = navigationManager;
         }
@@ -343,28 +341,17 @@ namespace TheradexPortal.Data.Services
             }
         }
 
-        public async Task<string> GetDashboardPdfUrl(int dashboardId)
+        public async Task<string> GetDashboardHelpUrl(int dashboardId)
         {
             var dashboard = await context.Dashboards.Where(db => db.WRDashboardId.Equals(dashboardId)).FirstAsync();
-            var helpFileName = string.Empty;
-            helpFileName = dashboard.HelpFileName;
-
-            return helpFileName!;
+            return dashboard.HelpFileName!.ToString();
         }
 
         public async Task UploadFileToS3(string fileName, MemoryStream memoryStream)
         {
             using (var client = new AmazonS3Client(RegionEndpoint.USEast1))
             {
-                var uploadRequest = new TransferUtilityUploadRequest
-                {
-                    InputStream = memoryStream,
-                    Key = string.Format("{0}/{1}", dashboardSettings.Value.UploadFolder, fileName),
-                    BucketName = dashboardSettings.Value.AWSBucketName
-                };
-
-                var fileTransferUtility = new TransferUtility(client);
-                await fileTransferUtility.UploadAsync(uploadRequest);
+                
             }
         }
 
