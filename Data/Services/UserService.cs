@@ -40,6 +40,7 @@ namespace TheradexPortal.Data.Services
             {
                 DateTime curDateTime = DateTime.UtcNow;
                 DateTime updDateTime = curDateTime;
+                var primaryTable = context.Model.FindEntityType(typeof(User)).ToString().Replace("EntityType: ", "");
 
                 // if user.UserId is 0 or null, save new user, else edit user
                 if (user.UserId == 0)
@@ -49,7 +50,7 @@ namespace TheradexPortal.Data.Services
                     user.TimeOffset = 0;
                     context.Users.Add(user);
 
-                    context.SaveChanges();
+                    context.SaveChangesAsync(loggedInUserId, primaryTable);
                 }
                 else
                 {
@@ -66,7 +67,6 @@ namespace TheradexPortal.Data.Services
                         dbUser.IsCtepUser = user.IsCtepUser;
                         dbUser.CtepUserId = user.CtepUserId;
                         dbUser.AllStudies = user.AllStudies;
-                        dbUser.UpdateDate = curDateTime;
 
                         // User Roles
                         foreach (UserRole ur in user.UserRoles)
@@ -76,7 +76,11 @@ namespace TheradexPortal.Data.Services
                             {
                                 // UserRole already exists
                                 foundUR.ExpirationDate = ur.ExpirationDate;
-                                foundUR.UpdateDate = updDateTime;
+                                if (context.Entry(foundUR).State == EntityState.Modified)
+                                {
+                                    dbUser.UpdateDate = curDateTime;
+                                    foundUR.UpdateDate = curDateTime;
+                                }
                             }
                             else
                             {
@@ -85,6 +89,7 @@ namespace TheradexPortal.Data.Services
                                 newUR.RoleId = ur.RoleId;
                                 newUR.ExpirationDate = ur.ExpirationDate;
                                 newUR.CreateDate = curDateTime;
+                                dbUser.UpdateDate = curDateTime;
                                 dbUser.UserRoles.Add(newUR);
                             }
                         }
@@ -94,7 +99,10 @@ namespace TheradexPortal.Data.Services
                         {
                             UserRole foundUR = user.UserRoles.FirstOrDefault(ur2 => ur2.RoleId == dur.RoleId);
                             if (foundUR == null)
+                            {
+                                dbUser.UpdateDate = curDateTime;
                                 urToRemove.Add(dur);
+                            }
                         }
                         foreach (UserRole del in urToRemove)
                             dbUser.UserRoles.Remove(del);
@@ -107,7 +115,11 @@ namespace TheradexPortal.Data.Services
                             {
                                 // UserProtocol already exists
                                 foundUP.ExpirationDate = up.ExpirationDate;
-                                foundUP.UpdateDate = updDateTime;
+                                if (context.Entry(foundUP).State == EntityState.Modified)
+                                {
+                                    dbUser.UpdateDate = curDateTime;
+                                    foundUP.UpdateDate = curDateTime;
+                                }
                             }
                             else
                             {
@@ -116,6 +128,7 @@ namespace TheradexPortal.Data.Services
                                 newUP.StudyId = up.StudyId;
                                 newUP.ExpirationDate = up.ExpirationDate;
                                 newUP.CreateDate = curDateTime;
+                                dbUser.UpdateDate = curDateTime;
                                 dbUser.UserProtocols.Add(newUP);
                             }
                         }
@@ -125,7 +138,10 @@ namespace TheradexPortal.Data.Services
                         {
                             UserProtocol foundUP = user.UserProtocols.FirstOrDefault(up2 => up2.StudyId == dup.StudyId);
                             if (foundUP == null)
+                            {
+                                dbUser.UpdateDate = curDateTime;
                                 upToRemove.Add(dup);
+                            }
                         }
                         foreach (UserProtocol del in upToRemove)
                             dbUser.UserProtocols.Remove(del);
@@ -138,7 +154,11 @@ namespace TheradexPortal.Data.Services
                             {
                                 // UserGroup already exists
                                 foundUG.ExpirationDate = ug.ExpirationDate;
-                                foundUG.UpdateDate = updDateTime;
+                                if (context.Entry(foundUG).State == EntityState.Modified)
+                                {
+                                    dbUser.UpdateDate = curDateTime;
+                                    foundUG.UpdateDate = curDateTime;
+                                }
                             }
                             else
                             {
@@ -147,6 +167,7 @@ namespace TheradexPortal.Data.Services
                                 newUG.GroupId = ug.GroupId;
                                 newUG.ExpirationDate = ug.ExpirationDate;
                                 newUG.CreateDate = curDateTime;
+                                dbUser.UpdateDate = curDateTime;
                                 dbUser.UserGroups.Add(newUG);
                             }
                         }
@@ -156,12 +177,20 @@ namespace TheradexPortal.Data.Services
                         {
                             UserGroup foundUG = user.UserGroups.FirstOrDefault(ug2 => ug2.GroupId == dug.GroupId);
                             if (foundUG == null)
+                            {
+                                dbUser.UpdateDate = curDateTime;
                                 ugToRemove.Add(dug);
+                            }
                         }
                         foreach (UserGroup del in ugToRemove)
                             dbUser.UserGroups.Remove(del);
 
-                        context.SaveChanges();
+                        if (context.Entry(dbUser).State == EntityState.Modified)
+                        {
+                            dbUser.UpdateDate = curDateTime;
+                        }
+
+                        context.SaveChangesAsync(loggedInUserId, primaryTable);
                     }
                 }
 
@@ -292,10 +321,11 @@ namespace TheradexPortal.Data.Services
             try
             {
                 // Get the user, update and save.
+                var primaryTable = context.Model.FindEntityType(typeof(User)).ToString().Replace("EntityType: ", "");
                 User user = context.Users.FirstOrDefault(u => u.UserId == userId);
                 user.IsActive = false;
                 user.UpdateDate = DateTime.UtcNow;
-                context.SaveChanges();
+                context.SaveChangesAsync(loggedInUserId, primaryTable);
 
                 return true;
             }
@@ -313,13 +343,14 @@ namespace TheradexPortal.Data.Services
         {
             try
             {
+                var primaryTable = context.Model.FindEntityType(typeof(User)).ToString().Replace("EntityType: ", "");
                 User user = context.Users.FirstOrDefault(u => u.UserId == userId);
                 if (user.TimeZoneAbbreviation != timeZoneAbbrev)
                 {
                     user.TimeZoneAbbreviation = timeZoneAbbrev;
                     user.TimeOffset = Convert.ToInt32(currentOffset.TotalMinutes);
 
-                    context.SaveChanges();
+                    context.SaveChangesAsync(userId, primaryTable);
                 }
             }
             catch (Exception ex)

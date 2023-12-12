@@ -143,10 +143,11 @@ namespace TheradexPortal.Data.Services
         {
             try
             {
+                var primaryTable = context.Model.FindEntityType(typeof(WRAlert)).ToString().Replace("EntityType: ", "");
                 if (alert.WRAlertId == 0)
                 {
                     context.Alerts.Add(alert);
-                    context.SaveChanges();
+                    context.SaveChangesAsync(userId, primaryTable);
                 }
                 else
                 {
@@ -164,8 +165,9 @@ namespace TheradexPortal.Data.Services
                         dbAlert.IsActive = alert.IsActive;
                         dbAlert.StartDate = alert.StartDate;
                         dbAlert.EndDate = alert.EndDate;
-
-                        context.SaveChanges();
+                        if (context.Entry(dbAlert).State == EntityState.Modified)
+                            dbAlert.UpdateDate = DateTime.UtcNow;
+                        context.SaveChangesAsync(userId, primaryTable);
                     }
                 }
 
@@ -182,10 +184,11 @@ namespace TheradexPortal.Data.Services
         {
             try
             {
+                var primaryTable = context.Model.FindEntityType(typeof(WRAlert)).ToString().Replace("EntityType: ", "");
                 var alert = context.Alerts.FirstOrDefault(a => a.WRAlertId == alertId);
                 alert.IsActive = false;
                 alert.UpdateDate = DateTime.UtcNow;
-                context.SaveChanges();
+                context.SaveChangesAsync(userId, primaryTable);
 
                 return true;
             }

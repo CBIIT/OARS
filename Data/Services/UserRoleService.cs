@@ -56,12 +56,16 @@ namespace TheradexPortal.Data.Services
         public bool SaveRole(Role role, int userId)
         {
             DateTime curDateTime = DateTime.UtcNow;
+
             try
             {
+                var primaryTable = context.Model.FindEntityType(typeof(Role)).ToString().Replace("EntityType: ", "");
+
                 if (role.RoleId == 0)
                 {
+                    role.CreateDate = curDateTime;
                     context.Roles.Add(role);
-                    context.SaveChanges();
+                    context.SaveChangesAsync(userId, primaryTable);
                 }
                 else
                 {
@@ -71,7 +75,6 @@ namespace TheradexPortal.Data.Services
                         dbRole.RoleName = role.RoleName;
                         dbRole.AdminType = role.AdminType;
                         dbRole.IsPrimary = role.IsPrimary;
-                        dbRole.UpdateDate = curDateTime;
 
                         // iterate through dashboards & reports - add as needed-  no updates needed
                         foreach (RoleDashboard rd in role.RoleDashboards)
@@ -82,6 +85,7 @@ namespace TheradexPortal.Data.Services
                                 RoleDashboard newRD = new RoleDashboard();
                                 newRD.DashboardId = rd.DashboardId;
                                 newRD.CreateDate = curDateTime;
+                                dbRole.UpdateDate = curDateTime;
                                 dbRole.RoleDashboards.Add(newRD);
                             }
                         }
@@ -95,6 +99,7 @@ namespace TheradexPortal.Data.Services
                                 RoleReport newRR = new RoleReport();
                                 newRR.ReportId = rr.ReportId;
                                 newRR.CreateDate = curDateTime;
+                                dbRole.UpdateDate = curDateTime;
                                 dbRole.RoleReports.Add(newRR);
                             }
                         }
@@ -105,7 +110,10 @@ namespace TheradexPortal.Data.Services
                         {
                             RoleDashboard foundRD = role.RoleDashboards.FirstOrDefault(od => od.DashboardId == rd.DashboardId);
                             if (foundRD == null)
+                            {
+                                dbRole.UpdateDate = curDateTime;
                                 rdToRemove.Add(rd);
+                            }
                         }
                         // Remove reports no longer selected
                         List<RoleReport> rrToRemove = new List<RoleReport>();
@@ -113,7 +121,10 @@ namespace TheradexPortal.Data.Services
                         {
                             RoleReport foundRR = role.RoleReports.FirstOrDefault(or => or.ReportId == rr.ReportId);
                             if (foundRR == null)
+                            {
+                                dbRole.UpdateDate = curDateTime;
                                 rrToRemove.Add(rr);
+                            }
                         }
 
                         // Remove dash and reps from collection then save.
@@ -123,7 +134,12 @@ namespace TheradexPortal.Data.Services
                         foreach (RoleReport delR in rrToRemove)
                             dbRole.RoleReports.Remove(delR);
 
-                        context.SaveChanges();
+                        if (context.Entry(dbRole).State == EntityState.Modified)
+                        {
+                            dbRole.UpdateDate = curDateTime;
+                        }
+
+                        context.SaveChangesAsync(userId, primaryTable);
                     }
                 }
 
@@ -145,9 +161,10 @@ namespace TheradexPortal.Data.Services
         {
             try
             {
+                var primaryTable = context.Model.FindEntityType(typeof(Role)).ToString().Replace("EntityType: ", "");
                 var role = context.Roles.Where(r => r.RoleId == roleId).First();
                 context.Remove(role);
-                context.SaveChanges();
+                context.SaveChangesAsync(userId, primaryTable);
                 return new Tuple<bool, string>(true, "Role deleted successfully");
             }
             catch (Exception ex)

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Components;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Services.Abstract;
@@ -8,7 +9,14 @@ namespace TheradexPortal.Data.Services
 {
     public class ContactUsService : BaseService, IContactUsService
     {
-        public ContactUsService(IDbContextFactory<WrDbContext> dbFactory) : base(dbFactory) { }
+        private readonly IErrorLogService _errorLogService;
+        private readonly NavigationManager _navManager;
+
+        public ContactUsService(IDbContextFactory<WrDbContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
+        {
+            _errorLogService = errorLogService;
+            _navManager = navigationManager;
+        }
 
         public List<ContactUsCategory> GetContactUsCategories()
         {
@@ -51,7 +59,7 @@ namespace TheradexPortal.Data.Services
             return lstSelectItems;
         }
 
-        public bool SaveContactUs(ContactUs contactUS)
+        public bool SaveContactUs(int userId, ContactUs contactUS)
         {
             try
             {
@@ -63,6 +71,7 @@ namespace TheradexPortal.Data.Services
             }
             catch (Exception ex)
             {
+                _errorLogService.SaveErrorLogAsync(userId, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
                 return false;
             }
         }

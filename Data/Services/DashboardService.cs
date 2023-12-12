@@ -179,6 +179,8 @@ namespace TheradexPortal.Data.Services
             DateTime curDateTime = DateTime.UtcNow;
             try
             {
+                var primaryTable = context.Model.FindEntityType(typeof(Dashboard)).ToString().Replace("EntityType: ", "");
+
                 if (dashboard.WRDashboardId == 0)
                 {
                     dashboard.CreateDate = curDateTime;
@@ -190,7 +192,7 @@ namespace TheradexPortal.Data.Services
                         rep.CreateDate = curDateTime;
                     }
                     context.Dashboards.Add(dashboard);
-                    context.SaveChanges();
+                    context.SaveChangesAsync(userId, primaryTable);
                 }
                 else
                 {
@@ -200,8 +202,7 @@ namespace TheradexPortal.Data.Services
                         dbDashboard.Name = dashboard.Name;
                         dbDashboard.Description = dashboard.Description;
                         dbDashboard.CustomPagePath = dashboard.CustomPagePath;
-                        dbDashboard.UpdateDate = curDateTime;
-                        context.Dashboards.Update(dbDashboard);
+                        //context.Dashboards.Update(dbDashboard);
 
                         // Insert or udpate each report in the list
                         foreach (Report report in dashboard.Reports)
@@ -210,6 +211,7 @@ namespace TheradexPortal.Data.Services
                             if (report.WRReportId == 0)
                             {
                                 report.CreateDate = curDateTime;
+                                dbDashboard.UpdateDate = curDateTime;
                                 dbDashboard.Reports.Add(report);
                             }
                             else
@@ -227,8 +229,12 @@ namespace TheradexPortal.Data.Services
                                 dbReport.PowerBIPageName = report.PowerBIPageName;
                                 dbReport.PageName = report.PageName;
                                 dbReport.FilterType = report.FilterType;
-                                dbReport.UpdateDate = curDateTime;
-                                context.Reports.Update(dbReport);
+                                if (context.Entry(dbReport).State == EntityState.Modified)
+                                {
+                                    dbDashboard.UpdateDate = curDateTime;
+                                    dbReport.UpdateDate = curDateTime;
+                                }
+                                //context.Reports.Update(dbReport);
                             }
                         }
 
@@ -238,12 +244,20 @@ namespace TheradexPortal.Data.Services
                         {
                             Report foundReport = dashboard.Reports.FirstOrDefault(r => r.WRReportId == dr.WRReportId);
                             if (foundReport == null)
+                            {
+                                dbDashboard.UpdateDate = curDateTime;
                                 reportsToRemove.Add(dr);
+                            }
                         }
                         foreach (Report del in reportsToRemove)
                             dbDashboard.Reports.Remove(del);
 
-                        context.SaveChanges();
+                        if (context.Entry(dbDashboard).State == EntityState.Modified)
+                        {
+                            dbDashboard.UpdateDate = curDateTime;
+                        }
+
+                        context.SaveChangesAsync(userId, primaryTable);
                     }
                 }
 
@@ -289,9 +303,10 @@ namespace TheradexPortal.Data.Services
         {
             try
             {
+                var primaryTable = context.Model.FindEntityType(typeof(Dashboard)).ToString().Replace("EntityType: ", "");
                 var delDashboard = context.Dashboards.Where(d => d.WRDashboardId == dashboardId).Include(d => d.Reports).First();
                 context.Remove(delDashboard);
-                context.SaveChanges();
+                context.SaveChangesAsync(userId, primaryTable);
                 return new Tuple<bool, string>(true, "Dashboard deleted successfully");
             }
             catch (Exception ex)
@@ -312,6 +327,7 @@ namespace TheradexPortal.Data.Services
             DateTime curDateTime = DateTime.UtcNow;
             try
             {
+                var primaryTable = context.Model.FindEntityType(typeof(Dashboard)).ToString().Replace("EntityType: ", "");
                 List<Dashboard> dashboards = context.Dashboards.OrderBy(d => d.DisplayOrder).ToList();
 
                 foreach (int dashId in dashIds)
@@ -319,10 +335,13 @@ namespace TheradexPortal.Data.Services
                     dashOrder++;
                     Dashboard dashboard = dashboards.Find(d => d.WRDashboardId == dashId)!;
                     dashboard.DisplayOrder = dashOrder;
-                    dashboard.UpdateDate = curDateTime;
+                    if (context.Entry(dashboard).State == EntityState.Modified)
+                    {
+                        dashboard.UpdateDate = curDateTime;
+                    }
                 }
 
-                context.SaveChanges();
+                context.SaveChangesAsync(userId, primaryTable);
                 return true;
             }
             catch (Exception ex)

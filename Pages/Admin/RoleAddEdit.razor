@@ -211,8 +211,6 @@
             Role saveRole = new Role();
             if (RoleId != null)
                 saveRole.RoleId = (int)RoleId;
-            else
-                saveRole.CreateDate = curDateTime;
 
             saveRole.RoleName = roleName;
             switch (adminType)
