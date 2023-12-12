@@ -9,5 +9,6 @@ namespace TheradexPortal.Data.ViewModels
         public Action? OnClick { get; set; }
         public string? To { get; set; }
         public Target? Target { get; set; }
+        public bool ShowAction { get; set; } = true;
     }
 }

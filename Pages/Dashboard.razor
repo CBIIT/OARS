@@ -65,6 +65,7 @@ else
     private string dashboardName;
     private string reportName;
     private string helpFileUrl;
+    private bool helpFileFound;
     private int currentDashboardId;
     private int userId;
     private int previousReport = 0;
@@ -82,8 +83,9 @@ else
             IconName = IconName.Download,
             Label = "Dashboard Help",
             Target = Target.Blank,
-            To = this.getHelpUrl()
-        },
+            To = this.getHelpUrl(),
+            ShowAction = this.helpFileFound
+        }
     };
 
     protected override async Task OnParametersSetAsync()
@@ -181,8 +183,13 @@ else
             currentDashboardId = this.DashboardId;
             this.helpFileUrl = configuration.GetValue<string>("System:DashboardHelpURL");
             var helpFileName = this.dashboardService.GetDashboardHelpFileName(this.DashboardId).Result;
-            if (helpFileName.Equals(string.Empty))
+            if (!helpFileName.Equals(string.Empty))
             {
+                this.helpFileFound = true;
+            }
+            else
+            {
+                this.helpFileFound = false;
                 helpFileName = configuration.GetValue<string>("System:DashboardHelpURLDefault");
             }
             this.helpFileUrl += helpFileName;

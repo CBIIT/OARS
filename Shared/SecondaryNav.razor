@@ -21,7 +21,9 @@
             }
             @foreach(var action in Actions)
             {
-                <BarItem Background="Background.White">
+                @if (action.ShowAction)
+                {
+                    <BarItem Background="Background.White">
                     @if(action.To != null){
                         <BarLink To="@action.To">
                             <BarIcon IconName="action.IconName" />
@@ -35,7 +37,8 @@
                             @action.Label
                         </BarLink>
                     }
-                </BarItem>
+                    </BarItem>
+                }
             }
             @if(Reports.Count > 0)
             {
