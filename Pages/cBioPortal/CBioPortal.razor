@@ -84,10 +84,10 @@ else
 
     protected override async Task OnParametersSetAsync()
     {
-        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsAdmin, "True");
-        userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
-        string userDashboards = httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.Dashboards).Value;
-        string userReports = httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.Reports).Value;
+        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(ThorClaimType.IsAdmin, "True");
+        userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+        string userDashboards = httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.Dashboards).Value;
+        string userReports = httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.Reports).Value;
         dashboard = await dashboardService.GetDashboardByIdAsync(DashboardId, userDashboards, isAdmin);
         allReports = await dashboardService.GetReportsByDashboardIdForUserAsync(DashboardId, userId, isAdmin);
         studies = studyService.GetSelectedStudiesForUser(userId);
@@ -100,14 +100,14 @@ else
             return;
         }
 
-        report = allReports.FirstOrDefault(r => r.WRReportId == ReportId);
+        report = allReports.FirstOrDefault(r => r.ReportId == ReportId);
         if (report == null)
         {
             notFound = true;
             return;
         }
 
-        userService.SaveActivityLog(userId, WRActivityType.Navigation, "cBioPortal");
+        userService.SaveActivityLog(userId, ThorActivityType.Navigation, "cBioPortal");
     }
 
     private async void ShowOverview()
@@ -124,7 +124,7 @@ else
 
     Task NavigatedTocBioPortal()
     {
-        userService.SaveActivityLog(userId, WRActivityType.Navigation, "cBioPortal", "Study=" + cBioPortalStudy);
+        userService.SaveActivityLog(userId, ThorActivityType.Navigation, "cBioPortal", "Study=" + cBioPortalStudy);
         return Task.CompletedTask;
     }
 }

@@ -11,7 +11,7 @@ namespace TheradexPortal.Data.Services
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
 
-        public UserService(IDbContextFactory<WrDbContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
+        public UserService(IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;
@@ -306,7 +306,7 @@ namespace TheradexPortal.Data.Services
                     saved = SaveSelectedStudies(userId, studyList, true);
                 }
 
-                saved = SaveActivityLog(userId, WRActivityType.Study, "Filter Studies-Login", studyList);
+                saved = SaveActivityLog(userId, ThorActivityType.Study, "Filter Studies-Login", studyList);
 
                 return saved;
             }
@@ -337,7 +337,7 @@ namespace TheradexPortal.Data.Services
         }
         public async Task<IList<string>> GetProtocolHistoryAsync(int userId, int count)
         {
-            return await context.User_ProtocolHistory.Where(p1=>p1.UserId == userId).OrderByDescending(p=>p.WRUserProtocolHistoryId).Select(p=>p.StudyId).Take(count).ToListAsync();
+            return await context.User_ProtocolHistory.Where(p1=>p1.UserId == userId).OrderByDescending(p=>p.UserProtocolHistoryId).Select(p=>p.StudyId).Take(count).ToListAsync();
         }
         public void SaveTimeZoneInfo(int userId, string timeZoneAbbrev, TimeSpan currentOffset)
         {

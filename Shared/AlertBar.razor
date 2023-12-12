@@ -78,7 +78,7 @@ else
     private Color? noteColor;
     private Color? infoColor;
     private Dashboard selectedDashboard { get; set; } = null!;
-    private IList<WRAlert> activeAlerts = new List<WRAlert>();
+    private IList<ThorAlert> activeAlerts = new List<ThorAlert>();
     private string? dismissedAlerts = string.Empty;
 
     protected override async Task OnInitializedAsync()
@@ -146,13 +146,13 @@ else
     {
         if (Dashboard)
         {
-            if (Alert && this.selectedDashboard != null && this.selectedDashboard.WRDashboardId != 0)
+            if (Alert && this.selectedDashboard != null && this.selectedDashboard.DashboardId != 0)
             {
-                this.activeAlerts = await alertService.GetActiveDashboardAlertsByIdAsync(this.selectedDashboard.WRDashboardId);
+                this.activeAlerts = await alertService.GetActiveDashboardAlertsByIdAsync(this.selectedDashboard.DashboardId);
             }
             else 
             {
-                this.activeAlerts = new List<WRAlert>();
+                this.activeAlerts = new List<ThorAlert>();
             }
         }
     }
@@ -169,9 +169,9 @@ else
         }
     }
 
-    private bool alertDismissed(string dismissedAlerts, WRAlert alert)
+    private bool alertDismissed(string dismissedAlerts, ThorAlert alert)
     {
-        return dismissedAlerts.Split('|').Any(x => x == alert.WRAlertId.ToString());
+        return dismissedAlerts.Split('|').Any(x => x == alert.AlertId.ToString());
     }
 
     private int getActiveAlertsCount()
@@ -189,9 +189,9 @@ else
         return alertsCount;
     }
 
-    private async Task dismissAlert(WRAlert alert)
+    private async Task dismissAlert(ThorAlert alert)
     {
-        var alertId = alert.WRAlertId.ToString();
+        var alertId = alert.AlertId.ToString();
 
         if (alert != null && !this.dismissedAlerts!.Contains(alertId))
         {
@@ -213,7 +213,7 @@ else
         }
     }
 
-    private async Task toggleAlert(WRAlert alert)
+    private async Task toggleAlert(ThorAlert alert)
     {
         await this.AlertBarToggled.InvokeAsync();
     }

@@ -4,12 +4,12 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TheradexPortal.Data.Models
 {
-    [Table("WRUSER_GROUP", Schema = "WRUSER")]
+    [Table("USER_GROUP", Schema = "THOR_USER")]
     public class UserGroup
     {
         [Key]
-        [Column("WRUser_Group_Id")]
-        public int WRUserGroupId { get; set; }
+        [Column("User_Group_Id")]
+        public int UserGroupId { get; set; }
         public int UserId { get; set; }
         public int GroupId { get; set; }
         [Column("Expiration_Date")]

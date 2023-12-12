@@ -130,7 +130,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
         User curUser = await userService.GetUserAsync(userId);
         userList = await userService.GetAllUsersAsync();
 
@@ -172,7 +172,7 @@
     private async void DeactivateUserClick()
     {
         deactivateModalRef.Hide();
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
         bool success = userService.DeactivateUser(userToDeactivateId, userId);
         if (success)
         {

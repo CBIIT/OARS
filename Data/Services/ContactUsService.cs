@@ -12,7 +12,7 @@ namespace TheradexPortal.Data.Services
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
 
-        public ContactUsService(IDbContextFactory<WrDbContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
+        public ContactUsService(IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;
@@ -37,7 +37,7 @@ namespace TheradexPortal.Data.Services
             List<ContactUsCategory> categorySecondLevel;
             foreach (ContactUsCategory cuc in lstTopLevelCategory)
             {
-                categoryID = cuc.WRContactUsCategoryID;
+                categoryID = cuc.ContactUsCategoryID;
                 categorySecondLevel = lstCUCategory.Where(l => l.ParentCategoryId == categoryID).OrderBy(o => o.Order).ToList();
                 isGroupNode = categorySecondLevel.Count > 0;
                 lstSecondLevel = new List<ContactUsCategorySelectItem>();
@@ -45,7 +45,7 @@ namespace TheradexPortal.Data.Services
                 {
                     foreach (ContactUsCategory secondCUC in categorySecondLevel)
                     {
-                        lstSecondLevel.Add(new ContactUsCategorySelectItem(secondCUC.WRContactUsCategoryID, secondCUC.Name));
+                        lstSecondLevel.Add(new ContactUsCategorySelectItem(secondCUC.ContactUsCategoryID, secondCUC.Name));
                     }
                     newItemList = new ContactUsCategorySelectItemList(categoryID, cuc.Name, isGroupNode, lstSecondLevel);
                     lstSelectItems.Add(newItemList);

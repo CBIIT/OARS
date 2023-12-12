@@ -58,100 +58,100 @@ namespace TheradexPortal.Data.Services
             return Task.FromResult(infoColor);
         }
 
-        public AlertService(IDbContextFactory<WrDbContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
+        public AlertService(IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;
         }
 
 
-        public async Task<IList<WRAlert>> GetAllWRAlertsAsync()
+        public async Task<IList<ThorAlert>> GetAllThorAlertsAsync()
         {
             return await context.Alerts.ToListAsync();
         }
 
-        public async Task<IList<WRAlert>> GetAllAlertsAsync()
+        public async Task<IList<ThorAlert>> GetAllAlertsAsync()
         {
             return await context.Alerts.Where(a => a.AlertType == alertType).ToListAsync();
         }
-        public async Task<IList<WRAlert>> GetAllNotesAsync()
+        public async Task<IList<ThorAlert>> GetAllNotesAsync()
         {
             return await context.Alerts.Where(a => a.AlertType == noteType).ToListAsync();
         }
-        public async Task<WRAlert?> GetAlertById(int id)
+        public async Task<ThorAlert?> GetAlertById(int id)
         {
-            return await context.Alerts.FirstOrDefaultAsync(a => a.WRAlertId == id);
+            return await context.Alerts.FirstOrDefaultAsync(a => a.AlertId == id);
         }
 
-        public async Task<IList<WRAlert>> GetAllActiveAlertsAsync()
+        public async Task<IList<ThorAlert>> GetAllActiveAlertsAsync()
         {
             return await context.Alerts.Where(a => a.IsActive == active &&
             (dateTime >= a.StartDate!.Value.Date && (dateTime <= a.EndDate!.Value.Date.AddDays(1) || a.EndDate.Equals(null))) &&
             a.AlertType == alertType).ToListAsync();
         }
 
-        public async Task<IList<WRAlert>> GetAllActiveNotesAsync()
+        public async Task<IList<ThorAlert>> GetAllActiveNotesAsync()
         {
             return await context.Alerts.Where(a => a.IsActive == active &&
             (dateTime >= a.StartDate!.Value.Date && (dateTime <= a.EndDate!.Value.Date.AddDays(1) || a.EndDate.Equals(null))) &&
             a.AlertType == noteType).ToListAsync();
         }
 
-        public async Task<IList<WRAlert>> GetActiveSystemAlertsAsync()
+        public async Task<IList<ThorAlert>> GetActiveSystemAlertsAsync()
         {
             return await context.Alerts.Where(a => a.IsActive == active &&
             (dateTime >= a.StartDate!.Value.Date && (dateTime <= a.EndDate!.Value.Date.AddDays(1) || a.EndDate.Equals(null))) &&
-            a.AlertType == alertType && a.PageName == systemPage).OrderByDescending(a => a.WRAlertId).ToListAsync();
+            a.AlertType == alertType && a.PageName == systemPage).OrderByDescending(a => a.AlertId).ToListAsync();
         }
 
-        public async Task<IList<WRAlert>> GetActiveSystemNotesAsync()
+        public async Task<IList<ThorAlert>> GetActiveSystemNotesAsync()
         {
             return await context.Alerts.Where(a => a.IsActive == active &&
             (dateTime >= a.StartDate!.Value.Date && (dateTime <= a.EndDate!.Value.Date.AddDays(1) || a.EndDate.Equals(null))) &&
-            a.AlertType == noteType && a.PageName == systemPage).OrderByDescending(a => a.WRAlertId).ToListAsync();
+            a.AlertType == noteType && a.PageName == systemPage).OrderByDescending(a => a.AlertId).ToListAsync();
         }
 
-        public async Task<IList<WRAlert>> GetActiveLoginAlertsAsync()
+        public async Task<IList<ThorAlert>> GetActiveLoginAlertsAsync()
         {
             return await context.Alerts.Where(a => a.IsActive == active && 
             (dateTime >= a.StartDate!.Value.Date && (dateTime <= a.EndDate!.Value.Date.AddDays(1) || a.EndDate.Equals(null))) && 
-            a.AlertType == alertType && a.PageName == loginPage).OrderByDescending(a => a.WRAlertId).ToListAsync();
+            a.AlertType == alertType && a.PageName == loginPage).OrderByDescending(a => a.AlertId).ToListAsync();
         }
         
-        public async Task<IList<WRAlert>> GetActiveLoginNotesAsync()
+        public async Task<IList<ThorAlert>> GetActiveLoginNotesAsync()
         {
             return await context.Alerts.Where(a => a.IsActive == active &&
             (dateTime >= a.StartDate!.Value.Date && (dateTime <= a.EndDate!.Value.Date.AddDays(1) || a.EndDate.Equals(null))) &&  
-            a.AlertType == noteType && a.PageName == loginPage).OrderByDescending(a => a.WRAlertId).ToListAsync();
+            a.AlertType == noteType && a.PageName == loginPage).OrderByDescending(a => a.AlertId).ToListAsync();
         }
         
-        public async Task<IList<WRAlert>> GetActiveDashboardAlertsByIdAsync(int dashboardId)
+        public async Task<IList<ThorAlert>> GetActiveDashboardAlertsByIdAsync(int dashboardId)
         {
             return await context.Alerts.Where(a => a.IsActive == active &&
             (dateTime >= a.StartDate!.Value.Date && (dateTime <= a.EndDate!.Value.Date.AddDays(1) || a.EndDate.Equals(null))) &&
-            a.AlertType == alertType && a.DashboardId == dashboardId).OrderByDescending(a => a.WRAlertId).ToListAsync();
+            a.AlertType == alertType && a.DashboardId == dashboardId).OrderByDescending(a => a.AlertId).ToListAsync();
         }
 
-        public async Task<IList<WRAlert>> GetActiveDashboardNotesByIdAsync(int dashboardId)
+        public async Task<IList<ThorAlert>> GetActiveDashboardNotesByIdAsync(int dashboardId)
         {
             return await context.Alerts.Where(a => a.IsActive == active &&
             (dateTime >= a.StartDate!.Value.Date && (dateTime <= a.EndDate!.Value.Date.AddDays(1) || a.EndDate.Equals(null))) &&
-            a.AlertType == noteType && a.DashboardId == dashboardId).OrderByDescending(a => a.WRAlertId).ToListAsync();
+            a.AlertType == noteType && a.DashboardId == dashboardId).OrderByDescending(a => a.AlertId).ToListAsync();
         }
 
-        public bool SaveAlert(int userId, WRAlert alert)
+        public bool SaveAlert(int userId, ThorAlert alert)
         {
             try
             {
-                var primaryTable = context.Model.FindEntityType(typeof(WRAlert)).ToString().Replace("EntityType: ", "");
-                if (alert.WRAlertId == 0)
+                var primaryTable = context.Model.FindEntityType(typeof(ThorAlert)).ToString().Replace("EntityType: ", "");
+                if (alert.AlertId == 0)
                 {
                     context.Alerts.Add(alert);
                     context.SaveChangesAsync(userId, primaryTable);
                 }
                 else
                 {
-                    var dbAlert = context.Alerts.FirstOrDefault(a => a.WRAlertId == alert.WRAlertId);
+                    var dbAlert = context.Alerts.FirstOrDefault(a => a.AlertId == alert.AlertId);
 
                     if (dbAlert != null)
                     {
@@ -184,8 +184,8 @@ namespace TheradexPortal.Data.Services
         {
             try
             {
-                var primaryTable = context.Model.FindEntityType(typeof(WRAlert)).ToString().Replace("EntityType: ", "");
-                var alert = context.Alerts.FirstOrDefault(a => a.WRAlertId == alertId);
+                var primaryTable = context.Model.FindEntityType(typeof(ThorAlert)).ToString().Replace("EntityType: ", "");
+                var alert = context.Alerts.FirstOrDefault(a => a.AlertId == alertId);
                 alert.IsActive = false;
                 alert.UpdateDate = DateTime.UtcNow;
                 context.SaveChangesAsync(userId, primaryTable);

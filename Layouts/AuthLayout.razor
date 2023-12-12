@@ -73,10 +73,10 @@
 
     private async Task LocalTimeoutUserAsync()
     {
-        if (httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId) != null)
+        if (httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId) != null)
         {
-            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
-            userService.SaveActivityLog(userId, WRActivityType.Logout, "Timeout");
+            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+            userService.SaveActivityLog(userId, ThorActivityType.Logout, "Timeout");
             Navigation.NavigateTo($"Timeout", true);
         }
     }

@@ -143,8 +143,8 @@
             AddOrEdit = "Edit Group - " + groupName;
         }
 
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
-        userService.SaveActivityLog(userId, WRActivityType.Navigation, "Group", AddOrEdit);
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+        userService.SaveActivityLog(userId, ThorActivityType.Navigation, "Group", AddOrEdit);
     }
 
     private async void GetGroup(int? groupId)
@@ -222,7 +222,7 @@
             Group saveGroup = new Group();
             if (GroupId != null)
             {
-                saveGroup.WRGroupId = (int)GroupId;
+                saveGroup.GroupId = (int)GroupId;
             }
             saveGroup.GroupName = groupName;
 
@@ -236,7 +236,7 @@
                 saveGroup.GroupProtocols.Add(newGP);
             }
 
-            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
             saved = groupService.SaveGroup(saveGroup, userId);
 
             if (saved)

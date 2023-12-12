@@ -91,8 +91,8 @@
 @code {
     [Inject] public NavigationManager Navigation { get; set; }
     [Inject] private IAlertService alertService { get; set; } = null!;
-    private IList<WRAlert> activeAlerts = new List<WRAlert>();
-    private IList<WRAlert> activeNotes = new List<WRAlert>();
+    private IList<ThorAlert> activeAlerts = new List<ThorAlert>();
+    private IList<ThorAlert> activeNotes = new List<ThorAlert>();
     private int iconHeight = 24;
     public string CurrentEnvironment { get; set; }
     private string supportEmail = "";

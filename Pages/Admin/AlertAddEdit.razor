@@ -6,7 +6,7 @@
 @inject IHttpContextAccessor httpContextAccessor
 @layout AdminLayout
 
-@page "/admin/alert/{wralertid:int?}"
+@page "/admin/alert/{alertid:int?}"
 <AdminRoleCheck AllowedRoles="@(new List<string> { "Super", "Content" })"></AdminRoleCheck>
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1 mb-3"><h2>@AddOrEdit</h2></Div>
 <h4>Alert Info</h4>
@@ -51,7 +51,7 @@
                     <SelectItem Value="@invalidId">Select Dashboard</SelectItem>
                     @foreach (var dashboard in dashboards)
                     {
-                        <SelectItem Value="@dashboard.WRDashboardId">@dashboard.Name</SelectItem>
+                        <SelectItem Value="@dashboard.DashboardId">@dashboard.Name</SelectItem>
                     }
                 </Select>
             </FieldBody>
@@ -140,7 +140,7 @@
     [Inject] private NavigationManager navigation { get; set; } = null!;
     [Inject] IUserService userService { get; set; } = null!;
 
-    [Parameter] public int? WRAlertId { get; set; }
+    [Parameter] public int? AlertId { get; set; }
 
     private IList<Dashboard> dashboards = new List<Dashboard>();
     private IFluentDisplay startDateError = Display.None;
@@ -168,7 +168,7 @@
     private bool newAlert = true;
     private DateTime defaultDateTime = new DateTime(2000, 01, 01);
 
-    private WRAlert currAlert;
+    private ThorAlert currAlert;
 
     private string alertType = string.Empty;
     private string pageName = string.Empty;
@@ -185,8 +185,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsAdmin, "True");
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(ThorClaimType.IsAdmin, "True");
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
 
         dashboards = await dashboardService.GetDashboardsForUserAsync(userId, isAdmin);
 
@@ -203,7 +203,7 @@
         this.alertType = typeAlert;
         this.pageName = pageLogin;
 
-        if (WRAlertId == null)
+        if (AlertId == null)
         {
             AddOrEdit = "Create Alert";
         }
@@ -211,10 +211,10 @@
         {
             AddOrEdit = "Edit Alert";
             this.newAlert = false;
-            this.LoadAlert((int) WRAlertId);
+            this.LoadAlert((int) AlertId);
         }
       
-        userService.SaveActivityLog(userId, WRActivityType.Navigation, "Alert", AddOrEdit);
+        userService.SaveActivityLog(userId, ThorActivityType.Navigation, "Alert", AddOrEdit);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -318,7 +318,7 @@
 
     private async void Save()
     {
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
         if (!await alertValidations.ValidateAll())
         {
             //
@@ -338,10 +338,10 @@
         var saved = false;
         var now = DateTime.UtcNow;
 
-        WRAlert alert;
+        ThorAlert alert;
         if (newAlert)
         {
-            alert = new WRAlert();
+            alert = new ThorAlert();
             alert.CreateDate = now;
         }
         else

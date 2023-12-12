@@ -1,6 +1,6 @@
 ﻿namespace TheradexPortal.Data.Static
 {
-    public sealed class WRClaimType
+    public sealed class ThorClaimType
     {
         static public String Registered = "Registered";
         static public String UserId = "UserId";

@@ -11,7 +11,7 @@
         <BarDropdownItem Style="padding:0px 0px 0px 0px; margin:0px 0px 0px 0px;">
             <BarLink To="@GetReportLink(report)" Class="tertiary-bar-link" Target="@GetReportTarget(report)">
                 <BarIcon IconName="@GetReportIcon(report)" Class="tertiary-bar-icon" />
-                @report.StudyType
+                @report.SubMenuName
             </BarLink>
         </BarDropdownItem>
     }
@@ -27,8 +27,8 @@
     IList<Report> Reports;
     protected override async Task OnParametersSetAsync()
     {
-        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsAdmin, "True");
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(ThorClaimType.IsAdmin, "True");
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
 
         Reports = await dashboardService.GetReportsByDashboardIdAndName(DashboardId, Level2Name, userId, isAdmin);
     }
@@ -41,7 +41,7 @@
         }
         else
         {
-            return $"{WrConstants.DASHBOARD_PAGE_PATH}/{report.DashboardId}/{report.WRReportId}";
+            return $"{ThorConstants.DASHBOARD_PAGE_PATH}/{report.DashboardId}/{report.ReportId}";
         }
     }
 

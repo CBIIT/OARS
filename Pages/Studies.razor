@@ -17,14 +17,14 @@
     {
         if (firstRender)
         {
-            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
-            userService.SaveActivityLog(userId, WRActivityType.Navigation, "My Studies");
+            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+            userService.SaveActivityLog(userId, ThorActivityType.Navigation, "My Studies");
         }
     }
 
     protected override async Task OnParametersSetAsync()
     {
-        await PrimaryNavLayout.UpdateDashboard(new Data.Models.Dashboard() { WRDashboardId = 0 });
+        await PrimaryNavLayout.UpdateDashboard(new Data.Models.Dashboard() { DashboardId = 0 });
     }
 
 }

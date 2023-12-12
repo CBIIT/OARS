@@ -51,7 +51,7 @@
                 <DataGridColumn Field="@nameof(Role.AdminType)" Caption="Admin Type">
                     <DisplayTemplate>
                         @{
-                            if ((context as Role).AdminType == WRAdminType.None)
+                            if ((context as Role).AdminType == ThorAdminType.None)
                             {
                                 @("")
                             }
@@ -137,7 +137,7 @@
     {
         Role roleToDel;
         // Check if any users assigned to groups - if not ok to delete
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
         Tuple<bool, string> delRole = roleService.DeleteRole(roleToDeleteId, userId);
 
         await deleteModalRef.Hide();

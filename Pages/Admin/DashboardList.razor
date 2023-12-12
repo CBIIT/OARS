@@ -115,8 +115,8 @@
         dashIdOrder.Clear();
         foreach (Dashboard dash in dashboardList)
         {
-            items.Add(new DropItem() { Name = dash.Name!, DashId = dash.WRDashboardId, DisplayOrder = dash.DisplayOrder, Group="All" });
-            dashIdOrder.Add(dash.WRDashboardId);
+            items.Add(new DropItem() { Name = dash.Name!, DashId = dash.DashboardId, DisplayOrder = dash.DisplayOrder, Group="All" });
+            dashIdOrder.Add(dash.DashboardId);
         }
     }
 
@@ -127,13 +127,13 @@
 
     private void EditDashboardClick(Dashboard d)
     {
-        navigation.NavigateTo($"/admin/dashboard/{d.WRDashboardId}");
+        navigation.NavigateTo($"/admin/dashboard/{d.DashboardId}");
     }
 
     private Task ShowDeleteModal(Dashboard d)
     {
         dashboardToDelete = d.Name;
-        dashboardToDeleteId = d.WRDashboardId;
+        dashboardToDeleteId = d.DashboardId;
         return deleteModalRef.Show();
     }
 
@@ -144,14 +144,14 @@
 
     private async void DeleteDashboardClick(Dashboard d)
     {
-        Tuple<bool, string> canDelDashboard = dashboardService.CanDeleteDashboard(d.WRDashboardId);
+        Tuple<bool, string> canDelDashboard = dashboardService.CanDeleteDashboard(d.DashboardId);
 
         if (!canDelDashboard.Item1)
             await NotificationService.Error(canDelDashboard.Item2);
         else
         {
             dashboardToDelete = d.Name;
-            dashboardToDeleteId = d.WRDashboardId;
+            dashboardToDeleteId = d.DashboardId;
             await deleteModalRef.Show();
         }
     }
@@ -160,7 +160,7 @@
     {
         Dashboard dashToDel;
         // Check if any roles assigned to dashboard - if not ok to delete
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
         Tuple<bool, string> delDashboard = dashboardService.DeleteDashboard(dashboardToDeleteId, userId);
 
         await deleteModalRef.Hide();
@@ -168,7 +168,7 @@
         {
             await NotificationService.Success( "Dashboard deleted successfully");
             // Remove from dashboard list & ordering list
-            dashToDel = dashboardList.Find(d => d.WRDashboardId == dashboardToDeleteId);
+            dashToDel = dashboardList.Find(d => d.DashboardId == dashboardToDeleteId);
             dashboardList.Remove(dashToDel);
             SetItemOrder();
             StateHasChanged();
@@ -219,7 +219,7 @@
         foreach (int order in dashIdOrder)
         {
             newOrder++;
-            Dashboard foundDB = dashboardList.Find(d => d.WRDashboardId == order)!;
+            Dashboard foundDB = dashboardList.Find(d => d.DashboardId == order)!;
             foundDB.DisplayOrder = newOrder;
         }
 
@@ -227,7 +227,7 @@
         dashboardList = dashboardList.OrderBy(d => d.DisplayOrder).ToList();
         StateHasChanged();
 
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
         bool saveDashes = dashboardService.SaveDashboardOrder(dashIdOrder, userId);
 
         if (saveDashes)

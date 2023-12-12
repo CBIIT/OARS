@@ -3,11 +3,11 @@ using System.ComponentModel.DataAnnotations;
 
 namespace TheradexPortal.Data.Models
 {
-    [Table("WRCONTACTUSCATEGORY", Schema = "WRUSER")]
+    [Table("CONTACTUSCATEGORY", Schema = "THOR_USER")]
     public class ContactUsCategory
     {
         [Key]
-        public int WRContactUsCategoryID { get; set; }
+        public int ContactUsCategoryID { get; set; }
         public string Name { get; set; }
         public int? ParentCategoryId { get; set; }
         public string? EmailTo { get; set; }
@@ -16,11 +16,11 @@ namespace TheradexPortal.Data.Models
         public DateTime? UpdateDate { get; set; }
     }
 
-    [Table("WRCONTACTUS", Schema = "WRUSER")]
+    [Table("CONTACTUS", Schema = "THOR_USER")]
     public class ContactUs
     {
         [Key]
-        public int WRContactUsID { get; set; }
+        public int ContactUsID { get; set; }
         public string? Subject { get; set; }
         public string Description { get; set; }
         public int? CategoryID { get; set; }

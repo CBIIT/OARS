@@ -147,8 +147,8 @@
 
     Task OnButtonClicked()
     {
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
-        userService.SaveActivityLog(userId, WRActivityType.Logout);
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+        userService.SaveActivityLog(userId, ThorActivityType.Logout);
         Navigation.NavigateTo($"Signout", true);
 
         return Task.CompletedTask;
@@ -167,7 +167,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
         string pageUri = Navigation.ToBaseRelativePath(Navigation.Uri);
         string pageName = "admin", data1;
 
@@ -211,7 +211,7 @@
             }
             if (!string.IsNullOrEmpty(data1))
             {
-                userService.SaveActivityLog(userId, WRActivityType.Navigation, data1, "");
+                userService.SaveActivityLog(userId, ThorActivityType.Navigation, data1, "");
             }
         }
     }

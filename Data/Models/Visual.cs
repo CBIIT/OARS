@@ -4,11 +4,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TheradexPortal.Data.Models
 {
-    [Table("WRVISUAL", Schema = "WRUSER")]
+    [Table("VISUAL", Schema = "USER")]
     public class Visual
     {
         [Key]
-        public int WRVisualId { get; set; }
+        public int VisualId { get; set; }
         [Column("Visual_Name")]
         public string? VisualName { get; set; }
         [Column("Visual_Description")]

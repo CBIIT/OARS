@@ -60,8 +60,8 @@
     public async Task EmbedFullReportJS()
     {
         var userEmail = httpContextAccessor.HttpContext?.User?.FindFirst("preferred_username")?.Value;
-        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsAdmin, "True");
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(ThorClaimType.IsAdmin, "True");
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
         var currentStudy = "";
 
         // Send in list of protocols - this is the list that will populate the STUDY_ID filter.
@@ -109,12 +109,12 @@
         //      Guid of Power BI Report
         //      Filter type - single or multi
         //      List of studies for study Id filter
-        //      Starting filter (stored in WRUSER.CURRENTSTUDY field)
+        //      Starting filter (stored in SELECTED_PROTOCOLS.CURRENT_PROTOCOLS  field)
         reportRef = await pbiEmbedModule.InvokeAsync<IJSObjectReference>(
             "embedFullReport",
             pbiElement,
             embedParams.EmbedToken.Token,
-            WrConstants.PBI_STUDY_FILTER_TARGETS.ToArray(),
+            ThorConstants.PBI_STUDY_FILTER_TARGETS.ToArray(),
             embedUrl,
             embedParams.EmbedReport[0].ReportId.ToString(),
             Report.FilterType,
@@ -126,7 +126,7 @@
 
     private async Task LocalChangUpdateFilterValueAsync(string[] paramArray)
     {
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
 
         string selectOperator = paramArray[0];
         string value = paramArray[1];
@@ -136,9 +136,9 @@
         var selectedStudies = studyService.GetSelectedStudiesForUser(userId);
 
         // Options are All, In and NotIn
-        //      All - get list from WRUSER.SELECTEDSTUDIES and save as current studies
+        //      All - get list from THOR_USER.SELECTED_PROTOCOLS and save as current studies
         //      In - use values returned directly from Power BI
-        //      NotIn - Power BI returns the values NOT selected.  Take the list from WRUSER.SELECTEDSTUDIES and remove what is returned from Power BI.
+        //      NotIn - Power BI returns the values NOT selected.  Take the list from THOR_USER.SELECTED PROTOCOLS and remove what is returned from Power BI.
 
         if (selectOperator == "All")
         {
@@ -152,7 +152,7 @@
         }
         else if (selectOperator == "NotIn")
         {
-            // Loop though WRUSER.SELECTEDSTUDIES.  If not in the values returned by Power BI, add to selStudies
+            // Loop though THOR_USER.SELECTED_PROTOCOLS.  If not in the values returned by Power BI, add to selStudies
             string[] studies = value.Split(',');
             foreach (Protocol prot in selectedStudies)
             {
@@ -173,7 +173,7 @@
         //if (curStudies != value)
         //if ((curStudies == null && value != "") && curStudies != value)
         if (curStudies != value && !(curStudies == null && value == ""))
-            saved = userService.SaveActivityLog(userId, WRActivityType.Study, "Select Study", value);
+            saved = userService.SaveActivityLog(userId, ThorActivityType.Study, "Select Study", value);
     }
 
     [JSInvokable]

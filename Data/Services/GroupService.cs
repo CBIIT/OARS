@@ -12,7 +12,7 @@ namespace TheradexPortal.Data.Services
     {
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
-        public GroupService(IDbContextFactory<WrDbContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
+        public GroupService(IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;
@@ -27,7 +27,7 @@ namespace TheradexPortal.Data.Services
         {
             //return await context.Groups.FindAsync(groupId);
             //.Include(gp => gp.GroupProtocols)
-            return await context.Groups.Include(gp => gp.GroupProtocols).Where(g=>g.WRGroupId==groupId).SingleOrDefaultAsync();
+            return await context.Groups.Include(gp => gp.GroupProtocols).Where(g=>g.GroupId==groupId).SingleOrDefaultAsync();
         }
 
         public bool CanDeleteGroup(int groupId)
@@ -37,7 +37,7 @@ namespace TheradexPortal.Data.Services
 
         public bool CheckGroupName(string groupName, int groupId)
         {
-            Group foundGroup = context.Groups.FirstOrDefault(g => g.GroupName == groupName && g.WRGroupId != groupId);
+            Group foundGroup = context.Groups.FirstOrDefault(g => g.GroupName == groupName && g.GroupId != groupId);
             return foundGroup == null;
         }
 
@@ -48,7 +48,7 @@ namespace TheradexPortal.Data.Services
             {
                 var primaryTable = context.Model.FindEntityType(typeof(Group)).ToString().Replace("EntityType: ", "");
 
-                if (group.WRGroupId == 0)
+                if (group.GroupId == 0)
                 {
                     group.CreateDate = curDateTime;
                     context.Groups.Add(group);
@@ -56,7 +56,7 @@ namespace TheradexPortal.Data.Services
                 }
                 else
                 {
-                    Group dbGroup = context.Groups.FirstOrDefault(g => g.WRGroupId == group.WRGroupId);
+                    Group dbGroup = context.Groups.FirstOrDefault(g => g.GroupId == group.GroupId);
                     if (dbGroup != null)
                     {
                         dbGroup.GroupName = group.GroupName;
@@ -125,7 +125,7 @@ namespace TheradexPortal.Data.Services
             try
             {
                 var primaryTable = context.Model.FindEntityType(typeof(Group)).ToString().Replace("EntityType: ", "");
-                var group = context.Groups.Where(g=>g.WRGroupId==groupId).Include(g => g.GroupProtocols).First();
+                var group = context.Groups.Where(g=>g.GroupId==groupId).Include(g => g.GroupProtocols).First();
                 context.Remove(group);
                 context.SaveChangesAsync(userId, primaryTable);
                 return new Tuple<bool, string>(true,"Group deleted successfully");

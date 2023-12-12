@@ -106,12 +106,12 @@
     {
         if(report.CustomPagePath != null)
         {
-            return $"{report.CustomPagePath}/{report.DashboardId}/{report.WRReportId}";
+            return $"{report.CustomPagePath}/{report.DashboardId}/{report.ReportId}";
             //return report.CustomPagePath;
         }
         else
         {
-            return $"{WrConstants.DASHBOARD_PAGE_PATH}/{report.DashboardId}/{report.WRReportId}";
+            return $"{ThorConstants.DASHBOARD_PAGE_PATH}/{report.DashboardId}/{report.ReportId}";
         }
     }
 

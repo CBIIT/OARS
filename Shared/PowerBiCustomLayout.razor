@@ -42,9 +42,9 @@
         if (Report != null)
         {
             // TODO - Filter by user
-            var allVisuals = await dashboardService.GetAllVisualsByReportIdAsync(Report.WRReportId);
-            visuals = allVisuals.Where(v => v.VisualType != WrConstants.PBI_VISUAL_TYPE_SLIICER).ToList();
-            slicers = allVisuals.Where(v => v.VisualType == WrConstants.PBI_VISUAL_TYPE_SLIICER).ToList();
+            var allVisuals = await dashboardService.GetAllVisualsByReportIdAsync(Report.ReportId);
+            visuals = allVisuals.Where(v => v.VisualType != ThorConstants.PBI_VISUAL_TYPE_SLIICER).ToList();
+            slicers = allVisuals.Where(v => v.VisualType == ThorConstants.PBI_VISUAL_TYPE_SLIICER).ToList();
         }
         await EmbedReportJS();
     }
@@ -95,7 +95,7 @@
             objRef,
             pbiElement,
             embedParams.EmbedToken.Token,
-            WrConstants.PBI_STUDY_FILTER_TARGETS.ToArray(),
+            ThorConstants.PBI_STUDY_FILTER_TARGETS.ToArray(),
             embedParams.EmbedReport[0].EmbedUrl,
             embedParams.EmbedReport[0].ReportId.ToString(),
             Report.PowerBIPageName,

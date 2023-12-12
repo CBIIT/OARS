@@ -5,11 +5,11 @@ using System.Xml.Linq;
 
 namespace TheradexPortal.Data.Models
 {
-    [Table("WRDASHBOARD", Schema = "WRUSER")]
+    [Table("DASHBOARD", Schema = "THOR_USER")]
     public class Dashboard
     {
         [Key]
-        public int WRDashboardId { get; set; }
+        public int DashboardId { get; set; }
         public string? Name { get; set; }
         public string? Description { get; set; }
         [Column("Display_Order")]

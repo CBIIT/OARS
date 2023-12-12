@@ -43,8 +43,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsAdmin, "True");
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(ThorClaimType.IsAdmin, "True");
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
 
         dashboards = await dashboardService.GetDashboardsForUserAsync(userId, isAdmin);
         Console.WriteLine(dashboards);
@@ -58,7 +58,7 @@
         }
         else
         {
-            return $"{WrConstants.DASHBOARD_PAGE_PATH}/{dashboard.WRDashboardId}";
+            return $"{ThorConstants.DASHBOARD_PAGE_PATH}/{dashboard.DashboardId}";
         }
     }
 }

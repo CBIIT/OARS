@@ -248,7 +248,7 @@
                                     TValue="int"
                                     Data="@groupsAvailable"
                                     TextField="@((group)=>group.GroupName)"
-                                    ValueField="@((group)=>group.WRGroupId)"
+                                    ValueField="@((group)=>group.GroupId)"
                                     @bind-SelectedValues="@availableGroupsSelected"
                                     Multiple />
                             </FieldBody>
@@ -658,8 +658,8 @@
         else
             oktaUserStatus = "N/A";
 
-        int loginUserId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
-        userService.SaveActivityLog(loginUserId, WRActivityType.Navigation, "User", AddOrEdit);
+        int loginUserId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+        userService.SaveActivityLog(loginUserId, ThorActivityType.Navigation, "User", AddOrEdit);
     }
 
     private Task OnSelectedStepChanged( string name )
@@ -755,7 +755,7 @@
         var curPrimRole = curUser.UserRoles.Where(r => r.Role.IsPrimary == true);
         roleName = curPrimRole.FirstOrDefault().Role.RoleName;
         primaryRoleId = curPrimRole.FirstOrDefault().RoleId;
-        if (curPrimRole.FirstOrDefault().Role.AdminType != WRAdminType.None)
+        if (curPrimRole.FirstOrDefault().Role.AdminType != ThorAdminType.None)
             isAdmin = true;
 
         // Get the secondary roles
@@ -769,7 +769,7 @@
         }
 
         // Step 3
-        if (curPrimRole.FirstOrDefault().Role.AdminType == WRAdminType.None && curUser.AllStudies)
+        if (curPrimRole.FirstOrDefault().Role.AdminType == ThorAdminType.None && curUser.AllStudies)
             studySelectionType = 2;
         else
             studySelectionType = 1;
@@ -790,7 +790,7 @@
         // Remove assigned from group list
         foreach (UserGroup ug in selectedUserGroupList)
         {
-            Group foundGroup = groupsAvailable.First(g=>g.WRGroupId == ug.GroupId);
+            Group foundGroup = groupsAvailable.First(g=>g.GroupId == ug.GroupId);
             groupsAvailable.Remove(foundGroup);
         }
     }
@@ -804,7 +804,7 @@
         else
             roleName = "";
 
-        if (selectedRole != null && selectedRole.AdminType != WRAdminType.None)
+        if (selectedRole != null && selectedRole.AdminType != ThorAdminType.None)
             isAdmin = true;
         else
             isAdmin = false;
@@ -870,7 +870,7 @@
 
     private string GetGroupName(int groupId)
     {
-        return allGroups.Find(g => g.WRGroupId == groupId).GroupName;
+        return allGroups.Find(g => g.GroupId == groupId).GroupName;
     }
 
     private async void MoveToSelectedGroup()
@@ -880,11 +880,11 @@
             foreach (int selGroup in availableGroupsSelected)
             {
                 // Add to assigned list
-                Group foundGroup = groupsAvailable.First(g=>g.WRGroupId == selGroup);
+                Group foundGroup = groupsAvailable.First(g=>g.GroupId == selGroup);
                 groupsAvailable.Remove(foundGroup);
                 // Remove from available list
                 UserGroup newUG = new UserGroup();
-                newUG.GroupId = foundGroup.WRGroupId;
+                newUG.GroupId = foundGroup.GroupId;
                 newUG.Group = foundGroup;
                 selectedUserGroupList.Add(newUG);
             }
@@ -904,8 +904,8 @@
 
                 //Add to Available list
                 Group newG = new Group();
-                newG.WRGroupId = selUserGroup.GroupId;
-                newG.GroupName = allGroups.Find(g => g.WRGroupId == selUserGroup.GroupId).GroupName;
+                newG.GroupId = selUserGroup.GroupId;
+                newG.GroupName = allGroups.Find(g => g.GroupId == selUserGroup.GroupId).GroupName;
                 groupsAvailable.Add(newG);
             }
         }
@@ -1038,7 +1038,7 @@
                 saveUser.AllStudies = true;
         }
 
-        int loggedInUserId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        int loggedInUserId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
         saved = userService.SaveUser(saveUser, loggedInUserId);
 
         // Try to create or update the OKTA user
@@ -1053,11 +1053,11 @@
                 string initialSite = "Theradex Oncology Reporting-" + configuration.GetValue<string>("System:Environment");
                 bool isProd = !initialSite.Contains('-');
 
-                // Determine if user exists in OKTA (OKTA is for multi-applications (I.e.  WR, IWRS, etc) & environments (i.e.  DEV, UAT, etc)
+                // Determine if user exists in OKTA (OKTA is for multi-applications (I.e.  THOR, IWRS, etc) & environments (i.e.  DEV, UAT, etc)
                 Tuple<bool, string> oktaResults = await oktaService.FindUser(email);
 
                 // If user doesn't exist, create user and send welcome email
-                // If user exists, add them to proper group and send user configured for WR email
+                // If user exists, add them to proper group and send user configured for THOR email
                 // Error finding the user in OKTA
                 if (oktaResults.Item1)
                 {
@@ -1078,7 +1078,7 @@
                     if (oktaSuccess)
                     {
                         string userId = oktaResults.Item2;
-                        // User is created - activate it - don't send email from OKTA, send via WR
+                        // User is created - activate it - don't send email from OKTA, send via THOR
                         for (int iTry = 0; iTry < 5; iTry++)
                         {
                             oktaResults = await oktaService.UpdateActiveStatus(userId, true, isCTEPUser);

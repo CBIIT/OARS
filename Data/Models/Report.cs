@@ -5,11 +5,11 @@ using System.Xml.Linq;
 
 namespace TheradexPortal.Data.Models
 {
-    [Table("WRREPORT", Schema = "WRUSER")]
+    [Table("REPORT", Schema = "THOR_USER")]
     public class Report
     {
         [Key]
-        public int WRReportId { get; set; }
+        public int ReportId { get; set; }
         public string? Name { get; set; }
         public string? Description { get; set; }
         public int DashboardId { get; set; }
@@ -27,7 +27,8 @@ namespace TheradexPortal.Data.Models
         public string? CustomPagePath { get; set; }
         [Column("PowerBI_Page_Name")]
         public string? PowerBIPageName { get; set; }
-        public string? StudyType { get; set; }
+        [Column("SubMenu_Name")]
+        public string? SubMenuName { get; set; }
         [Column("PowerBI_Report_Id")]
         public string? PowerBIReportId { get; set; }
         public string? PageName { get; set; }

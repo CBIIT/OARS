@@ -83,7 +83,7 @@ builder.Services.Configure<PowerBI>(builder.Configuration.GetSection("PowerBI"))
 builder.Services.Configure<AzureAd>(builder.Configuration.GetSection("PowerBICredentials"));
 
 // Load DB context
-builder.Services.AddDbContextFactory<WrDbContext>(opt =>
+builder.Services.AddDbContextFactory<ThorDBContext>(opt =>
     opt.UseOracle(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var onTokenValidated = async (TokenValidatedContext context) =>
@@ -104,44 +104,44 @@ var onTokenValidated = async (TokenValidatedContext context) =>
 
     if (claimsIdentity.Claims is null)
     {
-        claimsIdentity.AddClaim(new Claim(WRClaimType.Registered, userIsRegistered.ToString()));
+        claimsIdentity.AddClaim(new Claim(ThorClaimType.Registered, userIsRegistered.ToString()));
         return Task.CompletedTask;
     }
     Claim emailClaim = (claimsIdentity).Claims.Where(c => c.Type == "preferred_username").FirstOrDefault();
     if (emailClaim is null)
     {
-        claimsIdentity.AddClaim(new Claim(WRClaimType.Registered, userIsRegistered.ToString()));
+        claimsIdentity.AddClaim(new Claim(ThorClaimType.Registered, userIsRegistered.ToString()));
         return Task.CompletedTask;
     }
     var email = emailClaim.Value;
     if (email is null)
     {
-        claimsIdentity.AddClaim(new Claim(WRClaimType.Registered, userIsRegistered.ToString()));
+        claimsIdentity.AddClaim(new Claim(ThorClaimType.Registered, userIsRegistered.ToString()));
         return Task.CompletedTask;
     }
 
     var user = await userService.GetUserByEmailAsync(email);
     if (user is null)
     {
-        claimsIdentity.AddClaim(new Claim(WRClaimType.Registered, userIsRegistered.ToString()));
+        claimsIdentity.AddClaim(new Claim(ThorClaimType.Registered, userIsRegistered.ToString()));
         return Task.CompletedTask;
     }
     userIsRegistered = true;
 
     if(user.IsActive)
     {
-        claimsIdentity.AddClaim(new Claim(WRClaimType.Registered, userIsRegistered.ToString()));
+        claimsIdentity.AddClaim(new Claim(ThorClaimType.Registered, userIsRegistered.ToString()));
     }
 
-    claimsIdentity.AddClaim(new Claim(WRClaimType.UserId, user.UserId.ToString()));
+    claimsIdentity.AddClaim(new Claim(ThorClaimType.UserId, user.UserId.ToString()));
 
     var userRoles = await userRoleService.GetUserRolesAsync(user.UserId);
     var isAdmin = false;
     foreach(var role in userRoles)
     {        
-        claimsIdentity.AddClaim(new Claim(WRClaimType.Role, role.RoleName));
+        claimsIdentity.AddClaim(new Claim(ThorClaimType.Role, role.RoleName));
         roleList += role.RoleName + ",";
-        if (role.AdminType != WRAdminType.None)
+        if (role.AdminType != ThorAdminType.None)
         {
             isAdmin = true;
             if (!claimsIdentity.HasClaim(c => c.Type == "Admin-" + role.AdminType))
@@ -156,13 +156,13 @@ var onTokenValidated = async (TokenValidatedContext context) =>
     var dashboardIds = await dashboardService.GetDashboardIdsForUser(user.UserId, isAdmin);
     var reportIds = await dashboardService.GetReportIdsForUser(user.UserId, isAdmin);
 
-    claimsIdentity.AddClaim(new Claim(WRClaimType.IsAdmin, isAdmin.ToString()));
-    claimsIdentity.AddClaim(new Claim(WRClaimType.Dashboards, dashboardIds));
-    claimsIdentity.AddClaim(new Claim(WRClaimType.Reports, reportIds));
+    claimsIdentity.AddClaim(new Claim(ThorClaimType.IsAdmin, isAdmin.ToString()));
+    claimsIdentity.AddClaim(new Claim(ThorClaimType.Dashboards, dashboardIds));
+    claimsIdentity.AddClaim(new Claim(ThorClaimType.Reports, reportIds));
 
     // Save activity & reload starting studies
     bool updateLastLoginDate = userService.SaveLastLoginDate(user.UserId);
-    bool saveActivity = userService.SaveActivityLog(user.UserId, WRActivityType.Login, roleList);
+    bool saveActivity = userService.SaveActivityLog(user.UserId, ThorActivityType.Login, roleList);
     int recentCount = Convert.ToInt32(builder.Configuration["System:RecentHistoryCount"]);
     bool setStartingStudies = await userService.SetStartingStudies(user.UserId, recentCount);
     return Task.CompletedTask;
@@ -172,11 +172,11 @@ var onTokenValidated = async (TokenValidatedContext context) =>
 // Add policies based on claims for Blazor auth checks
 builder.Services.AddAuthorization(options =>
       options.AddPolicy("IsAdmin",
-      policy => policy.RequireClaim(WRClaimType.IsAdmin, true.ToString())));
+      policy => policy.RequireClaim(ThorClaimType.IsAdmin, true.ToString())));
 
 builder.Services.AddAuthorization(options =>
       options.AddPolicy("IsRegistered",
-      policy => policy.RequireClaim(WRClaimType.Registered, true.ToString())));
+      policy => policy.RequireClaim(ThorClaimType.Registered, true.ToString())));
 
 // Okta authentication
 

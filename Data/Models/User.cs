@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace TheradexPortal.Data.Models
 {
-    [Table("WRUSER", Schema = "WRUSER")]
+    [Table("USER", Schema = "THOR_USER")]
     public class User
     {
         [Key]

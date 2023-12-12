@@ -1,6 +1,6 @@
 ﻿namespace TheradexPortal.Data.Static
 {
-    public sealed class WRActivityType
+    public sealed class ThorActivityType
     {
         static public String Navigation = "Navigation";
         static public String Study = "Study";

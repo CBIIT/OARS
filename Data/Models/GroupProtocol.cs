@@ -4,12 +4,12 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TheradexPortal.Data.Models
 {
-    [Table("WRGROUP_PROTOCOL", Schema = "WRUSER")]
+    [Table("GROUP_PROTOCOL", Schema = "THOR_USER")]
     public class GroupProtocol
     {
         [Key]
-        [Column("WRGroup_Protocol_Id")]
-        public int WRGroupProtocolId { get; set; }
+        [Column("Group_Protocol_Id")]
+        public int GroupProtocolId { get; set; }
         public int GroupId { get; set; }
         public Boolean IsActive { get; set; }
         public string? StudyId { get; set; }

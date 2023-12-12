@@ -4,12 +4,12 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TheradexPortal.Data.Models
 {
-    [Table("WRERRORLOG", Schema = "WRUSER")]
+    [Table("ERRORLOG", Schema = "THOR_USER")]
     public class ErrorLog
     {
         [Key]
-        [Column("WRErrorLogId")]
-        public int WRErrorLogId { get; set; }
+        [Column("ErrorLogId")]
+        public int ErrorLogId { get; set; }
         [Column("Create_Date")]
         public DateTime? CreateDate { get; set; }
         public int UserId { get; set; }

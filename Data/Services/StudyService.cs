@@ -8,7 +8,7 @@ namespace TheradexPortal.Data.Services
 
     public class StudyService : BaseService, IStudyService
     {
-        public StudyService(IDbContextFactory<WrDbContext> dbFactory) : base(dbFactory) { }
+        public StudyService(IDbContextFactory<ThorDBContext> dbFactory) : base(dbFactory) { }
         
         public async Task<IList<Protocol>> GetAllProtocolsAsync()
         {
@@ -19,7 +19,7 @@ namespace TheradexPortal.Data.Services
         {
             List<Protocol> protocols = new List<Protocol>();
 
-            // Use tables WRUSER_PROTOCOL, WR_USER_GROUP and WR_GROUPPROTOCOL to get list of studies for the user
+            // Use tables USER_PROTOCOL, USER_GROUP and GROUPPROTOCOL to get list of studies for the user
             if (!allStudies)
             { 
             protocols = (from up in context.User_Protocols

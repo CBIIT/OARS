@@ -100,18 +100,18 @@
 
     private async void EditGroupClick(Group g)
     {
-        navigation.NavigateTo($"/admin/group/{g.WRGroupId}");
+        navigation.NavigateTo($"/admin/group/{g.GroupId}");
     }
 
     private async Task ShowDeleteModal(Group g)
     {
-        bool canDelGroup = groupService.CanDeleteGroup(g.WRGroupId);
+        bool canDelGroup = groupService.CanDeleteGroup(g.GroupId);
         if (!canDelGroup)
             await NotificationService.Error("Can not delete. Group assigned to user(s).");
         else
         {
             groupToDelete = g.GroupName;
-            groupToDeleteId = g.WRGroupId;
+            groupToDeleteId = g.GroupId;
             await deleteModalRef.Show();
         }
     }
@@ -125,7 +125,7 @@
     {
         Group groupToDel;
         // Check if any users assigned to groups - if not ok to delete
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
         Tuple<bool, string> delGroup = groupService.DeleteGroup(groupToDeleteId, userId);
 
         await deleteModalRef.Hide();

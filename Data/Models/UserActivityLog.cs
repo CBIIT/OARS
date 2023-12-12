@@ -3,12 +3,12 @@ using System.ComponentModel.DataAnnotations;
 
 namespace TheradexPortal.Data.Models
 {
-    [Table("WRUSER_ACTIVITY_LOG", Schema = "WRUSER")]
+    [Table("USER_ACTIVITY_LOG", Schema = "THOR_USER")]
     public class UserActivityLog
     {
         [Key]
-        [Column("WRUSER_ACTIVITYLOG_ID")]
-        public int WRUserActivityLogId { get; set; }
+        [Column("USER_ACTIVITYLOG_ID")]
+        public int UserActivityLogId { get; set; }
         public int UserId { get; set; }
         public DateTime? ActivityDate { get; set; }
         public string ActivityType { get; set; }

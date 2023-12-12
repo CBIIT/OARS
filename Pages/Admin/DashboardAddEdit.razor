@@ -77,7 +77,7 @@
                                         </DisplayTemplate>
                                     </DataGridColumn>
                                     <DataGridColumn Field="@nameof(Report.DisplayIconName)" Caption="Icon" Width="100px" />
-                                    <DataGridColumn Field="@nameof(Report.StudyType)" Caption="Level 3 Menu" Width="100px" />
+                                    <DataGridColumn Field="@nameof(Report.SubMenuName)" Caption="Level 3 Menu" Width="100px" />
                                     <DataGridColumn Field="@nameof(Report.ReportName)" Width="300px">
                                         <CaptionTemplate>
                                             PowerBI Report Name<BR />PowerBI Report Page
@@ -359,8 +359,8 @@
         }
 
         await GetReportList();
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
-        userService.SaveActivityLog(userId, WRActivityType.Navigation, "Dashboard", AddOrEdit);
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+        userService.SaveActivityLog(userId, ThorActivityType.Navigation, "Dashboard", AddOrEdit);
     }
 
     private async Task GetReportList()
@@ -485,13 +485,13 @@
     {
         addEditReport = "Edit " + r.Name;
         addEditReport2 = "Update";
-        addEditReportId = r.WRReportId;
+        addEditReportId = r.ReportId;
 
         // Set up the screen and fields
         reportName = r.Name;
         reportIcon = r.DisplayIconName;
         reportDesc = r.Description;
-        reportSubMenu = r.StudyType;
+        reportSubMenu = r.SubMenuName;
 
         // Determine if showing the Site Page or Power BI sections & populate as needed.
         if (!String.IsNullOrEmpty(r.PowerBIReportId))
@@ -533,10 +533,10 @@
     private async void DeleteReportClick(Report r)
     {
         // Check if report is in a role first.  If ok, popup delete confirmation
-        if (dashboardService.CanDeleteReport(r.WRReportId))
+        if (dashboardService.CanDeleteReport(r.ReportId))
         {
             reportToDelete = r.Name;
-            reportToDeleteId = r.WRReportId;
+            reportToDeleteId = r.ReportId;
 
             deleteModalRef.Show();
         }
@@ -547,7 +547,7 @@
     private async void DeleteReportClick()
     {
         // Remove from dashboard and order lists
-        Report repToRemove = reportList.First(r => r.WRReportId == reportToDeleteId);
+        Report repToRemove = reportList.First(r => r.ReportId == reportToDeleteId);
         reportList.Remove(repToRemove);
         deleteModalRef.Hide();
         SetItemOrder();
@@ -586,7 +586,7 @@
             DateTime curDateTime = DateTime.UtcNow;
             Dashboard saveDashboard = new Dashboard();
             if (DashboardId != null)
-                saveDashboard.WRDashboardId = (int)DashboardId;
+                saveDashboard.DashboardId = (int)DashboardId;
             else
                 saveDashboard.CreateDate = curDateTime;
 
@@ -599,15 +599,15 @@
                 // Set the order for saving.  Order not stored with record
                 foreach (Report report in reportList)
                 {
-                    int repOrder = reportIdOrder.IndexOf(report.WRReportId) + 1;
+                    int repOrder = reportIdOrder.IndexOf(report.ReportId) + 1;
                     report.DisplayOrder = repOrder;
-                    if (report.WRReportId < 0)
-                        report.WRReportId = 0;
+                    if (report.ReportId < 0)
+                        report.ReportId = 0;
                     saveDashboard.Reports.Add(report);
                 }
             }
 
-            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
             saved = dashboardService.SaveDashboard(saveDashboard, userId);
 
             if (saved)
@@ -639,10 +639,10 @@
         foreach(Report report in reportList)
         {
             tempName = report.Name;
-            if (!String.IsNullOrEmpty(report.StudyType))
-                tempName = tempName + " - " + report.StudyType;
-            items.Add(new DropItem() { Name = tempName, ReportId = report.WRReportId, DisplayOrder = report.DisplayOrder, Group = "All" });
-            reportIdOrder.Add(report.WRReportId);
+            if (!String.IsNullOrEmpty(report.SubMenuName))
+                tempName = tempName + " - " + report.SubMenuName;
+            items.Add(new DropItem() { Name = tempName, ReportId = report.ReportId, DisplayOrder = report.DisplayOrder, Group = "All" });
+            reportIdOrder.Add(report.ReportId);
         }
     }
 
@@ -672,7 +672,7 @@
         foreach (int order in reportIdOrder)
         {
             newOrder++;
-            Report foundRep = reportList.First(r => r.WRReportId == order);
+            Report foundRep = reportList.First(r => r.ReportId == order);
             foundRep.DisplayOrder = newOrder;
         }
 
@@ -762,21 +762,21 @@
         {
             curReport = new Report();
             if (reportList == null || reportList.Count == 0 || reportIdOrder.Min() > -1)
-                curReport.WRReportId = -1;
+                curReport.ReportId = -1;
             else
             {
                 int lowestId = reportIdOrder.Min();
-                curReport.WRReportId = lowestId - 1;
+                curReport.ReportId = lowestId - 1;
             }  
         }
         else
-            curReport = reportList.FirstOrDefault(r => r.WRReportId == addEditReportId);
+            curReport = reportList.FirstOrDefault(r => r.ReportId == addEditReportId);
 
         curReport.Name = reportName;
         curReport.DisplayIconName = reportIcon;
         curReport.Description = reportDesc;
         curReport.IsFullPage = true;
-        curReport.StudyType = reportSubMenu;
+        curReport.SubMenuName = reportSubMenu;
 
         //if (!String.IsNullOrEmpty(reportPageName))
         if (menuType == 1)

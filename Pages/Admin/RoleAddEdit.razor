@@ -122,8 +122,8 @@
         }
         LoadPermissionTree();
 
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
-        userService.SaveActivityLog(userId, WRActivityType.Navigation, "Role", AddOrEdit);
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+        userService.SaveActivityLog(userId, ThorActivityType.Navigation, "Role", AddOrEdit);
     }
 
     private async void GetRole(int? roleId)
@@ -154,10 +154,10 @@
         IList<Dashboard> allDashboards = await dashboardService.GetAllDashboardsForAdminAsync();
         foreach (Dashboard dashboard in allDashboards)
         {
-            DashOrRepNode newDAR = new DashOrRepNode { Text = dashboard.Name, Id = dashboard.WRDashboardId, NodeType="Dash", Children = new List<DashOrRepNode>() };
+            DashOrRepNode newDAR = new DashOrRepNode { Text = dashboard.Name, Id = dashboard.DashboardId, NodeType="Dash", Children = new List<DashOrRepNode>() };
             foreach (Report report in dashboard.Reports)
             {
-                DashOrRepNode newDARChild = new DashOrRepNode { Text = (String.IsNullOrEmpty(report.StudyType)) ? report.Name : report.Name + "-" + report.StudyType, Id = report.WRReportId, NodeType="Rep" };
+                DashOrRepNode newDARChild = new DashOrRepNode { Text = (String.IsNullOrEmpty(report.SubMenuName)) ? report.Name : report.Name + "-" + report.SubMenuName, Id = report.ReportId, NodeType="Rep" };
                 newDAR.Children.Add(newDARChild);
                 // See if dashRepItem is in allowedReps
                 RoleReport findAllowedRep = allowedReps.Find(ar => ar.ReportId == newDARChild.Id);
@@ -248,7 +248,7 @@
                     }
                 }
             }
-            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
             saved = roleService.SaveRole(saveRole, userId);
 
             if (saved)

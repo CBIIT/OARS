@@ -8,7 +8,7 @@ namespace TheradexPortal.Data.Identity
     {
         public static bool IsRegistered(this ClaimsPrincipal principal)
         {
-            var registeredVal = principal.FindFirstValue(WRClaimType.Registered);
+            var registeredVal = principal.FindFirstValue(ThorClaimType.Registered);
             if (registeredVal == null)
             {
                 return false;
@@ -19,7 +19,7 @@ namespace TheradexPortal.Data.Identity
 
         public static int GetUserId(this ClaimsPrincipal principal)
         {
-            var userIdVal = principal.FindFirstValue(WRClaimType.UserId);
+            var userIdVal = principal.FindFirstValue(ThorClaimType.UserId);
             if (userIdVal == null)
             {
                 return 0;
@@ -28,14 +28,14 @@ namespace TheradexPortal.Data.Identity
             return int.Parse(userIdVal);
         }
 
-        public static bool HasWrRole(this ClaimsPrincipal principal, string role)
+        public static bool HasTHORRole(this ClaimsPrincipal principal, string role)
         {
-            return principal.HasClaim(WRClaimType.Role, role);
+            return principal.HasClaim(ThorClaimType.Role, role);
         }
 
         public static bool IsAdmin(this ClaimsPrincipal principal)
         {
-            return principal.HasClaim(WRClaimType.IsAdmin, true.ToString());
+            return principal.HasClaim(ThorClaimType.IsAdmin, true.ToString());
         }
     }
 }

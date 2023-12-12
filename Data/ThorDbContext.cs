@@ -11,9 +11,9 @@ using TheradexPortal.Data.Static;
 
 namespace TheradexPortal.Data
 {
-    public class WrDbContext : DbContext
+    public class ThorDBContext : DbContext
     {
-        public WrDbContext(DbContextOptions<WrDbContext> options) : base(options)
+        public ThorDBContext(DbContextOptions<ThorDBContext> options) : base(options)
         {
             Debug.WriteLine($"{ContextId} context created.");
         }
@@ -148,7 +148,7 @@ namespace TheradexPortal.Data
         public DbSet<Role> Roles { get; set; }
         public DbSet<RoleVisual> Role_Visuals { get; set; }
         public DbSet<UserRole> User_Roles { get; set; }
-        public DbSet<WRAlert> Alerts { get; set; }
+        public DbSet<ThorAlert> Alerts { get; set; }
         public DbSet<RoleDashboard> Role_Dashboards { get; set; } 
         public DbSet<RoleReport> Role_Reports { get; set; }
         public DbSet<UserProtocol> User_Protocols { get; set; }

@@ -12,7 +12,7 @@ namespace TheradexPortal.Data.Services
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
 
-        public DashboardService(IDbContextFactory<WrDbContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
+        public DashboardService(IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;
@@ -35,16 +35,16 @@ namespace TheradexPortal.Data.Services
 
             if (isAdmin)
             {
-                dashboards = await context.Dashboards.OrderBy(d=>d.DisplayOrder).Select(d=>d.WRDashboardId).ToListAsync();
+                dashboards = await context.Dashboards.OrderBy(d=>d.DisplayOrder).Select(d=>d.DashboardId).ToListAsync();
             }
             else
             {
                 dashboards = (from ur in context.User_Roles
                               join rd in context.Role_Dashboards on ur.RoleId equals rd.RoleId
-                              join d in context.Dashboards on rd.DashboardId equals d.WRDashboardId
+                              join d in context.Dashboards on rd.DashboardId equals d.DashboardId
                               where ur.UserId == userId && (ur.ExpirationDate == null || ur.ExpirationDate.Value.Date >= DateTime.UtcNow.Date)
                               orderby d.DisplayOrder
-                              select d.WRDashboardId).ToList();
+                              select d.DashboardId).ToList();
             }
 
             foreach (int dashboard in dashboards)
@@ -64,7 +64,7 @@ namespace TheradexPortal.Data.Services
             {
                 var dashboards = (from ur in context.User_Roles
                                     join rd in context.Role_Dashboards on ur.RoleId equals rd.RoleId
-                                    join d in context.Dashboards on rd.DashboardId equals d.WRDashboardId
+                                    join d in context.Dashboards on rd.DashboardId equals d.DashboardId
                                     where ur.UserId == userId && (ur.ExpirationDate == null || ur.ExpirationDate.Value.Date >= DateTime.UtcNow.Date)
                                   select d).OrderBy(d => d.DisplayOrder).ToList();
 
@@ -93,15 +93,15 @@ namespace TheradexPortal.Data.Services
 
             if (isAdmin)
             {
-                reports = await context.Reports.Select(d => d.WRReportId).ToListAsync();
+                reports = await context.Reports.Select(d => d.ReportId).ToListAsync();
             }
             else
             {
                 reports = (from ur in context.User_Roles
                            join rr in context.Role_Reports on ur.RoleId equals rr.RoleId
-                           join r in context.Reports on rr.ReportId equals r.WRReportId
+                           join r in context.Reports on rr.ReportId equals r.ReportId
                            where ur.UserId == userId && (ur.ExpirationDate == null || ur.ExpirationDate.Value.Date >= DateTime.UtcNow.Date)
-                           select r.WRReportId).ToList();
+                           select r.ReportId).ToList();
             }
 
             foreach (int report in reports)
@@ -121,7 +121,7 @@ namespace TheradexPortal.Data.Services
             {
                 var reports = (from ur in context.User_Roles
                                   join rr in context.Role_Reports on ur.RoleId equals rr.RoleId
-                                  join r in context.Reports on rr.ReportId equals r.WRReportId
+                                  join r in context.Reports on rr.ReportId equals r.ReportId
                                   where ur.UserId == userId && (ur.ExpirationDate == null || ur.ExpirationDate.Value.Date >= DateTime.UtcNow.Date) && r.DashboardId == id
                                   select r).OrderBy(r => r.DisplayOrder).ToList();
 
@@ -147,7 +147,7 @@ namespace TheradexPortal.Data.Services
             {
                 var reports = (from ur in context.User_Roles
                                join rr in context.Role_Reports on ur.RoleId equals rr.RoleId
-                               join r in context.Reports on rr.ReportId equals r.WRReportId
+                               join r in context.Reports on rr.ReportId equals r.ReportId
                                where ur.UserId == userId && (ur.ExpirationDate == null || ur.ExpirationDate.Value.Date >= DateTime.UtcNow.Date) && r.DashboardId == id && r.Name == reportName
                                select r).OrderBy(r => r.DisplayOrder).ToList();
 
@@ -170,7 +170,7 @@ namespace TheradexPortal.Data.Services
         }
         public bool CheckDashboardName(string dashboardName, int dashboardId)
         {
-            Dashboard foundDashboard = context.Dashboards.FirstOrDefault(d => d.Name == dashboardName && d.WRDashboardId != dashboardId);
+            Dashboard foundDashboard = context.Dashboards.FirstOrDefault(d => d.Name == dashboardName && d.DashboardId != dashboardId);
             return foundDashboard == null;
         }
 
@@ -181,7 +181,7 @@ namespace TheradexPortal.Data.Services
             {
                 var primaryTable = context.Model.FindEntityType(typeof(Dashboard)).ToString().Replace("EntityType: ", "");
 
-                if (dashboard.WRDashboardId == 0)
+                if (dashboard.DashboardId == 0)
                 {
                     dashboard.CreateDate = curDateTime;
                     // Get the highest DisplayOrder from dashboard list
@@ -196,7 +196,7 @@ namespace TheradexPortal.Data.Services
                 }
                 else
                 {
-                    Dashboard dbDashboard = context.Dashboards.FirstOrDefault(d => d.WRDashboardId == dashboard.WRDashboardId);
+                    Dashboard dbDashboard = context.Dashboards.FirstOrDefault(d => d.DashboardId == dashboard.DashboardId);
                     if (dbDashboard != null)
                     {
                         dbDashboard.Name = dashboard.Name;
@@ -208,7 +208,7 @@ namespace TheradexPortal.Data.Services
                         foreach (Report report in dashboard.Reports)
                         {
                             // Determine if it is a new or modified report
-                            if (report.WRReportId == 0)
+                            if (report.ReportId == 0)
                             {
                                 report.CreateDate = curDateTime;
                                 dbDashboard.UpdateDate = curDateTime;
@@ -216,14 +216,14 @@ namespace TheradexPortal.Data.Services
                             }
                             else
                             {
-                                Report dbReport = dbDashboard.Reports.FirstOrDefault(d => d.WRReportId == report.WRReportId);
-                                dbReport.WRReportId = report.WRReportId;
+                                Report dbReport = dbDashboard.Reports.FirstOrDefault(d => d.ReportId == report.ReportId);
+                                dbReport.ReportId = report.ReportId;
                                 dbReport.Name = report.Name;
                                 dbReport.Description = report.Description;
                                 dbReport.DisplayOrder = report.DisplayOrder;
                                 dbReport.CustomPagePath = report.CustomPagePath;
                                 dbReport.DisplayIconName = report.DisplayIconName;
-                                dbReport.StudyType = report.StudyType;
+                                dbReport.SubMenuName = report.SubMenuName;
                                 dbReport.PowerBIReportId = report.PowerBIReportId;
                                 dbReport.ReportName = report.ReportName;
                                 dbReport.PowerBIPageName = report.PowerBIPageName;
@@ -242,7 +242,7 @@ namespace TheradexPortal.Data.Services
                         List<Report> reportsToRemove = new List<Report>();
                         foreach (Report dr in dbDashboard.Reports)
                         {
-                            Report foundReport = dashboard.Reports.FirstOrDefault(r => r.WRReportId == dr.WRReportId);
+                            Report foundReport = dashboard.Reports.FirstOrDefault(r => r.ReportId == dr.ReportId);
                             if (foundReport == null)
                             {
                                 dbDashboard.UpdateDate = curDateTime;
@@ -280,7 +280,7 @@ namespace TheradexPortal.Data.Services
             bool canDeleteReport = true;
             foreach (Report report in reportList)
             {
-                canDeleteReport = context.Role_Reports.Where(rr => rr.ReportId == report.WRReportId).Count() == 0;
+                canDeleteReport = context.Role_Reports.Where(rr => rr.ReportId == report.ReportId).Count() == 0;
                 if (!canDeleteReport)
                     break;
             }
@@ -304,7 +304,7 @@ namespace TheradexPortal.Data.Services
             try
             {
                 var primaryTable = context.Model.FindEntityType(typeof(Dashboard)).ToString().Replace("EntityType: ", "");
-                var delDashboard = context.Dashboards.Where(d => d.WRDashboardId == dashboardId).Include(d => d.Reports).First();
+                var delDashboard = context.Dashboards.Where(d => d.DashboardId == dashboardId).Include(d => d.Reports).First();
                 context.Remove(delDashboard);
                 context.SaveChangesAsync(userId, primaryTable);
                 return new Tuple<bool, string>(true, "Dashboard deleted successfully");
@@ -333,7 +333,7 @@ namespace TheradexPortal.Data.Services
                 foreach (int dashId in dashIds)
                 {
                     dashOrder++;
-                    Dashboard dashboard = dashboards.Find(d => d.WRDashboardId == dashId)!;
+                    Dashboard dashboard = dashboards.Find(d => d.DashboardId == dashId)!;
                     dashboard.DisplayOrder = dashOrder;
                     if (context.Entry(dashboard).State == EntityState.Modified)
                     {
@@ -354,7 +354,7 @@ namespace TheradexPortal.Data.Services
         public async Task<string> GetDashboardHelpFileName(int dashboardId)
         {
             var helpUrl = string.Empty;
-            var dashboard = await context.Dashboards.Where(db => db.WRDashboardId.Equals(dashboardId)).FirstOrDefaultAsync();
+            var dashboard = await context.Dashboards.Where(db => db.DashboardId.Equals(dashboardId)).FirstOrDefaultAsync();
             if (dashboard != null && dashboard.HelpFileName != null)
             {
                 helpUrl = dashboard.HelpFileName!.ToString();

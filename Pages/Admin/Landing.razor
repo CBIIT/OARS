@@ -55,7 +55,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        isContentAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsContentAdmin, "True");
+        isContentAdmin = httpContextAccessor.HttpContext.User.HasClaim(ThorClaimType.IsContentAdmin, "True");
     }
    
     private bool CheckRole(List<string> allowedRoles)

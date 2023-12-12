@@ -3,11 +3,11 @@ using System.ComponentModel.DataAnnotations;
 
 namespace TheradexPortal.Data.Models
 {
-    [Table("WRAUDIT", Schema = "WRUSER")]
+    [Table("AUDIT", Schema = "THOR_USER")]
     public class Audit
     {
         [Key]
-        public int WRAuditId { get; set; }
+        public int AuditId { get; set; }
         public int? UserId { get; set; }
         public DateTime CreateDate { get; set; }
         public string AuditType { get; set; }

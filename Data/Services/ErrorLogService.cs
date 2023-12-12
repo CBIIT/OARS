@@ -6,7 +6,7 @@ namespace TheradexPortal.Data.Services
 {
     public class ErrorLogService : BaseService, IErrorLogService
     {
-        public ErrorLogService(IDbContextFactory<WrDbContext> dbFactory) : base(dbFactory) { }
+        public ErrorLogService(IDbContextFactory<ThorDBContext> dbFactory) : base(dbFactory) { }
 
         public async Task SaveErrorLogAsync(int userId, string Url, Exception InnerException, string Source, string Message, string StackTrace)
         {

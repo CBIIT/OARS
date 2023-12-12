@@ -3,11 +3,11 @@ using System.ComponentModel.DataAnnotations;
 
 namespace TheradexPortal.Data.Models
 {
-    [Table("WRALERT", Schema = "WRUSER")]
-    public class WRAlert
+    [Table("ALERT", Schema = "THOR_USER")]
+    public class ThorAlert
     {
         [Key]
-        public int WRAlertId { get; set; }
+        public int AlertId { get; set; }
         public string? PageName { get; set; }
         public int? DashboardId { get; set; }
         public string? AlertType { get; set; }

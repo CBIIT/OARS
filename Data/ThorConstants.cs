@@ -1,6 +1,6 @@
 ﻿namespace TheradexPortal.Data
 {
-    public class WrConstants
+    public class ThorConstants
     {
         // Navigation
         public const string DASHBOARD_PAGE_PATH = "/dashboard";

@@ -235,7 +235,7 @@
         }
         catch (Exception ex)
         {
-            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
             errorLogService.SaveErrorLogAsync(userId, Navigation.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
         }
         finally
@@ -253,7 +253,7 @@
             environment = "NCI-Theradex Oncology Reporting";
 
         // Display or Hide Admin button
-        bool isAdmin = Convert.ToBoolean(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.IsAdmin).Value);
+        bool isAdmin = Convert.ToBoolean(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.IsAdmin).Value);
         if (isAdmin)
             adminDisplay = Display.Block;
         else
@@ -276,8 +276,8 @@
 
     Task OnButtonClicked()
     {
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
-        userService.SaveActivityLog(userId, WRActivityType.Logout);
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+        userService.SaveActivityLog(userId, ThorActivityType.Logout);
         Navigation.NavigateTo($"Signout", true);
 
         return Task.CompletedTask;
@@ -408,7 +408,7 @@
             }
             catch (Exception ex)
             {
-                int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+                int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
                 errorLogService.SaveErrorLogAsync(userId, Navigation.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
             }
         }
@@ -436,16 +436,16 @@
             string baseURL = Navigation.BaseUri;
             string color = configuration.GetValue<string>("System:SystemColor");
             string dateTime = DateTime.Now.ToString("d-MMM-yyyy hh:mm tt");
-            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
             User curUser = await userService.GetUserAsync(userId);
             string userName = curUser.FirstName + " " + curUser.LastName;
 
-            ContactUsCategory category = lstContactUsCategory.Where(l => l.WRContactUsCategoryID == Convert.ToInt32(contactUsCategoryID)).FirstOrDefault();
+            ContactUsCategory category = lstContactUsCategory.Where(l => l.ContactUsCategoryID == Convert.ToInt32(contactUsCategoryID)).FirstOrDefault();
             if (category != null)
             {
                 if (category.ParentCategoryId != null)
                 {
-                    ContactUsCategory parentCategory = lstContactUsCategory.Where(l => l.WRContactUsCategoryID == Convert.ToInt32(category.ParentCategoryId)).FirstOrDefault();
+                    ContactUsCategory parentCategory = lstContactUsCategory.Where(l => l.ContactUsCategoryID == Convert.ToInt32(category.ParentCategoryId)).FirstOrDefault();
                     if (parentCategory != null)
                     {
                         emailCategory = parentCategory.Name + "-";
@@ -485,7 +485,7 @@
             }
 
             ContactUs contactUsLog = new ContactUs();
-            contactUsLog.WRContactUsID = 0;
+            contactUsLog.ContactUsID = 0;
             contactUsLog.Subject = emailTitle;
             contactUsLog.Description = emailDescription; ;
             contactUsLog.CategoryID = Convert.ToInt32(contactUsCategoryID);

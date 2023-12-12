@@ -110,8 +110,8 @@
     protected override async Task OnInitializedAsync()
     {
         alertVisible = false;
-        //bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsAdmin, "True");
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        //bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(ThorClaimType.IsAdmin, "True");
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
         User curUser = await userService.GetUserAsync(userId);
         studyList = studyService.GetProtocolsForUserAsync(userId, curUser.AllStudies).ToList();
 
@@ -153,7 +153,7 @@
         alertVisible = false;
         if (firstRender)
         {
-            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
 
             // Since this is the first page after logging in, here is where we will pull the TimeZone info
             try
@@ -171,7 +171,7 @@
             }
             //if (saveNavigationLog)
             //{
-            //    int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+            //    int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
             //    userService.SaveActivityLog(userId, WRActivityType.Navigation, "Dashboard", "My Studies");
             //}
 
@@ -185,7 +185,7 @@
             //await InvokeAsync( StateHasChanged );
 
             //datagridRef.SelectedRows.Select(selectedStudies);
-            //    int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+            //    int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
             //    List<Protocol> protocols = studyService.GetFilteredStudiesForUser(userId);
             //    selectedStudies = protocols.ToList();
 
@@ -237,17 +237,17 @@
             }
             studiesToSave = studiesToSave.TrimEnd(',');
 
-            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
             bool saved = userService.SaveSelectedStudies(userId, studiesToSave, true);
-            saved = userService.SaveActivityLog(userId, WRActivityType.Study, "Filter Studies", studiesToSave);
-            saved = userService.SaveActivityLog(userId, WRActivityType.Study, "Default Study", firstStudy);
+            saved = userService.SaveActivityLog(userId, ThorActivityType.Study, "Filter Studies", studiesToSave);
+            saved = userService.SaveActivityLog(userId, ThorActivityType.Study, "Default Study", firstStudy);
 
             // Navigate to first dashboard
             if (OnSave == null)
             {
-                string dashboards = httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.Dashboards).Value;
+                string dashboards = httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.Dashboards).Value;
                 dashboards = dashboards.TrimStart('|').Split('|')[0];
-                navigation.NavigateTo($"{WrConstants.DASHBOARD_PAGE_PATH}/{dashboards}", new NavigationOptions { ReplaceHistoryEntry = true });
+                navigation.NavigateTo($"{ThorConstants.DASHBOARD_PAGE_PATH}/{dashboards}", new NavigationOptions { ReplaceHistoryEntry = true });
             }
             else
                 OnSave.Invoke(selectedStudies);

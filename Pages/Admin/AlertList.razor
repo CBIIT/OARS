@@ -11,7 +11,7 @@
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>Alert List</h2></Div>
 <Row Background="Background.Light">
     <Column ColumnSize="ColumnSize.IsFull">
-        <DataGrid TItem="WRAlert"
+        <DataGrid TItem="ThorAlert"
                   Class="admindatagrid"
                   Data="@alertList"
                   Responsive
@@ -33,16 +33,16 @@
             <DataGridColumns>
                 <DataGridMultiSelectColumn Width="30px"> </DataGridMultiSelectColumn>
                 <DataGridCommandColumn />
-                <DataGridColumn Field="@nameof(WRAlert.AlertType)" Caption="Type" />
-                <DataGridColumn Field="@nameof(WRAlert.PageName)" Caption="Page">
+                <DataGridColumn Field="@nameof(ThorAlert.AlertType)" Caption="Type" />
+                <DataGridColumn Field="@nameof(ThorAlert.PageName)" Caption="Page">
                     <DisplayTemplate>
                         @{
-                            var alert = (context as WRAlert);
+                            var alert = (context as ThorAlert);
                             if (alert != null)
                             {
                                 if (alert.DashboardId != null && alert.PageName.Equals(pageDashboard))
                                 {
-                                    var dashboard = dashboards.FirstOrDefault(d => d.WRDashboardId == alert.DashboardId);
+                                    var dashboard = dashboards.FirstOrDefault(d => d.DashboardId == alert.DashboardId);
                                     if (dashboard != null)
                                     {
                                         @(dashboard.Name + " ");
@@ -53,11 +53,11 @@
                         }
                     </DisplayTemplate>
                 </DataGridColumn>
-                <DataGridColumn Field="@nameof(WRAlert.AlertText)" Caption="Text" />
-                <DataGridColumn Field="@nameof(WRAlert.StartDate)" Caption="Start Date">
+                <DataGridColumn Field="@nameof(ThorAlert.AlertText)" Caption="Text" />
+                <DataGridColumn Field="@nameof(ThorAlert.StartDate)" Caption="Start Date">
                     <DisplayTemplate>
                         @{
-                            var startDate = (context as WRAlert)?.StartDate;
+                            var startDate = (context as ThorAlert)?.StartDate;
                             if (startDate != null)
                             {
                                 @(startDate.Value.ToString("dd-MMM-yyyy"));
@@ -65,10 +65,10 @@
                         }
                     </DisplayTemplate>
                 </DataGridColumn>
-                <DataGridColumn Field="@nameof(WRAlert.EndDate)" Caption="End Date">
+                <DataGridColumn Field="@nameof(ThorAlert.EndDate)" Caption="End Date">
                     <DisplayTemplate>
                         @{
-                            var endDate = (context as WRAlert)?.EndDate;
+                            var endDate = (context as ThorAlert)?.EndDate;
                             if (endDate != null)
                             {
                                 @(endDate.Value.ToString("dd-MMM-yyyy"));
@@ -76,10 +76,10 @@
                         }
                     </DisplayTemplate>
                 </DataGridColumn>
-                <DataGridSelectColumn TItem="WRAlert" Field="@nameof(WRAlert.IsActive)" Caption="Active" Width="125px">
+                <DataGridSelectColumn TItem="ThorAlert" Field="@nameof(ThorAlert.IsActive)" Caption="Active" Width="125px">
                     <DisplayTemplate>
                         @{
-                            var alert = (context as WRAlert);
+                            var alert = (context as ThorAlert);
                             var dateTime = DateTime.Now;
                             var isActive = alert?.IsActive ?? false;
                             if (isActive)
@@ -95,15 +95,15 @@
                 </DataGridSelectColumn>
                 <DataGridColumn Sortable="false" Filterable="false" Width="75px">
                     <DisplayTemplate>
-                        <Button Color="Color.Info" Clicked="@(()=>EditAlertClick(context as WRAlert))">
+                        <Button Color="Color.Info" Clicked="@(()=>EditAlertClick(context as ThorAlert))">
                             Edit
                         </Button>
                     </DisplayTemplate>
                 </DataGridColumn>
                 <DataGridColumn Sortable="false" Filterable="false" Width="125px">
                     <DisplayTemplate>
-                        <Button Color="Color.Danger" Clicked="@(()=>ShowDeactivateModal(context as WRAlert))"
-                                Visibility="@IsDeactivatable(context as WRAlert)">
+                        <Button Color="Color.Danger" Clicked="@(()=>ShowDeactivateModal(context as ThorAlert))"
+                                Visibility="@IsDeactivatable(context as ThorAlert)">
                             Deactivate
                         </Button>
                     </DisplayTemplate>
@@ -141,8 +141,8 @@
     [Inject] private NavigationManager navigation { get; set; } = null!;
     [AllowNull] private Modal deactivateModalRef;
 
-    private IList<WRAlert> alertList = new List<WRAlert>();
-    private IList<WRAlert> displayedAlertList = new List<WRAlert>();
+    private IList<ThorAlert> alertList = new List<ThorAlert>();
+    private IList<ThorAlert> displayedAlertList = new List<ThorAlert>();
     private IList<Dashboard> dashboards = new List<Dashboard>();
     private string alertToDeactivate = string.Empty;
     private string alertToDeactivateText = string.Empty;
@@ -159,11 +159,11 @@
 
     protected override async Task OnInitializedAsync()
     {
-        this.alertList = await alertService.GetAllWRAlertsAsync();
+        this.alertList = await alertService.GetAllThorAlertsAsync();
         pageDashboard = await alertService.DashboardPage();
 
-        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(WRClaimType.IsAdmin, "True");
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(ThorClaimType.IsAdmin, "True");
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
 
         dashboards = await dashboardService.GetDashboardsForUserAsync(userId, isAdmin);
 
@@ -172,7 +172,7 @@
         allowedRoleList = new string[1] { "Content" };
     }
 
-    private Visibility IsDeactivatable(WRAlert a)
+    private Visibility IsDeactivatable(ThorAlert a)
     {
         if (a.IsActive)
             return Visibility.Visible;
@@ -185,12 +185,12 @@
         navigation.NavigateTo("/admin/alert");
     }
 
-    private async void EditAlertClick(WRAlert a)
+    private async void EditAlertClick(ThorAlert a)
     {
-        navigation.NavigateTo($"/admin/alert/{a.WRAlertId}");
+        navigation.NavigateTo($"/admin/alert/{a.AlertId}");
     }
 
-    private Task ShowDeactivateModal(WRAlert a)
+    private Task ShowDeactivateModal(ThorAlert a)
     {
         if (a.AlertType.Equals(typeAlert))
         {
@@ -203,7 +203,7 @@
 
         alertToDeactivate = a.AlertType + " " + a.PageName;
         alertToDeactivateText = a.AlertText;
-        alertToDeactivateId = a.WRAlertId;
+        alertToDeactivateId = a.AlertId;
         return deactivateModalRef.Show();
     }
 
@@ -215,7 +215,7 @@
     private async void DeactivateAlertClick()
     {
         deactivateModalRef.Hide();
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(WRClaimType.UserId).Value);
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
         bool success = alertService.DeactivateAlert(userId, alertToDeactivateId);
         if (success)
         {

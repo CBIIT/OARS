@@ -72,7 +72,7 @@ Entity Framework is used for database access. Details on working with Entity Fra
 
 #### Adding a Model
 1. Create a new model class in the `Data/Models` folder
-2. Register the model in the `DbContext` class in `Data/WrDbContext.cs`
+2. Register the model in the `DbContext` class in `Data/ThorDBContext.cs`
 
 #### Database Migrations
 DB migrations are deployed manually by the Theradex dev team. Details on migration files can be found in [Migrations](./Migrations/README.md).

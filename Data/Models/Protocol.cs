@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TheradexPortal.Data.Models
 {
-    [Table("PROTOCOL", Schema = "WRDB")]
+    [Table("PROTOCOL", Schema = "THORDB")]
     [Keyless]
     public class Protocol
     {
