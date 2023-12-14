@@ -42,7 +42,7 @@ namespace TheradexPortal.Data.Services
             this.webHostEnvironment = webHostEnvironment;
         }
 
-        public async Task<bool> SendNewUserEmail(string siteName, string baseURL, string primaryColor, TheradexPortal.Data.Models.User curUser, string activationLink)
+        public async Task<bool> SendNewUserEmail(string siteName, string siteAcronym, string siteNameShort, string baseURL, string primaryColor, TheradexPortal.Data.Models.User curUser, string activationLink)
         {
             try
             {
@@ -57,6 +57,7 @@ namespace TheradexPortal.Data.Services
                     {
                         emailTemplate = "{0}/NewCTEPUser.txt";
                     }
+
                     GetObjectResponse response = await s3Client.GetObjectAsync(emailSettings.Value.AWSBucketName, string.Format(emailTemplate, emailSettings.Value.EmailTemplate));
 
                     using (Stream responseStream = response.ResponseStream)
@@ -69,6 +70,8 @@ namespace TheradexPortal.Data.Services
                         // Populate the specific fields
                         emailText = emailText.Replace("[[Color]]", primaryColor);
                         emailText = emailText.Replace("[[System]]", siteName);
+                        emailText = emailText.Replace("[[SystemAcronym]]", siteAcronym);
+                        emailText = emailText.Replace("[[SystemShortName]]", siteNameShort);
                         emailText = emailText.Replace("[[ActivationLink]]", activationLink);
                         emailText = emailText.Replace("[[URL]]", baseURL);
                         emailText = emailText.Replace("[[FullName]]", curUser.FirstName + " " + curUser.LastName);
@@ -89,7 +92,7 @@ namespace TheradexPortal.Data.Services
             }
         }
 
-        public async Task<bool> SendNewSystemEmail(string siteName, string baseURL, string primaryColor, TheradexPortal.Data.Models.User curUser)
+        public async Task<bool> SendNewSystemEmail(string siteName, string siteAcronym, string siteNameShort, string baseURL, string primaryColor, TheradexPortal.Data.Models.User curUser)
         {
             try
             {
@@ -115,6 +118,8 @@ namespace TheradexPortal.Data.Services
                         // Populate the specific fields
                         emailText = emailText.Replace("[[Color]]", primaryColor);
                         emailText = emailText.Replace("[[System]]", siteName);
+                        emailText = emailText.Replace("[[SystemAcronym]]", siteAcronym);
+                        emailText = emailText.Replace("[[SystemShortName]]", siteNameShort);
                         emailText = emailText.Replace("[[URL]]", baseURL);
                         emailText = emailText.Replace("[[FullName]]", curUser.FirstName + " " + curUser.LastName);
                         emailText = emailText.Replace("[[Email]]", curUser.EmailAddress);

@@ -248,9 +248,9 @@
     {
         environment = configuration.GetValue<string>("System:Environment");
         if (environment != "Prod")
-            environment = "NCI-Theradex Oncology Reporting-" + environment;
+            environment = "NCI Theradex Oncology Reporting-" + environment;
         else
-            environment = "NCI-Theradex Oncology Reporting";
+            environment = "NCI Theradex Oncology Reporting";
 
         // Display or Hide Admin button
         bool isAdmin = Convert.ToBoolean(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.IsAdmin).Value);
@@ -432,7 +432,7 @@
         {
             emailTo = string.Empty;
             emailCategory = string.Empty;
-            string siteName = "Theradex Oncology Reporting-" + configuration.GetValue<string>("System:Environment");
+            string siteName = "NCI Theradex Oncology Reporting-" + configuration.GetValue<string>("System:Environment");
             string baseURL = Navigation.BaseUri;
             string color = configuration.GetValue<string>("System:SystemColor");
             string dateTime = DateTime.Now.ToString("d-MMM-yyyy hh:mm tt");
