@@ -4,6 +4,7 @@ using TheradexPortal.Data.Services.Abstract;
 using Microsoft.AspNetCore.Components;
 using Amazon;
 using Amazon.S3;
+using Amazon.S3.Transfer;
 
 namespace TheradexPortal.Data.Services
 {
@@ -362,11 +363,21 @@ namespace TheradexPortal.Data.Services
             return helpUrl;
         }
 
-        public async Task UploadFileToS3(string fileName, MemoryStream memoryStream)
+        public async Task<bool> UploadFileToS3(string folderName, string fileName, string awsBucketName, MemoryStream memoryStream)
         {
+            string fileKey = string.Format("{0}/{1}", folderName, fileName);
             using (var client = new AmazonS3Client(RegionEndpoint.USEast1))
             {
-                
+                var uploadRequest = new TransferUtilityUploadRequest
+                {
+                    InputStream = memoryStream,
+                    Key = fileKey,
+                    BucketName = awsBucketName
+                };
+
+                var fileTransferUtility = new TransferUtility(client);
+                await fileTransferUtility.UploadAsync(uploadRequest);
+                return true;
             }
         }
     }

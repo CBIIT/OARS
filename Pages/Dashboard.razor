@@ -193,7 +193,7 @@ else
                 helpFileName = configuration.GetValue<string>("System:DashboardHelpURLDefault");
             }
             this.helpFileUrl += helpFileName;
-            this.helpFileUrl = String.Format("javascript:void(window.open('" + this.helpFileUrl + "','_blank'));");
+            this.helpFileUrl = string.Format("javascript:void(window.open('" + this.helpFileUrl + "','_blank'));");
         }
 
         return this.helpFileUrl;

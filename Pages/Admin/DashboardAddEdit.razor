@@ -6,6 +6,7 @@
 @using Microsoft.Extensions.Options;
 @using TheradexPortal.Data.Static;
 @inject IHttpContextAccessor httpContextAccessor
+@inject IConfiguration configuration
 @layout AdminLayout
 
 @page "/admin/dashboard/{dashboardid:int?}"
@@ -20,7 +21,8 @@
         <StepPanel Name="step1">
             <h4>Dashboard Information</h4>
             <Divider />
-                <Div Padding="Padding.Is2" Background="Background.Light">
+            <Div Flex="Flex.AlignItems.Start" Margin="Margin.Is3.FromBottom" Background="Background.Light">
+                <Div Padding="Padding.Is4" Style="@flexContainerStyle">
                     <Field ColumnSize="ColumnSize.Is4">
                         <FieldLabel ColumnSize="ColumnSize.Is12" TextWeight="TextWeight.Bold">Dashboard Name</FieldLabel>
                         <FieldBody ColumnSize="ColumnSize.Is4">
@@ -30,18 +32,33 @@
                     </Field>
                     <Field ColumnSize="ColumnSize.Is6">
                         <FieldLabel ColumnSize="ColumnSize.Is12" TextWeight="TextWeight.Bold">Description</FieldLabel>
-                        <FieldBody ColumnSize="ColumnSize.Is12">
-                                <MemoEdit @bind-Text="@description" MaxLength="250" Rows="3" Placeholder="Dashboard description" />
+                        <FieldBody ColumnSize="ColumnSize.Is4">
+                            <MemoEdit @bind-Text="@description" MaxLength="250" Rows="3" Placeholder="Dashboard description" />
                         </FieldBody>
                     </Field>
                     <Field ColumnSize="ColumnSize.Is4">
                         <FieldLabel ColumnSize="ColumnSize.Is12" TextWeight="TextWeight.Bold">Site Page</FieldLabel>
                         <FieldBody ColumnSize="ColumnSize.Is4">
-                                <TextEdit Placeholder="Page to navigate to" MaxLength="50" @bind-Text="@pageName" />
+                            <TextEdit Placeholder="Page to navigate to" MaxLength="50" @bind-Text="@pageName" />
                         </FieldBody>
                         <FieldHelp>Page to navigate to instead of Power BI Report</FieldHelp>
                     </Field>
                 </Div>
+                <Div Padding="Padding.Is4" Style="@flexContainerStyle">
+                    <Field ColumnSize="ColumnSize.Is4">
+                        <FieldLabel ColumnSize="ColumnSize.Is12" TextWeight="TextWeight.Bold"></FieldLabel>
+                        <FieldBody ColumnSize="ColumnSize.Is4">
+                            <Button Color="Color.Info" Clicked="@OpenDocumentViewer">Preview Help File</Button>
+                        </FieldBody>
+                    </Field>
+                    <Field ColumnSize="ColumnSize.Is4">
+                        <FieldLabel ColumnSize="ColumnSize.Is12" TextWeight="TextWeight.Bold">Help File Upload</FieldLabel>
+                        <FieldBody ColumnSize="ColumnSize.Is4">
+                            <FileEdit @ref="@helpFileEditRef" AutoReset="false" Changed="@OnHelpFileChanged" Filter="@allowedFileExtension" />
+                        </FieldBody>
+                    </Field>
+                </Div>
+            </Div>
         </StepPanel>
         <StepPanel Name="step2">
             <h4>Left Menu Setup</h4>
@@ -281,13 +298,14 @@
         </ModalFooter>
     </ModalContent>
 </Modal>
+<DocumentViewer @ref="@documentViewer" ModalTitle="Help File Preview" DocumentUrl="@helpFileName" />
 @code {
     [Inject] IDashboardService dashboardService { get; set; } = null!;
     [Inject] private NavigationManager navigation {get; set; } = null!;
     [Inject] INotificationService NotificationService { get; set; }
     [Inject] private IPbiEmbedService pbiService { get; set; } = null!;
     [Inject] private IOptions<PowerBI> powerBiConfig { get; set; } = null!;
-      [Inject] IUserService userService { get; set; } = null!;
+    [Inject] IUserService userService { get; set; } = null!;
 
     [Parameter] public int? DashboardId { get; set; }
 
@@ -299,8 +317,14 @@
     IFluentDisplay displaySave = Display.None;
 
     private Modal deleteModalRef;
+    private FileEdit helpFileEditRef;
+    private DocumentViewer documentViewer;
     private string reportToDelete;
+    private string helpFileName;
     private int reportToDeleteId;
+    IFileEntry helpFileEntry;
+    List<string> lstAttachments = new List<string>();
+    string allowedFileExtension = ".pdf, .doc, .docx";
 
     // Step 1 var
     string dashboardName = "";
@@ -340,6 +364,8 @@
     private int filterType = 1;
     private List<PowerBIReport> repList = new List<PowerBIReport>();
     private List<PowerBIReportPage> pageList = new List<PowerBIReportPage>();
+
+    string flexContainerStyle = $"width:50%;";
 
     #region Main Page methods
     protected override async Task OnInitializedAsync()
@@ -401,6 +427,7 @@
         dashboardName = curDashboard.Name;
         description = curDashboard.Description;
         pageName = curDashboard.CustomPagePath;
+        this.helpFileName = curDashboard.HelpFileName;
     }
 
     private Task OnSelectedStepChanged( string name )
@@ -554,7 +581,7 @@
         StateHasChanged();
         reorderContainer.Refresh();
     }
-      private Task HideDeleteModal()
+    private Task HideDeleteModal()
     {
         return deleteModalRef.Hide();
     }
@@ -833,6 +860,47 @@
 
         return Task.CompletedTask;
     }
+
+    private async void OnHelpFileChanged(FileChangedEventArgs e)
+    {
+        if (this.helpFileEntry != null)
+        {
+            try
+            {
+                var fileExtension = Path.GetExtension(helpFileEntry.Name);
+                if (this.allowedFileExtension.IndexOf(fileExtension) >= 0)
+                {
+                    this.helpFileName = this.dashboardName + fileExtension;
+                    using (var stream = new MemoryStream())
+                    {
+                        await this.helpFileEntry.WriteToStreamAsync(stream);
+                        await this.dashboardService.UploadFileToS3(configuration.GetValue<string>("System:DashboardHelpURL"), 
+                            this.helpFileName, configuration.GetValue<string>("AWS:AWSBucketName"), stream);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                //errorLogService.SaveErrorLogAsync(userId, Navigation.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+            }
+        }
+        this.StateHasChanged();
+        await NotificationService.Success("File uploaded successfully");
+    }
+
+    private async void OpenDocumentViewer()
+    {
+        if (this.helpFileName != null && !this.helpFileName.Equals(string.Empty))
+        {
+            this.documentViewer.ShowDocument(configuration.GetValue<string>("System:DashboardHelpURL")
+                + this.helpFileName);
+        }
+        else
+        {
+            await NotificationService.Error("No help file found");
+        }
+    }
+
     #endregion
 
     #region Custom objects

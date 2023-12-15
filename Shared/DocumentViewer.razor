@@ -1,0 +1,40 @@
+﻿<Modal @ref="documentViewerModal">
+    <ModalContent Size="ModalSize.ExtraLarge">
+        <ModalHeader Background="Background.Primary">
+            <ModalTitle TextColor="TextColor.White">@ModalTitle</ModalTitle>
+            <CloseButton TextColor="TextColor.White" />
+        </ModalHeader>
+        <ModalBody>
+            @if(this.DocumentUrl != null && !this.DocumentUrl.Equals(string.Empty))
+            {
+                <embed src="@DocumentUrl" />
+            }
+            else
+            {
+                <Label>File not found.</Label>
+            }
+        </ModalBody>
+    </ModalContent>
+</Modal>
+
+
+@code {
+    [Parameter] public string ModalTitle { get; set; } = "Document Viewer";
+    [Parameter] public string DocumentUrl { get; set; } = string.Empty;
+    private Modal? documentViewerModal;
+
+    public void ShowDocument(string document)
+    {
+        this.DocumentUrl = document;
+        this.showModal();
+    }
+
+    private void showModal()
+    {
+        if (this.DocumentUrl != null && !this.DocumentUrl.Equals(string.Empty))
+        {
+            StateHasChanged();
+            documentViewerModal!.Show();
+        }
+    }
+}

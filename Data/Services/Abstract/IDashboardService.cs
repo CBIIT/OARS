@@ -23,6 +23,6 @@ namespace TheradexPortal.Data.Services.Abstract
         public bool CanDeleteReport(int reportId);
         public bool SaveDashboardOrder(List<int> dashIds, int userId);
         public Task<string> GetDashboardHelpFileName(int dashboardId);
-        public Task UploadFileToS3(string fileName, MemoryStream memoryStream);
+        public Task<bool> UploadFileToS3(string folderName, string fileName, string awsBucketName, MemoryStream memoryStream);
     }
 }
