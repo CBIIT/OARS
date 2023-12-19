@@ -45,17 +45,26 @@
                     </Field>
                 </Div>
                 <Div Padding="Padding.Is4" Style="@flexContainerStyle">
-                    <Field ColumnSize="ColumnSize.Is4">
-                        <FieldLabel ColumnSize="ColumnSize.Is12" TextWeight="TextWeight.Bold"></FieldLabel>
-                        <FieldBody ColumnSize="ColumnSize.Is4">
-                            <Button Color="Color.Info" Clicked="@OpenDocumentViewer">Preview Help File</Button>
-                        </FieldBody>
-                    </Field>
-                    <Field ColumnSize="ColumnSize.Is4">
-                        <FieldLabel ColumnSize="ColumnSize.Is12" TextWeight="TextWeight.Bold">Help File Upload</FieldLabel>
-                        <FieldBody ColumnSize="ColumnSize.Is4">
+                    <Fields>
+                        <Field ColumnSize="ColumnSize.Is6">
+                            <FieldLabel ColumnSize="ColumnSize.Is6" TextWeight="TextWeight.Bold">Current Help File</FieldLabel>
+                            <FieldBody ColumnSize="ColumnSize.Is6">
+                                <Label>@currentHelpFileName</Label>
+                            </FieldBody>
+                        </Field>
+                        <Field ColumnSize="ColumnSize.Is3">
+                            <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">&nbsp;</FieldLabel>
+                            <FieldBody ColumnSize="ColumnSize.Is3">
+                                <Button Color="Color.Info" Clicked="@OpenCurrentHelpFile">Preview</Button>
+                            </FieldBody>
+                        </Field>
+                    </Fields>
+                    <Field ColumnSize="ColumnSize.Is8">
+                        <FieldLabel ColumnSize="ColumnSize.Is8" TextWeight="TextWeight.Bold">Help File Upload</FieldLabel>
+                        <FieldBody ColumnSize="ColumnSize.Is8">
                             <FileEdit @ref="@helpFileEditRef" AutoReset="false" Changed="@OnHelpFileChanged" Filter="@allowedFileExtension" />
                         </FieldBody>
+                        <FieldLabel>Accepted File types: @allowedFileExtension</FieldLabel>
                     </Field>
                 </Div>
             </Div>
@@ -298,7 +307,7 @@
         </ModalFooter>
     </ModalContent>
 </Modal>
-<DocumentViewer @ref="@documentViewer" ModalTitle="Help File Preview" DocumentUrl="@helpFileName" />
+
 @code {
     [Inject] IDashboardService dashboardService { get; set; } = null!;
     [Inject] private NavigationManager navigation {get; set; } = null!;
@@ -318,9 +327,9 @@
 
     private Modal deleteModalRef;
     private FileEdit helpFileEditRef;
-    private DocumentViewer documentViewer;
     private string reportToDelete;
     private string helpFileName;
+    private string currentHelpFileName = "No file found";
     private int reportToDeleteId;
     IFileEntry helpFileEntry;
     List<string> lstAttachments = new List<string>();
@@ -428,6 +437,7 @@
         description = curDashboard.Description;
         pageName = curDashboard.CustomPagePath;
         this.helpFileName = curDashboard.HelpFileName;
+        this.currentHelpFileName = curDashboard.HelpFileName;
     }
 
     private Task OnSelectedStepChanged( string name )
@@ -597,6 +607,7 @@
     private async void Save()
     {
         bool saved = false;
+        var helpFileUploaded = false;
 
         if (!dashboardService.CheckDashboardName(dashboardName, (int)(DashboardId != null ? DashboardId : 0)))
         {
@@ -620,6 +631,7 @@
             saveDashboard.Name = dashboardName;
             saveDashboard.Description = description;
             saveDashboard.CustomPagePath = pageName;
+            saveDashboard.HelpFileName = this.currentHelpFileName;
 
             if (String.IsNullOrEmpty(pageName))
             {
@@ -631,6 +643,20 @@
                     if (report.ReportId < 0)
                         report.ReportId = 0;
                     saveDashboard.Reports.Add(report);
+                }
+            }
+
+            if (this.helpFileEntry != null)
+            {
+                helpFileUploaded = (await this.UploadFileToS3());
+                if (helpFileUploaded)
+                {
+                    await NotificationService.Success("Help File uploaded successfully");
+                    saveDashboard.HelpFileName = this.helpFileName;
+                }
+                else
+                {
+                    await NotificationService.Warning("Help File upload failed");
                 }
             }
 
@@ -863,6 +889,13 @@
 
     private async void OnHelpFileChanged(FileChangedEventArgs e)
     {
+        this.helpFileEntry = e.Files.FirstOrDefault();
+    }
+
+    private async Task<bool> UploadFileToS3()
+    {
+        var uploadedSuccessfully = false;
+
         if (this.helpFileEntry != null)
         {
             try
@@ -874,8 +907,9 @@
                     using (var stream = new MemoryStream())
                     {
                         await this.helpFileEntry.WriteToStreamAsync(stream);
-                        await this.dashboardService.UploadFileToS3(configuration.GetValue<string>("System:DashboardHelpURL"), 
+                        uploadedSuccessfully = await this.dashboardService.UploadFileToS3(configuration.GetValue<string>("System:DashboardHelpFolder"),
                             this.helpFileName, configuration.GetValue<string>("AWS:AWSBucketName"), stream);
+                        return uploadedSuccessfully;
                     }
                 }
             }
@@ -884,16 +918,19 @@
                 //errorLogService.SaveErrorLogAsync(userId, Navigation.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
             }
         }
-        this.StateHasChanged();
-        await NotificationService.Success("File uploaded successfully");
+
+        return false;
     }
 
-    private async void OpenDocumentViewer()
+    private async void OpenCurrentHelpFile()
     {
         if (this.helpFileName != null && !this.helpFileName.Equals(string.Empty))
         {
-            this.documentViewer.ShowDocument(configuration.GetValue<string>("System:DashboardHelpURL")
-                + this.helpFileName);
+            var helpFileUrl = configuration.GetValue<string>("System:DashboardHelpURL");
+            helpFileUrl += this.currentHelpFileName;
+            helpFileUrl = string.Format("javascript:void(window.open('" + helpFileUrl + "','_blank'));");
+
+            navigation.NavigateTo(helpFileUrl);
         }
         else
         {
