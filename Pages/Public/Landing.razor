@@ -102,7 +102,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        this.clearSessionData();
+        this.clearAlertSessionData();
         activeAlerts = await alertService.GetActiveLoginAlertsAsync();
         activeNotes = await alertService.GetActiveLoginNotesAsync();
 
@@ -130,9 +130,9 @@
         return Task.CompletedTask;
     }
 
-    private void clearSessionData()
+    private void clearAlertSessionData()
     {
-        // Clear dismissed alerts from SessionData
         SessionData.SetAsync("dismissedAlerts", string.Empty);
+        SessionData.SetAsync("systemAlertsDropdownDismissed", string.Empty);
     }
 }
