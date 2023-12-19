@@ -24,6 +24,7 @@
 
     [Parameter] public Dashboard? Dashboard { get; set; }
     [Parameter] public Report? Report {get; set; }
+    [Parameter] public bool RefreshReport { get; set; }
     [CascadingParameter] LoadingIndicator loadingIndicator { get; set; } = null!;
 
     private ElementReference pbiElement;
@@ -36,15 +37,19 @@
     {
         base.OnInitialized();
         UpdateFilterActionAsync= LocalChangUpdateFilterValueAsync;
+        RefreshReport = true;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await loadingIndicator.Show();
-        pbiEmbedModule = await js.InvokeAsync<IJSObjectReference>("import", "./js/powerbi-embed-fullreport.js");
-        objRef = DotNetObjectReference.Create(this);
-        await EmbedFullReportJS();
-        await loadingIndicator.Hide();
+        if (RefreshReport)
+        {
+            await loadingIndicator.Show();
+            pbiEmbedModule = await js.InvokeAsync<IJSObjectReference>("import", "./js/powerbi-embed-fullreport.js");
+            objRef = DotNetObjectReference.Create(this);
+            await EmbedFullReportJS();
+            await loadingIndicator.Hide();
+        }
     }
 
     public async Task Update()
