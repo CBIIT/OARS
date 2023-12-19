@@ -70,6 +70,10 @@ else
     private int userId;
     private int previousReport = 0;
 
+    private int? _dashboardId;
+    private int? _reportId;
+    private bool _saveHistory;
+
     private IList<SecondaryNavAction> Actions => new List<SecondaryNavAction>
     {
         new SecondaryNavAction
@@ -88,9 +92,33 @@ else
         }
     };
 
+    protected override void OnInitialized()
+    {
+        if (fullReportRef != null)
+        {
+            _dashboardId = DashboardId;
+            _reportId = ReportId;
+            _saveHistory = true;
+        }
+    }
+
     protected override async Task OnParametersSetAsync()
     {
+        _saveHistory = false;
         notFound = false;
+
+        if (fullReportRef != null)
+        {
+            if (_dashboardId != DashboardId || _reportId != ReportId)
+            {
+                fullReportRef.RefreshReport = true;
+                _dashboardId = DashboardId;
+                _reportId = ReportId;
+                _saveHistory = true;
+            }
+            else
+                fullReportRef.RefreshReport = false;
+        }
 
         // Determine if user has access to requested dashboard & report
         bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(ThorClaimType.IsAdmin, "True");
@@ -98,6 +126,7 @@ else
         string userReports = httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.Reports).Value;
         dashboard = await dashboardService.GetDashboardByIdAsync(DashboardId, userDashboards, isAdmin);
         await PrimaryNavLayout.UpdateDashboard(dashboard);
+        PrimaryNavLayout.DashboardName = dashboard.Name;
         if(dashboard == null && !isAdmin)
         {
             notFound = true;
@@ -117,8 +146,11 @@ else
             }
             navigation.NavigateTo($"{ThorConstants.DASHBOARD_PAGE_PATH}/{dashboard.DashboardId}/{report.ReportId}", new NavigationOptions
             {
-                ReplaceHistoryEntry = true
+                ReplaceHistoryEntry = true,
+                ForceLoad = true
             });
+
+            _saveHistory = false;
         }
         else
         {
@@ -130,6 +162,11 @@ else
             }
         }
 
+        if (String.IsNullOrEmpty(report.SubMenuName))
+            PrimaryNavLayout.ReportName = report.Name;
+        else
+            PrimaryNavLayout.ReportName = report.Name + "-" + report.SubMenuName;
+
         // Check if at least one study has been selected by the user
         string currentStudies = studyService.GetCurrentStudiesForUser(userId);
 
@@ -138,19 +175,17 @@ else
         else
         {
             // First navigation to Dashboard creates a duplicate record.
-            if (report.ReportId != previousReport)
+            if (_saveHistory && report.ReportId != 0)
             {
                 userService.SaveActivityLog(userId, ThorActivityType.Navigation, dashboard.Name, report.Name + ((String.IsNullOrEmpty(report.SubMenuName)) ? "" : "-" + report.SubMenuName));
                 previousReport = report.ReportId;
+                _saveHistory = false;
             }
         }
     }
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-        }
-    }
+    //protected override async Task OnAfterRenderAsync(bool firstRender)
+    //{
+    //}
 
     //// Re-render report components and hide modal
     //private async void HideFilters(List<Protocol>? selectedStudies)

@@ -11,46 +11,64 @@
         <tr bgcolor="#f0f0f0"><td>
             <table bgcolor="#ffffff" style="width: 100%; line-height: 20px; padding: 16px; border: 1px solid; border-color: #f0f0f0;" cellpadding="0">
                 <tr>
-                    <td style="color: #5e5e5e; font-size: 22px; line-height: 22px;">
-                        Welcome to [[SystemAcronym]]
+                    <td colspan="2" style="padding-top: 10px; vertical-align: bottom;">
+                        Hello Support,
                     </td>
                 </tr>
                 <tr>
-                    <td style="padding-top: 10px; vertical-align: bottom;">
-                        Hi [[FullName]],
-                    </td>
-                </tr>
-                <tr>
-                    <td style="padding-top: 10px">
-                        Your user account for [[SystemShortName]] has been created.
+                    <td colspan="2" style="padding-top: 10px">
+                        A support request has been created in [[System]].
                     </td>
                 </tr>
                 <tr>
                     <td style="padding-top: 10px">
-                        Theradex is using Okta to manage our web application security.  This means that you can conveniently access our applications through a single, secure user account.
+                        Subject:
+                    </td>
+                    <td style="padding-top: 10px">
+                        [[Subject]]
                     </td>
                 </tr>  
-                <tr>
+				 <tr>
                     <td style="padding-top: 10px;">
-                        <strong>You already have an active Okta account.  Please use your username and the link below to login.</strong>
+                        Category: 
                     </td>
-                </tr>
-                <tr>
-                    <td style="padding-top: 10px;">
-                        Your username is <strong>[[Email]]</strong><br/>
-                    </td>
-                </tr>
-                <tr>
                     <td style="padding-top: 10px">
-                        <a href="[[URL]]">[[URL]]</a><br><br>
-                        It may be helpful to add this link to your browser favorites.
-                    </td>
-                </tr>                                                                                                   
-                <tr>
-                    <td style="padding-top: 10px;">
-                        If you experience difficulties accessing your account, you can send a help request to our support team at: <a href="mailto:[[SupportEmail]]" style="color: #007dc1; text-decoration: none;"><span style="color: #007dc1; text-decoration: none;">[[SupportEmail]]</span></a>
+                        [[Category]]
                     </td>
                 </tr>
+                <tr>
+                    <td style="padding-top: 10px;">
+                        Description: 
+                    </td>
+                    <td style="padding-top: 10px">
+                        [[Description]]
+                    </td>
+                </tr>               
+                <tr>
+                    <td style="padding-top: 10px;">
+                        Reported By:
+                    </td>
+                    <td style="padding-top: 10px">
+                        [[Username]]
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding-top: 10px;">
+                        Reported On:
+                    </td>
+                    <td style="padding-top: 10px">
+                        [[DateTime]]
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding-top: 10px;">
+                        Location:
+                    </td>
+                    <td style="padding-top: 10px">
+                        [[Location]]
+                    </td>
+                </tr>
+		[[UnattachedFiles]]
             </table>
         </td></tr>
         <tr>

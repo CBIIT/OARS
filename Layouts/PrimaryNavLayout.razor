@@ -168,7 +168,7 @@
                     <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Attach File</FieldLabel>
                     <FieldLabel>Accepted File Types: PDF, DOC/DOCX, ODT, RTF, TXT, CSV, JPG/JPEG, PNG, GIF, BMP, TIFF and XLS/XLSX</FieldLabel>
                     <Validation Validator="@ValidateFileExtension">
-                        <FileEdit @ref="@fileEditRef" AutoReset="false" Changed="@OnChanged" 
+                        <FileEdit @ref="@fileEditRef" AutoReset="false" Changed="@OnChanged" MaxFileSize="4194304"
                             Filter=".jpeg, .jpg, .gif, .pdf, .pdc, .docx, .odt, .rtf, .txt, .csv, .png, .bmp, .tiff, .xls, .xlsx">                          
                             <Feedback>
                                 <ValidationError>Wrong File Type</ValidationError>                                  
@@ -193,6 +193,9 @@
     private AlertBar? dashboardAlerts;
     private BarDropdown? alertBarDropDown;
     private BarDropdown? noteBarDropDown;
+    public string DashboardName { get; set; }
+    public string ReportName { get; set; }
+
     [Inject] public NavigationManager Navigation { get; set; }
     [Inject] private IUserService userService { get; set; } = null!;
     [Inject] private IAlertService alertService { get; set; } = null!;
@@ -248,9 +251,9 @@
     {
         environment = configuration.GetValue<string>("System:Environment");
         if (environment != "Prod")
-            environment = "NCI-Theradex Oncology Reporting-" + environment;
+            environment = "NCI Theradex Oncology Reporting-" + environment;
         else
-            environment = "NCI-Theradex Oncology Reporting";
+            environment = "NCI Theradex Oncology Reporting";
 
         // Display or Hide Admin button
         bool isAdmin = Convert.ToBoolean(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.IsAdmin).Value);
@@ -428,11 +431,15 @@
 
     private async void SendContactUsEmail()
     {
+        bool uploadResult = true;
+        bool s3TagResult = true;
+        List<string> unattachedFiles = new List<string>();
+
         if (await validations.ValidateAll())
         {
             emailTo = string.Empty;
             emailCategory = string.Empty;
-            string siteName = "Theradex Oncology Reporting-" + configuration.GetValue<string>("System:Environment");
+            string siteName = "NCI Theradex Oncology Reporting-" + configuration.GetValue<string>("System:Environment");
             string baseURL = Navigation.BaseUri;
             string color = configuration.GetValue<string>("System:SystemColor");
             string dateTime = DateTime.Now.ToString("d-MMM-yyyy hh:mm tt");
@@ -469,18 +476,18 @@
                         using (var stream = new MemoryStream())
                         {
                             await selectedFile.WriteToStreamAsync(stream);
-                            bool uplodateResult =  await emailService.UploadFileToS3(uploadFileName, stream);
-                            if (!uplodateResult)
-                            {
-                                await notificationService.Error("An error occured during uploading the attachment file.");
-                                return;
-                            }
+                            uploadResult = await emailService.UploadFileToS3(uploadFileName, stream);
+                            //if (!uploadResult)
+                            //{
+                            //    unattachedFiles.Add(selectedFile.Name);
+                            //    lstAttachments.Remove(uploadFileName);
+                            //}
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    errorLogService.SaveErrorLogAsync(userId, Navigation.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+                    await errorLogService.SaveErrorLogAsync(userId, Navigation.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
                 }
             }
 
@@ -491,26 +498,35 @@
             contactUsLog.CategoryID = Convert.ToInt32(contactUsCategoryID);
             contactUsLog.UserID = userId;
             contactUsLog.AttachmentName = uploadFileName;
+            //if (string.IsNullOrEmpty(DashboardName))
+            if (!Navigation.Uri.Contains("dashboard"))
+                contactUsLog.Location = Navigation.ToBaseRelativePath(Navigation.Uri);
+            else
+                contactUsLog.Location = "dashboard/" + DashboardName + "/" + ReportName;
 
             contactUsCategoryService.SaveContactUs(userId, contactUsLog);
 
-            Tuple<bool, string> uploadResult = await emailService.CheckS3FileTag(uploadFileName);
-            if (!uploadResult.Item1)
+            if (selectedFile != null)
             {
-                await notificationService.Error(uploadResult.Item2);
-                return;
+                s3TagResult = await emailService.CheckS3FileTag(uploadFileName);
+                if (!s3TagResult)
+                {
+                    unattachedFiles.Add(selectedFile.Name);
+                    lstAttachments.Remove(uploadFileName);
+                }
             }
+
             bool sendEmailResult = await emailService.SendContactUsEmail(siteName, baseURL, color, emailTo, emailTitle, emailCategory, emailDescription,
-                userName, dateTime, lstAttachments);
+                userName, dateTime, contactUsLog.Location, lstAttachments, unattachedFiles);
             if (sendEmailResult)
             {
                 await notificationService.Success("An email to support has been sent.");
             }
             else
             {
-                await notificationService.Error("An error occured during sending the email to support.");
-
+                await notificationService.Error("Error sending the email to support.");
             }
+
             cancelClose = false;
             modalContactUs.Hide();
         }

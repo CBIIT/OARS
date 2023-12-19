@@ -192,13 +192,18 @@
         bool emailSuccess = true;
         bool oktaSuccess = true;
 
+        string initialSite = "NCI Theradex Oncology Reporting-" + configuration.GetValue<string>("System:Environment");
+        string siteAcronym = "NCI <SPAN style='color:orange;'>Th</SPAN>eradex <SPAN style='color:orange;'>O</SPAN>ncology <SPAN style='color:orange'>R</SPAN>eporting-" + configuration.GetValue<string>("System:Environment");
+
         Tuple<bool, string> oktaResults = await oktaService.GetUserStatus(u.EmailAddress);
         if (oktaResults.Item1)
         {
             if (oktaResults.Item2 == "ACTIVE")
             {
                 emailSuccess = await emailService.SendNewSystemEmail(
-                    "Theradex Oncology Reporting-" + configuration.GetValue<string>("System:Environment"),
+                    initialSite,
+                    siteAcronym,
+                    "NCI-THOR",
                     navigation.BaseUri,
                     configuration.GetValue<string>("System:SystemColor"),
                     u);
@@ -216,7 +221,9 @@
 
                 string activationLink = oktaResults.Item2;
                 emailSuccess = await emailService.SendNewUserEmail(
-                    "Theradex Oncology Reporting-" + configuration.GetValue<string>("System:Environment"),
+                    initialSite,
+                    siteAcronym,
+                    "NCI-THOR",
                     navigation.BaseUri, 
                     configuration.GetValue<string>("System:SystemColor"), 
                     u, 
@@ -235,7 +242,9 @@
 
                 string activationLink = oktaResults.Item2;
                 emailSuccess = await emailService.SendNewUserEmail(
-                    "Theradex Oncology Reporting-" + configuration.GetValue<string>("System:Environment"),
+                    initialSite,
+                    siteAcronym,
+                    "NCI-THOR",
                     navigation.BaseUri, 
                     configuration.GetValue<string>("System:SystemColor"), 
                     u, 

@@ -1050,7 +1050,8 @@
             if (UserId == null)
             {
                 string baseURL = navigation.BaseUri;
-                string initialSite = "Theradex Oncology Reporting-" + configuration.GetValue<string>("System:Environment");
+                string initialSite = "NCI Theradex Oncology Reporting-" + configuration.GetValue<string>("System:Environment");
+                string siteAcronym = "NCI <SPAN style='color:orange;'>Th</SPAN>eradex <SPAN style='color:orange;'>O</SPAN>ncology <SPAN style='color:orange'>R</SPAN>eporting-" + configuration.GetValue<string>("System:Environment");
                 bool isProd = !initialSite.Contains('-');
 
                 // Determine if user exists in OKTA (OKTA is for multi-applications (I.e.  THOR, IWRS, etc) & environments (i.e.  DEV, UAT, etc)
@@ -1067,7 +1068,7 @@
                     if (oktaSuccess)
                     {
                         if (isActive)
-                            emailSuccess = await emailService.SendNewSystemEmail("Theradex Oncology Reporting-" + configuration.GetValue<string>("System:Environment"), navigation.BaseUri, configuration.GetValue<string>("System:SystemColor"), saveUser);
+                            emailSuccess = await emailService.SendNewSystemEmail(initialSite, siteAcronym, "NCI-THOR", navigation.BaseUri, configuration.GetValue<string>("System:SystemColor"), saveUser);
                     }
                 }
                 else if (!oktaResults.Item1 && oktaResults.Item2 == "")
@@ -1090,7 +1091,8 @@
                         if (isActive)
                         {
                             string activationLink = oktaResults.Item2;
-                            emailSuccess = await emailService.SendNewUserEmail("Theradex Oncology Reporting-" + configuration.GetValue<string>("System:Environment"), navigation.BaseUri, configuration.GetValue<string>("System:SystemColor"), saveUser, activationLink);
+
+                            emailSuccess = await emailService.SendNewUserEmail(initialSite, siteAcronym, "NCI-THOR", navigation.BaseUri, configuration.GetValue<string>("System:SystemColor"), saveUser, activationLink);
                         }
                      }
                 }

@@ -27,7 +27,7 @@ namespace TheradexPortal.Data.Models
         public DateTime CreateDate { get; set; }
         public int? UserID { get; set; }
         public string AttachmentName { get; set; }
-
+        public string Location { get; set; }
     }
 
     public class ContactUsCategorySelectItemList

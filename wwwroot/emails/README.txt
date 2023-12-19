@@ -1,0 +1,1 @@
+﻿Email files are located in the S3 bucket specified by the appsettings for AWSBucketName and EmailTemplate settings in the EmailSettings category.

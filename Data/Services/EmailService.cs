@@ -42,7 +42,7 @@ namespace TheradexPortal.Data.Services
             this.webHostEnvironment = webHostEnvironment;
         }
 
-        public async Task<bool> SendNewUserEmail(string siteName, string baseURL, string primaryColor, TheradexPortal.Data.Models.User curUser, string activationLink)
+        public async Task<bool> SendNewUserEmail(string siteName, string siteAcronym, string siteNameShort, string baseURL, string primaryColor, TheradexPortal.Data.Models.User curUser, string activationLink)
         {
             try
             {
@@ -57,6 +57,7 @@ namespace TheradexPortal.Data.Services
                     {
                         emailTemplate = "{0}/NewCTEPUser.txt";
                     }
+
                     GetObjectResponse response = await s3Client.GetObjectAsync(emailSettings.Value.AWSBucketName, string.Format(emailTemplate, emailSettings.Value.EmailTemplate));
 
                     using (Stream responseStream = response.ResponseStream)
@@ -69,6 +70,8 @@ namespace TheradexPortal.Data.Services
                         // Populate the specific fields
                         emailText = emailText.Replace("[[Color]]", primaryColor);
                         emailText = emailText.Replace("[[System]]", siteName);
+                        emailText = emailText.Replace("[[SystemAcronym]]", siteAcronym);
+                        emailText = emailText.Replace("[[SystemShortName]]", siteNameShort);
                         emailText = emailText.Replace("[[ActivationLink]]", activationLink);
                         emailText = emailText.Replace("[[URL]]", baseURL);
                         emailText = emailText.Replace("[[FullName]]", curUser.FirstName + " " + curUser.LastName);
@@ -89,7 +92,7 @@ namespace TheradexPortal.Data.Services
             }
         }
 
-        public async Task<bool> SendNewSystemEmail(string siteName, string baseURL, string primaryColor, TheradexPortal.Data.Models.User curUser)
+        public async Task<bool> SendNewSystemEmail(string siteName, string siteAcronym, string siteNameShort, string baseURL, string primaryColor, TheradexPortal.Data.Models.User curUser)
         {
             try
             {
@@ -115,6 +118,8 @@ namespace TheradexPortal.Data.Services
                         // Populate the specific fields
                         emailText = emailText.Replace("[[Color]]", primaryColor);
                         emailText = emailText.Replace("[[System]]", siteName);
+                        emailText = emailText.Replace("[[SystemAcronym]]", siteAcronym);
+                        emailText = emailText.Replace("[[SystemShortName]]", siteNameShort);
                         emailText = emailText.Replace("[[URL]]", baseURL);
                         emailText = emailText.Replace("[[FullName]]", curUser.FirstName + " " + curUser.LastName);
                         emailText = emailText.Replace("[[Email]]", curUser.EmailAddress);
@@ -135,7 +140,7 @@ namespace TheradexPortal.Data.Services
         }
 
         public async Task<bool> SendContactUsEmail(string siteName, string baseURL, string primaryColor, string emailTo, string subject, string category
-         , string description, string userName, string dateTime, List<string> lstAttachments)
+         , string description, string userName, string dateTime, string location, List<string> lstAttachments, List<string> unattachedFiles)
         {
             try
             {
@@ -158,6 +163,21 @@ namespace TheradexPortal.Data.Services
                         emailText = emailText.Replace("[[Category]]", category);
                         emailText = emailText.Replace("[[Description]]", description);
                         emailText = emailText.Replace("[[DateTime]]", dateTime);
+                        emailText = emailText.Replace("[[Location]]", location);
+
+                        if (unattachedFiles.Count > 0)
+                        {
+                            string fileList = "";
+                            foreach (string fileName in unattachedFiles)
+                            {
+                                fileList = fileList + fileName + ", ";
+                            }
+                            fileList = fileList.TrimEnd();
+                            fileList = fileList.TrimEnd(',');
+                            emailText = emailText.Replace("[[UnattachedFiles]]", "<tr><td colspan='2' style='padding-top:10px'>The following file(s) could not be attached : " + fileList + "</td></tr>");
+                        }
+                        else
+                            emailText = emailText.Replace("[[UnattachedFiles]]", "");
 
                         return await SendEmail(new List<string> { emailTo }, null, null, subject, emailText, lstAttachments);
                     }
@@ -287,25 +307,31 @@ namespace TheradexPortal.Data.Services
 
         public async Task<bool> UploadFileToS3(string fileName, MemoryStream memoryStream)
         {
-            string fileKey = string.Format("{0}/{1}", emailSettings.Value.UploadFolder, fileName);
-            string bucket = emailSettings.Value.AWSBucketName;
-            using (var client = new AmazonS3Client(RegionEndpoint.USEast1))
+            try
             {
-                var uploadRequest = new TransferUtilityUploadRequest
+                string fileKey = string.Format("{0}/{1}", emailSettings.Value.UploadFolder, fileName);
+                string bucket = emailSettings.Value.AWSBucketName;
+                using (var client = new AmazonS3Client(RegionEndpoint.USEast1))
                 {
-                    InputStream = memoryStream,
-                    Key = fileKey,
-                    BucketName = bucket
-                };
+                    var uploadRequest = new TransferUtilityUploadRequest
+                    {
+                        InputStream = memoryStream,
+                        Key = fileKey,
+                        BucketName = bucket
+                    };
 
-                var fileTransferUtility = new TransferUtility(client);
-                await fileTransferUtility.UploadAsync(uploadRequest);
-                return true;
+                    var fileTransferUtility = new TransferUtility(client);
+                    await fileTransferUtility.UploadAsync(uploadRequest);
+                    return true;
+                }
             }
-            return false;
+            catch (Exception ex) {
+                logger.LogInformation("Email Attachment Error - Uploading to S3 : " + ex.Message);
+                return false;
+            }
         }
 
-        public async Task<Tuple<bool, string>> CheckS3FileTag(string fileName)
+        public async Task<bool> CheckS3FileTag(string fileName)
         {
             string fileKey = string.Format("{0}/{1}", emailSettings.Value.UploadFolder, fileName);
             string bucket = emailSettings.Value.AWSBucketName;
@@ -337,19 +363,19 @@ namespace TheradexPortal.Data.Services
                         errorMessage = "The attachment file doesn't pass the anti virus scanning.";
                     }
                     */
-                    return new Tuple<bool, string>(true, "");
+                    return true;
                 }
                 else
                 {
-                    return new Tuple<bool, string>(false, "The attachment file is not available.");
+                    logger.LogInformation("Email Attachment Error - : S3 File tag failed");
+                    return false;
                 }
             }
             catch (Exception AttachmentEx)
             {
                 logger.LogInformation("Email Attachment Error : " + AttachmentEx.Message);
-                return new Tuple<bool, string>(false, "The attachment file is not available.");
+                return false;
             }
-
         }
     }
 
