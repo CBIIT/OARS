@@ -27,17 +27,25 @@
     <Field>
         <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Admin Type</FieldLabel>
         <FieldBody ColumnSize="ColumnSize.Is4" Margin="Margin.IsAuto">
-            <Select TValue="int" SelectedValue="@adminType" SelectedValueChanged="@OnAdminTypeChanged">
-                <SelectItem Value="0">None</SelectItem>
-                <SelectItem Value="1">Super</SelectItem>
-                <SelectItem Value="2">Content</SelectItem>
-            </Select>
+            <Validations>
+                <Validation Validator="@ValidateSecondaryAdmin">
+                    <Select TValue="int" SelectedValue="@adminType" SelectedValueChanged="@OnAdminTypeChanged">
+                        <SelectItem Value="0">None</SelectItem>
+                        <SelectItem Value="1">Super</SelectItem>
+                        <SelectItem Value="2">Content</SelectItem>
+                    </Select>
+                </Validation>
+            </Validations>
         </FieldBody>
     </Field>
     <Field>
         <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Is Primary Role</FieldLabel>
         <FieldBody ColumnSize="ColumnSize.Is3">
-            <Switch TValue="bool" @bind-Checked="@isPrimary"></Switch>
+            <Validations>
+                <Validation Validator="@ValidateSecondaryAdmin">
+                    <Switch TValue="bool" @bind-Checked="@isPrimary"></Switch>
+                </Validation>
+            </Validations>
         </FieldBody>
     </Field>
 </Fields>
@@ -67,7 +75,7 @@
         <Button Color="Color.Primary" Type="ButtonType.Submit" PreventDefaultOnSubmit Clicked="@Save">Save Role</Button>
     </Div>
 </Field>
-@code {
+ @code {
     [Inject] IUserRoleService roleService { get; set; } = null!;
     [Inject] IStudyService studyService { get; set; } = null!;
     [Inject] IDashboardService dashboardService { get; set; } = null;
@@ -208,6 +216,13 @@
                 await NotificationService.Error( "Role Name already exists.");
                 return;
             }
+
+            if (isAdmin() && isSecondaryRole())
+            {
+                await NotificationService.Error("Secondary Roles cannot be an Admin Type");
+                return;
+            }
+
             Role saveRole = new Role();
             if (RoleId != null)
                 saveRole.RoleId = (int)RoleId;
@@ -227,7 +242,7 @@
             }
             saveRole.IsPrimary = isPrimary;
             // Iterate through selected nodes to create RoleDashboard and RoleReport records (only for non-admins)
-            if (adminType == 0)
+            if (!isAdmin())
             {
                 foreach (DashOrRepNode dashOrRep in selectedNodes)
                 {
@@ -267,5 +282,27 @@
     private void Cancel()
     {
         navigation.NavigateTo("/admin/roles");
+    }
+
+    private bool isAdmin()
+    {
+        return this.adminType > 0;
+    }
+
+    private bool isSecondaryRole()
+    {
+        return !this.isPrimary;
+    }
+
+    private void ValidateSecondaryAdmin(ValidatorEventArgs e)
+    {
+        if (isAdmin() && isSecondaryRole())
+        {
+            e.Status = ValidationStatus.Error;
+        }
+        else
+        {
+            e.Status = ValidationStatus.Success;
+        }
     }
 }
