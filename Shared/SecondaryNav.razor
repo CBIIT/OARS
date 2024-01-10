@@ -1,6 +1,10 @@
-﻿@using TheradexPortal.Data.Models;
+﻿@inject IHttpContextAccessor httpContextAccessor
+@using TheradexPortal.Data.Models;
 @using TheradexPortal.Data.ViewModels;
 @using TheradexPortal.Data;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+
 <Div Class="nci-secondary-nav">
 <Bar Mode="BarMode.VerticalInline"
     CollapseMode="BarCollapseMode.Small"
@@ -54,6 +58,10 @@
                 {
                     <BarItem>
                         <BarLink To="@GetReportLink(curReport)" Target="@GetReportTarget(curReport)">
+                                @if (IsReportFavorite(curReport))
+                                {
+                                    <BarIcon IconName=IconName.Star />
+                                }
                             <BarIcon IconName="@GetReportIcon(curReport)" />
                             @curReport.Name
                         </BarLink>
@@ -66,6 +74,10 @@
                     <BarItem>
                         <BarDropdown>
                             <BarDropdownToggle>
+                                    @if (IsReportFavorite(curReport))
+                                    {
+                                        <BarIcon IconName=IconName.Star />
+                                    }
                                 <BarIcon IconName=@GetReportIcon(curReport) />
                                 @curReport.Name
                             </BarDropdownToggle>
@@ -83,8 +95,10 @@
 </Div>
 
 @code {
+    [Inject] private IUserService userService { get; set; } = null!;
     [Parameter] public IList<SecondaryNavAction> Actions { get; set; } = new List<SecondaryNavAction>();
     [Parameter] public IList<Report> Reports { get; set; } = new List<Report>();
+    
 
     private bool IsVisible = true;
     private string defaultIcon = "fa-columns"; // https://blazorise.com/docs/extensions/icons-available
@@ -118,6 +132,12 @@
     protected string GetReportIcon(Report report)
     {
         return report.DisplayIconName ?? "defaultIcon";
+    }
+
+    protected bool IsReportFavorite(Report report)
+    {
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+        return userService.IsReportFavorite(userId, report.ReportId);
     }
 
     protected Target GetReportTarget(Report report)

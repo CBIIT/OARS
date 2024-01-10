@@ -1,4 +1,5 @@
-﻿@using TheradexPortal.Data.Models;
+﻿@inject IHttpContextAccessor httpContextAccessor
+@using TheradexPortal.Data.Models;
 @using TheradexPortal.Data.ViewModels;
 @using TheradexPortal.Data;
 @using TheradexPortal.Data.Services.Abstract;
@@ -10,6 +11,10 @@
     {
         <BarDropdownItem Style="padding:0px 0px 0px 0px; margin:0px 0px 0px 0px;">
             <BarLink To="@GetReportLink(report)" Class="tertiary-bar-link" Target="@GetReportTarget(report)">
+                @if (IsReportFavorite(report))
+                {
+                    <BarIcon IconName=IconName.Star />
+                }
                 <BarIcon IconName="@GetReportIcon(report)" Class="tertiary-bar-icon" />
                 @report.SubMenuName
             </BarLink>
@@ -19,6 +24,7 @@
 
 @code {
     //[Parameter] public IList<Report> Reports { get; set; } = new List<Report>();
+    [Inject] private IUserService userService { get; set; } = null!;
     [Parameter] public int DashboardId { get; set; } = 0;
     [Parameter] public string Level2Name { get; set; } = "";
 
@@ -56,5 +62,11 @@
     protected string GetReportIcon(Report report)
     {
         return report.DisplayIconName ?? "defaultIcon";
+    }
+
+    protected bool IsReportFavorite(Report report)
+    {
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+        return userService.IsReportFavorite(userId, report.ReportId);
     }
 }

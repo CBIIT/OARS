@@ -18,7 +18,21 @@
         }
     </BarLink>
 </BarItem>
-
+@if(favoriteItems.Count > 0)
+{
+<BarItem>
+    <BarLink Match="Match.Prefix" To="/myfavorites">
+        @if (RenderButtons)
+        {
+            <Button Color="Color.Primary" TextWeight="TextWeight.Bold" Outline Class="text-nowrap">My Favorites</Button>
+        }
+        else
+        {
+            <Span>My Favorites</Span>
+        }
+    </BarLink>
+</BarItem>
+}
 @foreach(var dashboard in dashboards)
 {
     <BarItem>
@@ -38,8 +52,9 @@
 @code {
     [Parameter] public bool RenderButtons { get; set; } = false;
     [Inject] private IDashboardService dashboardService { get; set; } = null!;
-
+    [Inject] private IUserService userService { get; set; } = null!;
     private IList<Dashboard> dashboards = new List<Dashboard>();
+    public IList<FavoriteReportItem> favoriteItems { get; set; } = new List<FavoriteReportItem>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -47,6 +62,7 @@
         int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
 
         dashboards = await dashboardService.GetDashboardsForUserAsync(userId, isAdmin);
+        favoriteItems = userService.GetUserFavoriteList(userId, isAdmin);
         Console.WriteLine(dashboards);
     }
 

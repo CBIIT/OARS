@@ -162,6 +162,7 @@ namespace TheradexPortal.Data
         public DbSet<ContactUs> ContactUs { get; set; }
         public DbSet<ErrorLog> ErrorLog { get; set; }
         public DbSet<Audit> Audit { get; set; }
+        public DbSet<UserFavorite> User_Favorite { get; set; }
     }
 
 }

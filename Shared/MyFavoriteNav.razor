@@ -1,0 +1,272 @@
+﻿@inject IHttpContextAccessor httpContextAccessor
+
+@using TheradexPortal.Data;
+@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.PowerBI.Abstract;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.ViewModels;
+@using TheradexPortal.Data.Static;
+
+<Div Class="nci-secondary-nav">
+<Bar Mode="BarMode.VerticalInline"
+    CollapseMode="BarCollapseMode.Small"
+    ThemeContrast="ThemeContrast.Light"
+    @bind-Visible=IsVisible
+    Background="Background.Light">
+    <BarMenu>
+        <BarStart>
+            <BarItem>
+                <BarLink @onclick="ToggleNavbar">
+                    <BarIcon IconName="@(IsVisible ? IconName.ArrowLeft : IconName.ArrowRight)" />
+                    Hide
+                </BarLink>
+            </BarItem>
+            @if (Actions.Count > 0)
+                {
+                    <Divider Class="my-0" />
+                }
+                @foreach (var action in Actions)
+                {
+                    @if (action.ShowAction)
+                    {
+                        <BarItem Background="Background.White">
+                            @if (action.To != null)
+                            {
+                                <BarLink To="@action.To">
+                                    <BarIcon IconName="action.IconName" />
+                                    @action.Label
+                                </BarLink>
+                            }
+                            else
+                            {
+                                <BarLink @onclick="() => HandleActionClick(action)">
+                                    <BarIcon IconName="action.IconName" />
+                                    @action.Label
+                                </BarLink>
+                            }
+                        </BarItem>
+                    }
+                }
+
+
+                @if (FavoriteItems.Count > 0)
+            {
+                <Divider Class="my-0" />
+            }
+
+            @foreach (FavoriteReportItem curFavorite in FavoriteItems)
+            {
+                var reportCount = Level2Reports(curFavorite);
+                var curReports = curFavorite.ReportList.OrderBy(r=> r.DisplayOrder).ToList();
+                @if (reportCount == 0)
+                {
+                    <BarItem>
+                        <BarLink To="@GetDashBoardLink(curFavorite)" Target="@GetDashboardTarget(curFavorite)">
+                        <BarIcon IconName="@GetDashboardIcon(curFavorite)" />
+                        @curFavorite.DisplayName  
+                        </BarLink>
+                    </BarItem>
+                }
+                else
+                {
+                    <BarItem>
+                        <BarDropdown>                          
+                                <BarDropdownToggle>
+                                <BarIcon IconName=@GetDashboardIcon(curFavorite) />
+                                @curFavorite.DisplayName                             
+                                </BarDropdownToggle>                           
+                            <BarDropdownMenu>
+                                    @for (int x = 0; x < curReports.Count(); x = x)
+                                    {
+                                        var curReport = curReports[x];
+                                        var L2reportCount = Level3Reports(curReport, curReports);
+
+                                        @if(L2reportCount == 1)
+                                        {
+                                            <BarItem Style="margin-left: 15px;">
+                                                <BarLink To="@GetReportLink(curReport, curFavorite)" Target="@GetReportTarget(curReport)">
+                                                    <BarIcon IconName=@GetReportIcon(curReport) />
+                                                @curReport.Name
+                                                </BarLink>
+                                            </BarItem>
+                                        }
+                                        else
+                                        {
+                                            var startingIndex = x;
+                                            var subReportCount = L2reportCount;
+                                            var tiertiaryList = GetTertiaryReports(curReports, curReport.Name);
+                                            <BarItem>
+                                                <BarDropdown>
+                                                    <BarDropdownToggle Style="margin-left: -5px;">
+                                                        <BarIcon IconName=@GetReportIcon(curReport) />
+                                                        @curReport.Name
+                                                    </BarDropdownToggle>
+                                                    <BarDropdownMenu Style="margin-left: -35px;">
+                                                        @foreach(Report subReport in tiertiaryList)
+                                                        {
+                                                            <BarDropdownItem Style="padding:0px 0px 0px 0px; margin:0px 65px 0px 0px;">
+                                                                <BarLink To="@GetReportLink(subReport, curFavorite)" Class="tertiary-bar-link" Target="@GetReportTarget(subReport)">
+                                                                    <BarIcon IconName="@GetReportIcon(subReport)" Class="tertiary-bar-icon" />
+                                                                @subReport.SubMenuName
+                                                                </BarLink>
+                                                            </BarDropdownItem>
+                                                        }
+                                                    </BarDropdownMenu>
+                                                </BarDropdown>
+                                            </BarItem>
+                                        }
+                                        x = x + L2reportCount;
+                                    }
+                            </BarDropdownMenu>
+                        </BarDropdown>
+                    </BarItem>                
+                }
+            }
+        </BarStart>
+    </BarMenu>
+</Bar>
+</Div>
+
+@code {
+    [Parameter] public IList<SecondaryNavAction> Actions { get; set; } = new List<SecondaryNavAction>();
+    public IList<FavoriteReportItem> FavoriteItems { get; set; } = new List<FavoriteReportItem>();
+    [Inject] private IUserService userService { get; set; } = null!;
+    [Inject] private IDashboardService dashboardService { get; set; } = null!;
+    public IList<Report> Reports { get; set; } = new List<Report>();
+
+    private bool IsVisible = true;
+    private string defaultIcon = "fa-columns";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(ThorClaimType.IsAdmin, "True");
+        FavoriteItems = userService.GetUserFavoriteList(userId, isAdmin);
+    }
+
+    protected void ToggleNavbar()
+    {
+        IsVisible = !IsVisible;
+    }
+
+    protected void HandleActionClick(SecondaryNavAction action)
+    {
+        if(action.OnClick != null)
+        {
+            action.OnClick.Invoke();
+        }
+    }
+
+    protected string GetDashboardIcon(FavoriteReportItem favoriteItem)
+    {
+        return defaultIcon;
+    }
+
+    protected string GetDashBoardLink(FavoriteReportItem favoriteItem)
+    {
+        int dashBoardId = Convert.ToInt32(favoriteItem.DashboardId);
+        if(favoriteItem.ReportList != null && favoriteItem.ReportList.Count > 0)
+        {
+            Report firstReport = favoriteItem.ReportList.OrderBy(r => r.DisplayOrder).ToList().FirstOrDefault();
+            int index = favoriteItem.ReportList.IndexOf(firstReport);
+            int ufId = 0;
+            if (index >= 0 && index < favoriteItem.UserFavoriteIdList.Count)
+            {
+                ufId = favoriteItem.UserFavoriteIdList[index];
+            }
+            if (firstReport != null)
+            {
+                if (firstReport.CustomPagePath != null)
+                {
+                    return $"{firstReport.CustomPagePath}/{firstReport.DashboardId}/{firstReport.ReportId}";
+                    //return report.CustomPagePath;
+                }
+                else
+                {
+                    return $"{ThorConstants.FAVORITE_PAGE_PATH}/{ufId}/{firstReport.DashboardId}/{firstReport.ReportId}";
+                }
+
+            }
+        }
+        return "";
+    }
+
+    protected Target GetDashboardTarget(FavoriteReportItem favoriteItem)
+    {
+        int dashBoardId = Convert.ToInt32(favoriteItem.DashboardId);
+        if (favoriteItem.ReportList != null && favoriteItem.ReportList.Count > 0)
+        {
+            Report firstReport = favoriteItem.ReportList.OrderBy(r => r.DisplayOrder).ToList().FirstOrDefault();
+            if (firstReport != null)
+            {
+                if (!String.IsNullOrEmpty(firstReport.CustomPagePath) && firstReport.CustomPagePath.StartsWith("http"))
+                    return Target.Blank;
+                else
+                    return Target.Self;
+            }
+        }
+        return Target.Blank;
+    }
+
+    protected string GetReportLink(Report report, FavoriteReportItem favoriteItem)
+    {
+        if (report.CustomPagePath != null)
+        {
+            return $"{report.CustomPagePath}/{report.DashboardId}/{report.ReportId}";
+            //return report.CustomPagePath;
+        }
+        else
+        {
+            int index = favoriteItem.ReportList.IndexOf(report);
+            int ufId = 0;
+            if (index >= 0 && index < favoriteItem.UserFavoriteIdList.Count)
+            {
+                ufId = favoriteItem.UserFavoriteIdList[index];
+            }
+            return $"{ThorConstants.FAVORITE_PAGE_PATH}/{ufId}/{report.DashboardId}/{report.ReportId}";
+        }
+    }
+
+    protected string GetReportIcon(Report report)
+    {
+        return report.DisplayIconName ?? "defaultIcon";
+    }
+
+    protected Target GetReportTarget(Report report)
+    {
+        if (!String.IsNullOrEmpty(report.CustomPagePath) && report.CustomPagePath.StartsWith("http"))
+            return Target.Blank;
+        else
+            return Target.Self;
+    }
+
+    protected int Level2Reports(FavoriteReportItem uf)
+    {
+        if(uf.ReportList!= null)
+        {
+            return uf.ReportList.Count;
+        }
+        return 0;
+    }
+
+    protected int Level3Reports(Report report, IList<Report> reports)
+    {
+        return reports.Count(r => r.Name == report.Name);
+    }
+
+    protected List<Report> reports = new List<Report>();
+
+    protected List<Report> GetTertiaryReports(List<Report> lstReports, string reportName)
+    {
+        reports.Clear();
+        foreach(Report report in lstReports)
+        {
+            if (report.Name == reportName && reports.IndexOf(report) < 0)
+            {
+                reports.Add(report);
+            }
+        }
+        return reports;
+    }
+
+}

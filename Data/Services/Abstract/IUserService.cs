@@ -19,5 +19,11 @@ namespace TheradexPortal.Data.Services.Abstract
         public bool SaveActivityLog(int userId, string activityType);
         public bool SaveActivityLog(int userId, string activityType, string data1);
         public bool SaveActivityLog(int userId, string activityType, string data1, string data2);
+        public bool SaveFavorite(int userId, int dashboardId, int reportId, string reportName);
+        public List<FavoriteReportItem> GetUserFavoriteList(int userId, bool isAdmin);
+        public UserFavorite GetUserFavoriteFirstDashboardReport(int userId);
+        public bool IsReportFavorite(int userId, int reportId);
+        public bool RemoveFavorite(int favoriteId);
+        public string GetUserFavoriteNamesByID(int userFavoriteId);
     }
 }

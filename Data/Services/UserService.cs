@@ -3,6 +3,9 @@ using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Services.Abstract;
 using TheradexPortal.Data.Static;
 using Microsoft.AspNetCore.Components;
+using Blazorise;
+using System.Collections.Generic;
+using System.Reflection.Metadata.Ecma335;
 
 namespace TheradexPortal.Data.Services
 {
@@ -387,6 +390,185 @@ namespace TheradexPortal.Data.Services
                 _errorLogService.SaveErrorLogAsync(userId, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
                 return false;
             }
+        }
+        public bool SaveFavorite(int userId, int dashboardId, int reportId, string reportName)
+        {
+            try
+            {
+                List<UserFavorite> currentItem =
+                    context.User_Favorite.Where(u => u.UserId == userId && u.DashboardId == dashboardId && u.ReportId == reportId).ToList();
+                if (currentItem.Count == 0)
+                {
+                    UserFavorite newUserFavorite = new UserFavorite();
+                    newUserFavorite.UserId = userId;
+                    newUserFavorite.DashboardId = dashboardId;
+                    newUserFavorite.ReportId = reportId;
+                    newUserFavorite.ReportName = reportName;
+                    Report report = context.Reports.Where(r => r.ReportId == reportId).SingleOrDefault();
+                    if (report != null)
+                    {
+                        newUserFavorite.DisplayIconName = report.DisplayIconName;
+                    }
+                    newUserFavorite.CreateDate = DateTime.UtcNow;
+
+                    context.User_Favorite.Add(newUserFavorite);
+                    context.SaveChanges();
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.SaveErrorLogAsync(userId, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+                return false;
+            }
+        }
+        public List<FavoriteReportItem> GetUserFavoriteList(int userId, bool isAdmin)
+        {
+            List<FavoriteReportItem> lstUserFavorite = new List<FavoriteReportItem>();
+            FavoriteReportItem reportItem;
+            string reportName = string.Empty;
+            List<UserFavorite> userSavedFavorites = (  from uf in context.User_Favorite 
+                                                       join dashboardlist  in context.Dashboards on uf.DashboardId equals dashboardlist.DashboardId
+                                                       join reportList in context.Reports on uf.ReportId equals reportList.ReportId
+                                                       where uf.UserId == userId
+                                                       orderby dashboardlist.DisplayOrder, reportList.DisplayOrder
+                                                       select uf).ToList();
+            List<Dashboard> dashboards = new List<Dashboard>();
+            if (isAdmin)
+            {
+                dashboards = context.Dashboards.OrderBy(d => d.DisplayOrder).ToList();
+            }
+            else
+            {
+                dashboards = (from ur in context.User_Roles
+                              join rd in context.Role_Dashboards on ur.RoleId equals rd.RoleId
+                              join d in context.Dashboards on rd.DashboardId equals d.DashboardId
+                              where ur.UserId == userId && (ur.ExpirationDate == null || ur.ExpirationDate.Value.Date >= DateTime.UtcNow.Date)
+                              orderby d.DisplayOrder
+                              select d).ToList();
+            }
+            List<Report> reports = new List<Report>();
+            if (isAdmin)
+            {
+                reports =  context.Reports.ToList();
+            }
+            else
+            {
+                reports = (from ur in context.User_Roles
+                           join rr in context.Role_Reports on ur.RoleId equals rr.RoleId
+                           join r in context.Reports on rr.ReportId equals r.ReportId
+                           where ur.UserId == userId && (ur.ExpirationDate == null || ur.ExpirationDate.Value.Date >= DateTime.UtcNow.Date)
+                           select r).ToList();
+            }
+
+            if (userSavedFavorites != null)
+            {
+                foreach (UserFavorite uf in userSavedFavorites)
+                {
+                    if (uf.DashboardId != null)
+                    {
+                        Dashboard saveDashboard = dashboards.Where(d => d.DashboardId == uf.DashboardId).SingleOrDefault();
+                        if (saveDashboard != null)
+                        {
+                            FavoriteReportItem currentItem = lstUserFavorite.Where(l => l.DashboardId == Convert.ToInt32(uf.DashboardId)).FirstOrDefault();
+                            if (currentItem == null)
+                            {
+                                reportItem = new FavoriteReportItem();
+                                reportItem.DashboardId = saveDashboard.DashboardId;
+                                reportItem.DisplayName = saveDashboard.Name;
+                                reportItem.isDashboard = true;
+                                if (uf.ReportId != null)
+                                {
+                                    Report report = reports.Where(r => r.ReportId == uf.ReportId).SingleOrDefault();
+                                    if (report != null)
+                                    {
+                                        reportItem.ReportList = new List<Report>();
+                                        reportItem.ReportList.Add(report);
+                                        reportItem.UserFavoriteIdList = new List<int>();
+                                        reportItem.UserFavoriteIdList.Add(uf.UserFavoriteId);
+                                    }
+                                }
+                                lstUserFavorite.Add(reportItem);
+                            }
+                            else
+                            {
+                                if (uf.ReportId != null)
+                                {
+                                    Report report = reports.Where(r => r.ReportId == uf.ReportId).SingleOrDefault();
+                                    if (report != null)
+                                    {
+
+                                        if (currentItem.ReportList != null)
+                                        {
+                                            currentItem.ReportList.Add(report);
+                                            currentItem.UserFavoriteIdList.Add(uf.UserFavoriteId);
+                                        }
+                                        else
+                                        {
+                                            currentItem.ReportList = new List<Report>();
+                                            currentItem.ReportList.Add(report);
+                                            currentItem.UserFavoriteIdList = new List<int>();
+                                            currentItem.UserFavoriteIdList.Add(uf.UserFavoriteId);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return lstUserFavorite;
+        }
+        public UserFavorite GetUserFavoriteFirstDashboardReport(int userId)
+        {
+            UserFavorite ufItem =  (from uf in context.User_Favorite
+                                join dashboardlist in context.Dashboards on uf.DashboardId equals dashboardlist.DashboardId
+                                join reportList in context.Reports on uf.ReportId equals reportList.ReportId
+                                    where uf.UserId == userId
+                                    orderby dashboardlist.DisplayOrder, reportList.DisplayOrder
+                                select uf).FirstOrDefault();
+            if (ufItem != null)
+            {
+                return ufItem;
+            }
+            return null;
+        }
+
+        public bool IsReportFavorite(int userId, int reportId)
+        {
+            UserFavorite ufItem = context.User_Favorite.Where(uf => uf.UserId == userId && uf.ReportId == reportId).SingleOrDefault();
+            if (ufItem != null)
+            {
+                return true;
+            }
+            return false;
+        }
+        public string GetUserFavoriteNamesByID(int userFavoriteId)
+        {
+            string name = string.Empty;
+            UserFavorite ufItem = context.User_Favorite.Where(u => u.UserFavoriteId == userFavoriteId).FirstOrDefault();
+            if (ufItem != null)
+            {
+                Dashboard dashboard = context.Dashboards.Where(d => d.DashboardId == ufItem.DashboardId).FirstOrDefault();
+                Report report = context.Reports.Where(r => r.ReportId == ufItem.ReportId).FirstOrDefault();
+                if (dashboard != null && report != null)
+                {
+                    name = dashboard.Name + "-" + report.Name;
+                }
+            }
+            return name;
+        }
+        public bool RemoveFavorite(int userFavoriteId)
+        {
+            UserFavorite currentItem =
+                  context.User_Favorite.Where(u => u.UserFavoriteId == userFavoriteId).FirstOrDefault();
+            if (currentItem != null)
+            {
+                context.User_Favorite.Remove(currentItem);
+                context.SaveChanges();
+                return true;
+            }
+            return false ;
         }
     }
 }
