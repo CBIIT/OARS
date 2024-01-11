@@ -70,7 +70,7 @@
     {
         if(!String.IsNullOrEmpty(dashboard.CustomPagePath))
         {
-            return dashboard.CustomPagePath;
+            return $"{dashboard.CustomPagePath}/{dashboard.DashboardId}";
         }
         else
         {

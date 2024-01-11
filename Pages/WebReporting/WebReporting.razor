@@ -1,0 +1,135 @@
+﻿@page "/webreporting/{dashboardid:int?}"
+@layout SecondaryNavLayout
+@inject IHttpContextAccessor httpContextAccessor
+@inject IJSRuntime JSRuntime;
+@inject IConfiguration configuration
+
+@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.ViewModels;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+
+@if(notFound)
+{
+    <LayoutContent>
+        <Container Fluid Class="mt-2 text-center">
+            <NotFound />
+        </Container>
+    </LayoutContent>
+}
+else
+{
+    <LayoutSider>
+        <SecondaryNav Actions="Actions" Reports="allReports" />
+    </LayoutSider>
+    <LayoutContent>
+        <Container Fluid Class="mt-2">
+            <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1 mb-3"><h2>Web Reporting</h2></Div>
+            <Div Padding="Padding.Is2">
+                <Div Display="@failureDiv">
+                    There was an issue connecting to Web Reporting.  Please use the Contact Us to send a support email.
+                    <br /><br />
+                    @ssoMessage
+                </Div>
+                <Div Display="@successDiv">Redirecting to Web Reporting.<br /><br />
+                    If you close the Web Reporting tab, you can re-sign in by refreshing this page or navigating away then back.     
+                </Div>
+            </Div>
+        </Container>
+    </LayoutContent>
+}
+<StudyOverview @ref="studyOverview" />
+
+@code {
+    [Inject] private IStudyService studyService { get; set; } = null!;
+    [Inject] private IDashboardService dashboardService { get; set; } = null!;
+    [Inject] private IUserService userService { get; set; } = null!;
+
+    [Parameter] public int DashboardId { get; set; }
+    [Parameter] public int ReportId { get; set; }
+
+    private int userId;
+    private bool notFound = false;
+    private StudyOverview? studyOverview;
+    private IList<Report> allReports = new List<Report>();
+    private TheradexPortal.Data.Models.Dashboard? dashboard;
+    private Report? report;
+    private string ssoToken;
+    private string ssoMessage;
+    IFluentDisplay failureDiv = Display.None;
+    IFluentDisplay successDiv = Display.None;
+
+    private IList<SecondaryNavAction> Actions => new List<SecondaryNavAction>
+    {
+        new SecondaryNavAction
+        {
+            IconName = IconName.Eye,
+            Label = "Study Overview",
+            OnClick = ShowOverview
+        },
+    };
+
+    protected override async Task OnParametersSetAsync()
+    {
+        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(ThorClaimType.IsAdmin, "True");
+        userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+        string userDashboards = httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.Dashboards).Value;
+        string userReports = httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.Reports).Value;
+        dashboard = await dashboardService.GetDashboardByIdAsync(DashboardId, userDashboards, isAdmin);
+        allReports = await dashboardService.GetReportsByDashboardIdForUserAsync(DashboardId, userId, isAdmin);
+
+        notFound = false;
+
+        if (dashboard == null && !isAdmin)
+        {
+            notFound = true;
+            return;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            string wrSite = configuration.GetValue<string>("WebReporting:WRUrl");
+            string wrUsername = configuration.GetValue<string>("WebReporting:Username");
+            string wrPassword = configuration.GetValue<string>("WebReporting:Password");
+            string username = httpContextAccessor.HttpContext.User.FindFirst(c => c.Type == "preferred_username").Value;
+
+            try
+            {
+                userService.SaveActivityLog(userId, ThorActivityType.Navigation, "Web Reporting");
+                WebReportingSSO.WebReportingSSOSoapClient newSSO = new WebReportingSSO.WebReportingSSOSoapClient(WebReportingSSO.WebReportingSSOSoapClient.EndpointConfiguration.WebReportingSSOSoap, wrSite + "WebReportingSSO.asmx");
+
+                var tokenRequest = await newSSO.GetTokenAsync(wrUsername, wrPassword, username);
+                ssoToken = tokenRequest.Body.GetTokenResult;
+
+                if (ssoToken != null && ssoToken != new Guid().ToString())
+                {
+                    successDiv = Display.Block;
+                    StateHasChanged();
+                    JSRuntime.InvokeAsync<string>("open", wrSite + "ThorSSO.aspx?id=" + ssoToken, "_blank");
+                }
+                else
+                {
+                    failureDiv = Display.Block;
+                    ssoMessage = "Failure signing on";
+                    StateHasChanged();
+                }
+            }
+            catch (Exception ex)
+            {
+                failureDiv = Display.Block;
+                ssoMessage = "Unable to reach Web Reporting";
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async void ShowOverview()
+    {
+        var studies = studyService.GetSelectedStudiesForUser(userId);
+        studyOverview?.ShowStudies(studies);
+    }
+
+}
