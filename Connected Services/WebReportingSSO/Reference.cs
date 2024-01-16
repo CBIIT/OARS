@@ -177,6 +177,7 @@ namespace WebReportingSSO
             if ((endpointConfiguration == EndpointConfiguration.WebReportingSSOSoap))
             {
                 System.ServiceModel.BasicHttpBinding result = new System.ServiceModel.BasicHttpBinding();
+                result.Security.Mode = System.ServiceModel.BasicHttpSecurityMode.Transport;
                 result.MaxBufferSize = int.MaxValue;
                 result.ReaderQuotas = System.Xml.XmlDictionaryReaderQuotas.Max;
                 result.MaxReceivedMessageSize = int.MaxValue;

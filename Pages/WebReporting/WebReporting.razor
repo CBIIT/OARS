@@ -108,6 +108,7 @@ else
                 if (ssoToken != null && ssoToken != new Guid().ToString())
                 {
                     successDiv = Display.Block;
+                    connectDiv = Display.None;
                     StateHasChanged();
                     JSRuntime.InvokeAsync<string>("open", wrSite + "ThorSSO.aspx?id=" + ssoToken, "_blank");
                 }
