@@ -26,10 +26,11 @@ else
         <Container Fluid Class="mt-2">
             <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1 mb-3"><h2>Web Reporting</h2></Div>
             <Div Padding="Padding.Is2">
+                <Div Display="@connectDiv">
+                    Please wait while we connect you to Web Reporting...
+                </Div>
                 <Div Display="@failureDiv">
-                    There was an issue connecting to Web Reporting.  Please use the Contact Us to send a support email.
-                    <br /><br />
-                    @ssoMessage
+                    There was an issue connecting to Web Reporting.  Please use 'Contact Us' to send a support email.
                 </Div>
                 <Div Display="@successDiv">Redirecting to Web Reporting.<br /><br />
                     If you close the Web Reporting tab, you can re-sign in by refreshing this page or navigating away then back.     
@@ -55,7 +56,7 @@ else
     private TheradexPortal.Data.Models.Dashboard? dashboard;
     private Report? report;
     private string ssoToken;
-    private string ssoMessage;
+    IFluentDisplay connectDiv = Display.Block;
     IFluentDisplay failureDiv = Display.None;
     IFluentDisplay successDiv = Display.None;
 
@@ -113,14 +114,14 @@ else
                 else
                 {
                     failureDiv = Display.Block;
-                    ssoMessage = "Failure signing on";
+                    connectDiv = Display.None;
                     StateHasChanged();
                 }
             }
             catch (Exception ex)
             {
                 failureDiv = Display.Block;
-                ssoMessage = "Unable to reach Web Reporting";
+                connectDiv = Display.None;
                 StateHasChanged();
             }
         }
