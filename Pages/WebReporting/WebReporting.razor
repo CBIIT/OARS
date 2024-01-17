@@ -19,9 +19,6 @@
 }
 else
 {
-    <LayoutSider>
-        <SecondaryNav Actions="Actions" Reports="allReports" />
-    </LayoutSider>
     <LayoutContent>
         <Container Fluid Class="mt-2">
             <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1 mb-3"><h2>Web Reporting</h2></Div>
@@ -59,16 +56,6 @@ else
     IFluentDisplay connectDiv = Display.Block;
     IFluentDisplay failureDiv = Display.None;
     IFluentDisplay successDiv = Display.None;
-
-    private IList<SecondaryNavAction> Actions => new List<SecondaryNavAction>
-    {
-        new SecondaryNavAction
-        {
-            IconName = IconName.Eye,
-            Label = "Study Overview",
-            OnClick = ShowOverview
-        },
-    };
 
     protected override async Task OnParametersSetAsync()
     {
@@ -127,11 +114,4 @@ else
             }
         }
     }
-
-    private async void ShowOverview()
-    {
-        var studies = studyService.GetSelectedStudiesForUser(userId);
-        studyOverview?.ShowStudies(studies);
-    }
-
 }
