@@ -14,6 +14,7 @@ namespace TheradexPortal.Data.Services.Abstract
         public Task<IList<Report>> GetReportsByDashboardIdAsync(int id);
         public Task<String> GetReportIdsForUser(int userId, bool isAdmin);
         public Task<IList<Report>> GetReportsByDashboardIdForUserAsync(int id, int userId, bool isAdmin);
+        public Task<IList<Report>> GetReportsForUserAsync(int userId, bool isAdmin);
         public Task<Report?> GetReportByIdAsync(int id, string userReports);
         public Task<IList<Visual>> GetAllVisualsByReportIdAsync(int id);
         public bool CheckDashboardName(string dashboardName, int groupId);

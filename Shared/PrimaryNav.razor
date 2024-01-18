@@ -18,7 +18,7 @@
         }
     </BarLink>
 </BarItem>
-@if(favoriteItems.Count > 0)
+@if (hasUserFavoriteItems)
 {
 <BarItem>
     <BarLink Match="Match.Prefix" To="/myfavorites">
@@ -54,16 +54,23 @@
     [Inject] private IDashboardService dashboardService { get; set; } = null!;
     [Inject] private IUserService userService { get; set; } = null!;
     private IList<Dashboard> dashboards = new List<Dashboard>();
-    public IList<FavoriteReportItem> favoriteItems { get; set; } = new List<FavoriteReportItem>();
+    public bool hasUserFavoriteItems;
 
     protected override async Task OnInitializedAsync()
     {
         bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(ThorClaimType.IsAdmin, "True");
         int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
-
         dashboards = await dashboardService.GetDashboardsForUserAsync(userId, isAdmin);
-        favoriteItems = userService.GetUserFavoriteList(userId, isAdmin);
+        hasUserFavoriteItems = userService.HasUserFavorite(userId, isAdmin);
         Console.WriteLine(dashboards);
+    }
+
+    public async Task RefreshMenu()
+    {
+        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(ThorClaimType.IsAdmin, "True");
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+        hasUserFavoriteItems = userService.HasUserFavorite(userId, isAdmin);
+        StateHasChanged();
     }
 
     protected string GetLink(Dashboard dashboard)

@@ -3,9 +3,14 @@ using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Services.Abstract;
 using TheradexPortal.Data.Static;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.Json;
+using TheradexPortal.Data.Models.Configuration;
 using Blazorise;
 using System.Collections.Generic;
 using System.Reflection.Metadata.Ecma335;
+using Polly;
+
 
 namespace TheradexPortal.Data.Services
 {
@@ -391,7 +396,7 @@ namespace TheradexPortal.Data.Services
                 return false;
             }
         }
-        public bool SaveFavorite(int userId, int dashboardId, int reportId, string reportName)
+        public Tuple<bool, string> SaveFavorite(int userId, int dashboardId, int reportId, string reportName)
         {
             try
             {
@@ -399,6 +404,16 @@ namespace TheradexPortal.Data.Services
                     context.User_Favorite.Where(u => u.UserId == userId && u.DashboardId == dashboardId && u.ReportId == reportId).ToList();
                 if (currentItem.Count == 0)
                 {
+                    var configuration = new ConfigurationBuilder().AddJsonFile($"appsettings.json");
+                    var config = configuration.Build();
+                    int maxReportNumber = Convert.ToInt32(config["MyFavoriteMaxPerDashboard"]);
+
+                    int reportCount = context.User_Favorite.Where(u => u.UserId == userId && u.DashboardId == dashboardId).Count();
+                    if (reportCount >= maxReportNumber)
+                    {
+                        return new Tuple<bool, string>(false, "Already reached the maximum number of favorite reports under the same Dashboard.");
+                    }
+
                     UserFavorite newUserFavorite = new UserFavorite();
                     newUserFavorite.UserId = userId;
                     newUserFavorite.DashboardId = dashboardId;
@@ -412,15 +427,22 @@ namespace TheradexPortal.Data.Services
                     newUserFavorite.CreateDate = DateTime.UtcNow;
 
                     context.User_Favorite.Add(newUserFavorite);
-                    context.SaveChanges();
+
+                    var primaryTable = context.Model.FindEntityType(typeof(UserFavorite)).ToString().Replace("EntityType: ", "");
+                    context.SaveChangesAsync(userId, primaryTable);
+                    return new Tuple<bool, string>(true, "");
                 }
-                return true;
+                else
+                {
+                    return new Tuple<bool, string>(false, "This report has already been added as the favorite report.");
+                }
             }
             catch (Exception ex)
             {
                 _errorLogService.SaveErrorLogAsync(userId, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
-                return false;
+                return new Tuple<bool, string>(false,"");
             }
+            return new Tuple<bool, string>(false, "");
         }
         public List<FavoriteReportItem> GetUserFavoriteList(int userId, bool isAdmin)
         {
@@ -519,14 +541,92 @@ namespace TheradexPortal.Data.Services
             }
             return lstUserFavorite;
         }
-        public UserFavorite GetUserFavoriteFirstDashboardReport(int userId)
+
+        public bool HasUserFavorite(int userId, bool isAdmin) 
         {
-            UserFavorite ufItem =  (from uf in context.User_Favorite
-                                join dashboardlist in context.Dashboards on uf.DashboardId equals dashboardlist.DashboardId
-                                join reportList in context.Reports on uf.ReportId equals reportList.ReportId
-                                    where uf.UserId == userId
-                                    orderby dashboardlist.DisplayOrder, reportList.DisplayOrder
-                                select uf).FirstOrDefault();
+        
+            List<UserFavorite> userSavedFavorites = (from uf in context.User_Favorite
+                                                     join dashboardlist in context.Dashboards on uf.DashboardId equals dashboardlist.DashboardId
+                                                     join reportList in context.Reports on uf.ReportId equals reportList.ReportId
+                                                     where uf.UserId == userId
+                                                     orderby dashboardlist.DisplayOrder, reportList.DisplayOrder
+                                                     select uf).ToList();
+            List<Dashboard> dashboards = new List<Dashboard>();
+            if (isAdmin)
+            {
+                dashboards = context.Dashboards.OrderBy(d => d.DisplayOrder).ToList();
+            }
+            else
+            {
+                dashboards = (from ur in context.User_Roles
+                              join rd in context.Role_Dashboards on ur.RoleId equals rd.RoleId
+                              join d in context.Dashboards on rd.DashboardId equals d.DashboardId
+                              where ur.UserId == userId && (ur.ExpirationDate == null || ur.ExpirationDate.Value.Date >= DateTime.UtcNow.Date)
+                              orderby d.DisplayOrder
+                              select d).ToList();
+            }
+            List<Report> reports = new List<Report>();
+            if (isAdmin)
+            {
+                reports = context.Reports.ToList();
+            }
+            else
+            {
+                reports = (from ur in context.User_Roles
+                           join rr in context.Role_Reports on ur.RoleId equals rr.RoleId
+                           join r in context.Reports on rr.ReportId equals r.ReportId
+                           where ur.UserId == userId && (ur.ExpirationDate == null || ur.ExpirationDate.Value.Date >= DateTime.UtcNow.Date)
+                           select r).ToList();
+            }
+
+            if (userSavedFavorites != null)
+            {
+                foreach (UserFavorite uf in userSavedFavorites)
+                {
+                    if (uf.DashboardId != null)
+                    {
+                        Dashboard saveDashboard = dashboards.Where(d => d.DashboardId == uf.DashboardId).SingleOrDefault();
+                        if (saveDashboard != null)
+                        {
+                            if (uf.ReportId != null)
+                            {
+                                Report report = reports.Where(r => r.ReportId == uf.ReportId).SingleOrDefault();
+                                if (report != null)
+                                {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+        public UserFavorite GetUserFavoriteFirstDashboardReport(int userId, bool isAdmin)
+        {
+            UserFavorite ufItem;
+            if (isAdmin)
+            {
+                ufItem = (from uf in context.User_Favorite
+                          join dashboardlist in context.Dashboards on uf.DashboardId equals dashboardlist.DashboardId
+                          join reportList in context.Reports on uf.ReportId equals reportList.ReportId
+                          where uf.UserId == userId                     
+                          orderby dashboardlist.DisplayOrder, reportList.DisplayOrder
+                          select uf).FirstOrDefault();
+            }
+            else
+            {
+                ufItem = (from uf in context.User_Favorite
+                          join dashboardlist in context.Dashboards on uf.DashboardId equals dashboardlist.DashboardId
+                          join reportList in context.Reports on uf.ReportId equals reportList.ReportId
+                          join ur in context.User_Roles on uf.UserId equals ur.UserId
+                          join rd in context.Role_Dashboards on ur.RoleId equals rd.RoleId
+                          join rr in context.Role_Reports on ur.RoleId equals rr.RoleId
+                          where uf.UserId == userId && rd.DashboardId == uf.DashboardId && rr.ReportId == uf.ReportId
+                          && (ur.ExpirationDate == null || ur.ExpirationDate.Value.Date >= DateTime.UtcNow.Date)
+                          orderby dashboardlist.DisplayOrder, reportList.DisplayOrder
+                          select uf).FirstOrDefault();
+            }
             if (ufItem != null)
             {
                 return ufItem;
@@ -558,14 +658,15 @@ namespace TheradexPortal.Data.Services
             }
             return name;
         }
-        public bool RemoveFavorite(int userFavoriteId)
+        public bool RemoveFavorite(int userId ,int userFavoriteId)
         {
             UserFavorite currentItem =
                   context.User_Favorite.Where(u => u.UserFavoriteId == userFavoriteId).FirstOrDefault();
             if (currentItem != null)
             {
                 context.User_Favorite.Remove(currentItem);
-                context.SaveChanges();
+                var primaryTable = context.Model.FindEntityType(typeof(UserFavorite)).ToString().Replace("EntityType: ", "");
+                context.SaveChangesAsync(userId, primaryTable);              
                 return true;
             }
             return false ;

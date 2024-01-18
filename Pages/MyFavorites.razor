@@ -12,37 +12,48 @@
 @using TheradexPortal.Data.Services.Abstract;
 @using TheradexPortal.Data.ViewModels;
 @using TheradexPortal.Data.Static;
-
-<LayoutSider>
-    <MyFavoriteNav Actions="Actions" />
-</LayoutSider>
- <LayoutContent>
-    <Container Fluid Class="mt-2">
-         @if (report != null && report.IsFullPage)
-        {
-            <PowerBiFullReport Dashboard="dashboard" Report="report" @ref="fullReportRef" />
-        }
-        else if (report != null)
-        {
-            <PowerBiCustomLayout Dashboard="dashboard" Report="report" @ref="customReportRef" />
-        }
-    </Container>
-</LayoutContent>
-<Modal @ref="removeModalRef">
-    <ModalContent Centered Size="ModalSize.Large">
-        <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
-            <ModalTitle>Remove Favorite: @favoriteToRemove</ModalTitle>
-            <CloseButton />
-        </ModalHeader>
-        <ModalBody>
-            Warning:  Continuing will remove this user favorite.
-        </ModalBody>
-        <ModalFooter>
-            <Button Color="Color.Light" Clicked="@HideRemoveModal">Cancel</Button>
-            <Button Color="Color.Danger" Clicked="@RemoveFavorite">Remove</Button>
-        </ModalFooter>
-    </ModalContent>
-</Modal>
+@if(notFound)
+{
+    <LayoutContent>
+        <Container Fluid Class="mt-2 text-center">
+            <NotFound />
+        </Container>
+    </LayoutContent>
+}
+else
+{
+    <PageTitle>My Favorites</PageTitle>
+    <LayoutSider>
+        <MyFavoriteNav Actions="Actions" />
+    </LayoutSider>
+     <LayoutContent>
+        <Container Fluid Class="mt-2">
+             @if (report != null && report.IsFullPage)
+            {
+                <PowerBiFullReport Dashboard="dashboard" Report="report" @ref="fullReportRef" />
+            }
+            else if (report != null)
+            {
+                <PowerBiCustomLayout Dashboard="dashboard" Report="report" @ref="customReportRef" />
+            }
+        </Container>
+    </LayoutContent>
+    <Modal @ref="removeModalRef">
+        <ModalContent Centered Size="ModalSize.Large">
+            <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
+                <ModalTitle>Remove Favorite: @favoriteToRemove</ModalTitle>
+                <CloseButton />
+            </ModalHeader>
+            <ModalBody>
+                Warning:  Continuing will remove this user favorite.
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Light" Clicked="@HideRemoveModal">Cancel</Button>
+                <Button Color="Color.Danger" Clicked="@RemoveFavorite">Remove</Button>
+            </ModalFooter>
+        </ModalContent>
+    </Modal>
+}
 <StudyOverview @ref="studyOverview" />
 
 @code {
@@ -143,7 +154,7 @@
 
         if (DashboardId == 0)
         {
-            UserFavorite ufItem = userService.GetUserFavoriteFirstDashboardReport(userId);
+            UserFavorite ufItem = userService.GetUserFavoriteFirstDashboardReport(userId, isAdmin);
             if(ufItem !=  null)
             {
                 navigation.NavigateTo($"{ThorConstants.FAVORITE_PAGE_PATH}/{ufItem.UserFavoriteId}/{ufItem.DashboardId}/{ufItem.ReportId}", new NavigationOptions
@@ -212,7 +223,7 @@
             // First navigation to Dashboard creates a duplicate record.
             if (_saveHistory && report.ReportId != 0)
             {
-                userService.SaveActivityLog(userId, ThorActivityType.Navigation, dashboard.Name, report.Name + ((String.IsNullOrEmpty(report.SubMenuName)) ? "" : "-" + report.SubMenuName));
+                userService.SaveActivityLog(userId, ThorActivityType.Navigation, "My Favorites", report.Name + ((String.IsNullOrEmpty(report.SubMenuName)) ? "" : "-" + report.SubMenuName));
                 previousReport = report.ReportId;
                 _saveHistory = false;
             }
@@ -262,11 +273,12 @@
 
     private async void RemoveFavorite()
     {
-        bool result = userService.RemoveFavorite(UserFavoriteId);
+        int userId = userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+        bool result = userService.RemoveFavorite(userId, UserFavoriteId);
         if (result)
         {
-            await NotificationService.Success("User Favorite removed successfully");
-            int userId = userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+            await NotificationService.Success("Report has been removed successfully from My Favorites Dashboard");
+        
             bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(ThorClaimType.IsAdmin, "True");
             if (userService.GetUserFavoriteList(userId, isAdmin).Count > 0)
             {

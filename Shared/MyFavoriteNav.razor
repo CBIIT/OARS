@@ -79,9 +79,10 @@
                                     @for (int x = 0; x < curReports.Count(); x = x)
                                     {
                                         var curReport = curReports[x];
+                                        var ExpandReport = GetExpandReport(curReport);
                                         var L2reportCount = Level3Reports(curReport, curReports);
 
-                                        @if(L2reportCount == 1)
+                                        @if (!ExpandReport)
                                         {
                                             <BarItem Style="margin-left: 15px;">
                                                 <BarLink To="@GetReportLink(curReport, curFavorite)" Target="@GetReportTarget(curReport)">
@@ -89,21 +90,24 @@
                                                 @curReport.Name
                                                 </BarLink>
                                             </BarItem>
+                                            x = x + 1;
                                         }
                                         else
                                         {
                                             var startingIndex = x;
                                             var subReportCount = L2reportCount;
                                             var tiertiaryList = GetTertiaryReports(curReports, curReport.Name);
+                                            
                                             <BarItem>
                                                 <BarDropdown>
-                                                    <BarDropdownToggle Style="margin-left: -5px;">
+                                                    <BarDropdownToggle Style="margin-left: -10px;">
                                                         <BarIcon IconName=@GetReportIcon(curReport) />
                                                         @curReport.Name
                                                     </BarDropdownToggle>
                                                     <BarDropdownMenu Style="margin-left: -35px;">
                                                         @foreach(Report subReport in tiertiaryList)
                                                         {
+                                                            var subReporName =  subReport.SubMenuName;
                                                             <BarDropdownItem Style="padding:0px 0px 0px 0px; margin:0px 65px 0px 0px;">
                                                                 <BarLink To="@GetReportLink(subReport, curFavorite)" Class="tertiary-bar-link" Target="@GetReportTarget(subReport)">
                                                                     <BarIcon IconName="@GetReportIcon(subReport)" Class="tertiary-bar-icon" />
@@ -114,8 +118,8 @@
                                                     </BarDropdownMenu>
                                                 </BarDropdown>
                                             </BarItem>
+                                            x = x + L2reportCount;
                                         }
-                                        x = x + L2reportCount;
                                     }
                             </BarDropdownMenu>
                         </BarDropdown>
@@ -129,10 +133,10 @@
 
 @code {
     [Parameter] public IList<SecondaryNavAction> Actions { get; set; } = new List<SecondaryNavAction>();
+    public IList<Report> AllUserReports { get; set; } = new List<Report>();
     public IList<FavoriteReportItem> FavoriteItems { get; set; } = new List<FavoriteReportItem>();
-    [Inject] private IUserService userService { get; set; } = null!;
     [Inject] private IDashboardService dashboardService { get; set; } = null!;
-    public IList<Report> Reports { get; set; } = new List<Report>();
+    [Inject] private IUserService userService { get; set; } = null!;
 
     private bool IsVisible = true;
     private string defaultIcon = "fa-columns";
@@ -142,6 +146,7 @@
         int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
         bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(ThorClaimType.IsAdmin, "True");
         FavoriteItems = userService.GetUserFavoriteList(userId, isAdmin);
+        AllUserReports = await dashboardService.GetReportsForUserAsync(userId, isAdmin);
     }
 
     protected void ToggleNavbar()
@@ -249,15 +254,23 @@
         return 0;
     }
 
+    protected bool GetExpandReport(Report report)
+    {
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(ThorClaimType.IsAdmin, "True");
+        return (AllUserReports.Count(r => r.Name == report.Name) > 1);        
+    }
+
     protected int Level3Reports(Report report, IList<Report> reports)
     {
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(ThorClaimType.IsAdmin, "True");       
         return reports.Count(r => r.Name == report.Name);
     }
 
-    protected List<Report> reports = new List<Report>();
-
     protected List<Report> GetTertiaryReports(List<Report> lstReports, string reportName)
     {
+        List<Report> reports = new List<Report>();
         reports.Clear();
         foreach(Report report in lstReports)
         {

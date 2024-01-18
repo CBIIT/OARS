@@ -303,6 +303,11 @@
         this.dashboardAlerts?.UpdateDashboard(dashboard);
     }
 
+    public async Task UpdateFavoriteMenu()
+    {
+        primaryNav.RefreshMenu();
+    }
+    
     protected async Task SystemAlertsCountChanged(int count)
     {
         this.systemAlertsCount = count;

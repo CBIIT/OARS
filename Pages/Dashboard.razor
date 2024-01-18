@@ -24,7 +24,7 @@ else
 {
     <PageTitle>@dashboard!.Name</PageTitle>
     <LayoutSider>
-        <SecondaryNav Actions="Actions" Reports="allReports" />
+        <SecondaryNav Actions="Actions" Reports="allReports" ReportId="ReportId" />
     </LayoutSider>
     <LayoutContent>
         <Container Fluid Class="mt-2">
@@ -47,6 +47,7 @@ else
     [Inject] private IStudyService studyService { get; set; } = null!;
     [Inject] private IUserService userService { get; set; } = null!;
     [Inject] private NavigationManager navigation {get; set; } = null!;
+    [Inject] INotificationService NotificationService { get; set; }
 
     [Parameter] public int DashboardId { get; set; }
     [Parameter] public int ReportId { get; set; }
@@ -251,7 +252,16 @@ else
             {
                 reportName = report.Name + "-" + report.SubMenuName;
             }
-            userService.SaveFavorite(userId, DashboardId, ReportId, reportName);
+            Tuple<bool, String> result = userService.SaveFavorite(userId, DashboardId, ReportId, reportName);
+            if (result.Item1)
+            {
+                await NotificationService.Success("Report has been added successfully to My Favorites Dashboard");
+                PrimaryNavLayout.UpdateFavoriteMenu();
+            }
+            else if(result.Item2.Length > 0)
+            {
+                await NotificationService.Warning(result.Item2);
+            }
         }
     }
 }

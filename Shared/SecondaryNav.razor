@@ -25,24 +25,39 @@
             }
             @foreach(var action in Actions)
             {
-                @if (action.ShowAction)
-                {
-                    <BarItem Background="Background.White">
-                    @if(action.To != null){
-                        <BarLink To="@action.To">
-                            <BarIcon IconName="action.IconName" />
-                            @action.Label
-                        </BarLink>
+                    @if (action.Label == "Add to Favorites" )
+                    {
+                        @if (!IsReportFavorite())
+                        {
+                         <BarItem Background="Background.White">
+                            <BarLink @onclick="() => HandleActionClick(action)">
+                                <BarIcon IconName="action.IconName" />
+                                @action.Label
+                            </BarLink>
+                        </BarItem>
+                        }
                     }
                     else
                     {
-                        <BarLink @onclick="() => HandleActionClick(action)">
-                            <BarIcon IconName="action.IconName" />
-                            @action.Label
-                        </BarLink>
+                        @if (action.ShowAction)
+                        {
+                            <BarItem Background="Background.White">
+                            @if(action.To != null){
+                                <BarLink To="@action.To">
+                                    <BarIcon IconName="action.IconName" />
+                                    @action.Label
+                                </BarLink>
+                            }
+                            else
+                            {
+                                <BarLink @onclick="() => HandleActionClick(action)">
+                                    <BarIcon IconName="action.IconName" />
+                                    @action.Label
+                                </BarLink>
+                            }
+                            </BarItem>
+                        }
                     }
-                    </BarItem>
-                }
             }
             @if(Reports.Count > 0)
             {
@@ -98,7 +113,7 @@
     [Inject] private IUserService userService { get; set; } = null!;
     [Parameter] public IList<SecondaryNavAction> Actions { get; set; } = new List<SecondaryNavAction>();
     [Parameter] public IList<Report> Reports { get; set; } = new List<Report>();
-    
+    [Parameter] public int ReportId { get; set; }
 
     private bool IsVisible = true;
     private string defaultIcon = "fa-columns"; // https://blazorise.com/docs/extensions/icons-available
@@ -138,6 +153,12 @@
     {
         int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
         return userService.IsReportFavorite(userId, report.ReportId);
+    }
+
+    protected bool IsReportFavorite()
+    {
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+        return userService.IsReportFavorite(userId, ReportId);
     }
 
     protected Target GetReportTarget(Report report)
