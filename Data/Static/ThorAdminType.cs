@@ -5,5 +5,6 @@
         static public String None = "None";
         static public String IT = "IT";
         static public String Content = "Content";
+        static public String Biz = "Biz";
     }
 }

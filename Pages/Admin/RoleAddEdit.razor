@@ -32,6 +32,7 @@
                     <Select TValue="int" SelectedValue="@adminType" SelectedValueChanged="@OnAdminTypeChanged">
                         <SelectItem Value="0">None</SelectItem>
                         <SelectItem Value="1">IT</SelectItem>
+                        <SelectItem Value="3">Biz</SelectItem>
                         <SelectItem Value="2">Content</SelectItem>
                     </Select>
                 </Validation>
@@ -75,7 +76,7 @@
         <Button Color="Color.Primary" Type="ButtonType.Submit" PreventDefaultOnSubmit Clicked="@Save">Save Role</Button>
     </Div>
 </Field>
- @code {
+@code {
     [Inject] IUserRoleService roleService { get; set; } = null!;
     [Inject] IStudyService studyService { get; set; } = null!;
     [Inject] IDashboardService dashboardService { get; set; } = null;
@@ -146,6 +147,9 @@
             case "Content":
                 adminType = 2;
                 break;
+            case "Biz":
+                adminType = 3;
+                break;
             default:
                 adminType = 0;
                 break;
@@ -193,6 +197,7 @@
         {
             case 1:
             case 2:
+            case 3:
                 showTree = Display.None;
                 showIsAdmin = Display.Block;
                 break;
@@ -238,6 +243,9 @@
                     break;
                 case 2:
                     saveRole.AdminType = "Content";
+                    break;
+                case 3:
+                    saveRole.AdminType = "Biz";
                     break;
             }
             saveRole.IsPrimary = isPrimary;

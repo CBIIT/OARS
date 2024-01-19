@@ -66,7 +66,7 @@
                                                 </BarLink>
                                             </BarItem>
                                         }
-                                        @if (CheckRole(new List<string> { "IT" }))
+                                        @if (CheckRole(new List<string> { "IT", "Biz" }))
                                         {
                                             <BarItem>
                                                 <BarLink To="/admin/users">
@@ -74,6 +74,9 @@
                                                     Users
                                                 </BarLink>
                                             </BarItem>
+                                        }
+                                        @if (CheckRole(new List<string> { "IT" }))
+                                        {
                                             <BarItem>
                                                 <BarLink To="/admin/roles">
                                                     <BarIcon IconName="IconName.Coffee" />
@@ -88,10 +91,11 @@
                                             </BarItem>
                                             <BarItem>
                                                 <BarLink To="/admin/dashboards">
-                                            <BarIcon IconName="IconName.ChartPie" />
-                                            Dashboards
-                                        </BarLink>
-                                    </BarItem>
+                                                <BarIcon IconName="IconName.ChartPie" />
+                                                Dashboards
+                                            </BarLink>
+                                        </BarItem>
+                                        }
                                     }
                                     </BarStart>
                                 </BarMenu>

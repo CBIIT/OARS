@@ -16,8 +16,8 @@
             </Div>
         </ListGroupItem>
     }
-        @if (CheckRole(new List<string> { "IT" }))
-        {
+    @if (CheckRole(new List<string> { "IT", "Biz" }))
+    {
         <ListGroupItem>
             <Div Padding="Padding.Is2">
                 <Heading Size="HeadingSize.Is4">Users</Heading>
@@ -28,6 +28,9 @@
                 <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart">Administration roles are granted all Dashboards, Reports and Studies by default.</Paragraph>
             </Div>
         </ListGroupItem>
+    }
+    @if (CheckRole(new List<string> { "IT" }))
+    {
         <ListGroupItem>
             <Div Padding="Padding.Is2">
                 <Heading Size="HeadingSize.Is4">Roles</Heading>
