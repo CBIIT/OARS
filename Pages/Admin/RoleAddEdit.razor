@@ -6,7 +6,7 @@
 @layout AdminLayout
 
 @page "/admin/role/{roleid:int?}"
-<AdminRoleCheck AllowedRoles="@(new List<string> { "Super" })"></AdminRoleCheck>
+<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })"></AdminRoleCheck>
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1 mb-3"><h2>@AddOrEdit</h2></Div>
 <Div Padding="Padding.Is2" Background="Background.Light">
 <Fields>
@@ -31,7 +31,7 @@
                 <Validation Validator="@ValidateSecondaryAdmin">
                     <Select TValue="int" SelectedValue="@adminType" SelectedValueChanged="@OnAdminTypeChanged">
                         <SelectItem Value="0">None</SelectItem>
-                        <SelectItem Value="1">Super</SelectItem>
+                        <SelectItem Value="1">IT</SelectItem>
                         <SelectItem Value="2">Content</SelectItem>
                     </Select>
                 </Validation>
@@ -140,7 +140,7 @@
         roleName = curRole.RoleName;
         switch (curRole.AdminType)
         {
-            case "Super":
+            case "IT":
                 adminType = 1;
                 break;
             case "Content":
@@ -234,7 +234,7 @@
                     saveRole.AdminType = "None";
                     break;
                 case 1:
-                    saveRole.AdminType = "Super";
+                    saveRole.AdminType = "IT";
                     break;
                 case 2:
                     saveRole.AdminType = "Content";

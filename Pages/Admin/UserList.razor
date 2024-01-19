@@ -9,7 +9,7 @@
 @layout AdminLayout
 
 @page "/admin/users"
-<AdminRoleCheck AllowedRoles="@(new List<string> { "Super" })"></AdminRoleCheck>
+<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })"></AdminRoleCheck>
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>User List</h2></Div>
 <Row Background="Background.Light">
     <Column ColumnSize="ColumnSize.IsFull">
@@ -136,7 +136,7 @@
 
         timeZoneAbbrev = curUser.TimeZoneAbbreviation;
         timeOffset = TimeSpan.FromMinutes((double)curUser.TimeOffset);
-        allowedRoleList = new string[1] { "Super" };
+        allowedRoleList = new string[1] { "IT" };
     }
 
     private Visibility IsDeactivatable(User u)

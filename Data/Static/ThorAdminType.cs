@@ -3,7 +3,7 @@
     public sealed class ThorAdminType
     {
         static public String None = "None";
-        static public String Super = "Super";
+        static public String IT = "IT";
         static public String Content = "Content";
     }
 }
