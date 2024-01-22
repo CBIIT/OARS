@@ -963,7 +963,7 @@
 
     private async void Save()
     {
-        if (firstName == "" || lastName == "" || email == "" || !emailRegexIsValid(email) || (isCTEPUser && ctepUserId == "") || primaryRoleId == 0)
+        if (firstName == "" || lastName == "" || email == "" || !emailRegexIsValid(email) || (isCTEPUser && String.IsNullOrEmpty(ctepUserId)) || primaryRoleId == 0)
         {
             await NotificationService.Error( "Please fix all errors to save.");
             return;
