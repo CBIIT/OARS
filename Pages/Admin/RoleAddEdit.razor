@@ -15,7 +15,7 @@
         <FieldBody ColumnSize="ColumnSize.Is4">
             <Validations @ref="validations" Mode="ValidationMode.Manual">
             <Validation Validator="@ValidationRule.IsNotEmpty">
-                <TextEdit Placeholder="Group Name" MaxLength="50" @bind-Text="@roleName">
+                <TextEdit Placeholder="Role Name" MaxLength="50" @bind-Text="@roleName">
                     <Feedback>
                         <ValidationError>Please enter a Role Name</ValidationError>
                     </Feedback>
