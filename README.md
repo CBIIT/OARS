@@ -21,8 +21,7 @@ dotnet user-secrets set "Secret:Name" "12345"
     - "PowerBICredentials:ClientSecret"
     - "PowerBICredentials:ClientId"
     - "ConnectionStrings:DefaultConnection"
-    - "Okta.ClientSecret"
-    - "Okta.ApiKey"
+    - "Okta:ClientSecret"
 
 ### Run Application
 ```
