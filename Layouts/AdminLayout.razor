@@ -77,25 +77,40 @@
                                         }
                                         @if (CheckRole(new List<string> { "IT" }))
                                         {
-                                            <BarItem>
-                                                <BarLink To="/admin/roles">
-                                                    <BarIcon IconName="IconName.Coffee" />
-                                                    Roles
-                                                </BarLink>
-                                            </BarItem>
-                                            <BarItem>
-                                                <BarLink To="/admin/groups">
-                                                    <BarIcon IconName="IconName.PuzzlePiece" />
-                                                    Groups
-                                                </BarLink>
-                                            </BarItem>
-                                            <BarItem>
-                                                <BarLink To="/admin/dashboards">
-                                                    <BarIcon IconName="IconName.ChartPie" />
-                                                    Dashboards
-                                                </BarLink>
-                                            </BarItem>
+                                        <BarItem>
+                                            <BarLink To="/admin/roles">
+                                                <BarIcon IconName="IconName.Coffee" />
+                                                Roles
+                                            </BarLink>
+                                        </BarItem>
+                                        <BarItem>
+                                            <BarLink To="/admin/groups">
+                                                <BarIcon IconName="IconName.PuzzlePiece" />
+                                                Groups
+                                            </BarLink>
+                                        </BarItem>
+                                        <BarItem>
+                                            <BarLink To="/admin/dashboards">
+                                                <BarIcon IconName="IconName.ChartPie" />
+                                                Dashboards
+                                            </BarLink>
+                                        </BarItem>
                                         }
+                                        @*
+                                            TODO: Add HasTHORRole() check for DMU roles when they are created
+                                        *@
+                                        <BarItem>
+                                            <BarLink To="/admin/dmu/select-profile">
+                                                <BarIcon IconName="IconName.Wrench" />
+                                                DMU Global Admin
+                                            </BarLink>
+                                        </BarItem>
+                                        <BarItem>
+                                            <BarLink To="/admin/dmu/select-study">
+                                                <BarIcon IconName="IconName.Book" />
+                                                DMU Study Admin
+                                            </BarLink>
+                                        </BarItem>
                                     </BarStart>
                                 </BarMenu>
                             </Bar>
