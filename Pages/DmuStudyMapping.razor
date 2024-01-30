@@ -1,0 +1,50 @@
+﻿@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@inject IHttpContextAccessor httpContextAccessor
+@layout PrimaryNavLayout
+
+@page "/dmu-study-mapping"
+<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Mapping</h2></Div>
+<Row Background="Background.Light">
+    <Column ColumnSize="ColumnSize.IsFull">
+        @*<DataGrid TItem="Dashboard"
+                  Class="admindatagrid"
+                  Data="@dashboardList"
+                  Responsive
+                  Striped
+                  ShowPager
+                  ShowPageSizes
+                  MaxPaginationLinks="5"
+                  PagerPosition="DataGridPagerPosition.Bottom"
+                  PagerOptions="new(){ButtonSize=Size.Default,
+                                PaginationPosition=PagerElementPosition.Default,
+                                TotalItemsPosition=PagerElementPosition.End,
+                                }"
+                  FixedHeader
+                  FixedHeaderDataGridHeight="calc(100vh - 240px)"
+                  FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
+                  CommandMode="DataGridCommandMode.ButtonRow">
+            <DataGridColumns>
+                <DataGridMultiSelectColumn Width="30px"> </DataGridMultiSelectColumn>
+                <DataGridCommandColumn />
+                <DataGridColumn Field="@nameof(Dashboard.Name)" Caption="Dashboard Name" Width="250px" />
+                <DataGridColumn Field="@nameof(Dashboard.Description)" Caption="Description" />
+                <DataGridColumn Sortable="false" Filterable="false" Width="140px">
+                    <DisplayTemplate>
+                        <Button Color="Color.Info" Clicked="@(()=>EditDashboardClick(context as Dashboard))">Edit</Button>
+                        <Button Color="Color.Secondary" Clicked="@(()=>DeleteDashboardClick(context as Dashboard))">Delete</Button>
+                    </DisplayTemplate>
+                </DataGridColumn>
+            </DataGridColumns>
+            <ButtonRowTemplate>
+                <Button Color="Color.Primary" Clicked="@NewDashboardClick">Create Dashboard</Button>
+                <Button Color="Color.Primary" Clicked="@OnOrderDashboardsClicked">Change Display Order</Button>
+            </ButtonRowTemplate>
+        </DataGrid>
+          *@
+    </Column>
+</Row>
+@code {
+
+}
