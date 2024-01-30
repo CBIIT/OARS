@@ -134,12 +134,14 @@ else
 
         dashboard = await dashboardService.GetDashboardByIdAsync(DashboardId, userDashboards, isAdmin);
         await PrimaryNavLayout.UpdateDashboard(dashboard);
-        PrimaryNavLayout.DashboardName = dashboard.Name;
-        if(dashboard == null && !isAdmin)
+
+        if(dashboard == null)
         {
             notFound = true;
             return;
         }
+
+        PrimaryNavLayout.DashboardName = dashboard.Name;
 
         userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
 
