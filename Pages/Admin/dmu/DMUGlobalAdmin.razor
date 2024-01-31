@@ -1,0 +1,26 @@
+﻿@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@inject IHttpContextAccessor httpContextAccessor
+@layout AdminLayout
+
+@page "/admin/dmu/global-admin"
+@*
+    TODO: Add ThorRoleCheck check for DMU roles when they are created
+
+<ThorRoleCheck AllowedRoles="@(new List<string> { "??" })"></ThorRoleCheck>
+*@
+<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Global Administration</h2></Div>
+<Row Background="Background.Light">
+    <Steps>
+    <Items>
+        <Step Name="thordatacategory">THOR Data Category</Step>
+    </Items>
+    <Content>
+            <StepPanel Name="thordatacategory"><WRCategoryEdit></WRCategoryEdit></StepPanel>
+    </Content>
+    </Steps>
+</Row>
+@code {
+
+}
