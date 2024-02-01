@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 namespace TheradexPortal.Data.Models
 {
     [Table("THORDataCategory", Schema = "DMU")]
-    public class WRCategory
+    public class ThorCategory
     {
         [Key]
         public int ThorDataCategoryId { get; set; }

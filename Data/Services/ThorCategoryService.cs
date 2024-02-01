@@ -5,20 +5,20 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 namespace TheradexPortal.Data.Services
 {
-    public class WRCategoryService : BaseService, IWRCategoryService
+    public class ThorCategoryService : BaseService, IThorCategoryService
     {
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
-        public WRCategoryService(IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
+        public ThorCategoryService(IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;
         }
-        public async Task<IList<WRCategory>> GetCategories() {
+        public async Task<IList<ThorCategory>> GetCategories() {
             return await context.THORDataCategory.OrderBy(c => c.SortOrder).ToListAsync();
         }
 
-        public bool SaveCategories(IList<WRCategory> categories)
+        public bool SaveCategories(IList<ThorCategory> categories)
         {
             DateTime curDateTime = DateTime.UtcNow;
             try

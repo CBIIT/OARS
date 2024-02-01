@@ -1,0 +1,118 @@
+﻿@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@inject IHttpContextAccessor httpContextAccessor
+@layout AdminLayout
+
+@*
+    TODO: Add ThorRoleCheck check for DMU roles when they are created
+
+<ThorRoleCheck AllowedRoles="@(new List<string> { "??" })"></ThorRoleCheck>
+*@
+
+<DataGrid @ref=dataGridRef
+            TItem="ThorCategory"
+            Class="admindatagrid"
+            Data="@categoryList"
+            @bind-SelectedRow="@selectedCategory"
+            Editable
+            Responsive
+            Striped
+            ShowPager
+            ShowPageSizes
+            MaxPaginationLinks="5"
+            PagerPosition="DataGridPagerPosition.Bottom"
+            PagerOptions="new(){ButtonSize=Size.Default,
+                                PaginationPosition=PagerElementPosition.Default,
+                                TotalItemsPosition=PagerElementPosition.End,
+                                }"
+            FixedHeader
+            FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
+            CommandMode="DataGridCommandMode.ButtonRow"
+            EditMode="DataGridEditMode.Inline">
+        <DataGridColumns>
+         <DataGridColumn Width="200" Field="@nameof(ThorCategory.CategoryName)" Caption="ODH Data Category" Editable Filterable="true" Sortable="false">
+            </DataGridColumn>
+         <DataGridColumn Field="@nameof(ThorCategory.ThorDataCategoryId)" Width="100" Caption="ODH Data Category ID" Editable Filterable="true" Sortable="false">
+            </DataGridColumn>
+         <DataGridColumn Field="@nameof(ThorCategory.IsMultiForm)" Width="50" Caption="Is Multi Form?" Editable Filterable="true" Sortable="false">
+                <EditTemplate>
+                    <Dropdown Visible="true">
+                        <DropdownMenu>
+                        <DropdownItem Value="false">No</DropdownItem>
+                        <DropdownItem Value="true">Yes</DropdownItem>
+                    </DropdownMenu>
+                    </Dropdown>
+                </EditTemplate>
+            </DataGridColumn>
+         <DataGridColumn Field="@nameof(ThorCategory.SortOrder)" Caption="Order" Editable Filterable="true" Sortable="false">
+            </DataGridColumn>
+         <DataGridCheckColumn Field="@nameof(ThorCategory.IsActive)" Caption="Is Active?" Editable>
+                 <DisplayTemplate>
+                     <Check TValue="bool" Checked="context.IsActive" Disabled="true" ReadOnly="true" />
+                 </DisplayTemplate>
+             </DataGridCheckColumn>
+        </DataGridColumns>
+        <ButtonRowTemplate>
+            <Button Color="Color.Primary" Size="Size.ExtraSmall" Clicked="context.EditCommand.Clicked">Edit</Button>
+        </ButtonRowTemplate>
+        <EmptyTemplate>
+            <div class="box">
+                No categories were found.
+            </div>
+        </EmptyTemplate>
+    </DataGrid>
+
+
+    @code {
+    [Inject] IThorCategoryService categoryService { get; set; } = null!;
+    [Inject] private NavigationManager navigation { get; set; } = null!;
+
+    private DataGrid<ThorCategory> dataGridRef;
+
+    IList<ThorCategory> categoryList = new List<ThorCategory>()
+    {
+        new ThorCategory
+        {
+            ThorDataCategoryId = 1,
+            CategoryName = "Test Category",
+            IsMultiForm = false,
+            SortOrder = 0,
+            CreateDate = DateTime.Now,
+            UpdateDate = DateTime.Now,
+            IsActive = true
+        },
+        new ThorCategory
+        {
+            ThorDataCategoryId = 2,
+            CategoryName = "Test Category 2",
+            IsMultiForm = false,
+            SortOrder = 1,
+            CreateDate = DateTime.Now,
+            UpdateDate = DateTime.Now,
+            IsActive = true
+        },
+        new ThorCategory
+        {
+            ThorDataCategoryId = 3,
+            CategoryName = "Test Category 3",
+            IsMultiForm = true,
+            SortOrder = 2,
+            CreateDate = DateTime.Now,
+            UpdateDate = DateTime.Now,
+            IsActive = false
+        },
+    };
+    private ThorCategory? selectedCategory;
+
+    public async void GetCategories()
+    {
+        //categoryList = await categoryService.GetCategories();
+        
+    }
+
+    public async void Save()
+    {
+        // Loop through category list and validate? 
+    }
+}
