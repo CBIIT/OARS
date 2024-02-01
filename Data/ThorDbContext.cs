@@ -163,6 +163,8 @@ namespace TheradexPortal.Data
         public DbSet<ErrorLog> ErrorLog { get; set; }
         public DbSet<Audit> Audit { get; set; }
         public DbSet<UserFavorite> User_Favorite { get; set; }
+
+        public DbSet<WRCategory> THORDataCategory { get; set; }
     }
 
 }

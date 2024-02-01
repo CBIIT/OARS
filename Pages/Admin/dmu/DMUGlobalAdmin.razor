@@ -1,4 +1,5 @@
-﻿@using TheradexPortal.Data.Models;
+﻿@using System.Diagnostics.CodeAnalysis
+@using TheradexPortal.Data.Models;
 @using TheradexPortal.Data.Services.Abstract;
 @using TheradexPortal.Data.Static;
 @inject IHttpContextAccessor httpContextAccessor
@@ -12,15 +13,21 @@
 *@
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Global Administration</h2></Div>
 <Row Background="Background.Light">
-    <Steps>
+    <Steps @ref="stepsRef" SelectedStep="@selectedStep" NavigationAllowed="NavigationAllowed">
     <Items>
         <Step Name="thordatacategory">THOR Data Category</Step>
     </Items>
-    <Content>
+        <Content>
             <StepPanel Name="thordatacategory"><WRCategoryEdit></WRCategoryEdit></StepPanel>
     </Content>
     </Steps>
 </Row>
 @code {
+    string selectedStep = "thordatacategory";
+    [AllowNull] private Steps stepsRef;
 
+    private bool NavigationAllowed(StepNavigationContext context)
+    {
+        return true;
+    }
 }
