@@ -421,7 +421,13 @@
                                     </Span>
                                 </TableRowCell>
                             </TableRow>
-                            @if (selectedUserRoleList.Count == 0) {
+                            @if (isAdmin) {
+                                <TableRow>
+                                    <TableRowHeader Style="width:200px">Secondary Roles</TableRowHeader>
+                                    <TableRowCell>N/A</TableRowCell>
+                                </TableRow>   
+                            }
+                            else if (selectedUserRoleList.Count == 0) {
                             <TableRow>
                                 <TableRowHeader Style="width:200px">Secondary Roles</TableRowHeader>
                                 <TableRowCell>None selected</TableRowCell>
@@ -462,7 +468,7 @@
                     <h5>Study Assignments</h5>
                     <Table Narrow>              
                         <TableBody>
-                            @if (studySelectionType == 2) {
+                            @if (studySelectionType == 2 || isAdmin) {
                                 <TableRow>
                                     <TableRowCell>All studies assigned</TableRowCell>
                                 </TableRow>
@@ -503,7 +509,7 @@
                     <h5>Group Assignments</h5>
                     <Table Narrow>              
                         <TableBody>
-                            @if (studySelectionType == 2) {
+                            @if (studySelectionType == 2 || isAdmin) {
                                 <TableRow>
                                     <TableRowCell>N/A</TableRowCell>
                                 </TableRow>
