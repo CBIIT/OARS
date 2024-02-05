@@ -14,12 +14,13 @@
             TItem="ThorCategory"
             Class="admindatagrid"
             Data="@categoryList"
-            @bind-SelectedRow="@selectedCategory"
             Editable
             Responsive
             Striped
             ShowPager
             ShowPageSizes
+            Filterable
+            FilterMethod="DataGridFilterMethod.StartsWith"
             MaxPaginationLinks="5"
             PagerPosition="DataGridPagerPosition.Bottom"
             PagerOptions="new(){ButtonSize=Size.Default,
@@ -27,31 +28,53 @@
                                 TotalItemsPosition=PagerElementPosition.End,
                                 }"
             FixedHeader
+            FixedHeaderDataGridHeight="calc(100vh - 240px)"
             FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
-            CommandMode="DataGridCommandMode.ButtonRow"
-            EditMode="DataGridEditMode.Inline">
+            EditMode="DataGridEditMode.Inline"
+            CommandMode="DataGridCommandMode.Commands"
+            RowUpdated="@Save">
         <DataGridColumns>
-         <DataGridColumn Width="200" Field="@nameof(ThorCategory.CategoryName)" Caption="ODH Data Category" Editable Filterable="true" Sortable="false">
+         <DataGridColumn Width="35%" Field="@nameof(ThorCategory.CategoryName)" Caption="ODH Data Category" Editable Filterable="true" Sortable="false">
             </DataGridColumn>
-         <DataGridColumn Field="@nameof(ThorCategory.ThorDataCategoryId)" Width="100" Caption="ODH Data Category ID" Editable Filterable="true" Sortable="false">
+         <DataGridColumn Field="@nameof(ThorCategory.ThorDataCategoryId)" Width="35%" Caption="ODH Data Category ID" Editable Filterable="true" Sortable="false">
             </DataGridColumn>
-         <DataGridColumn Field="@nameof(ThorCategory.IsMultiForm)" Width="50" Caption="Is Multi Form?" Editable Filterable="true" Sortable="false">
-                <EditTemplate>
-                    <Dropdown Visible="true">
-                        <DropdownMenu>
-                        <DropdownItem Value="false">No</DropdownItem>
-                        <DropdownItem Value="true">Yes</DropdownItem>
-                    </DropdownMenu>
-                    </Dropdown>
-                </EditTemplate>
+         <DataGridColumn Field="@nameof(ThorCategory.IsMultiForm)" Width="10%" Caption="Is Multi Form?" Editable Filterable="true" Sortable="false">
+                <DisplayTemplate>
+                    @((bool)context.IsMultiForm ? "Yes" : "No")
+                </DisplayTemplate>
+             <EditTemplate>
+                 <Dropdown Visible="true">
+                     <DropdownToggle>
+                         @((bool)context.CellValue ? "Yes" : "No")
+                     </DropdownToggle>
+                     <DropdownMenu>
+                         <DropdownItem Value="false" Clicked="@((v) => context.CellValue = v)">No</DropdownItem>
+                         <DropdownItem Value="true" Clicked="@((v) => context.CellValue = v)">Yes</DropdownItem>
+                     </DropdownMenu>
+                 </Dropdown>
+             </EditTemplate>
             </DataGridColumn>
-         <DataGridColumn Field="@nameof(ThorCategory.SortOrder)" Caption="Order" Editable Filterable="true" Sortable="false">
+         <DataGridColumn Field="@nameof(ThorCategory.SortOrder)" Caption="Order" Editable Filterable="true" Sortable="false" Width="8%">
             </DataGridColumn>
-         <DataGridCheckColumn Field="@nameof(ThorCategory.IsActive)" Caption="Is Active?" Editable>
+         <DataGridCheckColumn Field="@nameof(ThorCategory.IsActive)" Caption="Is Active?" Editable Width="7%">
                  <DisplayTemplate>
-                     <Check TValue="bool" Checked="context.IsActive" Disabled="true" ReadOnly="true" />
+                     <Check TValue="bool" Checked="context.IsActive" Disabled="true" ReadOnly="true"/>
                  </DisplayTemplate>
              </DataGridCheckColumn>
+        <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
+            <EditCommandTemplate>
+                <Button><Icon Name="IconName.Edit" Clicked="@context.Clicked"/></Button>
+            </EditCommandTemplate>
+            <SaveCommandTemplate>
+                <Button><Icon Name="IconName.Save" Clicked="@context.Clicked"/></Button>
+            </SaveCommandTemplate>
+            <CancelCommandTemplate>
+                <Button><Icon Name="IconName.Times" Clicked="@context.Clicked"/></Button>
+            </CancelCommandTemplate>
+            <ClearFilterCommandTemplate>
+                <Button><Icon Name="IconName.Times" Clicked="@context.Clicked"/></Button>
+            </ClearFilterCommandTemplate>
+        </DataGridCommandColumn>
         </DataGridColumns>
         <ButtonRowTemplate>
             <Button Color="Color.Primary" Size="Size.ExtraSmall" Clicked="context.EditCommand.Clicked">Edit</Button>
@@ -67,6 +90,7 @@
     @code {
     [Inject] IThorCategoryService categoryService { get; set; } = null!;
     [Inject] private NavigationManager navigation { get; set; } = null!;
+    [Inject] INotificationService notificationService { get; set; }
 
     private DataGrid<ThorCategory> dataGridRef;
 
@@ -74,7 +98,7 @@
     {
         new ThorCategory
         {
-            ThorDataCategoryId = 1,
+            ThorDataCategoryId = "CAT1",
             CategoryName = "Test Category",
             IsMultiForm = false,
             SortOrder = 0,
@@ -84,7 +108,7 @@
         },
         new ThorCategory
         {
-            ThorDataCategoryId = 2,
+            ThorDataCategoryId = "CAT2",
             CategoryName = "Test Category 2",
             IsMultiForm = false,
             SortOrder = 1,
@@ -94,7 +118,7 @@
         },
         new ThorCategory
         {
-            ThorDataCategoryId = 3,
+            ThorDataCategoryId = "CAT3",
             CategoryName = "Test Category 3",
             IsMultiForm = true,
             SortOrder = 2,
@@ -105,14 +129,32 @@
     };
     private ThorCategory? selectedCategory;
 
-    public async void GetCategories()
+    protected override async Task OnInitializedAsync()
     {
-        //categoryList = await categoryService.GetCategories();
-        
+        this.categoryList = await categoryService.GetCategories();
     }
 
-    public async void Save()
+    public async void Save(SavedRowItem<ThorCategory,Dictionary<string,object>> e)
     {
-        // Loop through category list and validate? 
+        var toSave = e.Item;
+
+        if (toSave.CategoryName == "" || toSave.ThorDataCategoryId == "" || !toSave.SortOrder.HasValue)
+        {
+            await notificationService.Error("Please fix all errors to save.");
+            return;
+        }
+
+        bool saved = categoryService.SaveCategory(toSave);
+
+        if (saved)
+        {
+            await notificationService.Success("Category successfully saved");
+            return;
+        }
+        else
+        {
+            await notificationService.Error("Error saving category");
+            return;
+        }
     }
 }

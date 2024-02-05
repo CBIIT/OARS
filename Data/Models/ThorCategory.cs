@@ -7,7 +7,7 @@ namespace TheradexPortal.Data.Models
     public class ThorCategory
     {
         [Key]
-        public int ThorDataCategoryId { get; set; }
+        public string ThorDataCategoryId { get; set; }
         public string? CategoryName { get; set; }
         public Boolean IsMultiForm { get; set; }
         public int? SortOrder { get; set; }

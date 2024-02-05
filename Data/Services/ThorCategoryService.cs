@@ -18,16 +18,13 @@ namespace TheradexPortal.Data.Services
             return await context.THORDataCategory.OrderBy(c => c.SortOrder).ToListAsync();
         }
 
-        public bool SaveCategories(IList<ThorCategory> categories)
+        public bool SaveCategory(ThorCategory category)
         {
             DateTime curDateTime = DateTime.UtcNow;
             try
             {
-                foreach(var category in categories)
-                {
-                    category.UpdateDate = curDateTime;
-                    context.Add(category);
-                }
+                category.UpdateDate = curDateTime;
+                context.Add(category);
                 context.SaveChanges();
                 return true;
 
