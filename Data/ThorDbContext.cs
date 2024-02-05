@@ -24,6 +24,9 @@ namespace TheradexPortal.Data
 
             foreach (var entity in modelBuilder.Model.GetEntityTypes())
             {
+                var schema = entity.GetSchema();
+                if (schema != null && schema == "DMU")
+                   continue;
                 var table = entity.GetTableName();
                 if (table != null)
                     entity.SetTableName(table.ToUpper());
