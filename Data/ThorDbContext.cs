@@ -25,17 +25,18 @@ namespace TheradexPortal.Data
             foreach (var entity in modelBuilder.Model.GetEntityTypes())
             {
                 var schema = entity.GetSchema();
-                if (schema != null && schema == "DMU")
-                    foreach(var property in entity.GetProperties())
+                if (schema != null && schema == "DMU") {
+                    foreach (var property in entity.GetProperties())
                     {
                         var colName = property.GetColumnName();
                         property.SetColumnName(colName.ToUpper());
-                        if(property.ClrType.Name == "bool" || property.ClrType.Name == "Boolean")
+                        if (property.ClrType.Name == "bool" || property.ClrType.Name == "Boolean")
                         {
                             property.SetValueConverter(converter);
                         }
                     }
-                   continue;
+                    continue;
+                }
                 var table = entity.GetTableName();
                 if (table != null)
                     entity.SetTableName(table.ToUpper());
