@@ -43,15 +43,10 @@
                     @((bool)context.IsMultiForm ? "Yes" : "No")
                 </DisplayTemplate>
              <EditTemplate>
-                 <Dropdown Visible="true">
-                     <DropdownToggle>
-                         @((bool)context.CellValue ? "Yes" : "No")
-                     </DropdownToggle>
-                     <DropdownMenu>
-                         <DropdownItem Value="false" Clicked="@((v) => context.CellValue = v)">No</DropdownItem>
-                         <DropdownItem Value="true" Clicked="@((v) => context.CellValue = v)">Yes</DropdownItem>
-                     </DropdownMenu>
-                 </Dropdown>
+                 <Select TValue="bool">
+                     <SelectItem Value="false">No</SelectItem>
+                     <SelectItem Value="true">Yes</SelectItem>
+                 </Select>
              </EditTemplate>
             </DataGridColumn>
          <DataGridColumn Field="@nameof(ThorCategory.SortOrder)" Caption="Order" Editable Filterable="true" Sortable="false" Width="8%">
@@ -87,7 +82,7 @@
     </DataGrid>
 
 
-    @code {
+ @code {
     [Inject] IThorCategoryService categoryService { get; set; } = null!;
     [Inject] private NavigationManager navigation { get; set; } = null!;
     [Inject] INotificationService notificationService { get; set; }
@@ -100,6 +95,15 @@
     protected override async Task OnInitializedAsync()
     {
         this.categoryList = await categoryService.GetCategories();
+        if (this.categoryList.Count == 0)
+        {
+            this.categoryList.Add(new ThorCategory
+            {
+            CategoryName = "Test Category 1",
+            ThorDataCategoryId = "TC1",
+            IsActive = true,
+            IsMultiForm = false              });
+        }
     }
 
     public async void Save(SavedRowItem<ThorCategory,Dictionary<string,object>> e)
