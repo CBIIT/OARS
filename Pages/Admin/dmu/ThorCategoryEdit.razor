@@ -93,41 +93,8 @@
     [Inject] INotificationService notificationService { get; set; }
 
     private DataGrid<ThorCategory> dataGridRef;
-private IList<ThorCategory> categoryList;
+    private IList<ThorCategory> categoryList;
 
-    // IList<ThorCategory> categoryList = new List<ThorCategory>()
-    // {
-    //     new ThorCategory
-    //     {
-    //         Thor_DataCategoryId = "CAT1",
-    //         CategoryName = "Test Category",
-    //         IsMultiForm = false,
-    //         SortOrder = 0,
-    //         CreateDate = DateTime.Now,
-    //         UpdateDate = DateTime.Now,
-    //         IsActive = true
-    //     },
-    //     new ThorCategory
-    //     {
-    //         ThorDataCategoryId = "CAT2",
-    //         CategoryName = "Test Category 2",
-    //         IsMultiForm = false,
-    //         SortOrder = 1,
-    //         CreateDate = DateTime.Now,
-    //         UpdateDate = DateTime.Now,
-    //         IsActive = true
-    //     },
-    //     new ThorCategory
-    //     {
-    //         ThorDataCategoryId = "CAT3",
-    //         CategoryName = "Test Category 3",
-    //         IsMultiForm = true,
-    //         SortOrder = 2,
-    //         CreateDate = DateTime.Now,
-    //         UpdateDate = DateTime.Now,
-    //         IsActive = false
-    //     },
-    // };
     private ThorCategory? selectedCategory;
 
     protected override async Task OnInitializedAsync()
