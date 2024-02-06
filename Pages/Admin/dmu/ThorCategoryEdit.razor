@@ -95,15 +95,6 @@
     protected override async Task OnInitializedAsync()
     {
         this.categoryList = await categoryService.GetCategories();
-        if (this.categoryList.Count == 0)
-        {
-            this.categoryList.Add(new ThorCategory
-            {
-            CategoryName = "Test Category 1",
-            ThorDataCategoryId = "TC1",
-            IsActive = true,
-            IsMultiForm = false              });
-        }
     }
 
     public async void Save(SavedRowItem<ThorCategory,Dictionary<string,object>> e)
