@@ -5,10 +5,9 @@ using Microsoft.EntityFrameworkCore;
 namespace TheradexPortal.Data.Models
 {
     [Table("THORDataCategory", Schema = "DMU")]
-    [Keyless]
     public class ThorCategory
     {
-        [Column("THOR_Data_Category_Id")]
+        [Column("THOR_Data_Category_Id"), Key]
         public string ThorDataCategoryId { get; set; }
         [Column("Category_Name")]
         public string? CategoryName { get; set; }

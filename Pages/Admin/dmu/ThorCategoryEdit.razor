@@ -31,12 +31,12 @@
             FixedHeaderDataGridHeight="calc(100vh - 240px)"
             FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
             EditMode="DataGridEditMode.Inline"
-            CommandMode="DataGridCommandMode.Commands"
-            RowUpdated="@Save">
+            RowUpdated="@Save"
+            RowInserted="@Save">
         <DataGridColumns>
-         <DataGridColumn Width="35%" Field="@nameof(ThorCategory.CategoryName)" Caption="ODH Data Category" Editable Filterable="true" Sortable="false">
+         <DataGridColumn Width="35%" Field="@nameof(ThorCategory.CategoryName)" Caption="THOR Data Category" Editable Filterable="true" Sortable="false">
             </DataGridColumn>
-         <DataGridColumn Field="@nameof(ThorCategory.ThorDataCategoryId)" Width="35%" Caption="ODH Data Category ID" Editable Filterable="true" Sortable="false">
+         <DataGridColumn Field="@nameof(ThorCategory.ThorDataCategoryId)" Width="35%" Caption="THOR Data Category ID" Editable Filterable="true" Sortable="false">
             </DataGridColumn>
          <DataGridColumn Field="@nameof(ThorCategory.IsMultiForm)" Width="10%" Caption="Is Multi Form?" Editable Filterable="true" Sortable="false">
                 <DisplayTemplate>
@@ -77,7 +77,7 @@
         </DataGridCommandColumn>
         </DataGridColumns>
         <ButtonRowTemplate>
-            <Button Color="Color.Primary" Size="Size.ExtraSmall" Clicked="context.EditCommand.Clicked">Edit</Button>
+            <Button Color="Color.Primary" Clicked="context.NewCommand.Clicked">Add</Button>
         </ButtonRowTemplate>
         <EmptyTemplate>
             <div class="box">
