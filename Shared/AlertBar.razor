@@ -112,6 +112,13 @@ else
         StateHasChanged();
     }
 
+    public void Clear()
+    {
+        this.selectedDashboard = new Data.Models.Dashboard() { DashboardId = 0 };
+        this.activeAlerts = new List<ThorAlert>();
+        StateHasChanged();
+    }
+
     private async void getSystemAlerts()
     {
         if (System)

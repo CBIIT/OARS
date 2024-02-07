@@ -303,6 +303,11 @@
         this.dashboardAlerts?.UpdateDashboard(dashboard);
     }
 
+    public async Task ClearDashboardAlerts()
+    {
+        this.dashboardAlerts?.Clear();
+    }
+
     public async Task UpdateFavoriteMenu()
     {
         primaryNav.RefreshMenu();

@@ -111,6 +111,8 @@ else
 
     protected override async Task OnParametersSetAsync()
     {
+        await PrimaryNavLayout.ClearDashboardAlerts();
+
         _saveHistory = false;
         notFound = false;
 
@@ -133,7 +135,6 @@ else
         string userReports = httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.Reports).Value;
 
         dashboard = await dashboardService.GetDashboardByIdAsync(DashboardId, userDashboards, isAdmin);
-        await PrimaryNavLayout.UpdateDashboard(dashboard);
 
         if(dashboard == null)
         {
@@ -193,9 +194,17 @@ else
             }
         }
     }
-    //protected override async Task OnAfterRenderAsync(bool firstRender)
-    //{
-    //}
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            // Set DashboardAlert on Render
+            bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(ThorClaimType.IsAdmin, "True");
+            string userDashboards = httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.Dashboards).Value;
+            dashboard = await dashboardService.GetDashboardByIdAsync(DashboardId, userDashboards, isAdmin);
+            await PrimaryNavLayout.UpdateDashboard(dashboard);
+        }
+    }
 
     //// Re-render report components and hide modal
     //private async void HideFilters(List<Protocol>? selectedStudies)
