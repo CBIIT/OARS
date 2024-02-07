@@ -99,20 +99,22 @@ else
         }
     };
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        await PrimaryNavLayout.ClearDashboardAlerts();
+
         if (fullReportRef != null)
         {
             _dashboardId = DashboardId;
             _reportId = ReportId;
             _saveHistory = true;
         }
+
+        await base.OnInitializedAsync();
     }
 
     protected override async Task OnParametersSetAsync()
     {
-        await PrimaryNavLayout.ClearDashboardAlerts();
-
         _saveHistory = false;
         notFound = false;
 
@@ -198,11 +200,10 @@ else
     {
         if (!firstRender)
         {
-            // Set DashboardAlert on Render
-            bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(ThorClaimType.IsAdmin, "True");
-            string userDashboards = httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.Dashboards).Value;
-            dashboard = await dashboardService.GetDashboardByIdAsync(DashboardId, userDashboards, isAdmin);
-            await PrimaryNavLayout.UpdateDashboard(dashboard);
+            if (dashboard.DashboardId != 0)
+            {
+                await PrimaryNavLayout.UpdateDashboard(dashboard);
+            }
         }
     }
 

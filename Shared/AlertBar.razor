@@ -83,25 +83,25 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        this.getSystemAlerts();
-        this.getLoginAlerts();
-        this.getDashboardAlerts();
+        await this.getSystemAlerts();
+        await this.getLoginAlerts();
+        await this.getDashboardAlerts();
+        this.alertColor = await alertService.AlertColor();
+        this.noteColor = await alertService.NoteColor();
+        this.infoColor = await alertService.InfoColor();
+        this.currentColor = this.noteColor;
+        this.setCurrentColor();
+        this.alertsSessionLoaded = true;
         await base.OnInitializedAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender) // required for performance. could add a timed bool check to refresh system alerts
+        if (firstRender)
         {
-            await LoadSessionAlerts();
-            this.alertColor = await alertService.AlertColor();
-            this.noteColor = await alertService.NoteColor();
-            this.infoColor = await alertService.InfoColor();
-            this.currentColor = this.noteColor;
-            this.setCurrentColor();
-            this.alertsSessionLoaded = true;
+            //await LoadSessionAlerts();
             await this.updateAlertsCount(this.getActiveAlertsCount());
-            StateHasChanged();
+            //StateHasChanged();
         }
     }
 
@@ -119,7 +119,7 @@ else
         StateHasChanged();
     }
 
-    private async void getSystemAlerts()
+    private async Task getSystemAlerts()
     {
         if (System)
         {
@@ -134,7 +134,7 @@ else
         }
     }
 
-    private async void getLoginAlerts()
+    private async Task getLoginAlerts()
     {
         if (LoginScreen)
         {
@@ -149,7 +149,7 @@ else
         }
     }
 
-    private async void getDashboardAlerts()
+    private async Task getDashboardAlerts()
     {
         if (Dashboard)
         {
