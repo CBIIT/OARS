@@ -329,6 +329,7 @@
     private FileEdit helpFileEditRef;
     private string reportToDelete;
     private string helpFileName;
+    private readonly string noFileFound = "No file found";
     private string currentHelpFileName = "No file found";
     private int reportToDeleteId;
     IFileEntry helpFileEntry;
@@ -631,7 +632,6 @@
             saveDashboard.Name = dashboardName;
             saveDashboard.Description = description;
             saveDashboard.CustomPagePath = pageName;
-            saveDashboard.HelpFileName = this.currentHelpFileName;
 
             if (String.IsNullOrEmpty(pageName))
             {
@@ -646,8 +646,9 @@
                 }
             }
 
-            if (this.helpFileEntry != null)
+            if (this.helpFileEntry != null && !this.currentHelpFileName.Equals(noFileFound))
             {
+                saveDashboard.HelpFileName = this.currentHelpFileName;
                 helpFileUploaded = (await this.UploadFileToS3());
                 if (helpFileUploaded)
                 {
@@ -924,7 +925,7 @@
 
     private async void OpenCurrentHelpFile()
     {
-        if (this.helpFileName != null && !this.helpFileName.Equals(string.Empty))
+        if (this.helpFileName != null && !this.helpFileName.Equals(string.Empty) && !this.helpFileName.Equals(noFileFound))
         {
             var helpFileUrl = configuration.GetValue<string>("System:DashboardHelpURL");
             helpFileUrl += this.currentHelpFileName;
