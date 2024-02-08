@@ -34,13 +34,13 @@
                     <BarEnd>
                         <BarItem>
                             <Tooltip Text="@systemAlertsTooltip">
-                                <BarDropdown RightAligned @ref="@alertBarDropDown" Visible="@systemAlertsDropdownVisible">
-                                    <BarDropdownToggle Class="nci-bar-dropdown" onclick="@ToggleSystemAlertsDropdown">
+                                <BarDropdown RightAligned AutoPostBack="false" @ref="@alertBarDropDown" Visible="@systemAlertsDropdownVisible">
+                                    <BarDropdownToggle AutoPostBack="false" Class="nci-bar-dropdown" onclick="@ToggleSystemAlertsDropdown">
                                         <Badge Class="nci-alert-badge" Pill Position="Position.Absolute.Top.Is50.Start.Is100.Translate.Middle">@systemAlertsCount</Badge>
                                         <Image Source="img/alert-icon.png" height="@iconHeight" Class="nci-alert-icon" />
                                     </BarDropdownToggle>
                                     <BarDropdownMenu Class="nci-alert-dropdown">
-                                        <AlertBar @ref="@systemAlerts" Alert System NoAlertsMessage Toggleable AlertsCountChanged=SystemAlertsCountChanged AlertBarToggled=ToggleSystemAlertsDropdownFromAlertBar CSS="nci-alert-component" />
+                                        <AlertBar @ref="@systemAlerts" Alert System NoAlertsMessage Toggleable AlertsCountChanged=SystemAlertsCountChanged AlertBarToggled=ToggleSystemAlertsDropdown CSS="nci-alert-component" />
                                     </BarDropdownMenu>
                                 </BarDropdown>
                             </Tooltip>
@@ -301,6 +301,11 @@
     public async Task UpdateDashboard(Dashboard dashboard)
     {
         this.dashboardAlerts?.UpdateDashboard(dashboard);
+    }
+
+    public async Task ClearDashboardAlerts()
+    {
+        this.dashboardAlerts?.Clear();
     }
 
     public async Task UpdateFavoriteMenu()

@@ -99,14 +99,18 @@ else
         }
     };
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        await PrimaryNavLayout.ClearDashboardAlerts();
+
         if (fullReportRef != null)
         {
             _dashboardId = DashboardId;
             _reportId = ReportId;
             _saveHistory = true;
         }
+
+        await base.OnInitializedAsync();
     }
 
     protected override async Task OnParametersSetAsync()
@@ -133,7 +137,6 @@ else
         string userReports = httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.Reports).Value;
 
         dashboard = await dashboardService.GetDashboardByIdAsync(DashboardId, userDashboards, isAdmin);
-        await PrimaryNavLayout.UpdateDashboard(dashboard);
 
         if(dashboard == null)
         {
@@ -193,9 +196,16 @@ else
             }
         }
     }
-    //protected override async Task OnAfterRenderAsync(bool firstRender)
-    //{
-    //}
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            if (dashboard.DashboardId != 0)
+            {
+                await PrimaryNavLayout.UpdateDashboard(dashboard);
+            }
+        }
+    }
 
     //// Re-render report components and hide modal
     //private async void HideFilters(List<Protocol>? selectedStudies)
