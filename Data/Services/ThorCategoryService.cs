@@ -21,6 +21,8 @@ namespace TheradexPortal.Data.Services
         public bool SaveCategory(ThorCategory category)
         {
             DateTime curDateTime = DateTime.UtcNow;
+            if (category.CreateDate == null)
+                category.CreateDate = curDateTime;
             try
             {
                 category.UpdateDate = curDateTime;
