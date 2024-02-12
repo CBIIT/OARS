@@ -1,0 +1,153 @@
+﻿@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@inject IHttpContextAccessor httpContextAccessor
+@layout AdminLayout
+
+@*
+    TODO: Add ThorRoleCheck check for DMU roles when they are created
+
+<ThorRoleCheck AllowedRoles="@(new List<string> { "??" })"></ThorRoleCheck>
+*@
+
+<DataGrid @ref=dataGridRef
+          TItem="ThorField"
+          Class="admindatagrid"
+          Data="@fieldList"
+          Editable
+          Responsive
+          Striped
+          ShowPager
+          ShowPageSizes
+          Filterable
+           FilterMethod="DataGridFilterMethod.StartsWith"
+           MaxPaginationLinks="5"
+           PagerPosition="DataGridPagerPosition.Bottom"
+           PagerOptions="new(){ButtonSize=Size.Default,
+                                PaginationPosition=PagerElementPosition.Default,
+                                TotalItemsPosition=PagerElementPosition.End,
+                                }"
+          FixedHeader
+           FixedHeaderDataGridHeight="calc(100vh - 240px)"
+           FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
+           EditMode="DataGridEditMode.Inline"
+           RowUpdated="@Save"
+           RowInserted="@Save">
+     <DataGridColumns>
+          <DataGridColumn Width="15%" Field="@nameof(ThorField.ThorDataCategoryId)" Caption="THOR Data Category" Editable Filterable="true" Sortable="false">
+              <DisplayTemplate>
+                  @context.ThorDataCategoryId
+              </DisplayTemplate>
+             <EditTemplate>
+				 <SelectList TItem="ThorCategory" TValue="string?" Data="@categoryList" TextField="@((item)=>item.CategoryName)" ValueField="@((item)=>item.ThorDataCategoryId)" @bind-SelectedValue="context.Item.ThorDataCategoryId"></SelectList>
+			 </EditTemplate>
+         </DataGridColumn>
+         <DataGridColumn Field="@nameof(ThorField.ThorFieldId)" Width="15%" Caption="THOR Field ID" Editable Filterable="true" Sortable="false">
+         </DataGridColumn>
+          <DataGridColumn Width="15%" Field="@nameof(ThorField.FieldLabel)" Caption="THOR Field Label" Editable Filterable="true" Sortable="false">
+         </DataGridColumn>
+         <DataGridColumn Width="10%" Caption="THOR Field Type" Field="@nameof(ThorField.FieldType)" Editable Filterable="true" Sortable="false">
+             <EditTemplate>
+                 <SelectList TItem="ThorFieldType" TValue="int?" Data="@fieldTypes" TextField="@((item)=>item.FieldTypeName)" ValueField="@((item)=>item.ThorFieldTypeId)" @bind-SelectedValue="context.Item.ThorFieldTypeId"></SelectList>
+             </EditTemplate>
+         </DataGridColumn>
+         <DataGridColumn Field="@nameof(ThorField.Derivable)" Width="10%" Caption="Derivable" Editable Filterable="true" Sortable="false">
+             <DisplayTemplate>
+                 @((bool)context.Derivable ? "Yes" : "No")
+             </DisplayTemplate>
+             <EditTemplate>
+                 <Select TValue="bool">
+                     <SelectItem Value="false">No</SelectItem>
+                     <SelectItem Value="true">Yes</SelectItem>
+                 </Select>
+             </EditTemplate>
+         </DataGridColumn>
+         <DataGridColumn Field="Dictionary.DictionaryName" Caption="THOR Dictionary Name" Editable Filterable="true" Sortable="false">         </DataGridColumn>
+         <DataGridColumn Field="@nameof(ThorField.IsMultiForm)" Width="10%" Caption="Multi Form" Editable Filterable="true" Sortable="false">
+             <DisplayTemplate>
+                 @((bool)context.IsMultiForm ? "Yes" : "No")
+             </DisplayTemplate>
+             <EditTemplate>
+                 <Select TValue="bool">
+                     <SelectItem Value="false">No</SelectItem>
+                     <SelectItem Value="true">Yes</SelectItem>
+                 </Select>
+             </EditTemplate>
+         </DataGridColumn>
+         <DataGridColumn Field="@nameof(ThorField.SortOrder)" Caption="Order" Editable Filterable="true" Sortable="false" Width="8%">
+         </DataGridColumn>
+         <DataGridCheckColumn Field="@nameof(ThorField.IsActive)" Caption="Active" Editable Width="7%">
+             <DisplayTemplate>
+                 <Check TValue="bool" Checked="context.IsActive" Disabled="true" ReadOnly="true" />
+             </DisplayTemplate>
+         </DataGridCheckColumn>
+         <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
+             <EditCommandTemplate>
+                 <Button><Icon Name="IconName.Edit" Clicked="@context.Clicked" /></Button>
+             </EditCommandTemplate>
+             <SaveCommandTemplate>
+                 <Button><Icon Name="IconName.Save" Clicked="@context.Clicked" /></Button>
+             </SaveCommandTemplate>
+             <CancelCommandTemplate>
+                 <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
+             </CancelCommandTemplate>
+             <ClearFilterCommandTemplate>
+                 <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
+             </ClearFilterCommandTemplate>
+         </DataGridCommandColumn>
+     </DataGridColumns>
+     <ButtonRowTemplate>
+         <Button Color="Color.Primary" Clicked="context.NewCommand.Clicked">Add</Button>
+     </ButtonRowTemplate>
+     <EmptyTemplate>
+         <div class="box">
+             No THOR fields were found.
+         </div>
+     </EmptyTemplate>
+ </DataGrid>
+
+
+ @code {
+    [Inject] IThorCategoryService categoryService { get; set; } = null!; 
+    [Inject] IThorFieldService fieldService { get; set; } = null!;
+    [Inject] private NavigationManager navigation { get; set; } = null!;
+    [Inject] INotificationService notificationService { get; set; }
+
+    private DataGrid<ThorField> dataGridRef;
+    private IList<ThorCategory> categoryList;
+    private IList<ThorField> fieldList;
+    private IList<ThorFieldType> fieldTypes;
+
+    private ThorField? selectedField;
+
+    protected override async Task OnInitializedAsync()
+    {
+        this.categoryList = await categoryService.GetCategories();
+        this.fieldList = await fieldService.GetFields();
+        this.fieldTypes = await fieldService.GetFieldTypes();
+    }
+
+    public async void Save(SavedRowItem<ThorField, Dictionary<string, object>> e)
+    {
+        var toSave = e.Item;
+
+        if (toSave.ThorFieldId == "" || toSave.ThorDataCategoryId == "" || !toSave.SortOrder.HasValue || toSave.FieldLabel == "")
+        {
+            await notificationService.Error("Please fix all errors to save.");
+            return;
+        }
+
+        bool saved = fieldService.SaveField(toSave);
+
+        if (saved)
+        {
+            await notificationService.Success("Field successfully saved");
+            return;
+        }
+        else
+        {
+            await notificationService.Error("Error saving field");
+            return;
+        }
+    }
+}

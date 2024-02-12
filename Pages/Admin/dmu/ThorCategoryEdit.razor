@@ -38,7 +38,7 @@
             </DataGridColumn>
          <DataGridColumn Field="@nameof(ThorCategory.ThorDataCategoryId)" Width="35%" Caption="THOR Data Category ID" Editable Filterable="true" Sortable="false">
             </DataGridColumn>
-         <DataGridColumn Field="@nameof(ThorCategory.IsMultiForm)" Width="10%" Caption="Is Multi Form?" Editable Filterable="true" Sortable="false">
+         <DataGridColumn Field="@nameof(ThorCategory.IsMultiForm)" Width="10%" Caption="Multi Form" Editable Filterable="true" Sortable="false">
                 <DisplayTemplate>
                     @((bool)context.IsMultiForm ? "Yes" : "No")
                 </DisplayTemplate>
@@ -51,7 +51,7 @@
             </DataGridColumn>
          <DataGridColumn Field="@nameof(ThorCategory.SortOrder)" Caption="Order" Editable Filterable="true" Sortable="false" Width="8%">
             </DataGridColumn>
-         <DataGridCheckColumn Field="@nameof(ThorCategory.IsActive)" Caption="Is Active?" Editable Width="7%">
+         <DataGridCheckColumn Field="@nameof(ThorCategory.IsActive)" Caption="Active" Editable Width="7%">
                  <DisplayTemplate>
                      <Check TValue="bool" Checked="context.IsActive" Disabled="true" ReadOnly="true"/>
                  </DisplayTemplate>
