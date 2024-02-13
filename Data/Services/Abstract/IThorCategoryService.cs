@@ -5,7 +5,7 @@ namespace TheradexPortal.Data.Services.Abstract
         public interface IThorCategoryService
         {
             public Task<IList<ThorCategory>> GetCategories();
-            public bool SaveCategory(ThorCategory category);
+            public Task<bool> SaveCategory(ThorCategory category);
 
         }
 }

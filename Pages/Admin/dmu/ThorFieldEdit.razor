@@ -137,7 +137,7 @@
             return;
         }
 
-        bool saved = fieldService.SaveField(toSave);
+        bool saved = await fieldService.SaveField(toSave);
 
         if (saved)
         {

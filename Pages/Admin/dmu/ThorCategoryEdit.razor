@@ -107,7 +107,7 @@
             return;
         }
 
-        bool saved = categoryService.SaveCategory(toSave);
+        bool saved = await categoryService.SaveCategory(toSave);
 
         if (saved)
         {

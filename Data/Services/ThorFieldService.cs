@@ -25,19 +25,19 @@ namespace TheradexPortal.Data.Services
             return await context.THORField.OrderBy(c => c.SortOrder).ToListAsync();
         }
         
-        public bool SaveField(ThorField field)
+        public async Task<bool> SaveField(ThorField field)
         {
             DateTime curDateTime = DateTime.UtcNow;
             try
             {
                 field.UpdateDate = curDateTime;
                 context.Add(field);
-                context.SaveChangesAsync();
+                await context.SaveChangesAsync();
                 return true;
             }
             catch (Exception ex)
             {
-                _errorLogService.SaveErrorLogAsync(0, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+                await _errorLogService.SaveErrorLogAsync(0, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
                 return false;
             }
         }
