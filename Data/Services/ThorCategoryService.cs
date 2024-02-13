@@ -25,7 +25,7 @@ namespace TheradexPortal.Data.Services
             {
                 category.UpdateDate = curDateTime;
                 context.Add(category);
-                context.SaveChanges();
+                context.SaveChangesAsync();
                 return true;
 
             }

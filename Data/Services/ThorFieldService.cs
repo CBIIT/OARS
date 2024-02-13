@@ -32,7 +32,7 @@ namespace TheradexPortal.Data.Services
             {
                 field.UpdateDate = curDateTime;
                 context.Add(field);
-                context.SaveChanges();
+                context.SaveChangesAsync();
                 return true;
             }
             catch (Exception ex)
