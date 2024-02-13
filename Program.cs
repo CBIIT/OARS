@@ -48,6 +48,7 @@ builder.Services.AddScoped<IContactUsService, ContactUsService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IErrorLogService, ErrorLogService>();
 builder.Services.AddScoped<IThorCategoryService, ThorCategoryService>();
+builder.Services.AddScoped<IThorFieldService, ThorFieldService>();
 builder.Services.AddHttpClient<IOktaService, OktaService>(client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["Okta:Issuer"]);

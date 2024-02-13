@@ -18,7 +18,7 @@ namespace TheradexPortal.Data.Services
             return await context.THORDataCategory.OrderBy(c => c.SortOrder).ToListAsync();
         }
 
-        public bool SaveCategory(ThorCategory category)
+        public async Task<bool> SaveCategory(ThorCategory category)
         {
             DateTime curDateTime = DateTime.UtcNow;
             if (category.CreateDate == null)
@@ -27,13 +27,13 @@ namespace TheradexPortal.Data.Services
             {
                 category.UpdateDate = curDateTime;
                 context.Add(category);
-                context.SaveChanges();
+                await context.SaveChangesAsync();
                 return true;
 
             }
             catch (Exception ex)
             {
-                _errorLogService.SaveErrorLogAsync(0, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+                await _errorLogService.SaveErrorLogAsync(0, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
                 return false;
             }
         }
