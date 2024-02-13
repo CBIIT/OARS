@@ -1,11 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using System;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics;
-using System.Security.AccessControl;
 using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Static;
 
@@ -24,6 +19,18 @@ namespace TheradexPortal.Data
 
             foreach (var entity in modelBuilder.Model.GetEntityTypes())
             {
+                var schema = entity.GetSchema();
+                if (schema != null && schema == "DMU") {
+                    foreach (var property in entity.GetProperties())
+                    {
+                        if (property.ClrType.Name == "bool" || property.ClrType.Name == "Boolean")
+                        {
+                            property.SetValueConverter(converter);
+                        }
+                    }
+                    continue;
+                }
+
                 var table = entity.GetTableName();
                 if (table != null)
                     entity.SetTableName(table.ToUpper());
@@ -163,6 +170,10 @@ namespace TheradexPortal.Data
         public DbSet<ErrorLog> ErrorLog { get; set; }
         public DbSet<Audit> Audit { get; set; }
         public DbSet<UserFavorite> User_Favorite { get; set; }
+        public DbSet<ThorCategory> THORDataCategory { get; set; }
+        public DbSet<ThorFieldType> THORFieldType { get; set; }
+        public DbSet<ThorField> THORField { get; set; }
+        public DbSet<ThorDictionary> THORDictionary { get; set; }
     }
 
 }

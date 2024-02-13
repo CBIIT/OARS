@@ -1,0 +1,35 @@
+﻿@using System.Diagnostics.CodeAnalysis
+@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@inject IHttpContextAccessor httpContextAccessor
+@layout AdminLayout
+
+@page "/admin/dmu/global-admin"
+@*
+    TODO: Add ThorRoleCheck check for DMU roles when they are created
+
+<ThorRoleCheck AllowedRoles="@(new List<string> { "??" })"></ThorRoleCheck>
+*@
+<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Global Administration</h2></Div>
+<Row Background="Background.Light">
+    <Steps @ref="stepsRef" SelectedStep="@selectedStep" NavigationAllowed="NavigationAllowed">
+    <Items>
+        <Step Name="thordatacategory">THOR Data Category</Step>
+        <Step Name="thorfields">THOR Fields</Step>"
+    </Items>
+        <Content>
+            <StepPanel Name="thordatacategory"><ThorCategoryEdit></ThorCategoryEdit></StepPanel>
+            <StepPanel Name="thorfields"><ThorFieldEdit></ThorFieldEdit></StepPanel>
+    </Content>
+    </Steps>
+</Row>
+@code {
+    string selectedStep = "thordatacategory";
+    [AllowNull] private Steps stepsRef;
+
+    private bool NavigationAllowed(StepNavigationContext context)
+    {
+        return true;
+    }
+}
