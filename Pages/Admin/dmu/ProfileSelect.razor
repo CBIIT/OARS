@@ -1,8 +1,6 @@
 ﻿@using TheradexPortal.Data.Models;
 @using TheradexPortal.Data.Services.Abstract;
-@using TheradexPortal.Data.Static;
 @inject IHttpContextAccessor httpContextAccessor
-@inject IConfiguration configuration
 @layout AdminLayout
 
 @page "/admin/dmu/select-profile"
@@ -16,14 +14,16 @@
                     <Text>Select Mapping Profile:</Text>
                 </Column>
                 <Column ColumnSize="ColumnSize.Is4">
-                    <Dropdown Class="dmu-admin-dropdown-field" TItem="Profile" TValue="string" Data="@profileList" TextField="@(item => item.ProfileName)" ValueField="@(item => item.ProfileId)" @bind-SelectedValue="@selectedMappingProfileId">
-                        <DropdownToggle>
-                            Select a Mapping Profile
-                        </DropdownToggle>
-                    </Dropdown>
+                    <Select TValue="int" @bind-SelectedValue="@selectedMappingProfileId">
+                        <SelectItem Value="@invalidId">Select a Mapping Profile</SelectItem>
+                        @foreach (var profile in profileList)
+                        {
+                            <SelectItem Value="@profile.ProfileId">@profile.ProfileName</SelectItem>
+                        }
+                    </Select>
                 </Column>
                 <Column ColumnSize="ColumnSize.Is4">
-                    <Button Flex="Flex.JustifyContent.Center" Type="ButtonType.Button" Size="Size.Medium" Color="Color.Info" Class="dmu-admin-button" Clicked="@NavigateToGlobalDMU">
+                    <Button Flex="Flex.JustifyContent.Center" Type="ButtonType.Button" Size="Size.Medium" Color="Color.Info" Class="dmu-admin-button" Clicked="@NavigateToProfileEdit">
                         Edit Mapping Profile
                     </Button>
                 </Column>
@@ -36,7 +36,7 @@
                     <TextEdit Placeholder="[New Profile Name]" MaxLength="50" @bind-Text="@newMappingProfile"></TextEdit>
                 </Column>
                 <Column ColumnSize="ColumnSize.Is4">
-                    <Button Flex="Flex.JustifyContent.Center" Type="ButtonType.Button" Size="Size.Medium" Color="Color.Info" Class="dmu-admin-button" Clicked="@NavigateToGlobalDMU">
+                    <Button Flex="Flex.JustifyContent.Center" Type="ButtonType.Button" Size="Size.Medium" Color="Color.Info" Class="dmu-admin-button" Clicked="@NavigateToProfileNew">
                         New Mapping Profile
                     </Button>
                 </Column>
@@ -60,17 +60,29 @@
     [Inject] private NavigationManager navigation { get; set; } = null!;
     [Inject] IUserService userService { get; set; } = null!;
 
-    private IList<Profile> profileList;
-    private int selectedMappingProfileId? { get; set; } = 0;
-    private string newMappingProfile? { get; set; } = "";
+    private IList<Profile> profileList = new List<Profile>();
+    private int selectedMappingProfileId = 0;
+    private string? newMappingProfile = "";
+    private static int invalidId = 0;
 
     protected override async Task OnInitializedAsync()
     {
         this.profileList = await profileService.GetProfiles();
+        await base.OnInitializedAsync();
     }
 
-    private async void NavigateToGlobalDMU()
+    private void NavigateToGlobalDMU()
     {
         navigation.NavigateTo("/admin/dmu/global-dmu");
+    }
+
+    private void NavigateToProfileEdit()
+    {
+        navigation.NavigateTo("/admin/dmu/profile-edit");
+    }
+
+    private void NavigateToProfileNew()
+    {
+        navigation.NavigateTo("/admin/dmu/profile-edit");
     }
 }
