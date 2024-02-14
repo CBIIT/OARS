@@ -47,6 +47,8 @@ builder.Services.AddScoped<IAlertService, AlertService>();
 builder.Services.AddScoped<IContactUsService, ContactUsService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IErrorLogService, ErrorLogService>();
+builder.Services.AddScoped<IUploadService, UploadService>();
+
 builder.Services.AddHttpClient<IOktaService, OktaService>(client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["Okta:Issuer"]);
@@ -55,6 +57,7 @@ builder.Services.AddHttpClient<IOktaService, OktaService>(client =>
 });
 
 builder.Services.AddScoped<TimeZoneService>();
+
 
 builder.Host.ConfigureLogging((context, logging) =>
 {
