@@ -43,9 +43,9 @@
                         {
                             <BarItem Background="Background.White">
                             @if(action.To != null){
-                                <BarLink To="@action.To">
+                                <BarLink To="@action.To" Class="action-link">
                                     <BarIcon IconName="action.IconName" />
-                                    @action.Label
+                                        @action.Label
                                 </BarLink>
                             }
                             else
@@ -151,14 +151,25 @@
 
     protected bool IsReportFavorite(Report report)
     {
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
-        return userService.IsReportFavorite(userId, report.ReportId);
+        if (httpContextAccessor != null && httpContextAccessor.HttpContext != null && httpContextAccessor.HttpContext.User != null && httpContextAccessor.HttpContext.User.Claims.Count() > 0)
+        {
+            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+            return userService.IsReportFavorite(userId, report.ReportId);
+        }
+        else
+            return false;
+
     }
 
     protected bool IsReportFavorite()
     {
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
-        return userService.IsReportFavorite(userId, ReportId);
+        if (httpContextAccessor != null && httpContextAccessor.HttpContext != null && httpContextAccessor.HttpContext.User != null && httpContextAccessor.HttpContext.User.Claims.Count() > 0)
+        {
+            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+            return userService.IsReportFavorite(userId, ReportId);
+        }
+        else
+            return false;
     }
 
     protected Target GetReportTarget(Report report)

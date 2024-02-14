@@ -76,8 +76,20 @@
         if (httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId) != null)
         {
             int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
-            userService.SaveActivityLog(userId, ThorActivityType.Logout, "Timeout");
-            Navigation.NavigateTo($"Timeout", true);
+
+            // Check last activity
+            bool canTimeout = userService.CheckActivityLogForTimeout(userId, Convert.ToInt32(configuration.GetValue<string>("System:TimeoutMS")));
+
+            if (canTimeout)
+            {
+                userService.SaveActivityLog(userId, ThorActivityType.Logout, "Timeout");
+                Navigation.NavigateTo($"Timeout", true);
+            }
+            else
+            {
+                userService.SaveActivityLog(userId, ThorActivityType.Navigation, "Timeout-Check");
+                await jsRuntime.InvokeVoidAsync("initializeInactivityTimer");
+            }
         }
     }
 
