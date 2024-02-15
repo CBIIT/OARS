@@ -1,12 +1,24 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using TheradexPortal.Data.Services;
+using TheradexPortal.Data.Services.Abstract;
+using TheradexPortal.Data.Static;
 
 namespace TheradexPortal.Controllers
 {
+
     public class LoginController : Controller
     {
+        private IUserService _userService;
+
+        public LoginController(IUserService userService)
+        {
+            _userService = userService;
+        }
+
         [HttpGet("login")]
         public IActionResult Login([FromQuery] string returnUrl)
         {
@@ -48,7 +60,16 @@ namespace TheradexPortal.Controllers
         {
             //var redirectUri = returnUrl is null ? Url.Content("~/") : "/" + returnUrl;
             var redirectUri = Url.Content("~/timedout");
-           
+
+            _userService.SaveActivityLog(0, ThorActivityType.Navigation, "Entered Timeout");
+            //User.Claims.FirstOrDefault(c=>c.)
+            bool isWayne = User.HasClaim(ThorClaimType.UserId, "1");
+            if (isWayne)
+            {
+                _userService.SaveActivityLog(1, ThorActivityType.Navigation, "Check IsAuth");
+                _userService.SaveActivityLog(1, ThorActivityType.Navigation, "IsAuth: " + User.Identity.IsAuthenticated);
+            }
+
             if (!User.Identity.IsAuthenticated)
             {
                 return LocalRedirect(redirectUri);
