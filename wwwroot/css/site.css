@@ -37,6 +37,11 @@
     /*min-height: 400px;*/
 }
 
+.nci-secondary-nav-special {
+    background-color: white;
+    color: var(--b-theme-primary);
+}
+
 /* Background Image */
 .nci-main-wrapper {
     position: relative;

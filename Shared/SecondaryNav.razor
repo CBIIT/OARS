@@ -29,23 +29,23 @@
                     {
                         @if (!IsReportFavorite())
                         {
-                         <BarItem Background="Background.White">
-                            <BarLink @onclick="() => HandleActionClick(action)">
-                                <BarIcon IconName="action.IconName" />
-                                @action.Label
-                            </BarLink>
-                        </BarItem>
+                            <BarItem Class="nci-secondary-nav-special">
+                                <BarLink @onclick="() => HandleActionClick(action)">
+                                    <BarIcon IconName="action.IconName" />
+                                    @action.Label
+                                </BarLink>
+                            </BarItem>
                         }
                     }
                     else
                     {
                         @if (action.ShowAction)
                         {
-                            <BarItem Background="Background.White">
+                            <BarItem Class="nci-secondary-nav-special">
                             @if(action.To != null){
                                 <BarLink To="@action.To" Class="action-link">
                                     <BarIcon IconName="action.IconName" />
-                                        @action.Label
+                                    @action.Label
                                 </BarLink>
                             }
                             else
@@ -62,8 +62,8 @@
             @if(Reports.Count > 0)
             {
                 <Divider Class="my-0" />
+                <Divider DividerType="DividerType.Solid" />
             }
-
             @for (int x = 0; x < Reports.Count(); x=x)
             {
                 var curReport = Reports[x];
