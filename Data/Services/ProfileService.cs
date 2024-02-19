@@ -17,8 +17,13 @@
 	        {
 	            return await context.Profiles.OrderBy(c => c.ProfileName).ToListAsync();
 	        }
+
+			public async Task<Profile?> GetProfile(int profileId)
+			{
+                return await context.Profiles.Where(c => c.ProfileId == profileId).FirstOrDefaultAsync();
+            }
 	        
-	        public async Task<bool> SaveProfile(Profile profile)
+	        public async Task<int?> SaveProfile(Profile profile)
 	        {
 	            DateTime currentDateTime = DateTime.UtcNow;
 	            try
@@ -26,12 +31,12 @@
 	                profile.UpdateDate = currentDateTime;
 	                context.Add(profile);
 	                await context.SaveChangesAsync();
-	                return true;
+	                return profile.ProfileId;
 	            }
 	            catch (Exception ex)
 	            {
 	                await _errorLogService.SaveErrorLogAsync(0, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
-	                return false;
+	                return null;
 	            }
 	        }
     }

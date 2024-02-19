@@ -5,6 +5,7 @@
 	    public interface IProfileService
 	    {
 	        public Task<IList<Profile>> GetProfiles();
-	        public Task<bool> SaveProfile(Profile profile);
+			public Task<Profile?> GetProfile(int profileId);
+	        public Task<int?> SaveProfile(Profile profile);
 	    }
 }
