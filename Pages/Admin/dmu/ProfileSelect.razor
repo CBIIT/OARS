@@ -1,19 +1,89 @@
 ﻿@using TheradexPortal.Data.Models;
 @using TheradexPortal.Data.Services.Abstract;
-@using TheradexPortal.Data.Static;
 @inject IHttpContextAccessor httpContextAccessor
+@inject IConfiguration configuration
 @layout AdminLayout
 
 @page "/admin/dmu/select-profile"
-@*
-    TODO: Add ThorRoleCheck check for DMU roles when they are created
-
-<ThorRoleCheck AllowedRoles="@(new List<string> { "??" })"></ThorRoleCheck>
-*@
+<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })"></AdminRoleCheck>
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Global Administration</h2></Div>
-
-<h3>Select profile</h3>
-
+<Div Padding="Padding.Is4" Margin="Margin.Is3.FromBottom" Class="dmu-admin-subpanel">
+    <Row>
+        <Column ColumnSize="ColumnSize.Is9">
+            <Row Padding="Padding.Is2">
+                <Column ColumnSize="ColumnSize.Is4" Class="dmu-admin-label-field-container">
+                    <Text>Select Mapping Profile:</Text>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is4">
+                    <Select TValue="int" @bind-SelectedValue="@selectedMappingProfileId">
+                        <SelectItem Value="@invalidId">Select a Mapping Profile</SelectItem>
+                        @foreach (var profile in profileList)
+                        {
+                            <SelectItem Value="@profile.ProfileId">@profile.ProfileName</SelectItem>
+                        }
+                    </Select>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is4">
+                    <Button Flex="Flex.JustifyContent.Center" Type="ButtonType.Button" Size="Size.Medium" Color="Color.Info" Class="dmu-admin-button" Clicked="@NavigateToProfileEdit">
+                        Edit Mapping Profile
+                    </Button>
+                </Column>
+            </Row>
+            <Row Padding="Padding.Is2">
+                <Column ColumnSize="ColumnSize.Is4" Class="dmu-admin-label-field-container">
+                    <Text>New Profile name:</Text>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is4">
+                    <TextEdit Placeholder="[New Profile Name]" MaxLength="50" @bind-Text="@newMappingProfile"></TextEdit>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is4">
+                    <Button Flex="Flex.JustifyContent.Center" Type="ButtonType.Button" Size="Size.Medium" Color="Color.Info" Class="dmu-admin-button" Clicked="@NavigateToProfileNew">
+                        New Mapping Profile
+                    </Button>
+                </Column>
+            </Row>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is3">
+            <Div TextAlignment="TextAlignment.Center">
+                <Button Flex="Flex.JustifyContent.Center" Type="ButtonType.Button" Color="Color.Danger" Size="Size.Medium" Class="dmu-admin-button-danger" Clicked="@NavigateToGlobalDMU">
+                    Access Global DMU
+                </Button>
+            </Div>
+            <Div>
+                <Image Source="img/alert-icon.png" height="20px" Class="nci-alert-icon" />
+                <Text Class="dmu-admin-warning-text" TextColor="TextColor.Danger">Warning - Any update to the Global DMU table will potentially impact the DMI Processor and Reports in NCI-THOR. Any change could negatively impact existing mapped studies. Proceed with Caution.</Text>
+            </Div>
+        </Column>
+    </Row>
+</Div>
 @code {
+    [Inject] IProfileService profileService { get; set; } = null!;
+    [Inject] private NavigationManager navigation { get; set; } = null!;
+    [Inject] IUserService userService { get; set; } = null!;
 
+    private IList<Profile> profileList = new List<Profile>();
+    private int selectedMappingProfileId = 0;
+    private string? newMappingProfile = "";
+    private static int invalidId = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        this.profileList = await profileService.GetProfiles();
+        await base.OnInitializedAsync();
+    }
+
+    private void NavigateToGlobalDMU()
+    {
+        navigation.NavigateTo("/admin/dmu/global-dmu");
+    }
+
+    private void NavigateToProfileEdit()
+    {
+        navigation.NavigateTo("/admin/dmu/profile-edit");
+    }
+
+    private void NavigateToProfileNew()
+    {
+        navigation.NavigateTo("/admin/dmu/profile-edit");
+    }
 }

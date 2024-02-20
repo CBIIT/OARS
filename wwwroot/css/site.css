@@ -286,12 +286,41 @@
 .categorySelectGroup {   
     font-style: normal;
     font-weight: normal;
-
-.tertiary-bar-icon {
-    
 }
 
 .tertiary-bar-link {
     margin-left: 0px;
     padding-left: 0px;
+}
+
+.dmu-admin-button-danger {
+    color: #000 !important;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 1rem;
+}
+
+.dmu-admin-warning-text {
+    font-size: 0.8rem !important;
+}
+
+.dmu-admin-button {
+    width: 13rem !important;
+    line-height: 1.3rem;
+    background-color: #4D93CA !important;
+}
+
+.dmu-admin-subpanel {
+    background-color: #F6E0CC !important;
+}
+
+.dmu-admin-label-field-container {
+    text-align: right;
+    line-height: 2.3rem;
+}
+
+.dmu-admin-dropdown-field {
+    background-color: white;
+    width: 100%;
+    text-align: left;
 }
