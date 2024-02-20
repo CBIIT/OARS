@@ -11,19 +11,23 @@
 
 <ThorRoleCheck AllowedRoles="@(new List<string> { "??" })"></ThorRoleCheck>
 *@
-<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Global Administration</h2></Div>
-<Row Background="Background.Light">
-    <Steps @ref="stepsRef" SelectedStep="@selectedStep" NavigationAllowed="NavigationAllowed">
-    <Items>
-        <Step Name="thordatacategory">THOR Data Category</Step>
-        <Step Name="thorfields">THOR Fields</Step>"
-    </Items>
-        <Content>
-            <StepPanel Name="thordatacategory"><ThorCategoryEdit></ThorCategoryEdit></StepPanel>
-            <StepPanel Name="thorfields"><ThorFieldEdit></ThorFieldEdit></StepPanel>
-    </Content>
-    </Steps>
-</Row>
+<div class="dmu-admin-step-container">
+    <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Global Administration</h2></Div>
+    <Row Class="dmu-admin-step-container">
+        <Steps @ref="stepsRef" SelectedStep="@selectedStep" NavigationAllowed="NavigationAllowed">
+            <Items>
+                <Step Name="thordatacategory">THOR Data Category</Step>
+                <Step Name="thorfields">THOR Fields</Step>
+                <Step Name="thordictionary">THOR Dictionary</Step>
+            </Items>
+            <Content>
+                <StepPanel Name="thordatacategory"><ThorCategoryEdit></ThorCategoryEdit></StepPanel>
+                <StepPanel Name="thorfields"><ThorFieldEdit></ThorFieldEdit></StepPanel>
+                <StepPanel Name="thordictionary"><ThorDictionaryEdit></ThorDictionaryEdit></StepPanel>
+            </Content>
+        </Steps>
+    </Row>
+</div>
 @code {
     string selectedStep = "thordatacategory";
     [AllowNull] private Steps stepsRef;
