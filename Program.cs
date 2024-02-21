@@ -49,6 +49,7 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IErrorLogService, ErrorLogService>();
 builder.Services.AddScoped<IThorCategoryService, ThorCategoryService>();
 builder.Services.AddScoped<IThorFieldService, ThorFieldService>();
+builder.Services.AddScoped<IThorDictionaryService, ThorDictionaryService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IProfileCategoryService,  ProfileCategoryService>();
 builder.Services.AddHttpClient<IOktaService, OktaService>(client =>

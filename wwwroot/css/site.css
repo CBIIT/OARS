@@ -192,8 +192,7 @@
     vertical-align: middle;
 }
 .admindatagrid thead tr th {
-    /*color: black;
-    background-color:aquamarine;*/
+    background-color: #FA8D28
 }
 
 .admindataeditgrid tr td {
@@ -293,6 +292,19 @@
     padding-left: 0px;
 }
 
+.dmu-grid-header {
+    background-color: #FA8D28
+}
+
+.dmu-admin-step-container {
+    background-color: #F6E0CE;
+    margin-left: 0.7em;
+}
+
+.dmu-admin-subpanel {
+    background-color: #FA8D28
+}
+
 .dmu-admin-button-danger {
     color: #000 !important;
     margin-left: auto;
@@ -308,10 +320,7 @@
     width: 13rem !important;
     line-height: 1.3rem;
     background-color: #4D93CA !important;
-}
-
-.dmu-admin-subpanel {
-    background-color: #F6E0CC !important;
+    color: white;
 }
 
 .dmu-admin-label-field-container {
