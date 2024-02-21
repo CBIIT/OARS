@@ -52,6 +52,7 @@ builder.Services.AddScoped<IThorFieldService, ThorFieldService>();
 builder.Services.AddScoped<IThorDictionaryService, ThorDictionaryService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IProfileCategoryService,  ProfileCategoryService>();
+builder.Services.AddScoped<IProtocolDataSystemService, ProtocolDataSystemService>();
 builder.Services.AddHttpClient<IOktaService, OktaService>(client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["Okta:Issuer"]);
