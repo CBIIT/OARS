@@ -1,0 +1,34 @@
+﻿@using System.Diagnostics.CodeAnalysis
+@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@inject IHttpContextAccessor httpContextAccessor
+@layout AdminLayout
+
+
+@page "/admin/dmu/profile-categories/{profile:int}"
+<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Global Administration</h2></Div>
+<Row Background="Background.Light">
+    <Steps @ref="stepsRef" SelectedStep="@selectedStep" NavigationAllowed="NavigationAllowed">
+    <Items>
+        <Step Name="profilecategory">THOR Data Category</Step>
+    </Items>
+        <Content>
+            <StepPanel Name="profilecategory"><ProfileCategoryEdit Profile="@profile"></ProfileCategoryEdit></StepPanel>
+    </Content>
+    </Steps>
+</Row>
+@code {
+    string selectedStep = "profilecategory";
+    [AllowNull] private Steps stepsRef;
+    [Parameter] public int profile { get; set; }
+
+    private bool NavigationAllowed(StepNavigationContext context)
+    {
+        return true;
+    }
+}
+
+@code {
+	
+}
