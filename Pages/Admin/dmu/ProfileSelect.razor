@@ -37,7 +37,7 @@
                     <TextEdit Placeholder="[New Profile Name]" MaxLength="50" @bind-Text="@newMappingProfile"></TextEdit>
                 </Column>
                 <Column ColumnSize="ColumnSize.Is4">
-                    <Button Flex="Flex.JustifyContent.Center" Type="ButtonType.Button" Size="Size.Medium" Color="Color.Info" Class="dmu-admin-button" Clicked="@NavigateToProfileNew">
+                    <Button Flex="Flex.JustifyContent.Center" Type="ButtonType.Button" Size="Size.Medium" Color="Color.Info" Class="dmu-admin-button" Clicked="@SaveNewProfile">
                         New Mapping Profile
                     </Button>
                 </Column>
@@ -71,19 +71,26 @@
         this.profileList = await profileService.GetProfiles();
         await base.OnInitializedAsync();
     }
-
+    public async void SaveNewProfile()
+    {
+        int? newProfileId = await profileService.SaveProfile(new Profile { ProfileName = newMappingProfile });
+        if(newProfileId != null)
+        {
+            NavigateToProfileNew(newProfileId.Value);
+        }
+    }
     private void NavigateToGlobalDMU()
     {
-        navigation.NavigateTo("/admin/dmu/global-dmu");
+        navigation.NavigateTo("/admin/dmu/global-admin");
     }
 
     private void NavigateToProfileEdit()
     {
-        navigation.NavigateTo("/admin/dmu/profile-edit");
+        navigation.NavigateTo($"/admin/dmu/profile-categories/{selectedMappingProfileId}");
     }
 
-    private void NavigateToProfileNew()
+    private void NavigateToProfileNew(int profileId)
     {
-        navigation.NavigateTo("/admin/dmu/profile-edit");
+        navigation.NavigateTo($"/admin/dmu/profile-categories/{profileId}");
     }
 }
