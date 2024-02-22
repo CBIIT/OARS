@@ -87,7 +87,7 @@
             }
             else
             {
-                userService.SaveActivityLog(userId, ThorActivityType.Navigation, "Timeout-Check");
+                userService.SaveActivityLog(userId, ThorActivityType.Debug, "Timeout-Check");
                 await jsRuntime.InvokeVoidAsync("initializeInactivityTimer");
             }
         }
