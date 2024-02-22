@@ -175,6 +175,7 @@ namespace TheradexPortal.Data
         public DbSet<ThorField> THORField { get; set; }
         public DbSet<ThorDictionary> THORDictionary { get; set; }
         public DbSet<Profile> Profiles { get; set; }
+        public DbSet<ProtocolMapping> ProtocolMapping { get; set; }
         public DbSet<ProfileDataCategory> ProfileDataCategory { get; set; }
         public DbSet<ProtocolDataSystem> ProtocolDataSystem { get; set; }
     }

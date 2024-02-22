@@ -51,6 +51,7 @@ builder.Services.AddScoped<IThorCategoryService, ThorCategoryService>();
 builder.Services.AddScoped<IThorFieldService, ThorFieldService>();
 builder.Services.AddScoped<IThorDictionaryService, ThorDictionaryService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
+builder.Services.AddScoped<IProtocolMappingService, ProtocolMappingService>();
 builder.Services.AddScoped<IProfileCategoryService,  ProfileCategoryService>();
 builder.Services.AddScoped<IProtocolDataSystemService, ProtocolDataSystemService>();
 builder.Services.AddHttpClient<IOktaService, OktaService>(client =>
