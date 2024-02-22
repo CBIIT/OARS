@@ -1,14 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TheradexPortal.Data.Models
 {
     [Table("PROTOCOL", Schema = "THORDB")]
-    [Keyless]
     public class Protocol
     {
         //unique index
-        [Column("Study_Id")]
+        [Key, Column("Study_Id")]
         public string? StudyId { get; set; } 
 
         public string? Institution { get; set; }
