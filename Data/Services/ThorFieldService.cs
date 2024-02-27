@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using System.Collections.Generic;
+using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Services.Abstract;
@@ -27,11 +28,34 @@ namespace TheradexPortal.Data.Services
         
         public async Task<bool> SaveField(ThorField field)
         {
-            DateTime curDateTime = DateTime.UtcNow;
             try
             {
-                field.UpdateDate = curDateTime;
-                context.Add(field);
+                DateTime currentDateTime = DateTime.UtcNow;
+
+                ThorField currentField = context.THORField.Where(p => p.ThorFieldId == field.ThorFieldId).FirstOrDefault();
+
+                if (currentField == null || field.CreateDate == null)
+                {
+                    field.CreateDate = currentDateTime;
+                    field.UpdateDate = currentDateTime;
+                    context.Add(field);
+                }
+                else
+                {
+                    //Can we change the ThorIDfield?
+                    currentField.ThorFieldId = field.ThorFieldId;
+                    currentField.ThorDataCategoryId = field.ThorDataCategoryId;
+                    currentField.FieldLabel = field.FieldLabel;
+                    currentField.FieldType = field.FieldType;
+                    currentField.Derivable = field.Derivable;
+                    currentField.ThorDictionaryId = field.ThorDictionaryId;
+                    currentField.IsMultiForm = field.IsMultiForm;
+                    currentField.SortOrder = field.SortOrder;
+                    currentField.IsActive = field.IsActive;
+                    currentField.UpdateDate = currentDateTime;
+                    context.Update(currentField);
+                }
+
                 await context.SaveChangesAsync();
                 return true;
             }
