@@ -1,0 +1,170 @@
+INSERT INTO DMU."THORDictionary" ("THOR_Dictionary_Id","Dictionary_Name","Dictionary_Option","Dictonary_Value","Sort_Order","Is_Active","Create_Date","Update_Date") VALUES
+	 (1,'BestResponse','Complete Response','CR',1,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (2,'BestResponse','Partial Response','PR',2,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (3,'BestResponse','Less than partial Response','MR',3,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (4,'BestResponse','Stable Disease','SD',4,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (5,'BestResponse','Progression','PD',5,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (6,'BestResponse','Not Evaluable','NE',6,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (7,'BestResponse','Not Assessed','NA',7,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (8,'BestResponse','Not Applicable per Protocol','NP',8,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (9,'BestResponse','Too Early','TE',9,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (10,'Ethnicity','Hispanic or Latino','1',1,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993');
+INSERT INTO DMU."THORDictionary" ("THOR_Dictionary_Id","Dictionary_Name","Dictionary_Option","Dictonary_Value","Sort_Order","Is_Active","Create_Date","Update_Date") VALUES
+	 (11,'Ethnicity','Not Hispanic or Latino','2',2,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (12,'Ethnicity','Unknown','9',3,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (13,'Ethnicity','Not Reported','8',4,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (14,'Gender','Female','F',1,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (15,'Gender','Male','M',2,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (16,'OffStudyReason','Protocol-defined follow-up completed','1',1,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (17,'OffStudyReason','Patient lost to follow-up','2',2,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (18,'OffStudyReason','Patient refused follow-up','3',3,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (19,'OffStudyReason','Death','4',4,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (20,'OffStudyReason','Adverse Event/Side Effects/Complications','5',5,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993');
+INSERT INTO DMU."THORDictionary" ("THOR_Dictionary_Id","Dictionary_Name","Dictionary_Option","Dictonary_Value","Sort_Order","Is_Active","Create_Date","Update_Date") VALUES
+	 (21,'OffStudyReason','Other','98',25,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (22,'OffTreatment','Off Treatment','OFFTREAT',1,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (23,'OffTreatment','On Treatment','ONTREAT',2,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (24,'OffTreatmentReason','Treatment completed per protocol criteria','1',1,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (25,'OffTreatmentReason','Disease progression, relapse during active treatment','2',2,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (26,'OffTreatmentReason','Adverse Event/Side Effects/Complications','3',3,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (27,'OffTreatmentReason','Death on study during active treatment','4',4,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (28,'OffTreatmentReason','Patient withdrawal/refusal after beginning protocol therapy','5',5,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (29,'OffTreatmentReason','Patient withdrawal/refusal prior to beginning a protocol therapy','6',6,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (30,'OffTreatmentReason','Alternative therapy','7',7,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993');
+INSERT INTO DMU."THORDictionary" ("THOR_Dictionary_Id","Dictionary_Name","Dictionary_Option","Dictonary_Value","Sort_Order","Is_Active","Create_Date","Update_Date") VALUES
+	 (31,'OffTreatmentReason','Patient off-treatment for other complicating disease','8',8,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (33,'OffTreatmentReason','Cytogenetic resistance','11',10,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (34,'OffTreatmentReason','Disease progression before active treatment','12',11,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (36,'OffTreatmentReason','Other','98',31,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (37,'PatientDisposition-Unused','N/A - Still on Treatment','NA',1,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (39,'PatientDisposition-Unused','Declined to participate','X',3,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (40,'PatientDisposition-Unused','Disease progression before treatment','B',4,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (42,'PatientDisposition-Unused','Not treated - other reasons','U',6,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (43,'PatientDisposition-Unused','Disease progression on study','P',7,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (45,'PatientDisposition-Unused','Cytogenetic resistance','G',9,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993');
+INSERT INTO DMU."THORDictionary" ("THOR_Dictionary_Id","Dictionary_Name","Dictionary_Option","Dictonary_Value","Sort_Order","Is_Active","Create_Date","Update_Date") VALUES
+	 (46,'PatientDisposition-Unused','Refused further treatment','R',10,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (48,'PatientDisposition-Unused','Death on study','D',12,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (49,'PatientDisposition-Unused','Complicating disease / intercurrent illness','S',13,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (51,'PatientDisposition-Unused','Late determination of ineligibility','I',15,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (52,'PatientDisposition-Unused','Off treatment - other reasons','O',16,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (54,'PatientDisposition-Unused','Treatment complete, follow-up ongoing','F',18,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (55,'PatientDisposition-Unused','Follow-up period completed','H',19,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (56,'PatientDisposition-Unused','Lost to further follow-up','L',20,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (58,'PatientDisposition-Unused','Late adverse events / side effects','E',22,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (59,'PatientDisposition-Unused','Death during follow-up period','M',23,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993');
+INSERT INTO DMU."THORDictionary" ("THOR_Dictionary_Id","Dictionary_Name","Dictionary_Option","Dictonary_Value","Sort_Order","Is_Active","Create_Date","Update_Date") VALUES
+	 (61,'PerformanceStatus','0-Asymptomatic and fully active','0',1,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (62,'PerformanceStatus','1-Symptomatic; fully ambulatory; restricted in physically strenuous activity','1',2,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (63,'PerformanceStatus','2-Symptomatic; ambulatory; capable of self-care; >50% waking hours out of bed','2',3,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (65,'PerformanceStatus','4-Completely disabled; no self-care; bedridden','4',5,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (66,'PerformanceStatus','5-Dead','5',6,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (67,'PerformanceStatus','0-Dead','0',7,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (69,'PerformanceStatus','20-Very sick, hospitalization indicated. Death not imminent','20',9,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (70,'PerformanceStatus','30-Severely disabled, hospitalization indicated. Death not imminent','30',10,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (72,'PerformanceStatus','50-Requires considerable assistance and frequent medical care','50',12,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (73,'PerformanceStatus','60-Requires occasional assistance, but is able to care for most of his/her needs','60',13,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993');
+INSERT INTO DMU."THORDictionary" ("THOR_Dictionary_Id","Dictionary_Name","Dictionary_Option","Dictonary_Value","Sort_Order","Is_Active","Create_Date","Update_Date") VALUES
+	 (74,'PerformanceStatus','70-Cares for self, unable to carry on normal activity or to do active work','70',14,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (76,'PerformanceStatus','90-Able to carry on normal activity; minor signs or symptoms of disease','90',16,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (77,'PerformanceStatus','100-Normal, no complaints, no evidence of disease','100',17,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (78,'Race','White','1',1,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (79,'Race','Black or African American','3',2,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (81,'Race','Asian','5',4,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (83,'Race','Unknown','99',6,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (84,'Race','Not Reported','98',7,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (86,'Related','Unlikely','2',2,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (89,'Related','Definite','5',5,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993');
+INSERT INTO DMU."THORDictionary" ("THOR_Dictionary_Id","Dictionary_Name","Dictionary_Option","Dictonary_Value","Sort_Order","Is_Active","Create_Date","Update_Date") VALUES
+	 (91,'Related','No','No',7,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (94,'YesNo','Yes','Yes',1,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (97,'YesNo','Unknown','Unknown',4,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (98,'Gender','Unknown','U',3,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (101,'DoseReduction','Treatment Delay','Treatment Delay',2,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (102,'DoseReduction','Treatment Omission','Treatment Omission',3,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (104,'Outcome','Recovered/Resolved','Recovered/Resolved',1,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (105,'Outcome','Recovering/Resolving','Recovering/Resolving',2,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (106,'Outcome','Not recovered/Resolved','Not recovered/Resolved',3,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (108,'Outcome','Fatal','Fatal',5,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993');
+INSERT INTO DMU."THORDictionary" ("THOR_Dictionary_Id","Dictionary_Name","Dictionary_Option","Dictonary_Value","Sort_Order","Is_Active","Create_Date","Update_Date") VALUES
+	 (109,'Outcome','Unknown','Unknown',6,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (110,'Therapy','None','None',1,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (112,'Therapy','Supportive','Supportive',3,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (114,'DoseModification','Yes, planned','Yes, planned',1,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (115,'DoseModification','Yes, unplanned','Yes, unplanned',2,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (117,'DoseModification','Unknown','Unknown',4,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (119,'OffStudyReason','Lack of Efficacy','7',7,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (121,'OffStudyReason','Pregnancy','9',9,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (122,'OffStudyReason','Progressive Disease','10',10,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (124,'OffStudyReason','Protocol Violation','12',12,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993');
+INSERT INTO DMU."THORDictionary" ("THOR_Dictionary_Id","Dictionary_Name","Dictionary_Option","Dictonary_Value","Sort_Order","Is_Active","Create_Date","Update_Date") VALUES
+	 (126,'OffStudyReason','Technical Problems','14',14,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (127,'OffStudyReason','Approved Drug Available for Indication','15',15,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (128,'OffStudyReason','Disease Recurrance','16',16,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (129,'OffStudyReason','Failure to Meet Continuation Criteria','17',17,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (130,'OffStudyReason','Failure to Meet Randomization Criteria','18',18,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (131,'OffStudyReason','Never Dosed','19',19,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (132,'OffStudyReason','Non Compliance','20',20,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (133,'OffStudyReason','Screen Failure','21',21,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (134,'OffStudyReason','Screening Not Completed','22',22,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993');
+INSERT INTO DMU."THORDictionary" ("THOR_Dictionary_Id","Dictionary_Name","Dictionary_Option","Dictonary_Value","Sort_Order","Is_Active","Create_Date","Update_Date") VALUES
+	 (135,'OffStudyReason','Sponsor Request','23',23,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (136,'OffStudyReason','Withdrawal of Consent','24',24,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (138,'OffTreatmentReason','Lack of Efficacy','14',14,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (139,'OffTreatmentReason','Physician Decision','15',15,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (140,'OffTreatmentReason','Pregnancy','16',16,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (141,'OffTreatmentReason','Protocol Deviation','17',17,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (142,'OffTreatmentReason','Protocol Violation','18',18,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (143,'OffTreatmentReason','Protocol-Specified Withdrawal Criterion Met','19',19,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (144,'OffTreatmentReason','Technical Problems','20',20,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (145,'OffTreatmentReason','Approved Drug Available for Indication','21',21,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993');
+INSERT INTO DMU."THORDictionary" ("THOR_Dictionary_Id","Dictionary_Name","Dictionary_Option","Dictonary_Value","Sort_Order","Is_Active","Create_Date","Update_Date") VALUES
+	 (146,'OffTreatmentReason','Disease Recurrance','22',22,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (147,'OffTreatmentReason','Failure to Meet Continuation Criteria','23',23,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (148,'OffTreatmentReason','Failure to Meet Randomization Criteria','24',24,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (149,'OffTreatmentReason','Never Dosed','25',25,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (150,'OffTreatmentReason','Non-Compliance','26',26,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (151,'OffTreatmentReason','Screen Failure','27',27,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (152,'OffTreatmentReason','Screening Not Completed','28',28,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (153,'OffTreatmentReason','Sponsor Request','29',29,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (154,'OffTreatmentReason','Withdrawal of Consent','30',30,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (32,'OffTreatmentReason','Lost to follow-up','10',9,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993');
+INSERT INTO DMU."THORDictionary" ("THOR_Dictionary_Id","Dictionary_Name","Dictionary_Option","Dictonary_Value","Sort_Order","Is_Active","Create_Date","Update_Date") VALUES
+	 (35,'OffTreatmentReason','No treatment, per protocol criteria','13',12,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (38,'PatientDisposition-Unused','Study complete','C',2,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (41,'PatientDisposition-Unused','Treatment, per protocol','Z',5,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (44,'PatientDisposition-Unused','Adverse events / side effects','T',8,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (47,'PatientDisposition-Unused','Protocol violation','V',11,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (50,'PatientDisposition-Unused','Switched to alternative treatment','A',14,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (53,'PatientDisposition-Unused','Treatment complete but patient refused follow-up','Y',17,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (57,'PatientDisposition-Unused','Refused further follow-up','W',21,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (60,'PatientDisposition-Unused','Off study during follow-up - other reasons','K',24,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (64,'PerformanceStatus','3-Symptomatic; limited self-care; >50% waking hours in bed','3',4,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993');
+INSERT INTO DMU."THORDictionary" ("THOR_Dictionary_Id","Dictionary_Name","Dictionary_Option","Dictonary_Value","Sort_Order","Is_Active","Create_Date","Update_Date") VALUES
+	 (68,'PerformanceStatus','10-Moribund, fatal processes progressing rapidly','10',8,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (71,'PerformanceStatus','40-Disabled, requires special care and assistance','40',11,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (75,'PerformanceStatus','80-Normal activity with effort; some signs or symptoms of disease','80',15,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (80,'Race','Native Hawaiian or Other Pacific Islander','4',3,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (82,'Race','American Indian or Alaska Native','6',5,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (85,'Related','Unrelated','1',1,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (87,'Related','Possible','3',3,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (88,'Related','Probable','4',4,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (90,'Related','Yes','Yes',6,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (92,'Serious','Yes','Y',1,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993');
+INSERT INTO DMU."THORDictionary" ("THOR_Dictionary_Id","Dictionary_Name","Dictionary_Option","Dictonary_Value","Sort_Order","Is_Active","Create_Date","Update_Date") VALUES
+	 (93,'Serious','No','N',2,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (95,'YesNo','No','No',2,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (96,'YesNo','Not Applicable','Not Applicable',3,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (99,'Gender','Intersex','I',4,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (100,'DoseReduction','Dose Reduction Only','Dose Reduction Only',1,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (103,'DoseReduction','Permanent Discontinuation','Permanent Discontinuation',4,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (107,'Outcome','Recovered/Resolved with sequelea','Recovered/Resolved with sequelea',4,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (111,'Therapy','Symptomatic','Symptomatic',2,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (113,'Therapy','Vigorous Supportive','Vigorous Supportive',4,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (116,'DoseModification','No','No',3,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993');
+INSERT INTO DMU."THORDictionary" ("THOR_Dictionary_Id","Dictionary_Name","Dictionary_Option","Dictonary_Value","Sort_Order","Is_Active","Create_Date","Update_Date") VALUES
+	 (118,'OffStudyReason','Disease Relapse','6',6,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (120,'OffStudyReason','Physician Decision','8',8,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (123,'OffStudyReason','Protocol Deviation','11',11,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993'),
+	 (125,'OffStudyReason','Protocol-Specified Withdrawal Criterion Met','13',13,'Y',TIMESTAMP'2024-02-27 13:34:17.704993',TIMESTAMP'2024-02-27 13:34:17.704993');
+	 
