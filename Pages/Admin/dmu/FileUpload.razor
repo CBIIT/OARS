@@ -1,0 +1,47 @@
+﻿@using System.Diagnostics.CodeAnalysis
+@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@inject IHttpContextAccessor httpContextAccessor
+@layout AdminLayout
+
+<Field>
+    <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Select a file type:</FieldLabel>
+    <FieldBody ColumnSize="ColumnSize.Is4" Margin="Margin.IsAuto">
+    <Select TValue="string" @bind-SelectedValue="@fileType">
+        <SelectItem Value="ALS">ALS</SelectItem>
+        <SelectItem Value="XML">XML</SelectItem>
+        <SelectItem Value="CSV">CSV</SelectItem>
+    </Select>
+    </FieldBody>
+</Field>
+<Field>
+    <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Select a file:</FieldLabel>
+    <FieldBody ColumnSize="ColumnSize.Is4" Margin="Margin.IsAuto">
+        <FilePicker Upload="@OnFileUpload" ShowMode="FilePickerShowMode.List" />
+    </FieldBody>
+ </Field>
+
+    @if (fileType == "ALS" || fileType == "XML")
+    {
+    <p>@this.fileType can only be uploaded once. Remapping the study might be required.</p>
+    <p>To upload a new @this.fileType,</p>
+    <ol>
+        <li>Clear uploads</li>
+        <li>Upload new @this.fileType</li>
+    </ol>
+    <p>Additional Data Points outside the @this.fileType can be added by uploading a CSV file.</p>
+    }
+
+    <Button Clicked="@UploadFiles">Process File(s)</Button>
+
+
+
+@code {
+    private string fileType;
+    private FilePicker UploadField;
+
+    public async void UploadFiles()
+    {
+    }
+}
