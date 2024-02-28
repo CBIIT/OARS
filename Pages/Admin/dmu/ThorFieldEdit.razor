@@ -34,7 +34,7 @@
            RowUpdated="@Save"
            RowInserted="@Save">
      <DataGridColumns>
-          <DataGridColumn Width="15%" Field="@nameof(ThorField.ThorDataCategoryId)" Caption="THOR Data Category" Editable Filterable="true" Sortable="false">
+          <DataGridColumn Width="15%" Field="@nameof(ThorField.ThorDataCategoryId)" Caption="THOR Data Category" Editable Filterable="true" Sortable="true">
               <DisplayTemplate>
                   @context.ThorDataCategoryId
               </DisplayTemplate>
@@ -42,11 +42,11 @@
 				 <SelectList TItem="ThorCategory" TValue="string?" Data="@categoryList" TextField="@((item)=>item.CategoryName)" ValueField="@((item)=>item.ThorDataCategoryId)" SelectedValueChanged="@( v => {context.CellValue = v;})" SelectedValue="@((string?)context.CellValue)"></SelectList>
 			 </EditTemplate>
          </DataGridColumn>
-         <DataGridColumn Field="@nameof(ThorField.ThorFieldId)" Width="15%" Caption="THOR Field ID" Editable Filterable="true" Sortable="false">
+         <DataGridColumn Field="@nameof(ThorField.ThorFieldId)" Width="15%" Caption="THOR Field ID" Editable Filterable="true" Sortable="true">
          </DataGridColumn>
-          <DataGridColumn Width="15%" Field="@nameof(ThorField.FieldLabel)" Caption="THOR Field Label" Editable Filterable="true" Sortable="false">
+          <DataGridColumn Width="15%" Field="@nameof(ThorField.FieldLabel)" Caption="THOR Field Label" Editable Filterable="true" Sortable="true">
          </DataGridColumn>
-         <DataGridColumn Width="10%" Caption="THOR Field Type" Field="@nameof(ThorField.ThorFieldTypeId)" Editable Filterable="true" Sortable="false">
+         <DataGridColumn Width="10%" Caption="THOR Field Type" Field="@nameof(ThorField.ThorFieldTypeId)" Editable Filterable="true" Sortable="true">
              <DisplayTemplate>
                  @{
                      if(context.FieldType != null)
@@ -67,7 +67,7 @@
                  <SelectList TItem="ThorFieldType" TValue="int?" Data="@fieldTypes" TextField="@((item)=>item.FieldTypeName)" ValueField="@((item)=>item.ThorFieldTypeId)" SelectedValueChanged="@( v => {context.CellValue = v;  context.UpdateCell(nameof( ThorField.ThorDictionaryId), null);})"/>
              </EditTemplate>
          </DataGridColumn>
-         <DataGridColumn Field="@nameof(ThorField.Derivable)" Width="10%" Caption="Derivable" Editable Filterable="true" Sortable="false">
+         <DataGridColumn Field="@nameof(ThorField.Derivable)" Width="10%" Caption="Derivable" Editable Filterable="true" Sortable="true">
              <DisplayTemplate>
                  @((bool)context.Derivable ? "Yes" : "No")
              </DisplayTemplate>
@@ -78,7 +78,7 @@
                  </Select>
              </EditTemplate>
          </DataGridColumn>
-         <DataGridColumn Field="@nameof(ThorField.ThorDictionaryId)" Caption="THOR Dictionary Name" Editable Filterable="true" Sortable="false">
+         <DataGridColumn Field="@nameof(ThorField.ThorDictionaryId)" Caption="THOR Dictionary Name" Editable Filterable="true" Sortable="true">
              <DisplayTemplate>
                  @{
                     if (context.Dictionary != null)
@@ -113,7 +113,7 @@
                 }
 			 </EditTemplate>
         </DataGridColumn>
-         <DataGridColumn Field="@nameof(ThorField.IsMultiForm)" Width="10%" Caption="Multi Form" Editable Filterable="true" Sortable="false">
+         <DataGridColumn Field="@nameof(ThorField.IsMultiForm)" Width="10%" Caption="Multi Form" Editable Filterable="true" Sortable="true">
              <DisplayTemplate>
                  @((bool)context.IsMultiForm ? "Yes" : "No")
              </DisplayTemplate>
@@ -124,7 +124,7 @@
                  </Select>
              </EditTemplate>
          </DataGridColumn>
-         <DataGridColumn Field="@nameof(ThorField.SortOrder)" Caption="Order" Editable Filterable="true" Sortable="false" Width="8%">
+         <DataGridColumn Field="@nameof(ThorField.SortOrder)" Caption="Order" Editable Filterable="true" Sortable="true" Width="8%">
          </DataGridColumn>
          <DataGridCheckColumn Field="@nameof(ThorField.IsActive)" Caption="Active" Editable Width="7%">
              <DisplayTemplate>

@@ -34,11 +34,11 @@
             RowUpdated="@Save"
             RowInserted="@Save">
         <DataGridColumns>
-         <DataGridColumn Width="35%" Field="@nameof(ThorCategory.CategoryName)" Caption="THOR Data Category" Editable Filterable="true" Sortable="false">
+         <DataGridColumn Width="35%" Field="@nameof(ThorCategory.CategoryName)" Caption="THOR Data Category" Editable Filterable="true" Sortable="true">
             </DataGridColumn>
-         <DataGridColumn Field="@nameof(ThorCategory.ThorDataCategoryId)" Width="35%" Caption="THOR Data Category ID" Editable Filterable="true" Sortable="false">
+         <DataGridColumn Field="@nameof(ThorCategory.ThorDataCategoryId)" Width="35%" Caption="THOR Data Category ID" Editable Filterable="true" Sortable="true">
             </DataGridColumn>
-         <DataGridColumn Field="@nameof(ThorCategory.IsMultiForm)" Width="10%" Caption="Multi Form" Editable Filterable="true" Sortable="false">
+         <DataGridColumn Field="@nameof(ThorCategory.IsMultiForm)" Width="10%" Caption="Multi Form" Editable Filterable="true" Sortable="true">
                 <DisplayTemplate>
                     @((bool)context.IsMultiForm ? "Yes" : "No")
                 </DisplayTemplate>
@@ -49,7 +49,7 @@
                  </Select>
              </EditTemplate>
             </DataGridColumn>
-         <DataGridColumn Field="@nameof(ThorCategory.SortOrder)" Caption="Order" Editable Filterable="true" Sortable="false" Width="8%">
+         <DataGridColumn Field="@nameof(ThorCategory.SortOrder)" Caption="Order" Editable Filterable="true" Sortable="true" Width="8%">
             </DataGridColumn>
          <DataGridCheckColumn Field="@nameof(ThorCategory.IsActive)" Caption="Active" Editable Width="7%">
                  <DisplayTemplate>
