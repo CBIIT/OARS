@@ -28,8 +28,6 @@ namespace TheradexPortal.Data.Services
         
         public async Task<bool> SaveField(ThorField field)
         {
-            Console.WriteLine("saving field");
-            Console.WriteLine(field);
             try
             {
                 DateTime currentDateTime = DateTime.UtcNow;

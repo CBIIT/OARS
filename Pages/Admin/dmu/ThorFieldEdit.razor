@@ -183,14 +183,12 @@
     public async void Save(SavedRowItem<ThorField, Dictionary<string, object>> e)
     {
         var toSave = e.Item;
-        Console.WriteLine(e.Item);
 
         if (toSave.ThorFieldId == "" || toSave.ThorDataCategoryId == "" || !toSave.SortOrder.HasValue || toSave.FieldLabel == "")
         {
             await notificationService.Error("Please fix all errors to save.");
             return;
         }
-        Console.WriteLine("Saving");
 
         bool saved = await fieldService.SaveField(toSave);
 
