@@ -39,16 +39,32 @@
                   @context.ThorDataCategoryId
               </DisplayTemplate>
              <EditTemplate>
-				 <SelectList TItem="ThorCategory" TValue="string?" Data="@categoryList" TextField="@((item)=>item.CategoryName)" ValueField="@((item)=>item.ThorDataCategoryId)" @bind-SelectedValue="context.Item.ThorDataCategoryId"></SelectList>
+				 <SelectList TItem="ThorCategory" TValue="string?" Data="@categoryList" TextField="@((item)=>item.CategoryName)" ValueField="@((item)=>item.ThorDataCategoryId)" SelectedValueChanged="@( v => {context.CellValue = v;})" SelectedValue="@((string?)context.CellValue)"></SelectList>
 			 </EditTemplate>
          </DataGridColumn>
          <DataGridColumn Field="@nameof(ThorField.ThorFieldId)" Width="15%" Caption="THOR Field ID" Editable Filterable="true" Sortable="false">
          </DataGridColumn>
           <DataGridColumn Width="15%" Field="@nameof(ThorField.FieldLabel)" Caption="THOR Field Label" Editable Filterable="true" Sortable="false">
          </DataGridColumn>
-         <DataGridColumn Width="10%" Caption="THOR Field Type" Field="@nameof(ThorField.FieldType)" Editable Filterable="true" Sortable="false">
+         <DataGridColumn Width="10%" Caption="THOR Field Type" Field="@nameof(ThorField.ThorFieldTypeId)" Editable Filterable="true" Sortable="false">
+             <DisplayTemplate>
+                 @{
+                     if(context.FieldType != null)
+					 {
+						 @context.FieldType.FieldTypeName
+					 }
+					 else if (context.FieldType == null && context.ThorFieldTypeId != null)
+					 {
+						@this.fieldTypes.First(x => x.ThorFieldTypeId == context.ThorFieldTypeId).FieldTypeName
+					 }
+					 else
+					 {
+						 <p></p>
+					 }
+                 }
+            </DisplayTemplate>
              <EditTemplate>
-                 <SelectList TItem="ThorFieldType" TValue="int?" Data="@fieldTypes" TextField="@((item)=>item.FieldTypeName)" ValueField="@((item)=>item.ThorFieldTypeId)" @bind-SelectedValue="context.Item.ThorFieldTypeId"></SelectList>
+                 <SelectList TItem="ThorFieldType" TValue="int?" Data="@fieldTypes" TextField="@((item)=>item.FieldTypeName)" ValueField="@((item)=>item.ThorFieldTypeId)" SelectedValueChanged="@( v => {context.CellValue = v;  context.UpdateCell(nameof( ThorField.ThorDictionaryId), null);})"/>
              </EditTemplate>
          </DataGridColumn>
          <DataGridColumn Field="@nameof(ThorField.Derivable)" Width="10%" Caption="Derivable" Editable Filterable="true" Sortable="false">
@@ -62,7 +78,41 @@
                  </Select>
              </EditTemplate>
          </DataGridColumn>
-         <DataGridColumn Field="Dictionary.DictionaryName" Caption="THOR Dictionary Name" Editable Filterable="true" Sortable="false">         </DataGridColumn>
+         <DataGridColumn Field="@nameof(ThorField.ThorDictionaryId)" Caption="THOR Dictionary Name" Editable Filterable="true" Sortable="false">
+             <DisplayTemplate>
+                 @{
+                    if (context.Dictionary != null)
+					 {
+                        @context.Dictionary.DictionaryName
+                    }
+                    else if (context.Dictionary == null && context.ThorDictionaryId != null)
+                    {
+                        @this.dictionaryList.First(x => x.ThorDictionaryId == context.ThorDictionaryId).DictionaryName
+                    }
+                    else
+					{
+						 <p></p>
+                    }
+                 }
+            </DisplayTemplate>
+            <EditTemplate>
+                @{
+                    int? fieldTypeId = (int?)context.ReadCell(nameof(ThorField.ThorFieldTypeId));
+                    if(fieldTypeId != null)
+                    {
+                        string name = this.fieldTypes.First(x => x.ThorFieldTypeId == fieldTypeId).FieldTypeName;
+                        if (name == "Dropdown")
+                        {
+                            <SelectList TItem="ThorDictionary" TValue="int?" Data="@dictionaryList" TextField="@((item) => item.DictionaryName)" ValueField="@((item)=>item.ThorDictionaryId)" SelectedValueChanged="@( v => {context.CellValue = v;})" SelectedValue="@((int?)context.CellValue)" />
+                        }
+                        else
+                        {
+                            <TextEdit Disabled />
+                        }
+                    }
+                }
+			 </EditTemplate>
+        </DataGridColumn>
          <DataGridColumn Field="@nameof(ThorField.IsMultiForm)" Width="10%" Caption="Multi Form" Editable Filterable="true" Sortable="false">
              <DisplayTemplate>
                  @((bool)context.IsMultiForm ? "Yes" : "No")
@@ -110,6 +160,7 @@
  @code {
     [Inject] IThorCategoryService categoryService { get; set; } = null!; 
     [Inject] IThorFieldService fieldService { get; set; } = null!;
+    [Inject] IThorDictionaryService dictionaryService { get; set; } = null!;
     [Inject] private NavigationManager navigation { get; set; } = null!;
     [Inject] INotificationService notificationService { get; set; }
 
@@ -117,6 +168,7 @@
     private IList<ThorCategory> categoryList;
     private IList<ThorField> fieldList;
     private IList<ThorFieldType> fieldTypes;
+    private IList<ThorDictionary> dictionaryList;
 
     private ThorField? selectedField;
 
@@ -125,17 +177,20 @@
         this.categoryList = await categoryService.GetCategories();
         this.fieldList = await fieldService.GetFields();
         this.fieldTypes = await fieldService.GetFieldTypes();
+        this.dictionaryList = await dictionaryService.GetDictionaries();
     }
 
     public async void Save(SavedRowItem<ThorField, Dictionary<string, object>> e)
     {
         var toSave = e.Item;
+        Console.WriteLine(e.Item);
 
         if (toSave.ThorFieldId == "" || toSave.ThorDataCategoryId == "" || !toSave.SortOrder.HasValue || toSave.FieldLabel == "")
         {
             await notificationService.Error("Please fix all errors to save.");
             return;
         }
+        Console.WriteLine("Saving");
 
         bool saved = await fieldService.SaveField(toSave);
 
