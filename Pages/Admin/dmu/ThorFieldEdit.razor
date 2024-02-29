@@ -64,7 +64,7 @@
                  }
             </DisplayTemplate>
              <EditTemplate>
-                 <SelectList TItem="ThorFieldType" TValue="int?" Data="@fieldTypes" TextField="@((item)=>item.FieldTypeName)" ValueField="@((item)=>item.ThorFieldTypeId)" SelectedValueChanged="@( v => {context.CellValue = v;  context.UpdateCell(nameof( ThorField.ThorDictionaryId), null);})"/>
+                 <SelectList TItem="ThorFieldType" TValue="int?" Data="@fieldTypes" TextField="@((item)=>item.FieldTypeName)" ValueField="@((item)=>item.ThorFieldTypeId)" SelectedValue="@((int?)context.CellValue)" SelectedValueChanged="@( v => {context.CellValue = v;  context.UpdateCell(nameof( ThorField.ThorDictionaryId), null);})"/>
              </EditTemplate>
          </DataGridColumn>
          <DataGridColumn Field="@nameof(ThorField.Derivable)" Width="10%" Caption="Derivable" Editable Filterable="true" Sortable="true">
