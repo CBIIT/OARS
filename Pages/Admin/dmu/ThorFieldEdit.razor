@@ -72,7 +72,7 @@
                  @((bool)context.Derivable ? "Yes" : "No")
              </DisplayTemplate>
              <EditTemplate>
-                 <Select TValue="bool">
+                 <Select TValue="bool" SelectedValueChanged="@( v => {context.CellValue = v;})" SelectedValue="@((bool)context.CellValue)">
                      <SelectItem Value="false">No</SelectItem>
                      <SelectItem Value="true">Yes</SelectItem>
                  </Select>
@@ -118,7 +118,7 @@
                  @((bool)context.IsMultiForm ? "Yes" : "No")
              </DisplayTemplate>
              <EditTemplate>
-                 <Select TValue="bool">
+                 <Select TValue="bool" SelectedValueChanged="@( v => {context.CellValue = v;})" SelectedValue="@((bool)context.CellValue)">
                      <SelectItem Value="false">No</SelectItem>
                      <SelectItem Value="true">Yes</SelectItem>
                  </Select>
