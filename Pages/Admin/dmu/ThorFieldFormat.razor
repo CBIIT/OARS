@@ -3,6 +3,7 @@
 @using TheradexPortal.Data.Static;
 @inject IHttpContextAccessor httpContextAccessor
 @layout AdminLayout
+@page "/admin/dmu/thor-field-format/{protocolMappingId:int}"
 
 <DataGrid @ref=dataGridRef
           TItem="ProtocolField"
@@ -28,7 +29,7 @@
            RowUpdated="@Save"
            RowInserted="@Save">
      <DataGridColumns>
-         <DataGridColumn Width="35%" Field="ThorField.FieldName" Caption="THOR Field" Filterable="true" Sortable="false">
+         <DataGridColumn Width="35%" Field="ThorField.FieldLabel" Caption="THOR Field" Filterable="true" Sortable="false">
          </DataGridColumn>
          <DataGridColumn Field="@nameof(ProtocolField.Format)" Width="65%" Caption="Format" Editable Filterable="true" Sortable="false">
          </DataGridColumn>
@@ -70,7 +71,7 @@
     public async void Save(SavedRowItem<ProtocolField, Dictionary<string, object>> savedRowItem)
 	{
 		var toSave = savedRowItem.Item;
-        bool saved = await protocolFieldService.SaveProtocolField(toSave);
+        bool saved = await protocolFieldService.SaveProtocolField(this.protocolMappingId, toSave);
 
         if (saved)
         {

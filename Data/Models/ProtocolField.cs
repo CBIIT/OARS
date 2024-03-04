@@ -10,8 +10,8 @@ namespace TheradexPortal.Data.Models
         public int ProtocolFieldId { get; set; }
         [Column("Protocol_Mapping_Id")]
         public int ProtocolMappingId { get; set; }
-        [Column("Thor_Field_Id")]
-        public string THORFieldId { get; set; }
+        [Column("THOR_Field_Id")]
+        public string ThorFieldId { get; set; }
         [Column("Format")]
         public string Format { get; set; }
         [Column("Is_Required")]
@@ -28,7 +28,7 @@ namespace TheradexPortal.Data.Models
         public DateTime UpdateDate { get; set; }
         [ForeignKey(nameof(ProtocolMappingId))]
         public ProtocolMapping ProtocolMapping { get; set; }
-        [ForeignKey(nameof(THORFieldId))]
+        [ForeignKey(nameof(ThorFieldId))]
         public ThorField ThorField { get; set; }
     }
 }
