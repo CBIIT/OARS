@@ -2,6 +2,8 @@
 @using TheradexPortal.Data.Services.Abstract;
 @using TheradexPortal.Data.Static;
 @inject IHttpContextAccessor httpContextAccessor
+@inject NavigationManager NavigationManager
+
 @layout AdminLayout
 @*
         TODO: Add ThorRoleCheck check for DMU roles when they are created
@@ -47,8 +49,8 @@
             </DisplayTemplate>
             <EditTemplate>
                 <SelectList TItem="ThorField" TValue="string" Data="@fieldList" TextField="@((item)=>item.ThorFieldId)" ValueField="@((item)=>item.ThorFieldId)"
-                  SelectedValue="@((string)((CellEditContext)context).CellValue)"
-                  SelectedValueChanged="@(e =>
+                            SelectedValue="@((string)((CellEditContext)context).CellValue)"
+                            SelectedValueChanged="@(e =>
                         {
                             context.CellValue = Convert.ToString(e);
                         } )" DefaultItemText="Select the THOR Field">
@@ -125,11 +127,13 @@
             return;
         }
         this.profileFields = await profileFieldService.GetProfileFields(profile);
+
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
     }
 
-    private void setCategories( IList<ProfileField> loadedProfileFields )
+    private void setCategories(IList<ProfileField> loadedProfileFields)
     {
-        foreach( ProfileField profileField in loadedProfileFields)
+        foreach (ProfileField profileField in loadedProfileFields)
         {
             var thorField = fieldList.Where(f => f.ThorFieldId == profileField.THORFieldId).FirstOrDefault();
             if (thorField != null)
