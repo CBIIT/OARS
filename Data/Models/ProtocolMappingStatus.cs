@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TheradexPortal.Data.Models
 {
+    [Table("ProtocolMappingStatus", Schema = "DMU")]
     public class ProtocolMappingStatus
     {
         [Column("Protocol_Mapping_Status_Id"), Key]

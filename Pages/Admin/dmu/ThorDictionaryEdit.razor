@@ -30,13 +30,13 @@
           RowInserted="@Save"
           HeaderRowStyling="@(new DataGridRowStyling() { Style="color=rgba(250, 141, 40, 1);" })">
     <DataGridColumns>
-        <DataGridColumn Width="35%" Field="@nameof(ThorDictionary.DictionaryName)" Caption="THOR Dictionary Name" Editable Filterable="true" Sortable="false">
+        <DataGridColumn Width="35%" Field="@nameof(ThorDictionary.DictionaryName)" Caption="THOR Dictionary Name" Editable Filterable="true" Sortable="true">
         </DataGridColumn>
-        <DataGridColumn Field="@nameof(ThorDictionary.DictionaryOption)" Width="35%" Caption="THOR Dictionary Option" Editable Filterable="true" Sortable="false">
+        <DataGridColumn Field="@nameof(ThorDictionary.DictionaryOption)" Width="35%" Caption="THOR Dictionary Option" Editable Filterable="true" Sortable="true">
         </DataGridColumn>
-        <DataGridColumn Field="@nameof(ThorDictionary.DictionaryValue)" Caption="THOR Dictionary Value" Editable Filterable="true" Sortable="false" Width="20%">>
+        <DataGridColumn Field="@nameof(ThorDictionary.DictionaryValue)" Caption="THOR Dictionary Value" Editable Filterable="true" Sortable="true" Width="20%">>
         </DataGridColumn>
-        <DataGridColumn Field="@nameof(ThorDictionary.SortOrder)" Caption="Order" Editable Filterable="true" Sortable="false" Width="8%">
+        <DataGridColumn Field="@nameof(ThorDictionary.SortOrder)" Caption="Order" Editable Filterable="true" Sortable="true" Width="8%">
         </DataGridColumn>
         <DataGridCheckColumn Field="@nameof(ThorDictionary.IsActive)" Caption="Active" Editable Width="7%">
             <DisplayTemplate>
