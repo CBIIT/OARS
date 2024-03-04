@@ -21,13 +21,23 @@ namespace TheradexPortal.Data.Services
 
         public async Task<bool> SaveCategory(int profileId, ProfileDataCategory category)
         {
-            DateTime curDateTime = DateTime.UtcNow;
-            if (category.CreateDate == null)
-                category.CreateDate = curDateTime;
             try
             {
-                
-                context.Add(category);
+                DateTime curDateTime = DateTime.UtcNow;
+                ProfileDataCategory currCategory = context.ProfileDataCategory.Where(p => p.ProfileDataCategoryId == category.ProfileDataCategoryId).FirstOrDefault();
+                if(currCategory == null)
+                {
+                    category.ProfileId = profileId;
+                    category.CreateDate = curDateTime;
+                    context.Add(category);
+                }
+                else
+                {
+                    currCategory.ProfileId = category.ProfileId;
+                    currCategory.ThorDataCategoryId = category.ThorDataCategoryId; 
+                    currCategory.CreateDate = category.CreateDate;
+                    context.Update(currCategory);
+                }
                 await context.SaveChangesAsync();
                 return true;
 

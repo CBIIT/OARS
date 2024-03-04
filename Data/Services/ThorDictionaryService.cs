@@ -20,18 +20,31 @@ namespace TheradexPortal.Data.Services
 
         public async Task<bool> SaveDictionary(ThorDictionary dictionary)
         {
-            DateTime currentDateTime = DateTime.UtcNow;
-
-            if (dictionary.CreateDate == null)
-                dictionary.CreateDate = currentDateTime;
             try
             {
+                DateTime currentDateTime = DateTime.UtcNow;
                 dictionary.UpdateDate = currentDateTime;
-                context.Add(dictionary);
+
+                ThorDictionary currentThorDictionary = context.THORDictionary.Where(p => p.ThorDictionaryId == dictionary.ThorDictionaryId).FirstOrDefault();
+
+                if (currentThorDictionary == null || dictionary.CreateDate == null)
+                {
+                    dictionary.CreateDate = currentDateTime;
+                    context.Add(dictionary);
+                }
+                else
+                {
+                    currentThorDictionary.DictionaryName = dictionary.DictionaryName;
+                    currentThorDictionary.DictionaryOption = dictionary.DictionaryOption;
+                    currentThorDictionary.DictionaryValue = dictionary.DictionaryValue;
+                    currentThorDictionary.SortOrder = dictionary.SortOrder;
+                    currentThorDictionary.IsActive = dictionary.IsActive;
+                    currentThorDictionary.UpdateDate = currentDateTime;
+                    context.Update(currentThorDictionary);
+                }
 
                 await context.SaveChangesAsync();
                 return true;
-
             }
             catch (Exception ex)
             {
