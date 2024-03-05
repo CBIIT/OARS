@@ -65,4 +65,8 @@
     <Folder Include="Migrations\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="SQL Scripts\DMU schema - update 2024-03-05.sql" />
+  </ItemGroup>
+
 </Project>
