@@ -13,10 +13,10 @@ namespace TheradexPortal.Data.Models
         public int? ProfileId { get; set; }
 
         [ForeignKey(nameof(ProfileId))]
-        public Profile Profile { get; set; }
+        public Profile? Profile { get; set; }
 
         [Column("THOR_Data_Category_Id")]
-        public string ThorDataCategoryId { get; set; }
+        public string? ThorDataCategoryId { get; set; }
 
         [ForeignKey(nameof(ThorDataCategoryId))]
         public ThorCategory ThorCategory { get; set; }

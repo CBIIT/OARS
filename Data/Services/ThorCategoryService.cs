@@ -20,16 +20,32 @@ namespace TheradexPortal.Data.Services
 
         public async Task<bool> SaveCategory(ThorCategory category)
         {
-            DateTime curDateTime = DateTime.UtcNow;
-            if (category.CreateDate == null)
-                category.CreateDate = curDateTime;
             try
             {
-                category.UpdateDate = curDateTime;
-                context.Add(category);
+                DateTime currentDateTime = DateTime.UtcNow;
+
+                ThorCategory currentCategory = context.THORDataCategory.Where(p => p.ThorDataCategoryId == category.ThorDataCategoryId).FirstOrDefault();
+
+                if (currentCategory == null || category.CreateDate == null)
+                {
+                    category.CreateDate = currentDateTime;
+                    category.UpdateDate = currentDateTime;
+                    context.Add(category);
+                }
+                else
+                {
+                    //Can we change the ThorIDfield?
+                    currentCategory.CategoryName = category.CategoryName;
+                    currentCategory.ThorDataCategoryId = category.ThorDataCategoryId;
+                    currentCategory.IsMultiForm = category.IsMultiForm;
+                    currentCategory.SortOrder = category.SortOrder;
+                    currentCategory.IsActive = category.IsActive;
+                    currentCategory.UpdateDate = currentDateTime;
+                    context.Update(currentCategory);
+                }
+
                 await context.SaveChangesAsync();
                 return true;
-
             }
             catch (Exception ex)
             {

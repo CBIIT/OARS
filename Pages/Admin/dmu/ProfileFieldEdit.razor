@@ -1,0 +1,151 @@
+﻿@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@inject IHttpContextAccessor httpContextAccessor
+@inject NavigationManager NavigationManager
+
+@layout AdminLayout
+@*
+        TODO: Add ThorRoleCheck check for DMU roles when they are created
+
+    <ThorRoleCheck AllowedRoles="@(new List<string> { "??" })"></ThorRoleCheck>
+*@
+
+<DataGrid @ref=dataGridRef
+          TItem="ProfileField"
+          Class="admindatagrid"
+          Data="@profileFields"
+          Editable
+          Responsive
+          Striped
+          ShowPager
+          ShowPageSizes
+          Filterable
+          FilterMethod="DataGridFilterMethod.StartsWith"
+          MaxPaginationLinks="5"
+          PagerPosition="DataGridPagerPosition.Bottom"
+          PagerOptions="new(){ButtonSize=Size.Default,
+                                PaginationPosition=PagerElementPosition.Default,
+                                TotalItemsPosition=PagerElementPosition.End,
+                                }"
+          FixedHeader
+          FixedHeaderDataGridHeight="calc(100vh - 240px)"
+          FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
+          EditMode="DataGridEditMode.Inline"
+          RowUpdated="@Save"
+          RowInserted="@Save">
+    <DataGridColumns>
+        <DataGridColumn Width="35%" Caption="THOR Data Category" Editable Filterable="true" Sortable="false">
+            <DisplayTemplate>
+                @context?.ThorField?.Category?.ThorDataCategoryId
+            </DisplayTemplate>
+            <EditTemplate>
+                <SelectList TItem="ThorCategory" TValue="string" Data="@categoryList" TextField="@((item)=>item.CategoryName)" ValueField="@((item)=>item.ThorDataCategoryId)" SelectedValueChanged="OnSelectedCategoryValueChanged" DefaultItemText="Select the THOR DataCategory"></SelectList>
+            </EditTemplate>
+        </DataGridColumn>
+        <DataGridColumn Width="35%" Field="THORFieldId" Caption="THOR Field" Editable Filterable="true" Sortable="false">
+            <DisplayTemplate>
+                @context?.THORFieldId - @context?.ThorField?.FieldLabel
+            </DisplayTemplate>
+            <EditTemplate>
+                <SelectList TItem="ThorField" TValue="string" Data="@fieldList" TextField="@((item)=>item.ThorFieldId)" ValueField="@((item)=>item.ThorFieldId)"
+                            SelectedValue="@((string)((CellEditContext)context).CellValue)"
+                            SelectedValueChanged="@(e =>
+                        {
+                            context.CellValue = Convert.ToString(e);
+                        } )" DefaultItemText="Select the THOR Field">
+                </SelectList>
+            </EditTemplate>
+        </DataGridColumn>
+        <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
+            <EditCommandTemplate>
+                <Button><Icon Name="IconName.Edit" Clicked="@context.Clicked" /></Button>
+            </EditCommandTemplate>
+            <SaveCommandTemplate>
+                <Button><Icon Name="IconName.Save" Clicked="@context.Clicked" /></Button>
+            </SaveCommandTemplate>
+            <CancelCommandTemplate>
+                <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
+            </CancelCommandTemplate>
+            <ClearFilterCommandTemplate>
+                <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
+            </ClearFilterCommandTemplate>
+        </DataGridCommandColumn>
+    </DataGridColumns>
+    <ButtonRowTemplate>
+        <Button Color="Color.Primary" Clicked="context.NewCommand.Clicked">Add</Button>
+    </ButtonRowTemplate>
+    <EmptyTemplate>
+        <div class="box">
+            No fields were found.
+        </div>
+    </EmptyTemplate>
+</DataGrid>
+
+@code {
+    [Inject] IThorCategoryService categoryService { get; set; } = null!;
+    [Inject] IThorFieldService thorFieldService { get; set; } = null!;
+    [Inject] IProfileService profileService { get; set; } = null!;
+    [Inject] IProfileCategoryService profileCategoryService { get; set; } = null!;
+    [Inject] IProfileFieldService profileFieldService { get; set; } = null!;
+    [Inject] private NavigationManager navigation { get; set; } = null!;
+    [Inject] INotificationService notificationService { get; set; } = null!;
+
+    [Parameter] public int profile { get; set; }
+
+    private DataGrid<ProfileField> dataGridRef;
+    private IList<ProfileDataCategory> profileCategories;
+    private IList<ProfileField> profileFields;
+    private IList<ThorCategory> categoryList;
+    private IList<ThorField> fieldList = new List<ThorField>();
+    private Profile selectedProfile;
+    private string selectedCategoryId;
+    private IList<String> selectedCategoryList = new List<String>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        this.profileFields = await profileFieldService.GetProfileFields(profile);
+        setCategories(this.profileFields);
+        this.profileCategories = await profileCategoryService.GetCategories(profile);
+        this.selectedProfile = await profileService.GetProfile(profile);
+        this.categoryList = await categoryService.GetCategories();
+    }
+
+    public async void Save(SavedRowItem<ProfileField, Dictionary<string, object>> savedRowItem)
+    {
+        bool saved;
+        saved = await profileFieldService.SaveProfileField(profile, savedRowItem.Item);
+
+        if (saved)
+        {
+            await notificationService.Success("Field successfully saved");
+            return;
+        }
+        else
+        {
+            await notificationService.Error("Error saving field");
+            return;
+        }
+        this.profileFields = await profileFieldService.GetProfileFields(profile);
+
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+    }
+
+    private void setCategories(IList<ProfileField> loadedProfileFields)
+    {
+        foreach (ProfileField profileField in loadedProfileFields)
+        {
+            var thorField = fieldList.Where(f => f.ThorFieldId == profileField.THORFieldId).FirstOrDefault();
+            if (thorField != null)
+            {
+                selectedCategoryList.Add(thorField.ThorDataCategoryId);
+            }
+        }
+    }
+
+    async Task OnSelectedCategoryValueChanged(string categoryId)
+    {
+        this.fieldList = await thorFieldService.GetFields();
+        this.fieldList = fieldList.Where(f => f.ThorDataCategoryId.Equals(categoryId)).ToList();
+    }
+}
