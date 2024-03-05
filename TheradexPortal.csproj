@@ -66,7 +66,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="SQL Scripts\addUserTable.sql" />
+    <None Include="SQL Scripts\DMU schema - cleaned.sql" />
     <None Include="SQL Scripts\DMU schema - update 2024-03-05.sql" />
+    <None Include="SQL Scripts\THORDictionary - Data.sql" />
   </ItemGroup>
 
 </Project>
