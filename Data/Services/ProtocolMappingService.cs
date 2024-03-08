@@ -53,7 +53,7 @@ namespace TheradexPortal.Data.Services
             return protocolMappings;
         }
 
-        public async Task<bool> SaveProtocolMapping(ProtocolMapping mapping)
+        public async Task<bool> SaveProtocolMapping(ProtocolMapping mapping, IList<ProtocolPhase> phasesSet)
         {
             try
             {
@@ -63,8 +63,21 @@ namespace TheradexPortal.Data.Services
 
                 if (currentMapping == null || currentMapping.CreateDate == null)
                 {
-                    currentMapping.CreateDate = currentDateTime;
-                    context.Add(currentMapping);
+                    mapping.CreateDate = currentDateTime;
+                    context.Add(mapping);
+                    await context.SaveChangesAsync();
+
+                    int protocolMappingId = mapping.ProtocolMappingId;
+
+                    if (phasesSet != null && phasesSet.Count > 0)
+                    {
+                        foreach( ProtocolPhase phase in phasesSet)
+                        {
+                            phase.ProtocolMappingId = protocolMappingId;
+                            context.Add(phase);
+                        }
+                        await context.SaveChangesAsync();
+                    }
                 }
                 else
                 {
@@ -83,17 +96,23 @@ namespace TheradexPortal.Data.Services
                     currentMapping.DateFormat = mapping.DateFormat;
                     currentMapping.DataFileFolder = mapping.DataFileFolder;
                     context.Update(currentMapping);
+                    await context.SaveChangesAsync();
                 }
-
-                await context.SaveChangesAsync();
                 return true;
-                
             }
             catch (Exception ex)
             {
                 await _errorLogService.SaveErrorLogAsync(0, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
                 return false;
             }
+        }
+
+        public async Task<IList<ProtocolMapping>> GetAllProtocolMappingsFromProfileType(int profileType)
+        {
+            //PENDING: This needs to reviewed, where are we storing the profiletype. The comparison needs to be fixed.
+            var protocolMappings = await context.ProtocolMapping.Where(p=> p.ProtocolMappingId == profileType).ToListAsync();
+
+            return protocolMappings;
         }
     }
 }
