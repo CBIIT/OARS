@@ -20,18 +20,29 @@ namespace TheradexPortal.Data.Services
 
         public async Task<bool> SaveProtocolDataSystem(ProtocolDataSystem protocolDataSystem)
         {
-            DateTime currentDateTime = DateTime.UtcNow;
-
-            if (protocolDataSystem.CreateDate == null)
-                protocolDataSystem.CreateDate = currentDateTime;
             try
             {
+                DateTime currentDateTime = DateTime.UtcNow;
                 protocolDataSystem.UpdateDate = currentDateTime;
-                context.Add(protocolDataSystem);
 
+                ProtocolDataSystem currentProtocolDataSystem = context.ProtocolDataSystem.Where(p => p.ProtocolDataSystemId == protocolDataSystem.ProtocolDataSystemId).FirstOrDefault();
+
+                if (currentProtocolDataSystem == null || protocolDataSystem.CreateDate == null)
+                {
+                    protocolDataSystem.CreateDate = currentDateTime;
+                    context.Add(protocolDataSystem);
+                }
+                else
+                {
+                    currentProtocolDataSystem.DataSystemName = protocolDataSystem.DataSystemName;
+                    currentProtocolDataSystem.SortOrder = protocolDataSystem.SortOrder;
+                    currentProtocolDataSystem.IsActive = protocolDataSystem.IsActive;
+                    currentProtocolDataSystem.UpdateDate = currentDateTime;
+                    context.Update(currentProtocolDataSystem);
+                }
+                
                 await context.SaveChangesAsync();
                 return true;
-
             }
             catch (Exception ex)
             {
