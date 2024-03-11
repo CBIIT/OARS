@@ -67,21 +67,21 @@
                         }
                     </TableRow>
                     <TableRow>
-                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Total Patients In ODH</TableRowHeader>
+                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Total Patients</TableRowHeader>
                         @foreach (var study in SelectedStudies)
                         {
                             <TableRowCell>@(study.PatientsEnrolled)</TableRowCell>
                         }
                     </TableRow>
                     <TableRow>
-                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Total Patients Treated In ODH</TableRowHeader>
+                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Total Patients Treated</TableRowHeader>
                         @foreach (var study in SelectedStudies)
                         {
                             <TableRowCell>@(study.PatientTreated)</TableRowCell>
                         }
                     </TableRow>
                     <TableRow>
-                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Recent Enrollment In ODH</TableRowHeader>
+                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Recent Enrollment</TableRowHeader>
                         @foreach (var study in SelectedStudies)
                         {
                             <TableRowCell>
