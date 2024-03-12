@@ -180,5 +180,8 @@ namespace TheradexPortal.Data
         public DbSet<ProfileDataCategory> ProfileDataCategory { get; set; }
         public DbSet<ProtocolDataSystem> ProtocolDataSystem { get; set; }
         public DbSet<ProfileField> ProfileFields { get; set; }
+        public DbSet<ProtocolEDCField> ProtocolEDCField { get; set; }
+        public DbSet<ProtocolEDCForm> ProtocolEDCForm { get; set; }
+        public DbSet<ProtocolEDCDictionary> ProtocolEDCDictionary { get; set; }
     }
 }

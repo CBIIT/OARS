@@ -4,17 +4,7 @@
 @using TheradexPortal.Data.Static;
 @inject IHttpContextAccessor httpContextAccessor
 @layout AdminLayout
-
-<Field>
-    <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Select a file type:</FieldLabel>
-    <FieldBody ColumnSize="ColumnSize.Is4" Margin="Margin.IsAuto">
-    <Select TValue="string" @bind-SelectedValue="@fileType">
-        <SelectItem Value="ALS">ALS</SelectItem>
-        <SelectItem Value="XML">XML</SelectItem>
-        <SelectItem Value="CSV">CSV</SelectItem>
-    </Select>
-    </FieldBody>
-</Field>
+@page "/admin/dmu/fileupload"
 <Field>
     <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Select a file:</FieldLabel>
     <FieldBody ColumnSize="ColumnSize.Is4" Margin="Margin.IsAuto">
@@ -22,26 +12,21 @@
     </FieldBody>
  </Field>
 
-    @if (fileType == "ALS" || fileType == "XML")
-    {
-    <p>@this.fileType can only be uploaded once. Remapping the study might be required.</p>
-    <p>To upload a new @this.fileType,</p>
-    <ol>
-        <li>Clear uploads</li>
-        <li>Upload new @this.fileType</li>
-    </ol>
-    <p>Additional Data Points outside the @this.fileType can be added by uploading a CSV file.</p>
-    }
-
-    <Button Clicked="@UploadFiles">Process File(s)</Button>
-
-
-
 @code {
     private string fileType;
     private FilePicker UploadField;
+    [Inject] private IALSFileImportService alsFileImportService { get; set; }
 
-    public async void UploadFiles()
+    public async void OnFileUpload(FileUploadEventArgs e)
     {
+        MemoryStream ms = new MemoryStream();
+        try
+        {
+            await e.File.OpenReadStream(21500000).CopyToAsync(ms);
+            alsFileImportService.ParseALSFile(ms, 0);
+        }catch (Exception ex)
+		{
+			Console.WriteLine(ex.Message);
+		}
     }
 }
