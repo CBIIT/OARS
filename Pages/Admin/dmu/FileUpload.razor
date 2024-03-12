@@ -16,6 +16,7 @@
     private string fileType;
     private FilePicker UploadField;
     [Inject] private IALSFileImportService alsFileImportService { get; set; }
+    [Inject] private IXMLFileImportService xmlFileImportService { get; set; }
 
     public async void OnFileUpload(FileUploadEventArgs e)
     {
@@ -23,7 +24,8 @@
         try
         {
             await e.File.OpenReadStream(21500000).CopyToAsync(ms);
-            alsFileImportService.ParseALSFile(ms, 0);
+            //alsFileImportService.ParseALSFile(ms, 0);
+            xmlFileImportService.ParseXMLFile(ms, 0);
         }catch (Exception ex)
 		{
 			Console.WriteLine(ex.Message);

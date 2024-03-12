@@ -59,6 +59,7 @@ builder.Services.AddScoped<IProtocolEDCFieldService, ProtocolEDCFieldService>();
 builder.Services.AddScoped<IProtocolEDCFormService, ProtocolEDCFormService>();
 builder.Services.AddScoped<IProtocolEDCDictionaryService, ProtocolEDCDictionaryService>();
 builder.Services.AddScoped<IALSFileImportService, ALSFileImportService>();
+builder.Services.AddScoped<IXMLFileImportService, XMLFileImportService>();
 
 builder.Services.AddHttpClient<IOktaService, OktaService>(client =>
 {
