@@ -61,7 +61,10 @@ namespace TheradexPortal.Controllers
             //var redirectUri = returnUrl is null ? Url.Content("~/") : "/" + returnUrl;
             var redirectUri = Url.Content("~/timedout");
 
-            _userService.SaveActivityLog(0, ThorActivityType.Debug, "Entered Timeout");
+            Claim userId = ((ClaimsIdentity)User.Identity).Claims.Where(c => c.Type == "UserId").FirstOrDefault();
+
+            if (userId != null)
+                _userService.SaveActivityLog(Convert.ToInt32(userId.Value), ThorActivityType.Debug, "Entered Timeout");
 
             if (!User.Identity.IsAuthenticated)
             {
