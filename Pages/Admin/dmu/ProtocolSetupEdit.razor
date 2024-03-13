@@ -4,7 +4,7 @@
 @inject IConfiguration configuration
 @layout AdminLayout
 
-@page "/admin/dmu/protocol-setup-edit"
+@page "/admin/dmu/protocol-setup-edit/{studyId:int}"
 <AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })"></AdminRoleCheck>
 <Alert Color="Color.Danger" @bind-Visible="@visibleValidationError">
     <AlertDescription>The required fields must have a valid value before saving. Please check!</AlertDescription>
@@ -241,6 +241,8 @@
     [Inject] private NavigationManager navigation { get; set; } = null!;
     [Inject] IUserService userService { get; set; } = null!;
 
+    [Parameter] public int studyId { get; set; }
+
     private IList<Profile> profileList = new List<Profile>();
     private int selectedMappingProfileId = 0;
     private string? newMappingProfile = "";
@@ -283,6 +285,7 @@
         this.profileList = await profileService.GetProfiles();
         this.edcSystemList = await protocolDataSystemService.GetProtocolDataSystems();
         this.protocolMappings = await protocolMappingService.GetAllProtocolMappingsFromProfileType(0);
+        this.currentProtocolMap.THORStudyId = studyId.ToString();
     }
 
     public async void SaveNewProtocolMapping()

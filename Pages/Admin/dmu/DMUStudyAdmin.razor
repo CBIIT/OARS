@@ -5,7 +5,7 @@
 @inject IHttpContextAccessor httpContextAccessor
 @layout AdminLayout
 
-@page "/admin/dmu/study-admin"
+@page "/admin/dmu/study-admin/{studyId:int}"
 @*
     TODO: Add ThorRoleCheck check for DMU roles when they are created
 
@@ -27,6 +27,7 @@
 @code {
     string selectedStep = "protocolsetup";
     [AllowNull] private Steps stepsRef;
+    [Parameter] public int studyId { get; set; }
 
     private bool NavigationAllowed(StepNavigationContext context)
     {
