@@ -1,0 +1,36 @@
+﻿@using System.Diagnostics.CodeAnalysis
+@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@inject IHttpContextAccessor httpContextAccessor
+@layout AdminLayout
+
+@page "/admin/dmu/study-admin/{studyId:int}"
+@*
+    TODO: Add ThorRoleCheck check for DMU roles when they are created
+
+<ThorRoleCheck AllowedRoles="@(new List<string> { "??" })"></ThorRoleCheck>
+*@
+<div class="dmu-admin-step-container">
+    <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Protocol Setup</h2></Div>
+    <Row Class="dmu-admin-step-container">
+        <Steps @ref="stepsRef" SelectedStep="@selectedStep" NavigationAllowed="NavigationAllowed">
+            <Items>
+                <Step Name="protocolsetup">Protocol Setup</Step>
+            </Items>
+            <Content>
+                <StepPanel Name="protocolsetup"><ProtocolSetupEdit></ProtocolSetupEdit></StepPanel>
+            </Content>
+        </Steps>
+    </Row>
+</div>
+@code {
+    string selectedStep = "protocolsetup";
+    [AllowNull] private Steps stepsRef;
+    [Parameter] public int studyId { get; set; }
+
+    private bool NavigationAllowed(StepNavigationContext context)
+    {
+        return true;
+    }
+}
