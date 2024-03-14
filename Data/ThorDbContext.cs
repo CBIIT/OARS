@@ -179,9 +179,15 @@ namespace TheradexPortal.Data
         public DbSet<ProtocolMappingStatus> ProtocolMappingStatus { get; set; }
         public DbSet<ProfileDataCategory> ProfileDataCategory { get; set; }
         public DbSet<ProtocolDataSystem> ProtocolDataSystem { get; set; }
+        public DbSet<ProtocolField> ProtocolField { get; set; }
         public DbSet<ProfileField> ProfileFields { get; set; }
+<<<<<<< HEAD
         public DbSet<ProtocolEDCField> ProtocolEDCField { get; set; }
         public DbSet<ProtocolEDCForm> ProtocolEDCForm { get; set; }
         public DbSet<ProtocolEDCDictionary> ProtocolEDCDictionary { get; set; }
+=======
+        public DbSet<ProtocolPhase> ProtocolPhases { get; set; }
+
+>>>>>>> origin/feature/TDMU-31-field-formats
     }
 }
