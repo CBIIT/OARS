@@ -17,9 +17,12 @@
         <Steps @ref="stepsRef" SelectedStep="@selectedStep" NavigationAllowed="NavigationAllowed">
             <Items>
                 <Step Name="protocolsetup">Protocol Setup</Step>
+                <Step Name="protocolconfig">Config Options</Step>
+                <Step Name="protocolfileupload">File Upload</Step>
             </Items>
             <Content>
                 <StepPanel Name="protocolsetup"><ProtocolSetupEdit></ProtocolSetupEdit></StepPanel>
+                <StepPanel Name="protocolfileupload"><ProtocolFileUpload></ProtocolFileUpload></StepPanel>
             </Content>
         </Steps>
     </Row>
