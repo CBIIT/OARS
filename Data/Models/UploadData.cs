@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Blazorise;
+using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 
 namespace TheradexPortal.Data.Models
@@ -19,7 +20,7 @@ namespace TheradexPortal.Data.Models
         [Required]
         public string Assay { get; set; }
 
-        public UploadFileModel UploadFile { get; set; }
+        //public UploadFileModel? UploadFile { get; set; }
     }
 
     public class UploadFileModel

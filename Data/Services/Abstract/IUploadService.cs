@@ -14,6 +14,6 @@ namespace TheradexPortal.Data.Services.Abstract
 
         public Task<bool> UploadCsvFileToS3(string bucket, string key, int userId, MemoryStream memoryStream);
 
-        public Task<bool> UploadCsvFileToS3(string bucket, string key, int userId, string content);
+        public Task<bool> UploadMetatdataFileToS3(string bucket, string key, int userId, string content);
     }
 }

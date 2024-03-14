@@ -102,7 +102,7 @@ namespace TheradexPortal.Data.Services
             }
         }
 
-        public async Task<bool> UploadCsvFileToS3(string bucket, string key, int userId, string content)
+        public async Task<bool> UploadMetatdataFileToS3(string bucket, string key, int userId, string content)
         {
             try
             {

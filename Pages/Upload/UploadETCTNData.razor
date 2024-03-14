@@ -99,23 +99,20 @@
                         </Validation>
                     </Fields>
                     <Fields>
-                        <Validation>
-                            <Field>
-                                <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Attach File</FieldLabel>
-                                <FieldLabel>Accepted File Types: CSV</FieldLabel>
-                                <Validation>
-                                    <FileEdit @ref="@fileEditRef" AutoReset="false" Changed="@OnFileUpload" MaxFileSize="4194304" Filter=".csv">
-                                        <Feedback>
-                                            <ValidationError>Wrong File Type</ValidationError>
-                                        </Feedback>
-                                    </FileEdit>
-                                </Validation>
-                            </Field>
-                        </Validation>
+                        <Field>
+                            <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Attach File</FieldLabel>
+                            <FieldLabel>Accepted File Types: CSV</FieldLabel>
+                            <FileEdit @ref="@fileEditRef" Changed="@OnFileUpload"
+                                      MaxFileSize="4194304" Filter=".csv" AutoReset="false" DisableProgressReport="false">
+                            </FileEdit>
+                        </Field>
                     </Fields>
                 </Validations>
-                <Button Color="Color.Primary" Clicked="@OnSaveClicked">
-                    Validate and Submit
+                <Button Color="Color.Primary" Clicked="@OnSubmit">
+                    Submit
+                </Button>
+                <Button Color="Color.Primary" Clicked="@OnReset">
+                    Reset
                 </Button>
             </Column>
         </Row>
@@ -136,13 +133,14 @@
     List<MedidataDictionaryModel> assays = null;
     List<CRFModel> crfs = null;
 
-    FileEdit fileEditRef;
-    IFileEntry selectedFile;
     int? userId = null;
+    FileEdit fileEditRef;
 
     Validations ValidationsRef { get; set; }
 
     ETCTNUploadRequest ETCTNUploadRequestModel { get; set; } = new ETCTNUploadRequest();
+
+    UploadFileModel? UploadFile;
 
     protected override async Task OnInitializedAsync()
     {
@@ -153,24 +151,33 @@
 
         userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
 
-        reset();
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await reset();
+        }
     }
 
     async Task reset()
     {
-        selectedFile = null;
+        await fileEditRef.Reset().AsTask();
 
-        if (fileEditRef != null)
-            fileEditRef.Reset().AsTask();
+        await ValidationsRef.ClearAll();
 
-        //await ValidationsRef.ClearAll();
+        ETCTNUploadRequestModel = new ETCTNUploadRequest();
 
         ETCTNUploadRequestModel.ID = Guid.NewGuid();
+
+        UploadFile = null;
     }
 
-    async void OnSaveClicked()
+    async Task OnSubmit()
     {
-        if (await ValidationsRef.ValidateAll())
+        if (await ValidationsRef.ValidateAll() && UploadFile != null)
         {
             await UploadMetadata();
 
@@ -178,17 +185,24 @@
         }
     }
 
-    async Task UploadMetadata()
+    async Task OnReset()
+    {
+        await reset();
+    }
+
+    async Task<bool> UploadMetadata()
     {
         try
         {
             var metadataFile = new FileMetadata();
+            UploadFile = new UploadFileModel();
+
             metadataFile.ID = ETCTNUploadRequestModel.ID;
             metadataFile.Assay = ETCTNUploadRequestModel.Assay;
             metadataFile.Laboratory = ETCTNUploadRequestModel.Laboratory;
             metadataFile.CRF = ETCTNUploadRequestModel.CRF;
-            metadataFile.FileName = ETCTNUploadRequestModel.UploadFile.OriginalFileName;
-            metadataFile.FilePath = ETCTNUploadRequestModel.UploadFile.S3Key;
+            metadataFile.FileName = UploadFile.OriginalFileName;
+            metadataFile.FilePath = UploadFile.S3Key;
             metadataFile.Protocol = ETCTNUploadRequestModel.Protocol;
             metadataFile.UserId = userId.Value;
 
@@ -197,11 +211,15 @@
             var key = $"Metadata/{dateKey}/{ETCTNUploadRequestModel.ID}.json";
             var json = JsonConvert.SerializeObject(metadataFile);
 
-            var isSuccess = await uploadService.UploadCsvFileToS3(bucket, key, userId.Value, json);
+            var isSuccess = await uploadService.UploadMetatdataFileToS3(bucket, key, userId.Value, json);
+
+            return isSuccess;
         }
         catch (Exception ex)
         {
             errorLogService.SaveErrorLogAsync(userId.Value, Navigation.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+
+            return false;
         }
     }
 
@@ -209,33 +227,33 @@
     {
         try
         {
-            selectedFile = e.Files.FirstOrDefault();
+            IFileEntry? selectedFile = e.Files.FirstOrDefault();
 
-            if (selectedFile != null)
+            if (selectedFile == null)
+                return;
+
+            try
             {
-                try
+                var originalFileName = Path.GetFileName(selectedFile.Name);
+                var dateKey = $"{DateTime.Now.Year}-{DateTime.Now.Month}/{DateTime.Now.Day}";
+                var key = $"Files/{dateKey}/{ETCTNUploadRequestModel.ID}.csv";
+                var bucket = "dev-nci-etctn-fileingestrequests";
+
+                using (var stream = new MemoryStream())
                 {
-                    var originalFileName = Path.GetFileName(selectedFile.Name);
-                    var dateKey = $"{DateTime.Now.Year}-{DateTime.Now.Month}/{DateTime.Now.Day}";
-                    var key = $"Files/{dateKey}/{ETCTNUploadRequestModel.ID}.csv";
-                    var bucket = "dev-nci-etctn-fileingestrequests";
+                    await selectedFile.WriteToStreamAsync(stream);
 
-                    using (var stream = new MemoryStream())
+                    var isSuccess = await uploadService.UploadCsvFileToS3(bucket, key, userId.Value, stream);
+
+                    if (isSuccess)
                     {
-                        await selectedFile.WriteToStreamAsync(stream);
-
-                        var isSuccess = await uploadService.UploadCsvFileToS3(bucket, key, userId.Value, stream);
-
-                        if (isSuccess)
-                        {
-                            ETCTNUploadRequestModel.UploadFile = new UploadFileModel { OriginalFileName = originalFileName, S3Key = key };
-                        }
+                        UploadFile = new UploadFileModel { OriginalFileName = originalFileName, S3Key = key };
                     }
                 }
-                catch (Exception ex)
-                {
-                    await errorLogService.SaveErrorLogAsync(userId.Value, Navigation.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
-                }
+            }
+            catch (Exception ex)
+            {
+                await errorLogService.SaveErrorLogAsync(userId.Value, Navigation.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
             }
         }
         catch (Exception ex)
