@@ -179,7 +179,9 @@ namespace TheradexPortal.Data
         public DbSet<ProtocolMappingStatus> ProtocolMappingStatus { get; set; }
         public DbSet<ProfileDataCategory> ProfileDataCategory { get; set; }
         public DbSet<ProtocolDataSystem> ProtocolDataSystem { get; set; }
+        public DbSet<ProtocolField> ProtocolField { get; set; }
         public DbSet<ProfileField> ProfileFields { get; set; }
         public DbSet<ProtocolPhase> ProtocolPhases { get; set; }
+
     }
 }

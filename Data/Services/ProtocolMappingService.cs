@@ -53,6 +53,12 @@ namespace TheradexPortal.Data.Services
             return protocolMappings;
         }
 
+        public async Task<ProtocolMapping> GetProtocolMapping(int id)
+        {
+            var protocolMapping = await context.ProtocolMapping.Where(p => p.ProtocolMappingId == id).FirstOrDefaultAsync();
+            return protocolMapping;
+        }
+
         public async Task<bool> SaveProtocolMapping(ProtocolMapping mapping, IList<ProtocolPhase> phasesSet)
         {
             try

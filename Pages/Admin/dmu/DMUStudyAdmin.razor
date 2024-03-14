@@ -5,7 +5,7 @@
 @inject IHttpContextAccessor httpContextAccessor
 @layout AdminLayout
 
-@page "/admin/dmu/study-admin/{studyId:int}"
+@page "/admin/dmu/study-admin/{protocolMappingId:int}"
 @*
     TODO: Add ThorRoleCheck check for DMU roles when they are created
 
@@ -21,7 +21,8 @@
                 <Step Name="protocolfileupload">File Upload</Step>
             </Items>
             <Content>
-                <StepPanel Name="protocolsetup"><ProtocolSetupEdit></ProtocolSetupEdit></StepPanel>
+                <StepPanel Name="protocolsetup"><ProtocolSetupEdit protocolMappingId="@protocolMappingId"></ProtocolSetupEdit></StepPanel>
+                <StepPanel Name="protocolconfig"><ThorFieldFormat protocolMappingId="@protocolMappingId"></ThorFieldFormat></StepPanel>
                 <StepPanel Name="protocolfileupload"><ProtocolFileUpload></ProtocolFileUpload></StepPanel>
             </Content>
         </Steps>
@@ -30,7 +31,7 @@
 @code {
     string selectedStep = "protocolsetup";
     [AllowNull] private Steps stepsRef;
-    [Parameter] public int studyId { get; set; }
+    [Parameter] public int protocolMappingId { get; set; }
 
     private bool NavigationAllowed(StepNavigationContext context)
     {
