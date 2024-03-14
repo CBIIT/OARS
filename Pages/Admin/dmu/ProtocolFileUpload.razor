@@ -1,0 +1,53 @@
+﻿@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+@inject IHttpContextAccessor httpContextAccessor
+@inject IConfiguration configuration
+@layout AdminLayout
+
+@page "/admin/dmu/protocol-file-upload/{studyId:int}"
+<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })"></AdminRoleCheck>
+
+<Div Class="dmu-admin-header-grey">
+    <h2>File Upload</h2>
+</Div>
+<Div Padding="Padding.Is4" Margin="Margin.Is3.FromBottom">
+    <Row Padding="Padding.Is2">
+        <Column ColumnSize="ColumnSize.Is2" Style="text-align:right;">
+            <Text>File Type:</Text>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is3">
+            <Select TValue="string" SelectedValue="@selectedFileType" SelectedValueChanged="@OnSelectedValueChanged">
+                <SelectItem Value="0" Hidden>Select File Type</SelectItem>
+                <SelectItem Value="FileTypeSelect.XML">XML</SelectItem>
+                <SelectItem Value="FileTypeSelect.ALS">ALS</SelectItem>
+                <SelectItem Value="FileTypeSelect.CSV">CSV</SelectItem>
+            </Select>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is7">
+        </Column>
+    </Row>
+</Div>
+@code {
+    [Inject] private NavigationManager navigation { get; set; } = null!;
+    [Parameter] public int studyId { get; set; }
+
+    private string selectedFileType = String.Empty;
+
+    private enum FileTypeSelect
+    {
+        XML,
+        ALS,
+        CSV
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+    }
+
+    Task OnSelectedValueChanged(string value)
+    {
+        selectedFileType = value;
+        return Task.CompletedTask;
+    }
+}
