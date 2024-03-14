@@ -10,12 +10,14 @@
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Global Administration</h2></Div>
 <Row Background="Background.Light">
     <Steps @ref="stepsRef" SelectedStep="@selectedStep" NavigationAllowed="NavigationAllowed">
-    <Items>
-        <Step Name="profilecategory">THOR Data Category</Step>
-    </Items>
+        <Items>
+            <Step Name="profilecategory">THOR Data Category</Step>
+            <Step Name="profilefield">THOR Field</Step>
+        </Items>
         <Content>
-            <StepPanel Name="profilecategory"><ProfileCategoryEdit profile="@this.profile"></ProfileCategoryEdit></StepPanel>
-    </Content>
+            <StepPanel Name="profilecategory"><ProfileCategoryEdit Profile="@profile"></ProfileCategoryEdit></StepPanel>
+            <StepPanel Name="profilefield"><ProfileFieldEdit Profile="@profile"></ProfileFieldEdit></StepPanel>
+        </Content>
     </Steps>
 </Row>
 @code {
