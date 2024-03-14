@@ -66,5 +66,8 @@ namespace TheradexPortal.Data.Models
 
         [JsonProperty("filePath")]
         public string FilePath { get; set; }
+
+        [JsonProperty("bucket")]
+        public string Bucket { get; set; }
     }
 }

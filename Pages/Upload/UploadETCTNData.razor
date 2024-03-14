@@ -12,7 +12,7 @@
 
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1 mb-3"><h2>Upload CSV</h2></Div>
 
-<h4>User Information</h4>
+<h4>Instructions here</h4>
 <Divider />
 <Div Flex="Flex.AlignItems.Start" Margin="Margin.Is3.FromBottom" Background="Background.Light">
     <Div Padding="Padding.Is4" Style="@flexContainerStyle">
@@ -111,7 +111,7 @@
                 <Button Color="Color.Primary" Clicked="@OnSubmit">
                     Submit
                 </Button>
-                <Button Color="Color.Primary" Clicked="@OnReset">
+                <Button Color="Color.Warning" Clicked="@OnReset">
                     Reset
                 </Button>
             </Column>
@@ -194,8 +194,10 @@
     {
         try
         {
+            var bucket = "dev-nci-etctn-fileingestrequests";
+            var dateKey = $"{ETCTNUploadRequestModel.CRF}/{DateTime.Now.Year}-{DateTime.Now.Month}/{DateTime.Now.Day}";
+            var key = $"Metadata/{dateKey}/{ETCTNUploadRequestModel.ID}.json";
             var metadataFile = new FileMetadata();
-            UploadFile = new UploadFileModel();
 
             metadataFile.ID = ETCTNUploadRequestModel.ID;
             metadataFile.Assay = ETCTNUploadRequestModel.Assay;
@@ -203,12 +205,10 @@
             metadataFile.CRF = ETCTNUploadRequestModel.CRF;
             metadataFile.FileName = UploadFile.OriginalFileName;
             metadataFile.FilePath = UploadFile.S3Key;
+            metadataFile.Bucket = bucket;
             metadataFile.Protocol = ETCTNUploadRequestModel.Protocol;
             metadataFile.UserId = userId.Value;
 
-            var bucket = "dev-nci-etctn-fileingestrequests";
-            var dateKey = $"{DateTime.Now.Year}-{DateTime.Now.Month}/{DateTime.Now.Day}";
-            var key = $"Metadata/{dateKey}/{ETCTNUploadRequestModel.ID}.json";
             var json = JsonConvert.SerializeObject(metadataFile);
 
             var isSuccess = await uploadService.UploadMetatdataFileToS3(bucket, key, userId.Value, json);
