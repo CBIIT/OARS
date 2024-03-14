@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Services.Abstract;
 using Amazon;
+using System.Text;
 
 namespace TheradexPortal.Data.Services
 {
@@ -87,6 +88,35 @@ namespace TheradexPortal.Data.Services
                         InputStream = memoryStream,
                         Key = key,
                         BucketName = bucket
+                    };
+
+                    var fileTransferUtility = new TransferUtility(client);
+                    await fileTransferUtility.UploadAsync(uploadRequest);
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.SaveErrorLogAsync(userId, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+                return false;
+            }
+        }
+
+        public async Task<bool> UploadCsvFileToS3(string bucket, string key, int userId, string content)
+        {
+            try
+            {
+                using (var client = new AmazonS3Client(RegionEndpoint.USEast1))
+                {
+                    byte[] data = Encoding.ASCII.GetBytes(content);
+                    MemoryStream memoryStream = new MemoryStream(data, 0, data.Length);
+
+                    var uploadRequest = new TransferUtilityUploadRequest
+                    {
+                        InputStream = memoryStream,
+                        Key = key,
+                        BucketName = bucket,
+                        
                     };
 
                     var fileTransferUtility = new TransferUtility(client);

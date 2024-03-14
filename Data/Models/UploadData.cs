@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Newtonsoft.Json;
+using System.ComponentModel.DataAnnotations;
 
 namespace TheradexPortal.Data.Models
 {
@@ -18,7 +19,6 @@ namespace TheradexPortal.Data.Models
         [Required]
         public string Assay { get; set; }
 
-        [Required]
         public UploadFileModel UploadFile { get; set; }
     }
 
@@ -38,5 +38,32 @@ namespace TheradexPortal.Data.Models
     {
         public string FormOID { get; set; }
         public string FormName { get; set; }
+    }
+
+    public class FileMetadata
+    {
+        [JsonProperty("id")]
+        public Guid ID { get; set; }
+
+        [JsonProperty("userId")]
+        public int UserId { get; set; }
+
+        [JsonProperty("protocol")]
+        public string Protocol { get; set; }
+
+        [JsonProperty("laboratory")]
+        public string Laboratory { get; set; }
+
+        [JsonProperty("assay")]
+        public string Assay { get; set; }
+
+        [JsonProperty("crf")]
+        public string CRF { get; set; }
+
+        [JsonProperty("fileName")]
+        public string FileName { get; set; }
+
+        [JsonProperty("filePath")]
+        public string FilePath { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 ﻿@using System.Diagnostics.CodeAnalysis
+@using Newtonsoft.Json
 @using TheradexPortal.Data.Models;
 @using TheradexPortal.Data.Services.Abstract;
 @using TheradexPortal.Data.Static;
@@ -167,11 +168,40 @@
         ETCTNUploadRequestModel.ID = Guid.NewGuid();
     }
 
-    async Task OnSaveClicked()
+    async void OnSaveClicked()
     {
         if (await ValidationsRef.ValidateAll())
         {
+            await UploadMetadata();
+
             await reset();
+        }
+    }
+
+    async Task UploadMetadata()
+    {
+        try
+        {
+            var metadataFile = new FileMetadata();
+            metadataFile.ID = ETCTNUploadRequestModel.ID;
+            metadataFile.Assay = ETCTNUploadRequestModel.Assay;
+            metadataFile.Laboratory = ETCTNUploadRequestModel.Laboratory;
+            metadataFile.CRF = ETCTNUploadRequestModel.CRF;
+            metadataFile.FileName = ETCTNUploadRequestModel.UploadFile.OriginalFileName;
+            metadataFile.FilePath = ETCTNUploadRequestModel.UploadFile.S3Key;
+            metadataFile.Protocol = ETCTNUploadRequestModel.Protocol;
+            metadataFile.UserId = userId.Value;
+
+            var bucket = "dev-nci-etctn-fileingestrequests";
+            var dateKey = $"{DateTime.Now.Year}-{DateTime.Now.Month}/{DateTime.Now.Day}";
+            var key = $"Metadata/{dateKey}/{ETCTNUploadRequestModel.ID}.json";
+            var json = JsonConvert.SerializeObject(metadataFile);
+
+            var isSuccess = await uploadService.UploadCsvFileToS3(bucket, key, userId.Value, json);
+        }
+        catch (Exception ex)
+        {
+            errorLogService.SaveErrorLogAsync(userId.Value, Navigation.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
         }
     }
 
@@ -187,7 +217,7 @@
                 {
                     var originalFileName = Path.GetFileName(selectedFile.Name);
                     var dateKey = $"{DateTime.Now.Year}-{DateTime.Now.Month}/{DateTime.Now.Day}";
-                    var key = $"Files/{dateKey}/{ETCTNUploadRequestModel.ID}";
+                    var key = $"Files/{dateKey}/{ETCTNUploadRequestModel.ID}.csv";
                     var bucket = "dev-nci-etctn-fileingestrequests";
 
                     using (var stream = new MemoryStream())
@@ -210,8 +240,7 @@
         }
         catch (Exception ex)
         {
-            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
-            errorLogService.SaveErrorLogAsync(userId, Navigation.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+            errorLogService.SaveErrorLogAsync(userId.Value, Navigation.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
         }
         finally
         {

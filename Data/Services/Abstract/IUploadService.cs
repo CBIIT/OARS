@@ -13,5 +13,7 @@ namespace TheradexPortal.Data.Services.Abstract
         public List<CRFModel> GetCRFsToUpload();
 
         public Task<bool> UploadCsvFileToS3(string bucket, string key, int userId, MemoryStream memoryStream);
+
+        public Task<bool> UploadCsvFileToS3(string bucket, string key, int userId, string content);
     }
 }
