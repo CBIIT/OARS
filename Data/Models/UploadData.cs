@@ -2,105 +2,41 @@
 
 namespace TheradexPortal.Data.Models
 {
-    public class Employee
+    public class ETCTNUploadRequest
     {
-        [Required]
-        public string FirstName { get; set; }
+        public Guid ID { get; set; }
 
         [Required]
-        public string LastName { get; set; }
+        public string Protocol { get; set; }
 
         [Required]
-        [EmailAddress]
-        public string Email { get; set; }
+        public string Laboratory { get; set; }
 
         [Required]
-        public string Gender { get; set; }
+        public string CRF { get; set; }
 
         [Required]
-        public DateTime? DateOfBirth { get; set; }
+        public string Assay { get; set; }
 
         [Required]
-        public decimal? YearsOfExperience { get; set; }
-
-        public Address Address { get; set; } = new Address();
+        public UploadFileModel UploadFile { get; set; }
     }
 
-    public class Address
+    public class UploadFileModel
     {
-        [Required]
-        public string Street { get; set; }
-
-        [Required]
-        public string City { get; set; }
-
-        [Required]
-        public string Zip { get; set; }
-
-        [Required]
-        public string Country { get; set; }
+        public string OriginalFileName { get; set; }
+        public string S3Key { get; set; }
     }
 
-    public class Country
+    public class MedidataDictionaryModel
     {
-        public string Name { get; set; }
-
-        public string Code { get; set; }
-
-        public static IEnumerable<Country> GetCountries()
-        {
-            return new List<Country>
-        {
-            new() { Name = "Croatia", Code = "HR" },
-            new() { Name = "United Kingdom", Code = "UK" },
-            new() { Name = "United States", Code = "US" },
-        };
-        }
+        public string UserData { get; set; }
+        public string CodedData { get; set; }
     }
 
-    public class City
+    public class CRFModel
     {
-        public string Name { get; set; }
-
-        public string Code { get; set; }
-
-        public string CountryCode { get; set; }
-
-        public static IEnumerable<City> GetCities()
-        {
-            return new List<City>
-        {
-            new() { Name = "San Francisco", CountryCode = "US", Code="US-101" },
-            new() { Name = "Los Angeles", CountryCode = "US", Code="US-102" },
-            new() { Name = "Boston", CountryCode = "US", Code="US-103" },
-            new() { Name = "Portland", CountryCode = "US", Code="US-104" },
-            new() { Name = "Split", CountryCode = "HR", Code="HR-101" },
-            new() { Name = "Zagreb", CountryCode = "HR", Code="HR-102" },
-            new() { Name = "Dubrovnik", CountryCode = "HR", Code="HR-103" },
-            new() { Name = "London", CountryCode = "UK", Code="UK-101" },
-            new() { Name = "Glasgow", CountryCode = "UK", Code="UK-102" },
-            new() { Name = "Liverpool", CountryCode = "UK", Code="UK-103" }
-        };
-        }
-    }
-
-    public class Gender
-    {
-        public string Name { get; set; }
-
-        public string Code { get; set; }
-
-        public static IEnumerable<Gender> GetGenders()
-        {
-            return new List<Gender>
-        {
-            new() { Name = "Male", Code = "A" },
-            new() { Name = "Female", Code = "B" },
-            new() { Name = "Non-binary", Code = "C" },
-            new() { Name = "Transgender", Code = "D" },
-            new() { Name = "Intersex", Code = "E" },
-            new() { Name = "I prefer not to say", Code = "F" },
-        };
-        }
+        public string FormOID { get; set; }
+        public string FormName { get; set; }
     }
 }

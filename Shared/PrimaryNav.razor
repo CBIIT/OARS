@@ -33,6 +33,18 @@
     </BarLink>
 </BarItem>
 }
+<BarItem>
+    <BarLink Match="Match.Prefix" To="/upload">
+        @if (RenderButtons)
+        {
+            <Button Color="Color.Primary" TextWeight="TextWeight.Bold" Outline Class="text-nowrap">Upload</Button>
+        }
+        else
+        {
+            <Span>Upload</Span>
+        }
+    </BarLink>
+</BarItem>
 @foreach(var dashboard in dashboards)
 {
     <BarItem>

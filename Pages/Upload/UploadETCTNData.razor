@@ -9,187 +9,213 @@
 
 <AdminRoleCheck AllowedRoles="@(new List<string> { "IT", "Biz" })"></AdminRoleCheck>
 
-<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>Upload CSV</h2></Div>
+<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1 mb-3"><h2>Upload CSV</h2></Div>
 
-<Row>
-    <Column>
-        <Validations @ref="@ValidationsRef" Mode="ValidationMode.Manual" Model="@EmployeeModel" ValidateOnLoad="false">
-            <Fields>
-                <Validation>
-                    <Field ColumnSize="ColumnSize.IsHalf">
-                        <FieldLabel>First Name</FieldLabel>
-                        <FieldBody>
-                            <TextEdit @bind-Text="@EmployeeModel.FirstName">
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit>
-                        </FieldBody>
-                    </Field>
-                </Validation>
-                <Validation>
-                    <Field ColumnSize="ColumnSize.IsHalf">
-                        <FieldLabel>Last Name</FieldLabel>
-                        <FieldBody>
-                            <TextEdit @bind-Text="@EmployeeModel.LastName">
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit>
-                        </FieldBody>
-                    </Field>
-                </Validation>
-            </Fields>
-            <Fields>
-                <Validation>
-                    <Field ColumnSize="ColumnSize.IsHalf">
-                        <FieldLabel>Email Address</FieldLabel>
-                        <FieldBody>
-                            <TextEdit @bind-Text="@EmployeeModel.Email" Role="TextRole.Email">
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit>
-                        </FieldBody>
-                    </Field>
-                </Validation>
-                <Validation>
-                    <Field ColumnSize="ColumnSize.IsHalf">
-                        <FieldLabel>Date of Birth</FieldLabel>
-                        <FieldBody>
-                            <DatePicker @bind-Date="@EmployeeModel.DateOfBirth">
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </DatePicker>
-                        </FieldBody>
-                    </Field>
-                </Validation>
-            </Fields>
-            <Fields>
-                <Validation>
-                    <Field ColumnSize="ColumnSize.IsHalf">
-                        <FieldLabel>Years of Experience</FieldLabel>
-                        <FieldBody>
-                            <NumericPicker @bind-Value="@EmployeeModel.YearsOfExperience">
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </NumericPicker>
-                        </FieldBody>
-                    </Field>
-                </Validation>
-                <Validation>
-                    <Field ColumnSize="ColumnSize.IsHalf">
-                        <FieldLabel>Gender</FieldLabel>
-                        <FieldBody>
-                            <Select @bind-SelectedValue="@EmployeeModel.Gender">
-                                <ChildContent>
-                                    <SelectItem TValue="string"></SelectItem>
-                                    @foreach (var g in Gender.GetGenders())
-                                    {
-                                        <SelectItem TValue="string" Value="@g.Code">@g.Name</SelectItem>
-                                    }
-                                </ChildContent>
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </Select>
-                        </FieldBody>
-                    </Field>
-                </Validation>
-            </Fields>
-            <Validation>
-                <Field>
-                    <FieldLabel>Address</FieldLabel>
-                    <FieldBody>
-                        <TextEdit @bind-Text="@EmployeeModel.Address.Street">
-                            <Feedback>
-                                <ValidationError />
-                            </Feedback>
-                        </TextEdit>
-                    </FieldBody>
-                </Field>
-            </Validation>
-            <Fields>
-                <Validation>
-                    <Field ColumnSize="ColumnSize.IsHalf">
-                        <FieldLabel>City</FieldLabel>
-                        <FieldBody>
-                            <Select @bind-SelectedValue="@EmployeeModel.Address.City">
-                                <ChildContent>
-                                    <SelectItem TValue="string"></SelectItem>
-                                    @foreach (var c in City.GetCities())
-                                    {
-                                        <SelectItem TValue="string" Value="@c.Code">@c.Name</SelectItem>
-                                    }
-                                </ChildContent>
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </Select>
-                        </FieldBody>
-                    </Field>
-                </Validation>
-                <Validation>
-                    <Field ColumnSize="ColumnSize.IsHalf">
-                        <FieldLabel>Zip</FieldLabel>
-                        <FieldBody>
-                            <TextEdit @bind-Text="@EmployeeModel.Address.Zip">
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit>
-                        </FieldBody>
-                    </Field>
-                </Validation>
-            </Fields>
-            <Validation>
-                <Field>
-                    <FieldLabel>Country</FieldLabel>
-                    <FieldBody>
-                        <Select @bind-SelectedValue="@EmployeeModel.Address.Country">
-                            <ChildContent>
-                                <SelectItem TValue="string"></SelectItem>
-                                @foreach (var c in Country.GetCountries())
-                                {
-                                    <SelectItem TValue="string" Value="@c.Code">@c.Name</SelectItem>
-                                }
-                            </ChildContent>
-                            <Feedback>
-                                <ValidationError />
-                            </Feedback>
-                        </Select>
-                    </FieldBody>
-                </Field>
-            </Validation>
-        </Validations>
-        <Button Color="Color.Primary" Clicked="@OnSaveClicked">
-            Validate and Submit
-        </Button>
-    </Column>
-</Row>
+<h4>User Information</h4>
+<Divider />
+<Div Flex="Flex.AlignItems.Start" Margin="Margin.Is3.FromBottom" Background="Background.Light">
+    <Div Padding="Padding.Is4" Style="@flexContainerStyle">
+        <Row>
+            <Column>
+                <Validations @ref="@ValidationsRef" Mode="ValidationMode.Manual" Model="@ETCTNUploadRequestModel" ValidateOnLoad="false">
+                    <Fields>
+                        <Validation>
+                            <Field ColumnSize="ColumnSize.IsThird">
+                                <FieldLabel>Protocol</FieldLabel>
+                                <FieldBody>
+                                    <Select @bind-SelectedValue="@ETCTNUploadRequestModel.Protocol">
+                                        <ChildContent>
+                                            <SelectItem TValue="string"></SelectItem>
+                                            @foreach (var item in studies)
+                                            {
+                                                <SelectItem TValue="string" Value="@item">@item</SelectItem>
+                                            }
+                                        </ChildContent>
+                                        <Feedback>
+                                            <ValidationError>Please choose a Protocol</ValidationError>
+                                        </Feedback>
+                                    </Select>
+                                </FieldBody>
+                            </Field>
+                        </Validation>
+                        <Validation>
+                            <Field ColumnSize="ColumnSize.IsThird">
+                                <FieldLabel>Source Lab</FieldLabel>
+                                <FieldBody>
+                                    <Select @bind-SelectedValue="@ETCTNUploadRequestModel.Laboratory">
+                                        <ChildContent>
+                                            <SelectItem TValue="string"></SelectItem>
+                                            @foreach (var item in labs)
+                                            {
+                                                <SelectItem TValue="string" Value="@item.CodedData">@item.UserData</SelectItem>
+                                            }
+                                        </ChildContent>
+                                        <Feedback>
+                                            <ValidationError>Please choose a Lab</ValidationError>
+                                        </Feedback>
+                                    </Select>
+                                </FieldBody>
+                            </Field>
+                        </Validation>
+                    </Fields>
+                    <Fields>
+                        <Validation>
+                            <Field ColumnSize="ColumnSize.IsThird">
+                                <FieldLabel>CRF</FieldLabel>
+                                <FieldBody>
+                                    <RadioGroup TValue="string" @bind-CheckedValue="@ETCTNUploadRequestModel.CRF">
+                                        <ChildContent>
+                                            @foreach (var item in crfs)
+                                            {
+                                                <Radio Value="@item.FormOID">@item.FormName</Radio>
+                                            }
+                                        </ChildContent>
+                                        <Feedback>
+                                            <ValidationError>Please choose a CRF</ValidationError>
+                                        </Feedback>
+                                    </RadioGroup>
+                                </FieldBody>
+                            </Field>
+                        </Validation>
+                        <Validation>
+                            <Field ColumnSize="ColumnSize.IsThird">
+                                <FieldLabel>Assay</FieldLabel>
+                                <FieldBody>
+                                    <Select @bind-SelectedValue="@ETCTNUploadRequestModel.Assay">
+                                        <ChildContent>
+                                            <SelectItem TValue="string"></SelectItem>
+                                            @foreach (var item in assays)
+                                            {
+                                                <SelectItem TValue="string" Value="@item.CodedData">@item.UserData</SelectItem>
+                                            }
+                                        </ChildContent>
+                                        <Feedback>
+                                            <ValidationError>Please choose an Assay</ValidationError>
+                                        </Feedback>
+                                    </Select>
+                                </FieldBody>
+                            </Field>
+                        </Validation>
+                    </Fields>
+                    <Fields>
+                        <Validation>
+                            <Field>
+                                <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Attach File</FieldLabel>
+                                <FieldLabel>Accepted File Types: CSV</FieldLabel>
+                                <Validation>
+                                    <FileEdit @ref="@fileEditRef" AutoReset="false" Changed="@OnFileUpload" MaxFileSize="4194304" Filter=".csv">
+                                        <Feedback>
+                                            <ValidationError>Wrong File Type</ValidationError>
+                                        </Feedback>
+                                    </FileEdit>
+                                </Validation>
+                            </Field>
+                        </Validation>
+                    </Fields>
+                </Validations>
+                <Button Color="Color.Primary" Clicked="@OnSaveClicked">
+                    Validate and Submit
+                </Button>
+            </Column>
+        </Row>
+    </Div>
+</Div>
 
 @code {
 
+    string flexContainerStyle = $"width:75%;";
+
     [Inject] IUploadService uploadService { get; set; } = null!;
+    [Inject] IErrorLogService errorLogService { get; set; } = null!;
+    [Inject] NavigationManager Navigation { get; set; }
+    [Inject] IEmailService emailService { get; set; } = null!;
 
-    List<string>? studies = null;
+    List<string> studies = null;
+    List<MedidataDictionaryModel> labs = null;
+    List<MedidataDictionaryModel> assays = null;
+    List<CRFModel> crfs = null;
 
-    protected override async Task OnInitializedAsync()
-    {
-        studies = await uploadService.GetStudiesToUploadAsync();
-    }
+    FileEdit fileEditRef;
+    IFileEntry selectedFile;
+    int? userId = null;
 
     Validations ValidationsRef { get; set; }
 
-    Employee EmployeeModel { get; set; } = new Employee();
+    ETCTNUploadRequest ETCTNUploadRequestModel { get; set; } = new ETCTNUploadRequest();
+
+    protected override async Task OnInitializedAsync()
+    {
+        studies = uploadService.GetStudiesToUpload();
+        labs = uploadService.GetLabsToUpload();
+        assays = uploadService.GetAssaysToUpload();
+        crfs = uploadService.GetCRFsToUpload();
+
+        userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+
+        reset();
+    }
+
+    async Task reset()
+    {
+        selectedFile = null;
+
+        if (fileEditRef != null)
+            fileEditRef.Reset().AsTask();
+
+        //await ValidationsRef.ClearAll();
+
+        ETCTNUploadRequestModel.ID = Guid.NewGuid();
+    }
 
     async Task OnSaveClicked()
     {
         if (await ValidationsRef.ValidateAll())
         {
-            await ValidationsRef.ClearAll();
+            await reset();
+        }
+    }
+
+    async Task OnFileUpload(FileChangedEventArgs e)
+    {
+        try
+        {
+            selectedFile = e.Files.FirstOrDefault();
+
+            if (selectedFile != null)
+            {
+                try
+                {
+                    var originalFileName = Path.GetFileName(selectedFile.Name);
+                    var dateKey = $"{DateTime.Now.Year}-{DateTime.Now.Month}/{DateTime.Now.Day}";
+                    var key = $"Files/{dateKey}/{ETCTNUploadRequestModel.ID}";
+                    var bucket = "dev-nci-etctn-fileingestrequests";
+
+                    using (var stream = new MemoryStream())
+                    {
+                        await selectedFile.WriteToStreamAsync(stream);
+
+                        var isSuccess = await uploadService.UploadCsvFileToS3(bucket, key, userId.Value, stream);
+
+                        if (isSuccess)
+                        {
+                            ETCTNUploadRequestModel.UploadFile = new UploadFileModel { OriginalFileName = originalFileName, S3Key = key };
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    await errorLogService.SaveErrorLogAsync(userId.Value, Navigation.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+            errorLogService.SaveErrorLogAsync(userId, Navigation.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+        }
+        finally
+        {
+            this.StateHasChanged();
         }
     }
 }
