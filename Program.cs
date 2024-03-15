@@ -57,6 +57,7 @@ builder.Services.AddScoped<IProtocolDataSystemService, ProtocolDataSystemService
 builder.Services.AddScoped<IProtocolFieldService, ProtocolFieldService>();
 builder.Services.AddScoped<IProfileFieldService, ProfileFieldService>();
 builder.Services.AddScoped<IProtocolPhaseService, ProtocolPhaseService>();
+builder.Services.AddScoped<IProtocolEDCFormService, ProtocolEDCFormService>();
 builder.Services.AddHttpClient<IOktaService, OktaService>(client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["Okta:Issuer"]);

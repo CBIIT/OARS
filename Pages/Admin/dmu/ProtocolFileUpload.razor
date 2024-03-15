@@ -4,7 +4,7 @@
 @inject IConfiguration configuration
 @layout AdminLayout
 
-@page "/admin/dmu/protocol-file-upload/{studyId:int}"
+@page "/admin/dmu/protocol-file-upload/{protocolMappingId:int}"
 <AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })"></AdminRoleCheck>
 
 <Div Class="dmu-admin-header-grey">
@@ -29,7 +29,7 @@
 </Div>
 @code {
     [Inject] private NavigationManager navigation { get; set; } = null!;
-    [Parameter] public int studyId { get; set; }
+    [Parameter] public int protocolMappingId { get; set; }
 
     private string selectedFileType = String.Empty;
 

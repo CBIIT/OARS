@@ -19,11 +19,13 @@
                 <Step Name="protocolsetup">Protocol Setup</Step>
                 <Step Name="protocolconfig">Config Options</Step>
                 <Step Name="protocolfileupload">File Upload</Step>
+                <Step Name="edcformsedit">Edit EDC Forms</Step>
             </Items>
             <Content>
                 <StepPanel Name="protocolsetup"><ProtocolSetupEdit protocolMappingId="@protocolMappingId"></ProtocolSetupEdit></StepPanel>
                 <StepPanel Name="protocolconfig"><ThorFieldFormat protocolMappingId="@protocolMappingId"></ThorFieldFormat></StepPanel>
-                <StepPanel Name="protocolfileupload"><ProtocolFileUpload></ProtocolFileUpload></StepPanel>
+                <StepPanel Name="protocolfileupload"><ProtocolFileUpload protocolMappingId="@protocolMappingId"></ProtocolFileUpload></StepPanel>
+                <StepPanel Name="edcformsedit"><EDCFormsEdit protocolMappingId="@protocolMappingId"></EDCFormsEdit></StepPanel>
             </Content>
         </Steps>
     </Row>
