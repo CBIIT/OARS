@@ -1,4 +1,6 @@
-﻿using System.Xml;
+﻿using Microsoft.IdentityModel.Protocols.WsTrust;
+using System.Data;
+using System.Xml;
 using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Services.Abstract;
 
@@ -27,45 +29,76 @@ namespace TheradexPortal.Data.Services
             document.Load(inputFileStream);
 
             XmlNodeList forms = document.GetElementsByTagName("FormDef");
+            Dictionary<string, int> formIds = new Dictionary<string, int>();
             List<ProtocolEDCForm> formsToSave = new List<ProtocolEDCForm>();
             foreach (XmlNode form in forms)
             {
                 ProtocolEDCForm newForm = CreateForm(form, protocolMappingId);
-                formsToSave.Add(newForm);
+                if (newForm != null && newForm.EDCFormName != null && newForm.EDCFormIdentifier != null)
+                {
+                    formsToSave.Add(newForm);
+                }
             }
             if(formsToSave.Count > 0)
             {
-                await _formService.BulkSaveForms(formsToSave);
+                //await _formService.BulkSaveForms(formsToSave);
+                foreach (ProtocolEDCForm form in formsToSave)
+                {
+                    formIds.Add(form.EDCFormIdentifier, form.ProtocolEDCFormId);
+                }
             }
             
             XmlNodeList fields = document.GetElementsByTagName("ItemDef");
             List<ProtocolEDCField> fieldsToSave = new List<ProtocolEDCField>();
             foreach (XmlNode field in fields)
             {
-                ProtocolEDCField newField = CreateField(field);
-                fieldsToSave.Add(newField);
+                ProtocolEDCField newField = CreateField(field, formIds);
+                if (newField != null && newField.EDCFieldIdentifier != null && newField.EDCFieldName != null)
+                {
+                    fieldsToSave.Add(newField);
+                }
             }
             if(fieldsToSave.Count > 0)
             {
-                await _fieldService.BulkSaveFields(fieldsToSave);
+                //await _fieldService.BulkSaveFields(fieldsToSave);
             }
 
             XmlNodeList dictionaries = document.GetElementsByTagName("CodeList");
-            List<ProtocolEDCDictionary> dictionariesToSave = new List<ProtocolEDCDictionary>();
+            DataTable dictionariesToSave = SetUpDictionaryTable();
             foreach (XmlNode dictionary in dictionaries)
             {
                 string dictionaryName = dictionary.Attributes["OID"].Value;
-                XmlNodeList items = dictionary.SelectNodes("*[local-name()='CodeListItem']");
-                foreach (XmlNode item in items)
+                if (dictionaryName != null)
                 {
-                    ProtocolEDCDictionary newDictionary = CreateDictionary(item, dictionaryName, protocolMappingId);
-                    dictionariesToSave.Add(newDictionary);
+                    XmlNodeList items = dictionary.SelectNodes("*[local-name()='CodeListItem']");
+                    foreach (XmlNode item in items)
+                    {
+                        DataRow newDictionary = CreateDictionary(item, dictionaryName, protocolMappingId, dictionariesToSave);
+                        if (newDictionary != null && newDictionary["EDC_Item_Name"] != null && newDictionary["EDC_Item_Id"] != null && newDictionary["EDC_Dictionary_Name"] != null)
+                        {
+                            dictionariesToSave.Rows.Add(newDictionary);
+                        }
+
+                    }
                 }
             }
-            if(dictionariesToSave.Count > 0)
+            if(dictionariesToSave.Rows.Count > 0)
             {
                 await _dictionaryService.BulkSaveDictionaries(dictionariesToSave);
             }
+        }
+
+        private DataTable SetUpDictionaryTable()
+        {
+            DataTable dictionaries = new DataTable();
+            dictionaries.Columns.Add("Protocol_EDC_Dictionary_Id", typeof(int));
+            dictionaries.Columns.Add("Protocol_Mapping_Id", typeof(int));
+            dictionaries.Columns.Add("EDC_Dictionary_Name", typeof(string));
+            dictionaries.Columns.Add("EDC_Item_Id", typeof(string));
+            dictionaries.Columns.Add("EDC_Item_Name", typeof(string));
+            dictionaries.Columns.Add("Create_Date", typeof(DateTime));
+            dictionaries.Columns.Add("Updated_Date", typeof(DateTime));
+            return dictionaries;
         }
 
         private ProtocolEDCForm CreateForm(XmlNode form, int protocolMappingId)
@@ -80,11 +113,19 @@ namespace TheradexPortal.Data.Services
             return newForm;
         }
 
-        private ProtocolEDCField CreateField(XmlNode field)
+        private ProtocolEDCField CreateField(XmlNode field, Dictionary<string, int> formIds)
         {
             ProtocolEDCField newField = new ProtocolEDCField();
             newField.CreateDate = DateTime.Now;
+            newField.UpdateDate = DateTime.Now;
+
             newField.EDCFieldIdentifier = field.Attributes["OID"].Value;
+            if(field.Attributes["OID"].Value != null)
+            {
+                string formIdentifier = field.Attributes["OID"].Value.Split('.')[0];
+                formIds.TryGetValue(formIdentifier, out int formId);
+                newField.ProtocolEDCFormId = formId;
+            }
             if (field["CodeListRef"] != null)
             {
                 newField.EDCDictionaryName = field["CodeListRef"].Attributes["CodeListOID"].Value;
@@ -105,23 +146,24 @@ namespace TheradexPortal.Data.Services
             return newField;
         }
 
-        private ProtocolEDCDictionary CreateDictionary(XmlNode dictionaryItem, string dictionaryName, int protocolMappingId)
+        private DataRow CreateDictionary(XmlNode dictionaryItem, string dictionaryName, int protocolMappingId, DataTable dictionaries)
         {
-            ProtocolEDCDictionary newDictionary = new ProtocolEDCDictionary();
-            newDictionary.CreateDate = DateTime.Now;
-            newDictionary.UpdatedDate = DateTime.Now;
-            newDictionary.EDCDictionaryName = dictionaryName;
-            newDictionary.EDCItemId = dictionaryItem.Attributes["CodedValue"].Value;
+            DataRow dictionary = dictionaries.NewRow();
+            dictionary["Protocol_Mapping_Id"] = protocolMappingId;
+            dictionary["Updated_Date"] = DateTime.Now;
+            dictionary["Create_Date"] = DateTime.Now;
+            dictionary["EDC_Dictionary_Name"] = dictionaryName;
+            dictionary["EDC_Item_Id"] = dictionaryItem.Attributes["CodedValue"].Value;
             XmlNodeList translations = dictionaryItem["Decode"].GetElementsByTagName("TranslatedText");
             foreach (XmlNode translation in translations)
             {
                 if (translation.Attributes["xml:lang"].Value == "en")
                 {
-                    newDictionary.EDCItemName = translation.InnerText;
+                    dictionary["EDC_Item_Name"] = translation.InnerText;
                     break;
                 }
             }
-            return newDictionary;
+            return dictionary;
         }
     }
 }

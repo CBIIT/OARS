@@ -79,8 +79,17 @@
 
     private async Task EditMapping(ProtocolMapping mapping)
     {
-        navigation.NavigateTo($"/admin/dmu/mapping/{mapping.ProtocolMappingId}");
-	}
+        if(mapping.ProtocolMappingId > 0)
+        {
+            navigation.NavigateTo($"/admin/dmu/study-admin/{mapping.ProtocolMappingId}");
+        }
+        else
+        {
+            List<ProtocolPhase> phases = new List<ProtocolPhase>();
+            await protocolMappingService.SaveProtocolMapping(mapping, phases);
+            navigation.NavigateTo($"/admin/dmu/study-admin/{mapping.ProtocolMappingId}");
+        }
+    }
 
     private void AddStudy()
 	{

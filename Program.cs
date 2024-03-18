@@ -54,13 +54,14 @@ builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IProtocolMappingService, ProtocolMappingService>();
 builder.Services.AddScoped<IProfileCategoryService,  ProfileCategoryService>();
 builder.Services.AddScoped<IProtocolDataSystemService, ProtocolDataSystemService>();
+builder.Services.AddScoped<IProtocolFieldService, ProtocolFieldService>();
 builder.Services.AddScoped<IProfileFieldService, ProfileFieldService>();
 builder.Services.AddScoped<IProtocolEDCFieldService, ProtocolEDCFieldService>();
 builder.Services.AddScoped<IProtocolEDCFormService, ProtocolEDCFormService>();
 builder.Services.AddScoped<IProtocolEDCDictionaryService, ProtocolEDCDictionaryService>();
 builder.Services.AddScoped<IALSFileImportService, ALSFileImportService>();
 builder.Services.AddScoped<IXMLFileImportService, XMLFileImportService>();
-
+builder.Services.AddScoped<IProtocolPhaseService, ProtocolPhaseService>();
 builder.Services.AddHttpClient<IOktaService, OktaService>(client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["Okta:Issuer"]);
