@@ -1,4 +1,5 @@
-﻿using System.Drawing.Printing;
+﻿using System.Data;
+using System.Drawing.Printing;
 using System.Xml;
 using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Services.Abstract;
@@ -31,12 +32,12 @@ public class ALSFileImportService : IALSFileImportService
         nsmgr.AddNamespace("ss", "urn:schemas-microsoft-com:office:spreadsheet");
 
         List<ProtocolEDCForm> forms = new List<ProtocolEDCForm>();
+        Dictionary<string, int> formIds = new Dictionary<string, int>();
         List<ProtocolEDCField> fields = new List<ProtocolEDCField>();
-        List<ProtocolEDCDictionary> dictionaries = new List<ProtocolEDCDictionary>();
+        DataTable dictionaries = SetUpDictionaryTable();
 
         foreach (XmlNode node in document.DocumentElement.SelectNodes("//ss:Worksheet", nsmgr)){
             string currWorksheet = node.Attributes["ss:Name"].Value;
-            Console.WriteLine($"-------WORKSHEET: {currWorksheet}");
             if (worksheetNames.Contains(currWorksheet))
             {
                 XmlNodeList? rows = node.SelectNodes("ss:Table/ss:Row", nsmgr);
@@ -47,8 +48,6 @@ public class ALSFileImportService : IALSFileImportService
                     {
                         columns.Add(cell.InnerText);
                     }
-                    Console.WriteLine(columns.Count);
-                    Console.WriteLine(columns[0]);
                     for (int i = 1; i < rows.Count; i++)
                     {
                         XmlNodeList? cells = rows[i].SelectNodes("ss:Cell", nsmgr);
@@ -56,29 +55,41 @@ public class ALSFileImportService : IALSFileImportService
                         // based on current worksheet, parse the data
                         if(cells != null && cells.Count > 0)
                         {
-                            if (currWorksheet == "Forms1")
+                            if (currWorksheet == "Forms")
                             {
                                 ProtocolEDCForm form = CreateForm(columns, cells, nsmgr, protocolMappingId);
-                                forms.Add(form);
+                                if (form != null && form.EDCFormName != null && form.EDCFormIdentifier != null)
+                                {
+                                    forms.Add(form);
+                                } 
                             }
-                            else if (currWorksheet == "Fields1")
-                            {
-                                ProtocolEDCField field = CreateField(columns, cells, nsmgr);
-                                fields.Add(field);
+                            else if (currWorksheet == "Fields")
+                            {                     
+                                ProtocolEDCField field = CreateField(columns, cells, nsmgr, formIds);
+                                if(field != null && field.EDCFieldIdentifier != null && field.EDCFieldName != null)
+                                {
+                                    fields.Add(field);
+                                }
                             }
                             else if (currWorksheet == "DataDictionaryEntries")
                             {
-                                ProtocolEDCDictionary entry = CreateDictionary(columns, cells, nsmgr, protocolMappingId);
-                                dictionaries.Add(entry);
+                                DataRow entry = CreateDictionary(columns, cells, nsmgr, protocolMappingId, dictionaries);
+                                if(entry != null && entry["EDC_Item_Name"] != null && entry["EDC_Item_Id"] != null && entry["EDC_Dictionary_Name"] != null) {
+                                    dictionaries.Rows.Add(entry);
+                                }
                             }
                         }
                     }
                 }
-                if (forms.Count > 0 || fields.Count > 0 || dictionaries.Count > 0)
+                if (forms.Count > 0 || fields.Count > 0 || dictionaries.Rows.Count > 0)
                 {
                     if (currWorksheet == "Forms")
                     {
                         await _formService.BulkSaveForms(forms);
+                        foreach(ProtocolEDCForm form in forms)
+                        {
+                           formIds.Add(form.EDCFormIdentifier, form.ProtocolEDCFormId); 
+                        }
                     }
                     else if (currWorksheet == "Fields")
                     {
@@ -91,6 +102,18 @@ public class ALSFileImportService : IALSFileImportService
                 }
             }
         }
+    }
+
+    private DataTable SetUpDictionaryTable()
+    {
+        DataTable dictionaries = new DataTable();
+        dictionaries.Columns.Add("Protocol_Mapping_Id", typeof(int));
+        dictionaries.Columns.Add("EDC_Dictionary_Name", typeof(string));
+        dictionaries.Columns.Add("EDC_Item_Id", typeof(string));
+        dictionaries.Columns.Add("EDC_Item_Name", typeof(string));
+        dictionaries.Columns.Add("Create_Date", typeof(DateTime));
+        dictionaries.Columns.Add("Updated_Date", typeof(DateTime));
+        return dictionaries;
     }
 
     private ProtocolEDCForm CreateForm(List<String> columns, XmlNodeList cells, XmlNamespaceManager nsmgr, int protocolMappingId)
@@ -129,7 +152,7 @@ public class ALSFileImportService : IALSFileImportService
         return form;
     }
 
-    private ProtocolEDCField CreateField(List<String> columns, XmlNodeList cells, XmlNamespaceManager nsmgr)
+    private ProtocolEDCField CreateField(List<String> columns, XmlNodeList cells, XmlNamespaceManager nsmgr, Dictionary<string, int> formIds)
     {
         ProtocolEDCField field = new ProtocolEDCField();
         field.UpdateDate = DateTime.Now;
@@ -153,8 +176,11 @@ public class ALSFileImportService : IALSFileImportService
             {
                 if (columns[columnIndex] == "FormOID")
                 {
-                    // double check how we want to handle this, the DB has an int but we only have the string name
-                    field.ProtocolEDCFormId = dataNode.InnerText;
+                    // need to get the integer ID of the form in the DB based on the name
+                    if (formIds.ContainsKey(dataNode.InnerText))
+                    {
+                        field.ProtocolEDCFormId = formIds[dataNode.InnerText];
+                    }
                 }
                 else if (columns[columnIndex] == "FieldOID")
                 {
@@ -174,12 +200,12 @@ public class ALSFileImportService : IALSFileImportService
         return field;
     }
 
-    private ProtocolEDCDictionary CreateDictionary(List<String> columns, XmlNodeList cells, XmlNamespaceManager nsmgr, int protocolMappingId)
+    private DataRow CreateDictionary(List<String> columns, XmlNodeList cells, XmlNamespaceManager nsmgr, int protocolMappingId, DataTable dictionaries)
     {
-        ProtocolEDCDictionary dictionary = new ProtocolEDCDictionary();
-        dictionary.ProtocolMappingId = protocolMappingId;
-        dictionary.UpdatedDate = DateTime.Now;
-        dictionary.CreateDate = DateTime.Now;
+        DataRow dictionary = dictionaries.NewRow();
+        dictionary["Protocol_Mapping_Id"] = protocolMappingId;
+        dictionary["Updated_Date"] = DateTime.Now;
+        dictionary["Create_Date"] = DateTime.Now;
         int columnIndex = 0;
 
         for (int i = 0; i < cells.Count; i++)
@@ -200,15 +226,15 @@ public class ALSFileImportService : IALSFileImportService
                 if (columns[columnIndex] == "DataDictionaryName")
                 {
                     // double check how we want to handle this, the DB has an int but we only have the string name
-                    dictionary.EDCDictionaryName = dataNode.InnerText;
+                    dictionary["EDC_Dictionary_Name"] = dataNode.InnerText;
                 }
                 else if (columns[columnIndex] == "CodedData")
                 {
-                    dictionary.EDCItemId = dataNode.InnerText;
+                    dictionary["EDC_Item_Id"] = dataNode.InnerText;
                 }
                 else if (columns[columnIndex] == "UserDataString")
                 {
-                    dictionary.EDCItemName = dataNode.InnerText;
+                    dictionary["EDC_Item_Name"] = dataNode.InnerText;
                 }
             }
             columnIndex++;
