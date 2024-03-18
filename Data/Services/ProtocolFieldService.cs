@@ -84,5 +84,19 @@ namespace TheradexPortal.Data.Services
                 return false;
             }
         }
+
+        public async Task<bool> DeleteAllFieldsForMappingId(int mappingId)
+        {
+            try
+            {
+                context.RemoveRange(context.ProtocolField.Where(f => f.ProtocolMappingId == mappingId));
+                await context.SaveChangesAsync();
+                return true;
+            } catch (Exception ex)
+            {
+                await _errorLogService.SaveErrorLogAsync(0, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+                return false;
+            }
+        }
     }
 }

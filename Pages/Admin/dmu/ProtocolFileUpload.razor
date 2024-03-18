@@ -24,10 +24,48 @@
             </Select>
         </Column>
         <Column ColumnSize="ColumnSize.Is7">
+            @if(selectedFileType == "ALS" || selectedFileType == "XML")
+            {
+                <Text>@selectedFileType can only be uploaded once. Remapping the study might be required.</Text>
+                <p>To upload a new @selectedFileType, 
+                    <ol>
+                        <li>Clear Uploads</li>
+						<li>Upload new @selectedFileType</li>
+                    </ol>
+                    Additional Data Points outside the ALS can be added by uploading a CSV file.
+                </p>
+            }
         </Column>
     </Row>
+    <Row Padding="Padding.Is2">
+        @if (selectedFileType == "ALS" || selectedFileType == "XML")
+        {
+            <Column ColumnSize
+            ="ColumnSize.Is2" Style="text-align:right;">
+                <Text>Select a file:</Text>
+            </Column>
+            <Column ColumnSize="ColumnSize.Is3">
+                <Field>
+                    <FieldBody Margin="Margin.IsAuto">
+                        <FilePicker Upload="@OnFileUpload" ShowMode="FilePickerShowMode.List" />
+                    </FieldBody>
+                </Field>
+            </Column>
+            <Column ColumnSize="ColumnSize.Is2">
+                <Button Color="Color.Danger" onclick="@ClearUploads">Clear Uploads</Button>
+            </Column>
+        }
+    </Row>
+        
 </Div>
 @code {
+    private FilePicker UploadField;
+    [Inject] private IALSFileImportService alsFileImportService { get; set; }
+    [Inject] private IXMLFileImportService xmlFileImportService { get; set; }
+    [Inject] private IProtocolEDCFormService formService { get; set; }
+    [Inject] private IProtocolEDCFieldService fieldService { get; set; }
+    [Inject] private IProtocolEDCDictionaryService dictionaryService { get; set; }
+    [Inject] INotificationService notificationService { get; set; }
     [Inject] private NavigationManager navigation { get; set; } = null!;
     [Parameter] public int protocolMappingId { get; set; }
 
@@ -43,6 +81,60 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
+    }
+
+    public async void OnFileUpload(FileUploadEventArgs e)
+    {
+        MemoryStream ms = new MemoryStream();
+        try
+        {
+            await e.File.OpenReadStream(25000000).CopyToAsync(ms);
+            if(selectedFileType == "ALS")
+            {
+                alsFileImportService.ParseALSFile(ms, this.protocolMappingId);
+            }
+            else if(selectedFileType == "XML")
+            {
+                xmlFileImportService.ParseXMLFile(ms, this.protocolMappingId);
+            }
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+
+    public async void ClearUploads()
+    {
+        // Delete all dictionaries, forms that are related to the protocolMappingId
+        await notificationService.Info("Clearing uploads");
+        var formIds = await formService.GetFormIdsForMappingId(this.protocolMappingId);
+        if (formIds != null && formIds.Count > 0)
+        {
+            var result = await fieldService.DeleteAllFieldsForFormIds(formIds);
+            if (!result)
+            {
+                await notificationService.Error("Error deleting fields");
+                return;
+            }
+
+            result = await formService.DeleteAllFormsForMappingId(this.protocolMappingId);
+            if (!result)
+            {
+                await notificationService.Error("Error deleting forms");
+                return;
+            }
+        }
+
+        var dictResult = await dictionaryService.DeleteAllDictionariesForMappingId(this.protocolMappingId);
+        if(!dictResult){
+			await notificationService.Error("Error deleting dictionaries");
+			return;
+		}
+
+        await notificationService.Success("Uploads cleared");
+
     }
 
     Task OnSelectedValueChanged(string value)
