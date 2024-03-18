@@ -107,6 +107,7 @@ public class ALSFileImportService : IALSFileImportService
     private DataTable SetUpDictionaryTable()
     {
         DataTable dictionaries = new DataTable();
+        dictionaries.Columns.Add("Protocol_EDC_Dictionary_Id", typeof(int));
         dictionaries.Columns.Add("Protocol_Mapping_Id", typeof(int));
         dictionaries.Columns.Add("EDC_Dictionary_Name", typeof(string));
         dictionaries.Columns.Add("EDC_Item_Id", typeof(string));

@@ -106,23 +106,28 @@
 
     public async void ClearUploads()
     {
+        // Delete all dictionaries, forms that are related to the protocolMappingId
         await notificationService.Info("Clearing uploads");
         var formIds = await formService.GetFormIdsForMappingId(this.protocolMappingId);
-        var result = await fieldService.DeleteAllFieldsForFormIds(formIds);
-        if (!result)
+        if (formIds != null && formIds.Count > 0)
         {
-            await notificationService.Error("Error deleting fields");
-            return;
+            var result = await fieldService.DeleteAllFieldsForFormIds(formIds);
+            if (!result)
+            {
+                await notificationService.Error("Error deleting fields");
+                return;
+            }
+
+            result = await formService.DeleteAllFormsForMappingId(this.protocolMappingId);
+            if (!result)
+            {
+                await notificationService.Error("Error deleting forms");
+                return;
+            }
         }
-        // Delete all dictionaries, forms that are related to the protocolMappingId
-        result = await formService.DeleteAllFormsForMappingId(this.protocolMappingId);
-        if (!result)
-        {
-            await notificationService.Error("Error deleting forms");
-            return;
-        }
-        result = await dictionaryService.DeleteAllDictionariesForMappingId(this.protocolMappingId);
-        if(!result){
+
+        var dictResult = await dictionaryService.DeleteAllDictionariesForMappingId(this.protocolMappingId);
+        if(!dictResult){
 			await notificationService.Error("Error deleting dictionaries");
 			return;
 		}
