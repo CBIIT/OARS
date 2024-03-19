@@ -1,4 +1,5 @@
 ﻿@using System.Diagnostics.CodeAnalysis
+@using Microsoft.Extensions.Options
 @using Newtonsoft.Json
 @using TheradexPortal.Data.Models;
 @using TheradexPortal.Data.Services.Abstract;
@@ -7,6 +8,7 @@
 
 @page "/upload"
 @inject IHttpContextAccessor httpContextAccessor
+@inject IOptions<UploadSettings> uploadSettings;
 
 <AdminRoleCheck AllowedRoles="@(new List<string> { "IT", "Biz" })"></AdminRoleCheck>
 
@@ -127,6 +129,7 @@
     [Inject] IErrorLogService errorLogService { get; set; } = null!;
     [Inject] NavigationManager Navigation { get; set; }
     [Inject] IEmailService emailService { get; set; } = null!;
+    [Inject] INotificationService NotificationService { get; set; }
 
     List<string> studies = null;
     List<MedidataDictionaryModel> labs = null;
@@ -194,24 +197,13 @@
     {
         try
         {
-            var bucket = "dev-nci-etctn-fileingestrequests";
-            var dateKey = $"{ETCTNUploadRequestModel.CRF}/{DateTime.Now.Year}-{DateTime.Now.Month}/{DateTime.Now.Day}";
-            var key = $"Metadata/{dateKey}/{ETCTNUploadRequestModel.ID}.json";
-            var metadataFile = new FileMetadata();
+            var key = uploadService.GetMetadataFileUploadKey(ETCTNUploadRequestModel.ID);
 
-            metadataFile.ID = ETCTNUploadRequestModel.ID;
-            metadataFile.Assay = ETCTNUploadRequestModel.Assay;
-            metadataFile.Laboratory = ETCTNUploadRequestModel.Laboratory;
-            metadataFile.CRF = ETCTNUploadRequestModel.CRF;
-            metadataFile.FileName = UploadFile.OriginalFileName;
-            metadataFile.FilePath = UploadFile.S3Key;
-            metadataFile.Bucket = bucket;
-            metadataFile.Protocol = ETCTNUploadRequestModel.Protocol;
-            metadataFile.UserId = userId.Value;
+            var metadataFile = uploadService.GetMetadatafile(ETCTNUploadRequestModel, UploadFile, userId.Value);            
 
             var json = JsonConvert.SerializeObject(metadataFile);
 
-            var isSuccess = await uploadService.UploadMetatdataFileToS3(bucket, key, userId.Value, json);
+            var isSuccess = await uploadService.UploadMetatdataFileToS3(key, userId.Value, json);
 
             return isSuccess;
         }
@@ -234,20 +226,24 @@
 
             try
             {
-                var originalFileName = Path.GetFileName(selectedFile.Name);
-                var dateKey = $"{DateTime.Now.Year}-{DateTime.Now.Month}/{DateTime.Now.Day}";
-                var key = $"Files/{dateKey}/{ETCTNUploadRequestModel.ID}.csv";
-                var bucket = "dev-nci-etctn-fileingestrequests";
+                var originalFileName = Path.GetFileName(selectedFile.Name);                
+                var key = uploadService.GetCsvUploadKey(ETCTNUploadRequestModel.ID);
 
                 using (var stream = new MemoryStream())
                 {
                     await selectedFile.WriteToStreamAsync(stream);
 
-                    var isSuccess = await uploadService.UploadCsvFileToS3(bucket, key, userId.Value, stream);
+                    var isSuccess = await uploadService.UploadCsvFileToS3(key, userId.Value, stream);
 
                     if (isSuccess)
                     {
                         UploadFile = new UploadFileModel { OriginalFileName = originalFileName, S3Key = key };
+
+                        await NotificationService.Success("File uploaded successfully.");
+                    }
+                    else
+                    {
+                        await NotificationService.Error("There's an error uploading the file. Please Reset and try again.");
                     }
                 }
             }

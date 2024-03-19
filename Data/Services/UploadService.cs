@@ -6,6 +6,8 @@ using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Services.Abstract;
 using Amazon;
 using System.Text;
+using Microsoft.Extensions.Options;
+using TheradexPortal.Data.Models.Configuration;
 
 namespace TheradexPortal.Data.Services
 {
@@ -13,11 +15,13 @@ namespace TheradexPortal.Data.Services
     {
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
+        private readonly UploadSettings _uploadSettings;
 
-        public UploadService(IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
+        public UploadService(IOptions<UploadSettings> uploadSettings, IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;
+            _uploadSettings = uploadSettings.Value;
         }
 
         public List<MedidataDictionaryModel> GetAssaysToUpload()
@@ -40,11 +44,11 @@ namespace TheradexPortal.Data.Services
         {
             return new List<CRFModel>
             {
-                new CRFModel{FormName = "TSO500 Library QC", FormOID = "LIBRARY_QC" },
-                new CRFModel{FormName = "TSO500 Sequencing QC", FormOID = "SEQUENCING_QC" },
+                //new CRFModel{FormName = "TSO500 Library QC", FormOID = "LIBRARY_QC" },
+                //new CRFModel{FormName = "TSO500 Sequencing QC", FormOID = "SEQUENCING_QC" },
                 new CRFModel{FormName = "Biospecimen Roadmap", FormOID = "BIOSPECIMEN_ROADMAP" },
                 new CRFModel{FormName = "Receiving Status", FormOID = "RECEIVING_STATUS" },
-                new CRFModel{FormName = "Shipping Status", FormOID = "SHIPPING_STATUS" }
+                //new CRFModel{FormName = "Shipping Status", FormOID = "SHIPPING_STATUS" }
             };
         }
 
@@ -72,12 +76,13 @@ namespace TheradexPortal.Data.Services
         {
             var studies = new List<string>();
 
-            studies.Add("10323");
+            studies.Add("10323(FUNCTEST)");
+            studies.Add("10355(FUNCTEST)");
 
             return studies;
         }
 
-        public async Task<bool> UploadCsvFileToS3(string bucket, string key, int userId, MemoryStream memoryStream)
+        public async Task<bool> UploadCsvFileToS3(string key, int userId, MemoryStream memoryStream)
         {
             try
             {
@@ -87,22 +92,25 @@ namespace TheradexPortal.Data.Services
                     {
                         InputStream = memoryStream,
                         Key = key,
-                        BucketName = bucket
+                        BucketName = _uploadSettings.AWSBucketName
                     };
 
                     var fileTransferUtility = new TransferUtility(client);
+
                     await fileTransferUtility.UploadAsync(uploadRequest);
+
                     return true;
                 }
             }
             catch (Exception ex)
             {
                 _errorLogService.SaveErrorLogAsync(userId, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+
                 return false;
             }
         }
 
-        public async Task<bool> UploadMetatdataFileToS3(string bucket, string key, int userId, string content)
+        public async Task<bool> UploadMetatdataFileToS3(string key, int userId, string content)
         {
             try
             {
@@ -115,20 +123,54 @@ namespace TheradexPortal.Data.Services
                     {
                         InputStream = memoryStream,
                         Key = key,
-                        BucketName = bucket,
-                        
+                        BucketName = _uploadSettings.AWSBucketName,
+
                     };
 
                     var fileTransferUtility = new TransferUtility(client);
+
                     await fileTransferUtility.UploadAsync(uploadRequest);
+
                     return true;
                 }
             }
             catch (Exception ex)
             {
                 _errorLogService.SaveErrorLogAsync(userId, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+
                 return false;
             }
+        }
+
+        public FileMetadata GetMetadatafile(ETCTNUploadRequest ETCTNUploadRequestModel, UploadFileModel UploadFile, int userId)
+        {
+            var metadataFile = new FileMetadata();
+
+            metadataFile.ID = ETCTNUploadRequestModel.ID;
+            metadataFile.Assay = ETCTNUploadRequestModel.Assay;
+            metadataFile.Laboratory = ETCTNUploadRequestModel.Laboratory;
+            metadataFile.CRF = ETCTNUploadRequestModel.CRF;
+            metadataFile.FileName = UploadFile.OriginalFileName;
+            metadataFile.FilePath = UploadFile.S3Key;
+            metadataFile.Bucket = _uploadSettings.AWSBucketName;
+            metadataFile.Protocol = ETCTNUploadRequestModel.Protocol;
+            metadataFile.UserId = userId;
+
+            return metadataFile;
+        }
+
+        public string GetCsvUploadKey(Guid id)
+        {
+            var dateKey = $"{DateTime.Now.Year}-{DateTime.Now.Month}/{DateTime.Now.Day}";
+
+            return $"{_uploadSettings.FilesUploadPath}/{dateKey}/{id}.csv";
+        }
+
+        public string GetMetadataFileUploadKey(Guid id)
+        {
+            var dateKey = $"{DateTime.Now.Year}-{DateTime.Now.Month}/{DateTime.Now.Day}";
+
+            return $"{_uploadSettings.MetadataUploadPath}/{dateKey}/{id}.json";
         }
     }
 }

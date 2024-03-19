@@ -12,8 +12,14 @@ namespace TheradexPortal.Data.Services.Abstract
 
         public List<CRFModel> GetCRFsToUpload();
 
-        public Task<bool> UploadCsvFileToS3(string bucket, string key, int userId, MemoryStream memoryStream);
+        public Task<bool> UploadCsvFileToS3(string key, int userId, MemoryStream memoryStream);
 
-        public Task<bool> UploadMetatdataFileToS3(string bucket, string key, int userId, string content);
+        public Task<bool> UploadMetatdataFileToS3(string key, int userId, string content);
+
+        public FileMetadata GetMetadatafile(ETCTNUploadRequest ETCTNUploadRequestModel, UploadFileModel UploadFile, int userId);
+
+        public string GetCsvUploadKey(Guid id);
+
+        public string GetMetadataFileUploadKey(Guid id);
     }
 }

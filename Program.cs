@@ -81,6 +81,9 @@ builder.Services
 // Load email settings
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
+// Load upload settings
+builder.Services.Configure<UploadSettings>(builder.Configuration.GetSection("UploadSettings"));
+
 // Loading appsettings.json in C# Model classes
 builder.Services.Configure<PowerBI>(builder.Configuration.GetSection("PowerBI"));
 builder.Services.Configure<AzureAd>(builder.Configuration.GetSection("PowerBICredentials"));
