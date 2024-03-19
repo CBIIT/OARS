@@ -4,6 +4,9 @@ namespace TheradexPortal.Data.Services.Abstract
 {
     public interface IProtocolEDCFieldService
     {
+        public Task<List<ProtocolEDCField>> GetFieldsByFormIds(List<int> formId);
+        public Task<bool> SaveField(ProtocolEDCField field);
+        public Task<bool> DeleteField(ProtocolEDCField field);
         public Task<bool> BulkSaveFields(List<ProtocolEDCField> fields);
         public Task<bool> DeleteAllFieldsForFormIds(List<int> formIds);
     }
