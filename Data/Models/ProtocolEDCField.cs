@@ -8,7 +8,7 @@ namespace TheradexPortal.Data.Models
         [Column("Protocol_EDC_Field_Id")]
         public int ProtocolEDCFieldId { get; set; }
         [Column("Protocol_EDC_Form_Id")]
-        public int ProtocolEDCFormId { get; set; }
+        public int ProtocolEDCFormId { get; set; } = 0;
         [Column("EDC_Field_Identifier")]
         public string? EDCFieldIdentifier { get; set; }
         [Column("EDC_Field_Name")]
@@ -19,5 +19,8 @@ namespace TheradexPortal.Data.Models
         public DateTime CreateDate { get; set; }
         [Column("Update_Date")]
         public DateTime UpdateDate { get; set; }
+
+        [ForeignKey(nameof(ProtocolEDCFormId))]
+        public ProtocolEDCForm ProtocolEDCForm { get; set; }
     }
 }
