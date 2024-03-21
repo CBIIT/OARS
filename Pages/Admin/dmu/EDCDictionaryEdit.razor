@@ -1,0 +1,111 @@
+﻿@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@inject IHttpContextAccessor httpContextAccessor
+@layout AdminLayout
+
+<DataGrid @ref=dataGridRef
+          TItem="ProtocolEDCDictionary"
+          Class="admindatagrid"
+          Data="@protocolDicts"
+          Editable
+          Responsive
+          Striped
+          ShowPager
+          ShowPageSizes
+          Filterable
+           FilterMethod="DataGridFilterMethod.StartsWith"
+           MaxPaginationLinks="5"
+           PagerPosition="DataGridPagerPosition.Bottom"
+           PagerOptions="new(){ButtonSize=Size.Default,
+                                PaginationPosition=PagerElementPosition.Default,
+                                TotalItemsPosition=PagerElementPosition.End,
+                                }"
+          FixedHeader
+           FixedHeaderDataGridHeight="calc(100vh - 240px)"
+           FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
+           EditMode="DataGridEditMode.Inline"
+           RowUpdated="@Save"
+           RowInserted="@Save"
+           RowRemoved="@Delete">
+     <DataGridColumns>
+         <DataGridColumn Width="15%" Caption="EDC Form ID" Filterable="true" Sortable="false" Editable>
+        </DataGridColumn>
+        <DataGridColumn Field="@nameof(ProtocolEDCDictionary.EDCDictionaryName)" Width="15%" Caption="EDC Dictionary Name" Filterable="true" Sortable="false" Editable>
+         </DataGridColumn>
+        <DataGridColumn Field="@nameof(ProtocolEDCDictionary.EDCItemName)" Caption="EDC Dictionary Options" Width="15%" Filterable="true" Editable></DataGridColumn>
+         <DataGridColumn Field="@nameof(ProtocolEDCDictionary.EDCItemId)" Caption="EDC Dictionary Value" Width="15%" Filterable="true" Editable></DataGridColumn>
+         <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="true">
+             <EditCommandTemplate>
+                 <Button><Icon Name="IconName.Edit" Clicked="@context.Clicked" /></Button>
+             </EditCommandTemplate>
+             <SaveCommandTemplate>
+                 <Button><Icon Name="IconName.Save" Clicked="@context.Clicked" /></Button>
+             </SaveCommandTemplate>
+             <CancelCommandTemplate>
+                 <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
+             </CancelCommandTemplate>
+             <ClearFilterCommandTemplate>
+                 <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
+             </ClearFilterCommandTemplate>
+             <DeleteCommandTemplate>
+                 <Button><Icon Name="IconName.Delete" Clicked="@context.Clicked" /></Button>
+             </DeleteCommandTemplate>
+         </DataGridCommandColumn>
+     </DataGridColumns>
+     <ButtonRowTemplate>
+         <Button Color="Color.Primary" Clicked="@context.NewCommand.Clicked">Add</Button>
+     </ButtonRowTemplate>
+     <EmptyTemplate>
+         <div class="box">
+             No dictionaries were found.
+         </div>
+     </EmptyTemplate>
+ </DataGrid>
+ @code {
+    [Inject] private IProtocolEDCDictionaryService protocolDictionaryService { get; set; } = null!;
+    [Inject] private NavigationManager navigation { get; set; } = null!;
+    [Inject] INotificationService notificationService { get; set; }
+    [Parameter] public int protocolMappingId { get; set; }
+
+    private DataGrid<ProtocolEDCDictionary> dataGridRef;
+    private IList<ProtocolEDCDictionary> protocolDicts = new List<ProtocolEDCDictionary>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        this.protocolDicts = await protocolDictionaryService.GetDictionariesByMappingId(protocolMappingId);
+    }
+
+
+    public async void Save(SavedRowItem<ProtocolEDCDictionary, Dictionary<string, object>> savedRowItem)
+    {
+        var toSave = savedRowItem.Item;
+        bool saved = await protocolDictionaryService.SaveDictionary(toSave, this.protocolMappingId);
+
+        if (saved)
+        {
+            await notificationService.Success("Dictionary successfully saved");
+            return;
+        }
+        else
+        {
+            await notificationService.Error("Error saving dictionary");
+            return;
+        }
+    }
+
+    public async void Delete(ProtocolEDCDictionary item)
+    {
+        bool deleted = await protocolDictionaryService.DeleteDictionary(item);
+        if (deleted)
+        {
+            await notificationService.Success("Dictionary successfully deleted");
+            return;
+        }
+        else
+        {
+            await notificationService.Error("Error deleting dictionary");
+            return;
+        }
+    }
+}
