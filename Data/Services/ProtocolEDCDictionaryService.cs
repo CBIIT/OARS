@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Oracle.EntityFrameworkCore;
 using Oracle.ManagedDataAccess.Client;
+using System.ComponentModel;
 using System.Data;
 using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Services.Abstract;
@@ -13,6 +14,52 @@ namespace TheradexPortal.Data.Services
         public ProtocolEDCDictionaryService(IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService) : base(dbFactory)
         {
             _errorLogService = errorLogService;
+        }
+
+        public async Task<List<ProtocolEDCDictionary>> GetDictionariesByMappingId(int mappingId)
+        {
+            try
+            {
+                return context.ProtocolEDCDictionary.Where(p => p.ProtocolMappingId == mappingId).ToList();
+            } catch (Exception ex)
+            {
+                await _errorLogService.SaveErrorLogAsync(0, "", ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+                return new List<ProtocolEDCDictionary>();
+            }
+        }
+
+        public async Task<bool> SaveDictionary(ProtocolEDCDictionary dictionary, int mappingId)
+        {
+            try
+            {
+                DateTime currentDateTime = DateTime.UtcNow;
+
+                ProtocolEDCDictionary currentDictionary = context.ProtocolEDCDictionary.Where(p => p.ProtocolEDCDictionaryId == dictionary.ProtocolEDCDictionaryId).FirstOrDefault();
+
+                if (currentDictionary == null || dictionary.CreateDate == null)
+                {
+                    dictionary.ProtocolMappingId = mappingId;
+                    dictionary.CreateDate = currentDateTime;
+                    dictionary.UpdatedDate = currentDateTime;
+                    context.Add(dictionary);
+                }
+                else
+                {
+                    currentDictionary.UpdatedDate = currentDateTime;
+                    currentDictionary.EDCDictionaryName = dictionary.EDCDictionaryName;
+                    currentDictionary.EDCItemName = dictionary.EDCItemName;
+                    currentDictionary.EDCItemId = dictionary.EDCItemId;
+                    context.Update(dictionary);
+                }
+
+                await context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await _errorLogService.SaveErrorLogAsync(0, "", ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+                return false;
+            }
         }
 
         public async Task<bool> BulkSaveDictionaries(DataTable dictionaries)
@@ -36,8 +83,8 @@ namespace TheradexPortal.Data.Services
                 }
 
 
-                //context.AddRange(dictionaries);
-                //await context.SaveChangesAsync();
+                context.AddRange(dictionaries);
+                await context.SaveChangesAsync();
                 return true;
             }
             catch (Exception ex)
@@ -47,6 +94,21 @@ namespace TheradexPortal.Data.Services
                 return false;
             }
         }
+
+        public async Task<bool> DeleteDictionary(ProtocolEDCDictionary dictionary)
+        {
+            try
+            {
+                context.Remove(dictionary);
+                await context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await _errorLogService.SaveErrorLogAsync(0, "", ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+                return false;
+            }
+        }   
 
         public async Task<bool> DeleteAllDictionariesForMappingId(int mappingId)
         {
