@@ -113,11 +113,14 @@
                     await notificationService.Error(ex.Message);
                 }
             }
-            await loading.Hide();
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
+        }
+        finally
+        {
+            await loading.Hide();
         }
     }
 
