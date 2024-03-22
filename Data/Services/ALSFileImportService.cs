@@ -85,7 +85,11 @@ public class ALSFileImportService : IALSFileImportService
                 {
                     if (currWorksheet == "Forms")
                     {
-                        await _formService.BulkSaveForms(forms);
+                        bool saveFormResult = await _formService.BulkSaveForms(forms);
+                        if(!saveFormResult)
+                        {
+                            throw new Exception("Error uploading file, clear uploads and try again.");
+                        }
                         foreach(ProtocolEDCForm form in forms)
                         {
                            formIds.Add(form.EDCFormIdentifier, form.ProtocolEDCFormId); 
@@ -93,11 +97,19 @@ public class ALSFileImportService : IALSFileImportService
                     }
                     else if (currWorksheet == "Fields")
                     {
-                        await _fieldService.BulkSaveFields(fields);
+                        bool saveFieldResult = await _fieldService.BulkSaveFields(fields);
+                        if (!saveFieldResult)
+                        {
+                            throw new Exception("Error uploading file, clear uploads and try again.");
+                        }
                     }
                     else if (currWorksheet == "DataDictionaryEntries")
                     {
-                        await _dictionaryService.BulkSaveDictionaries(dictionaries);
+                        bool saveDictResult = await _dictionaryService.BulkSaveDictionaries(dictionaries);
+                        if (!saveDictResult)
+                        {
+                            throw new Exception("Error uploading file, clear uploads and try again.");
+                        }
                     }
                 }
             }

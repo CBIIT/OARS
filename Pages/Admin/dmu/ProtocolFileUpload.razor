@@ -45,11 +45,14 @@
                 <Text>Select a file:</Text>
             </Column>
             <Column ColumnSize="ColumnSize.Is3">
-                <Field>
-                    <FieldBody Margin="Margin.IsAuto">
-                        <FilePicker Upload="@OnFileUpload" ShowMode="FilePickerShowMode.List" />
-                    </FieldBody>
-                </Field>
+                <LoadingIndicator @ref="loading">
+                    <Field>
+                        <FieldBody Margin="Margin.IsAuto">
+                            <FilePicker Upload="@OnFileUpload" ShowMode="FilePickerShowMode.List" />
+                        </FieldBody>
+                    </Field>
+                </LoadingIndicator>
+
             </Column>
             <Column ColumnSize="ColumnSize.Is2">
                 <Button Color="Color.Danger" onclick="@ClearUploads">Clear Uploads</Button>
@@ -60,6 +63,7 @@
 </Div>
 @code {
     private FilePicker UploadField;
+    private LoadingIndicator loading;
     [Inject] private IALSFileImportService alsFileImportService { get; set; }
     [Inject] private IXMLFileImportService xmlFileImportService { get; set; }
     [Inject] private IProtocolEDCFormService formService { get; set; }
@@ -85,23 +89,39 @@
 
     public async void OnFileUpload(FileUploadEventArgs e)
     {
+        await loading.Show();
         MemoryStream ms = new MemoryStream();
         try
         {
             await e.File.OpenReadStream(25000000).CopyToAsync(ms);
             if(selectedFileType == "ALS")
             {
-                alsFileImportService.ParseALSFile(ms, this.protocolMappingId);
+                try
+                {
+                    alsFileImportService.ParseALSFile(ms, this.protocolMappingId);
+                } catch (Exception ex)
+                {
+                    await notificationService.Error(ex.Message);
+                }
+
             }
             else if(selectedFileType == "XML")
             {
-                xmlFileImportService.ParseXMLFile(ms, this.protocolMappingId);
+                try
+                {
+                    xmlFileImportService.ParseXMLFile(ms, this.protocolMappingId);
+                } catch(Exception ex){
+                    await notificationService.Error(ex.Message);
+                }
             }
-
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
+        }
+        finally
+        {
+            await loading.Hide();
         }
     }
 

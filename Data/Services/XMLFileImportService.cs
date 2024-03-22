@@ -41,7 +41,11 @@ namespace TheradexPortal.Data.Services
             }
             if(formsToSave.Count > 0)
             {
-                //await _formService.BulkSaveForms(formsToSave);
+                bool saveFormResult = await _formService.BulkSaveForms(formsToSave);
+                if (!saveFormResult)
+                {
+                    throw new Exception("Error uploading file, clear uploads and try again.");
+                }
                 foreach (ProtocolEDCForm form in formsToSave)
                 {
                     formIds.Add(form.EDCFormIdentifier, form.ProtocolEDCFormId);
@@ -60,7 +64,11 @@ namespace TheradexPortal.Data.Services
             }
             if(fieldsToSave.Count > 0)
             {
-                //await _fieldService.BulkSaveFields(fieldsToSave);
+               bool saveFieldResult = await _fieldService.BulkSaveFields(fieldsToSave);
+                if (!saveFieldResult)
+                {
+                    throw new Exception("Error uploading file, clear uploads and try again.");
+                }
             }
 
             XmlNodeList dictionaries = document.GetElementsByTagName("CodeList");
@@ -84,7 +92,11 @@ namespace TheradexPortal.Data.Services
             }
             if(dictionariesToSave.Rows.Count > 0)
             {
-                await _dictionaryService.BulkSaveDictionaries(dictionariesToSave);
+                bool saveDictResult = await _dictionaryService.BulkSaveDictionaries(dictionariesToSave);
+                if (!saveDictResult)
+                {
+                    throw new Exception("Error uploading file, clear uploads and try again.");
+                }
             }
         }
 
