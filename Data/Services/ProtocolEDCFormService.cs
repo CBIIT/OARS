@@ -93,5 +93,21 @@ namespace TheradexPortal.Data.Services
                 return false;
             }
         }
+
+        public async Task<bool> DeleteProtocolEDCFormId(int protocolEDCFormId)
+        {
+            try
+            {
+                context.ProtocolEDCForm.Remove(context.ProtocolEDCForm.Where(f => f.ProtocolEDCFormId == protocolEDCFormId).FirstOrDefault());
+                await context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await _errorLogService.SaveErrorLogAsync(0, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+                return false;
+            }
+        }
+        
     }
 }
