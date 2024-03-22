@@ -1,11 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TheradexPortal.Data.Models
 {
     [Table("ProtocolEDCForm", Schema = "DMU")]
     public class ProtocolEDCForm
     {
-        [Column("Protocol_EDC_Form_Id")]
+        [Key, Column("Protocol_EDC_Form_Id")]
         public int ProtocolEDCFormId { get; set; }
         [Column("Protocol_Mapping_Id")]
         public int? ProtocolMappingId { get; set; }

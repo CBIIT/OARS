@@ -185,5 +185,6 @@ namespace TheradexPortal.Data
         public DbSet<ProtocolEDCForm> ProtocolEDCForm { get; set; }
         public DbSet<ProtocolEDCDictionary> ProtocolEDCDictionary { get; set; }
         public DbSet<ProtocolPhase> ProtocolPhases { get; set; }
+        public DbSet<ProtocolEDCForm> ProtocolEDCForms { get; set; }
     }
 }

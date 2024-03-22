@@ -4,6 +4,7 @@
 @inject IConfiguration configuration
 @layout AdminLayout
 
+@page "/admin/dmu/protocol-file-upload/{protocolMappingId:int}"
 <AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })"></AdminRoleCheck>
 
 <Div Class="dmu-admin-header-grey">

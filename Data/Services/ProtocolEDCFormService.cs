@@ -15,18 +15,39 @@ namespace TheradexPortal.Data.Services
             _navManager = navigationManager;
         }
 
-        public async Task<List<ProtocolEDCForm>> GetFormsForMappingId(int mappingId)
+        public async Task<IList<ProtocolEDCForm>> GetProtocolEDCFormsByProtocolMappingId(int protocolMappingId) {
+            return await context.ProtocolEDCForms.Where(p=>p.ProtocolMappingId == protocolMappingId).ToListAsync();
+        }
+
+        public async Task<bool> SaveProtocolEDCForm(ProtocolEDCForm protocolEDCForm)
         {
             try
             {
-                return await context.ProtocolEDCForm.Where(f => f.ProtocolMappingId == mappingId).ToListAsync();
+                DateTime currentDateTime = DateTime.UtcNow;
+                protocolEDCForm.UpdatedDate = currentDateTime;
+
+                ProtocolEDCForm currentProtocolEDCForm = context.ProtocolEDCForms.Where(p => p.ProtocolEDCFormId == protocolEDCForm.ProtocolEDCFormId).FirstOrDefault();
+
+                if (currentProtocolEDCForm == null || protocolEDCForm.CreateDate == null)
+                {
+                    protocolEDCForm.CreateDate = currentDateTime;
+                    context.Add(protocolEDCForm);
+                }
+                else
+                {
+                    currentProtocolEDCForm.UpdatedDate = currentDateTime;
+                    context.Update(currentProtocolEDCForm);
+                }
+
+                await context.SaveChangesAsync();
+                return true;
             }
             catch (Exception ex)
             {
                 await _errorLogService.SaveErrorLogAsync(0, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
-                return new List<ProtocolEDCForm>();
+                return false;
             }
-        }
+        }    
 
         public async Task<List<int>> GetFormIdsForMappingId(int mappingId)
         {
@@ -71,5 +92,21 @@ namespace TheradexPortal.Data.Services
                 return false;
             }
         }
+
+        public async Task<bool> DeleteProtocolEDCFormId(int protocolEDCFormId)
+        {
+            try
+            {
+                context.ProtocolEDCForm.Remove(context.ProtocolEDCForm.Where(f => f.ProtocolEDCFormId == protocolEDCFormId).FirstOrDefault());
+                await context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await _errorLogService.SaveErrorLogAsync(0, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+                return false;
+            }
+        }
+        
     }
 }
