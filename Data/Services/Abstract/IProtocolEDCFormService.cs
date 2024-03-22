@@ -10,5 +10,6 @@ namespace TheradexPortal.Data.Services.Abstract
         public Task<List<int>> GetFormIdsForMappingId(int mappingId);
         public Task<bool> DeleteAllFormsForMappingId(int mappingId);
         public Task<bool> DeleteProtocolEDCFormId(int protocolEDCFormId);
+        public Task<List<ProtocolEDCForm>> GetFormsForMappingId(int mappingId);
     }
 }

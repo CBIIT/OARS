@@ -14,6 +14,48 @@ namespace TheradexPortal.Data.Services
             _errorLogService = errorLogService;
         }
 
+        public async Task<List<ProtocolEDCField>> GetFieldsByFormIds(List<int> formIds)
+        {
+            try
+            {
+                return await context.ProtocolEDCField.Where(x => formIds.Contains(x.ProtocolEDCFormId)).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                await _errorLogService.SaveErrorLogAsync(0, "", ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+                return new List<ProtocolEDCField>();
+            }
+        }
+
+        public async Task<bool> SaveField(ProtocolEDCField field)
+        {
+            try
+            {
+                DateTime currentDateTime = DateTime.Now;
+                ProtocolEDCField currentField = context.ProtocolEDCField.FirstOrDefault(x => x.ProtocolEDCFieldId == field.ProtocolEDCFieldId);
+
+                if(currentField == null || currentField.CreateDate == null)
+                {
+                    field.CreateDate = currentDateTime;
+                    context.Add(field);
+                }
+                else {
+                    currentField.ProtocolEDCFormId = field.ProtocolEDCFormId;
+                    currentField.EDCFieldIdentifier = field.EDCFieldIdentifier;
+                    currentField.EDCFieldName = field.EDCFieldName;
+                    currentField.EDCDictionaryName = field.EDCDictionaryName;
+                    currentField.UpdateDate = currentDateTime;
+                    context.Update(field);
+                }
+                await context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await _errorLogService.SaveErrorLogAsync(0, "", ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+                return false;
+            }
+        }
         public async Task<bool> BulkSaveFields(List<ProtocolEDCField> fields)
         {
             // EF doesn't natively support bulk inserts, so the closest we can get is doing an AddRange and then SaveChanges
@@ -21,6 +63,24 @@ namespace TheradexPortal.Data.Services
             {
                 context.AddRange(fields);
                 await context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await _errorLogService.SaveErrorLogAsync(0, "", ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+                return false;
+            }
+        }
+
+        public async Task<bool> DeleteField(ProtocolEDCField field)
+        {
+            try
+            {
+                ProtocolEDCField currentField = context.ProtocolEDCField.FirstOrDefault(x => x.ProtocolEDCFieldId == field.ProtocolEDCFieldId);
+                if (currentField != null) {
+                    context.Remove(currentField);
+                    await context.SaveChangesAsync();
+                }
                 return true;
             }
             catch (Exception ex)

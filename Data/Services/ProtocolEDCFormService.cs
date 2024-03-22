@@ -26,8 +26,7 @@ namespace TheradexPortal.Data.Services
                 DateTime currentDateTime = DateTime.UtcNow;
                 protocolEDCForm.UpdatedDate = currentDateTime;
 
-                ProtocolEDCForm currentProtocolEDCForm = context.ProtocolEDCForms.Where(p => p.ProtocolEDCFormId == protocolEDCForm.ProtocolEDCFormId)
-                                                                                 .FirstOrDefault();
+                ProtocolEDCForm currentProtocolEDCForm = context.ProtocolEDCForms.Where(p => p.ProtocolEDCFormId == protocolEDCForm.ProtocolEDCFormId).FirstOrDefault();
 
                 if (currentProtocolEDCForm == null || protocolEDCForm.CreateDate == null)
                 {
@@ -48,7 +47,7 @@ namespace TheradexPortal.Data.Services
                 await _errorLogService.SaveErrorLogAsync(0, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
                 return false;
             }
-        }
+        }    
 
         public async Task<List<int>> GetFormIdsForMappingId(int mappingId)
         {
