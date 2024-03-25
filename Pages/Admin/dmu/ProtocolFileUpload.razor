@@ -132,7 +132,7 @@
         var formIds = await formService.GetFormIdsForMappingId(this.protocolMappingId);
         if (formIds != null && formIds.Count > 0)
         {
-            var result = await fieldService.DeleteAllFieldsForFormIds(formIds);
+            var result = await fieldService.DeleteAllFieldsForFormIds(formIds.ToList());
             if (!result)
             {
                 await notificationService.Error("Error deleting fields");

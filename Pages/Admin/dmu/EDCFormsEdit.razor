@@ -80,7 +80,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        if (protocolMappingId != null) this.edcFormList = await protocolEDCFormService.GetProtocolEDCFormsByProtocolMappingId(protocolMappingId);
+        if (protocolMappingId != null) this.edcFormList = await protocolEDCFormService.GetFormsForMappingId(protocolMappingId);
     }
 
     public async void Save(SavedRowItem<ProtocolEDCForm, Dictionary<string, object>> e)
