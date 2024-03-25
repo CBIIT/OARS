@@ -95,7 +95,6 @@ namespace TheradexPortal.Data.Services
                 return false;
             }
         }
-
         public async Task<bool> DeleteProtocolEDCFormId(int protocolEDCFormId)
         {
             try
@@ -110,6 +109,5 @@ namespace TheradexPortal.Data.Services
                 return false;
             }
         }
-        
     }
 }
