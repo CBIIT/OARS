@@ -15,13 +15,13 @@ namespace TheradexPortal.Data.Models
         [Column("Format")]
         public string Format { get; set; }
         [Column("Is_Required")]
-        public bool IsRequired { get; set; }
+        public char IsRequired { get; set; }
         [Column("Is_Enabled")]
-        public bool IsEnabled { get; set; }
+        public char IsEnabled { get; set; }
         [Column("Can_Be_Dictionary")]
-        public bool CanBeDictionary { get; set; }
+        public char CanBeDictionary { get; set; }
         [Column("Is_Multi_Form")]
-        public bool IsMultiForm { get; set; }
+        public char IsMultiForm { get; set; }
         [Column("Create_Date")]
         public DateTime CreateDate { get; set; }
         [Column("Updated_Date")]
