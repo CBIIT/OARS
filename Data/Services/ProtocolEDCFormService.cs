@@ -14,11 +14,9 @@ namespace TheradexPortal.Data.Services
             _errorLogService = errorLogService;
             _navManager = navigationManager;
         }
-
-        public async Task<IList<ProtocolEDCForm>> GetProtocolEDCFormsByProtocolMappingId(int protocolMappingId) {
-            return await context.ProtocolEDCForms.Where(p=>p.ProtocolMappingId == protocolMappingId).ToListAsync();
+        public async Task<IList<ProtocolEDCForm>> GetFormsForMappingId(int protocolMappingId) {
+            return await context.ProtocolEDCForm.Where(p=>p.ProtocolMappingId == protocolMappingId).ToListAsync();
         }
-
         public async Task<bool> SaveProtocolEDCForm(ProtocolEDCForm protocolEDCForm)
         {
             try
@@ -26,7 +24,7 @@ namespace TheradexPortal.Data.Services
                 DateTime currentDateTime = DateTime.UtcNow;
                 protocolEDCForm.UpdatedDate = currentDateTime;
 
-                ProtocolEDCForm currentProtocolEDCForm = context.ProtocolEDCForms.Where(p => p.ProtocolEDCFormId == protocolEDCForm.ProtocolEDCFormId).FirstOrDefault();
+                ProtocolEDCForm currentProtocolEDCForm = context.ProtocolEDCForm.Where(p => p.ProtocolEDCFormId == protocolEDCForm.ProtocolEDCFormId).FirstOrDefault();
 
                 if (currentProtocolEDCForm == null || protocolEDCForm.CreateDate == null)
                 {
@@ -49,7 +47,11 @@ namespace TheradexPortal.Data.Services
             }
         }    
 
-        public async Task<List<int>> GetFormIdsForMappingId(int mappingId)
+        public async Task<IList<ProtocolEDCForm>> GetProtocolEDCFormsByProtocolMappingId(int protocolMappingId) {
+            return await context.ProtocolEDCForms.Where(p=>p.ProtocolMappingId == protocolMappingId).ToListAsync();
+        }
+
+        public async Task<IList<int>> GetFormIdsForMappingId(int mappingId)
         {
             List<int> formIds = new List<int>();
             try
@@ -92,7 +94,6 @@ namespace TheradexPortal.Data.Services
                 return false;
             }
         }
-
         public async Task<bool> DeleteProtocolEDCFormId(int protocolEDCFormId)
         {
             try
@@ -107,6 +108,5 @@ namespace TheradexPortal.Data.Services
                 return false;
             }
         }
-        
     }
 }
