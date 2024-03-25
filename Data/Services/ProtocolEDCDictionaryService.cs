@@ -82,9 +82,6 @@ namespace TheradexPortal.Data.Services
                     }
                 }
 
-
-                context.AddRange(dictionaries);
-                await context.SaveChangesAsync();
                 return true;
             }
             catch (Exception ex)

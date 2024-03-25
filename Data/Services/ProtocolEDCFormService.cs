@@ -14,6 +14,39 @@ namespace TheradexPortal.Data.Services
             _errorLogService = errorLogService;
             _navManager = navigationManager;
         }
+        public async Task<IList<ProtocolEDCForm>> GetFormsForMappingId(int protocolMappingId) {
+            return await context.ProtocolEDCForm.Where(p=>p.ProtocolMappingId == protocolMappingId).ToListAsync();
+        }
+
+        public async Task<bool> SaveProtocolEDCForm(ProtocolEDCForm protocolEDCForm)
+        {
+            try
+            {
+                DateTime currentDateTime = DateTime.UtcNow;
+                protocolEDCForm.UpdatedDate = currentDateTime;
+
+                ProtocolEDCForm currentProtocolEDCForm = context.ProtocolEDCForm.Where(p => p.ProtocolEDCFormId == protocolEDCForm.ProtocolEDCFormId).FirstOrDefault();
+
+                if (currentProtocolEDCForm == null || protocolEDCForm.CreateDate == null)
+                {
+                    protocolEDCForm.CreateDate = currentDateTime;
+                    context.Add(protocolEDCForm);
+                }
+                else
+                {
+                    currentProtocolEDCForm.UpdatedDate = currentDateTime;
+                    context.Update(currentProtocolEDCForm);
+                }
+
+                await context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await _errorLogService.SaveErrorLogAsync(0, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+                return false;
+            }
+        }    
 
         public async Task<List<int>> GetFormIdsForMappingId(int mappingId)
         {
