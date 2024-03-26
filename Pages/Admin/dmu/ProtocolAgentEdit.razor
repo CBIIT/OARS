@@ -27,7 +27,8 @@
            EditMode="DataGridEditMode.Inline"
            RowUpdated="@Save"
            RowInserted="@Save"
-           RowRemoved="@Delete">
+           RowRemoved="@Delete"
+           RowRemoving="@ConfirmDelete">
      <DataGridColumns>
          <DataGridColumn Width="15%" Caption="NSC Number" Field="@nameof(ProtocolAgent.NscNumber)" Filterable="true" Sortable="false" Editable>
         </DataGridColumn>
@@ -69,6 +70,7 @@
 
     private DataGrid<ProtocolAgent> dataGridRef;
     private IList<ProtocolAgent> protocolAgents = new List<ProtocolAgent>();
+    private bool deleteConfirmed = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -93,22 +95,29 @@
         }
     }
 
-    public async void Delete(ProtocolAgent item)
+    public async Task<CancellableRowChange<ProtocolAgent>> ConfirmDelete(CancellableRowChange<ProtocolAgent> item)
     {
-        if(await messageService.Confirm("Are you sure you want to delete this agent?", "Confirmation"))
+        if (!await messageService.Confirm("Are you sure you want to delete this agent?", "Confirmation"))
         {
-            bool deleted = await protocolAgentService.DeleteAgent(item);
-            if (deleted)
-            {
-                await notificationService.Success("Agent successfully deleted");
-                return;
-            }
-            else
-            {
-                await notificationService.Error("Error deleting agent");
-                return;
-            }
+            item.Cancel = true;
         }
 
+        return item;
+    }
+
+
+    public async void Delete(ProtocolAgent item)
+    {
+        bool deleted = await protocolAgentService.DeleteAgent(item);
+        if (deleted)
+        {
+            await notificationService.Success("Agent successfully deleted");
+            return;
+        }
+        else
+        {
+            await notificationService.Error("Error deleting agent");
+            return;
+        }
     }
 }
