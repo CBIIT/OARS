@@ -30,9 +30,9 @@
            RowRemoved="@Delete"
            RowRemoving="@ConfirmDelete">
      <DataGridColumns>
-         <DataGridColumn Width="15%" Caption="Sub Group Code" Field="@nameof(ProtocolSubGroup.SubGroupCode)" Filterable="true" Sortable="false" Editable>
+         <DataGridColumn Width="30%" Caption="Sub Group Code" Field="@nameof(ProtocolSubGroup.SubGroupCode)" Filterable="true" Sortable="false" Editable>
         </DataGridColumn>
-        <DataGridColumn Field="@nameof(ProtocolSubGroup.Description)" Width="15%" Caption="Description" Filterable="true" Sortable="false" Editable>
+        <DataGridColumn Field="@nameof(ProtocolSubGroup.Description)" Width="30%" Caption="Description" Filterable="true" Sortable="false" Editable>
         </DataGridColumn>
         <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="true">
             <EditCommandTemplate>
@@ -57,7 +57,7 @@
     </ButtonRowTemplate>
     <EmptyTemplate>
         <div class="box">
-            No agents were found.
+            No sub groups were found.
         </div>
     </EmptyTemplate>
 </DataGrid>
