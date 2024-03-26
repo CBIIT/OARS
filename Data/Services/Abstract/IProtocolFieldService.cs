@@ -8,5 +8,6 @@ namespace TheradexPortal.Data.Services.Abstract
         public Task<bool> SaveProtocolField(int protocolMappingId, ProtocolField protocolField);
         public Task<bool> DeleteField(int fieldId);
         public Task<bool> DeleteAllFieldsForMappingId(int mappingId);
+        public Task<IList<ProtocolField>> GetAllProtocolFieldsByMappingId(int mappingId);
     }
 }

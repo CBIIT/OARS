@@ -9,16 +9,18 @@ namespace TheradexPortal.Data.Services
     {
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
-        public ProtocolFieldService(IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
+        private readonly IProtocolMappingService _protocolMappingService;
+        public ProtocolFieldService(IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager, IProtocolMappingService protocolMappingService) : base(dbFactory)
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;
+            _protocolMappingService = protocolMappingService;
         }
 
         public async Task<IList<ProtocolField>> GetProtocolFieldsByMappingId(int mappingId)
         {
             
-            var protocolFields = await context.ProtocolField.Include(x => x.ThorField).ThenInclude(y => y.Category).Where(pf => pf.ProtocolMappingId == mappingId && pf.ThorField.FieldType.FieldTypeName == "Date" && pf.IsEnabled == 'Y').ToListAsync();
+            var protocolFields = await context.ProtocolField.Where(pf => pf.ProtocolMappingId == mappingId && pf.ThorField.FieldType.FieldTypeName == "Date" && pf.IsEnabled == 'Y').ToListAsync();
             var thorFields = await context.THORField.Where(tf => tf.FieldType.FieldTypeName == "Date").ToListAsync();
 
             var pfThorFieldIds = new HashSet<string>(protocolFields.Select(pf => pf.ThorFieldId));
@@ -46,10 +48,22 @@ namespace TheradexPortal.Data.Services
             return protocolFields;
         }
 
+        public async Task<IList<ProtocolField>> GetAllProtocolFieldsByMappingId(int mappingId)
+        {
+
+            var protocolFields = await context.ProtocolField.Include(x => x.ThorField).ThenInclude(y => y.Category).Where(pf => pf.ProtocolMappingId == mappingId).ToListAsync();
+
+            return protocolFields;
+        }
+
         public async Task<bool> SaveProtocolField(int protocolMappingId, ProtocolField protocolField)
         {
             try
             {
+                string protocolMappingFormat = "MM/dd/yyyy";
+                var protocolMapping = _protocolMappingService.GetProtocolMapping(protocolMappingId).Result;
+                if (protocolMapping != null && protocolMapping.DateFormat != null) protocolMappingFormat = protocolMapping.DateFormat;
+
                 DateTime currentDateTime = DateTime.UtcNow;
 
                 ProtocolField currentField = context.ProtocolField.Where(p => p.ProtocolFieldId == protocolField.ProtocolFieldId).FirstOrDefault();
@@ -59,6 +73,7 @@ namespace TheradexPortal.Data.Services
                     protocolField.CreateDate = currentDateTime;
                     protocolField.UpdateDate = currentDateTime;
                     protocolField.ProtocolMappingId = protocolMappingId;
+                    protocolField.Format = protocolMappingFormat;
                     context.Add(protocolField);
                 }
                 else
@@ -66,7 +81,7 @@ namespace TheradexPortal.Data.Services
                     currentField.ProtocolFieldId = protocolField.ProtocolFieldId;
                     currentField.ProtocolMappingId = protocolField.ProtocolMappingId;
                     currentField.ThorFieldId = protocolField.ThorFieldId;
-                    currentField.Format = protocolField.Format;
+                    currentField.Format = protocolMappingFormat;
                     currentField.IsRequired = protocolField.IsRequired;
                     currentField.IsEnabled = protocolField.IsEnabled;
                     currentField.CanBeDictionary = protocolField.CanBeDictionary;

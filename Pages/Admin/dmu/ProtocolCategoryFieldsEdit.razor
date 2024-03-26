@@ -37,17 +37,17 @@
                 <SelectList TItem="ThorCategory" TValue="string" Data="@categoryList" TextField="@((item)=>item.CategoryName)" ValueField="@((item)=>item.ThorDataCategoryId)" SelectedValueChanged="OnSelectedCategoryValueChanged" DefaultItemText="Select the THOR DataCategory"></SelectList>
             </EditTemplate>
          </DataGridColumn>
-         <DataGridColumn Field="@nameof(ProtocolField.ThorFieldId)" Caption="Field" Width="15%" Filterable="true" Editable>
+         <DataGridColumn Caption="Field" Width="15%" Filterable="true" Editable>
             <DisplayTemplate>
                 @context?.ThorFieldId
             </DisplayTemplate>
             <EditTemplate>
                 <SelectList TItem="ThorField" TValue="string" Data="@fieldList" TextField="@((item)=>item.ThorFieldId)" ValueField="@((item)=>item.ThorFieldId)"
-                        SelectedValue="@((string)((CellEditContext)context).CellValue)"
+                        SelectedValue="@((string?)context.CellValue ?? context.Item.ThorFieldId)"
                         SelectedValueChanged="@(e =>
                         {
-                            context.CellValue = Convert.ToString(e);
-                        } )" DefaultItemText="Select the THOR Field">
+                            context.Item.ThorFieldId = Convert.ToString(e);
+                        } )" DefaultItemText="Select">
                 </SelectList>
             </EditTemplate>
          </DataGridColumn>
@@ -57,7 +57,7 @@
             </DisplayTemplate>
             <EditTemplate>
                 <SelectList TItem="SelectOption" TValue="string?" Data="@protocolEnabledOptions" TextField="@((item)=>item.Text)" ValueField="@((item)=>item.Value)"
-                    SelectedValueChanged="@( v =>{context.CellValue = v; context.UpdateCell(nameof(ProtocolField.IsEnabled),v.ToCharArray()); })" SelectedValue="@((string)((CellEditContext)context).CellValue)" DefaultItemText=""></SelectList>
+                    SelectedValueChanged="@( v =>{ context.Item.IsEnabled = v[0]; dataGridRef.Refresh();})" SelectedValue="@((string?)context.CellValue ?? context.Item.IsEnabled.ToString())" DefaultItemText=""></SelectList>
             </EditTemplate>
         </DataGridColumn>
         <DataGridColumn Width="15%" Caption="Required" Filterable="true" Sortable="false" Editable>
@@ -65,7 +65,7 @@
                 @(context?.IsRequired.ToString() == "Y" ? "Required" : "Not Required")
             </DisplayTemplate>
             <EditTemplate>
-                <SelectList TItem="SelectOption" TValue="string?" Data="@protocolRequiredOptions" TextField="@((item)=>item.Text)" ValueField="@((item)=>item.Value)" SelectedValueChanged="@( v =>{context.CellValue = v; context.UpdateCell(nameof(ProtocolField.IsRequired),v.ToCharArray()); dataGridRef.Refresh();})" SelectedValue="@((string)((CellEditContext)context).CellValue)" DefaultItemText=""></SelectList>
+                <SelectList TItem="SelectOption" TValue="string?" Data="@protocolRequiredOptions" TextField="@((item)=>item.Text)" ValueField="@((item)=>item.Value)" SelectedValueChanged="@( v =>{context.Item.IsRequired = v[0]; dataGridRef.Refresh();})" SelectedValue="@((string?)context.CellValue ?? context.Item.IsRequired.ToString())" DefaultItemText=""></SelectList>
             </EditTemplate>
         </DataGridColumn>
         <DataGridColumn Width="15%" Caption="Can be a Pick List" Filterable="true" Sortable="false" Editable>
@@ -73,7 +73,7 @@
                 @(context?.CanBeDictionary.ToString() == "Y" ? "Yes" : "No")
             </DisplayTemplate>
             <EditTemplate>
-                <SelectList TItem="SelectOption" TValue="string?" Data="@protocolPickListOptions" TextField="@((item)=>item.Text)" ValueField="@((item)=>item.Value)" SelectedValueChanged="@( v =>{context.CellValue = v; context.UpdateCell(nameof(ProtocolField.CanBeDictionary),v.ToCharArray()); dataGridRef.Refresh();})" SelectedValue="@((string)((CellEditContext)context).CellValue)" DefaultItemText=""></SelectList>
+                <SelectList TItem="SelectOption" TValue="string?" Data="@protocolPickListOptions" TextField="@((item)=>item.Text)" ValueField="@((item)=>item.Value)" SelectedValueChanged="@( v =>{context.Item.CanBeDictionary = v[0]; dataGridRef.Refresh();})" SelectedValue="@((string?)context.CellValue ?? context.Item.CanBeDictionary.ToString())" DefaultItemText=""></SelectList>
             </EditTemplate>
         </DataGridColumn>
         <DataGridColumn Width="15%" Caption="Is MultiForm" Filterable="true" Sortable="false" Editable>
@@ -81,7 +81,7 @@
                 @(context?.IsMultiForm.ToString() == "Y" ? "Yes" : "No")
             </DisplayTemplate>
             <EditTemplate>
-                <SelectList TItem="SelectOption" TValue="string?" Data="@protocolMultiFormOptions" TextField="@((item)=>item.Text)" ValueField="@((item)=>item.Value)" SelectedValueChanged="@( v =>{context.CellValue = v; context.UpdateCell(nameof(ProtocolField.IsMultiForm),v.ToCharArray()); dataGridRef.Refresh();})" SelectedValue="@((string)((CellEditContext)context).CellValue)" DefaultItemText=""></SelectList>
+                <SelectList TItem="SelectOption" TValue="string?" Data="@protocolMultiFormOptions" TextField="@((item)=>item.Text)" ValueField="@((item)=>item.Value)" SelectedValueChanged="@( v =>{context.Item.IsMultiForm = v[0]; dataGridRef.Refresh();})" SelectedValue="@((string?)context.CellValue ?? context.Item.IsMultiForm.ToString())" DefaultItemText=""></SelectList>
             </EditTemplate>
         </DataGridColumn>
          <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="true">
@@ -168,9 +168,8 @@
     protected override async Task OnInitializedAsync()
     {
         this.categoryList = await categoryService.GetCategories();
-        this.protocolFields = await protocolFieldService.GetProtocolFieldsByMappingId(protocolMappingId);
+        this.protocolFields = await protocolFieldService.GetAllProtocolFieldsByMappingId(protocolMappingId);
     }
-
 
     public async void Save(SavedRowItem<ProtocolField, Dictionary<string, object>> savedRowItem)
     {
