@@ -9,6 +9,7 @@
           Class="admindatagrid"
           Data="@protocolFields"
           Editable
+          SelectionMode="DataGridSelectionMode.Single"
           Responsive
           Striped
           ShowPager
@@ -27,9 +28,12 @@
            EditMode="DataGridEditMode.Inline"
            RowUpdated="@Save"
            RowInserted="@Save"
-           RowRemoved="@Delete">
+           RowRemoved="@Delete"
+           RowRemoving="@ConfirmDelete">
      <DataGridColumns>
-         <DataGridColumn Caption="Data Category" Width="15%" Filterable="false" Editable>
+         <DataGridSelectColumn>
+         </DataGridSelectColumn>
+         <DataGridColumn Caption="Data Category" Width="15%" Editable>
             <DisplayTemplate>
                 @context?.ThorField?.Category?.ThorDataCategoryId
             </DisplayTemplate>
@@ -42,13 +46,20 @@
                 @context?.ThorFieldId
             </DisplayTemplate>
             <EditTemplate>
-                <SelectList TItem="ThorField" TValue="string" Data="@fieldList" TextField="@((item)=>item.ThorFieldId)" ValueField="@((item)=>item.ThorFieldId)"
-                        SelectedValue="@((string?)context.CellValue ?? context.Item.ThorFieldId)"
-                        SelectedValueChanged="@(e =>
-                        {
-                            context.Item.ThorFieldId = Convert.ToString(e);
-                        } )" DefaultItemText="Select">
-                </SelectList>
+                @{
+                    if (currentCategoryId == null || currentCategoryId == String.Empty)
+                    {
+                        OnSelectedCategoryValueChanged(context.Item?.ThorField?.ThorDataCategoryId);
+                    }
+
+                    <SelectList TItem="ThorField" TValue="string" Data="@fieldList" TextField="@((item)=>item.ThorFieldId)" ValueField="@((item)=>item.ThorFieldId)"
+                                SelectedValue="@((string?)context.CellValue ?? context.Item.ThorFieldId)"
+                                SelectedValueChanged="@(e =>
+                                    {
+                                        context.Item.ThorFieldId = Convert.ToString(e);
+                                    } )" DefaultItemText="Select">
+                    </SelectList>
+                }
             </EditTemplate>
          </DataGridColumn>
          <DataGridColumn Width="15%" Caption="Enabled" Filterable="true" Sortable="false" Editable>
@@ -103,7 +114,9 @@
          </DataGridCommandColumn>
      </DataGridColumns>
      <ButtonRowTemplate>
-         <Button Color="Color.Primary" Clicked="@context.NewCommand.Clicked">Add</Button>
+         <Button Color="Color.Primary" Clicked="@AddRow">
+            Add
+        </Button>
      </ButtonRowTemplate>
      <EmptyTemplate>
          <div class="box">
@@ -115,12 +128,15 @@
     [Inject] IProtocolFieldService protocolFieldService { get; set; } = null!;
     [Inject] private NavigationManager navigation { get; set; } = null!;
     [Inject] INotificationService notificationService { get; set; }
+    [Inject] private IMessageService messageService { get; set; } = null!;
     [Inject] IThorCategoryService categoryService { get; set; } = null!;
     [Inject] IThorFieldService thorFieldService { get; set; } = null!;
     [Parameter] public int protocolMappingId { get; set; }
 
     private IList<ThorCategory> categoryList;
     private IList<ThorField> fieldList = new List<ThorField>();
+    private string currentCategoryId = String.Empty;
+    private bool deleteConfirmed = false;
 
     const string Yes = "Y";
     const string No = "N";
@@ -205,7 +221,24 @@
 
     async Task OnSelectedCategoryValueChanged(string categoryId)
     {
+        currentCategoryId = categoryId;
         this.fieldList = await thorFieldService.GetFields();
         this.fieldList = fieldList.Where(f => f.ThorDataCategoryId.Equals(categoryId)).ToList();
+    }
+
+    public async Task<CancellableRowChange<ProtocolField>> ConfirmDelete(CancellableRowChange<ProtocolField> item)
+    {
+        var result = await messageService.Confirm("Are you sure you want to delete this field?", "Confirmation");
+        if (!result)
+        {
+            item.Cancel = true;
+        }
+        return item;
+    }
+
+    public void AddRow()
+    {
+        currentCategoryId = String.Empty;
+        dataGridRef.New();    
     }
 }
