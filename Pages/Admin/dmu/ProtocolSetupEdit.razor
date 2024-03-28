@@ -287,16 +287,16 @@
         if (phasesSet.Count > 0)
         {
             phase1 = phasesSet[0].IsEnabled == 'Y';
-            phase1IsRandomized = phasesSet[0].IsRandomized == 'Y' ? "Y" : "N";
+            phase1IsRandomized = phasesSet[0].IsRandomized == null ? "S" : phasesSet[0].IsRandomized == 'Y' ? "Y" : "N";
 
             phase2 = phasesSet[1].IsEnabled == 'Y';
-            phase2IsRandomized = phasesSet[1].IsRandomized == 'Y' ? "Y" : "N";
+            phase2IsRandomized = phasesSet[1].IsRandomized == null ? "S" : phasesSet[1].IsRandomized == 'Y' ? "Y" : "N";
 
             phase3 = phasesSet[2].IsEnabled == 'Y';
-            phase3IsRandomized = phasesSet[2].IsRandomized == 'Y' ? "Y" : "N";
+            phase3IsRandomized = phasesSet[2].IsRandomized == null ? "S" : phasesSet[2].IsRandomized == 'Y' ? "Y" : "N";
 
             phase4 = phasesSet[3].IsEnabled == 'Y';
-            phase4IsRandomized = phasesSet[3].IsRandomized == 'Y' ? "Y" : "N";
+            phase4IsRandomized = phasesSet[3].IsRandomized == null ? "S" : phasesSet[3].IsRandomized == 'Y' ? "Y" : "N";
         }
         else
         {
@@ -326,25 +326,25 @@
             if (phasesSet[0] != null)
             {
                 phasesSet[0].IsEnabled = phase1 ? 'Y' : 'N';
-                phasesSet[0].IsRandomized = phase1IsRandomized == "Y" ? 'Y' : 'N';
+                phasesSet[0].IsRandomized = phase1IsRandomized == "Y" ? 'Y' : phase1IsRandomized == "N" ? 'N' : null;
             }
 
             if (phasesSet[1] != null)
             {
                 phasesSet[1].IsEnabled = phase2 ? 'Y' : 'N';
-                phasesSet[1].IsRandomized = phase2IsRandomized == "Y" ? 'Y' : 'N';
+                phasesSet[1].IsRandomized = phase2IsRandomized == "Y" ? 'Y' : phase2IsRandomized == "N" ? 'N' : null;
             }
 
             if (phasesSet[2] != null)
             {
                 phasesSet[2].IsEnabled = phase3 ? 'Y' : 'N';
-                phasesSet[2].IsRandomized = phase3IsRandomized == "Y" ? 'Y' : 'N';
+                phasesSet[2].IsRandomized = phase3IsRandomized == "Y" ? 'Y' : phase3IsRandomized == "N" ? 'N' : null;
             }
 
             if (phasesSet[3] != null)
             {
                 phasesSet[3].IsEnabled = phase4 ? 'Y' : 'N';
-                phasesSet[3].IsRandomized = phase4IsRandomized == "Y" ? 'Y' : 'N';
+                phasesSet[3].IsRandomized = phase4IsRandomized == "Y" ? 'Y' : phase4IsRandomized == "N" ? 'N' : null;
             }
 
             bool saveResult = await protocolMappingService.SaveProtocolMapping(currentProtocolMap, phasesSet);
