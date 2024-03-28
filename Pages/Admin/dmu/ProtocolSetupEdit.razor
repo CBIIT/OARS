@@ -232,7 +232,7 @@
         </Column>
     </Row>
 </Div>
-@code {
+ @code {
     [Inject] IProfileService profileService { get; set; } = null!;
     [Inject] IProtocolDataSystemService protocolDataSystemService { get; set; } = null!;
     [Inject] IProtocolMappingService protocolMappingService { get; set; } = null!;
@@ -276,8 +276,32 @@
     protected override async Task OnInitializedAsync()
     {
         this.currentProtocolMap = await protocolMappingService.GetProtocolMapping(protocolMappingId);
+        this.phasesSet = await protocolPhaseService.GetProtocolMappingPhases(protocolMappingId);
+        applyPhases();
         await InitializedAsync();
         await base.OnInitializedAsync();
+    }
+
+    protected void applyPhases()
+    {
+        if (phasesSet.Count > 0)
+        {
+            phase1 = phasesSet[0].IsEnabled == 'Y';
+            phase1IsRandomized = phasesSet[0].IsRandomized == null ? "S" : phasesSet[0].IsRandomized == 'Y' ? "Y" : "N";
+
+            phase2 = phasesSet[1].IsEnabled == 'Y';
+            phase2IsRandomized = phasesSet[1].IsRandomized == null ? "S" : phasesSet[1].IsRandomized == 'Y' ? "Y" : "N";
+
+            phase3 = phasesSet[2].IsEnabled == 'Y';
+            phase3IsRandomized = phasesSet[2].IsRandomized == null ? "S" : phasesSet[2].IsRandomized == 'Y' ? "Y" : "N";
+
+            phase4 = phasesSet[3].IsEnabled == 'Y';
+            phase4IsRandomized = phasesSet[3].IsRandomized == null ? "S" : phasesSet[3].IsRandomized == 'Y' ? "Y" : "N";
+        }
+        else
+        {
+            for (int i = 0; i < 4; i++) phasesSet.Add(new ProtocolPhase { IsEnabled = 'N', IsRandomized = 'S' });
+        }
     }
 
     protected async Task InitializedAsync()
@@ -299,29 +323,29 @@
 
         if (formValid)
         {
-            phasesSet.Add(new ProtocolPhase
+            if (phasesSet[0] != null)
             {
-                IsEnabled = phase1 ? 'Y' : 'N',
-                IsRandomized = phase1IsRandomized == "Y" ? 'Y' : 'N',
-            });
+                phasesSet[0].IsEnabled = phase1 ? 'Y' : 'N';
+                phasesSet[0].IsRandomized = phase1IsRandomized == "Y" ? 'Y' : phase1IsRandomized == "N" ? 'N' : null;
+            }
 
-            phasesSet.Add(new ProtocolPhase
+            if (phasesSet[1] != null)
             {
-                IsEnabled = phase2 ? 'Y' : 'N',
-                IsRandomized = phase2IsRandomized == "Y" ? 'Y' : 'N',
-            });
+                phasesSet[1].IsEnabled = phase2 ? 'Y' : 'N';
+                phasesSet[1].IsRandomized = phase2IsRandomized == "Y" ? 'Y' : phase2IsRandomized == "N" ? 'N' : null;
+            }
 
-            phasesSet.Add(new ProtocolPhase
+            if (phasesSet[2] != null)
             {
-                IsEnabled = phase3 ? 'Y' : 'N',
-                IsRandomized = phase3IsRandomized == "Y" ? 'Y' : 'N',
-            });
+                phasesSet[2].IsEnabled = phase3 ? 'Y' : 'N';
+                phasesSet[2].IsRandomized = phase3IsRandomized == "Y" ? 'Y' : phase3IsRandomized == "N" ? 'N' : null;
+            }
 
-            phasesSet.Add(new ProtocolPhase
+            if (phasesSet[3] != null)
             {
-                IsEnabled = phase4 ? 'Y' : 'N',
-                IsRandomized = phase4IsRandomized == "Y" ? 'Y' : 'N',
-            });
+                phasesSet[3].IsEnabled = phase4 ? 'Y' : 'N';
+                phasesSet[3].IsRandomized = phase4IsRandomized == "Y" ? 'Y' : phase4IsRandomized == "N" ? 'N' : null;
+            }
 
             bool saveResult = await protocolMappingService.SaveProtocolMapping(currentProtocolMap, phasesSet);
             if (saveResult)
