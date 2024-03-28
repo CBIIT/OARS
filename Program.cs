@@ -64,6 +64,7 @@ builder.Services.AddScoped<IXMLFileImportService, XMLFileImportService>();
 builder.Services.AddScoped<IProtocolPhaseService, ProtocolPhaseService>();
 builder.Services.AddScoped<IProtocolEDCFormService, ProtocolEDCFormService>();
 builder.Services.AddScoped<IProtocolAgentService, ProtocolAgentService>();
+builder.Services.AddScoped<IProtocolSubGroupService, ProtocolSubGroupService>();
 builder.Services.AddHttpClient<IOktaService, OktaService>(client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["Okta:Issuer"]);
