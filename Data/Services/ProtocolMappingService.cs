@@ -102,6 +102,32 @@ namespace TheradexPortal.Data.Services
                     currentMapping.DateFormat = mapping.DateFormat;
                     currentMapping.DataFileFolder = mapping.DataFileFolder;
                     context.Update(currentMapping);
+
+                    if (phasesSet != null && phasesSet.Count > 0)
+                    {
+                        foreach (ProtocolPhase phase in phasesSet)
+                        {
+                            ProtocolPhase currentPhase = context.ProtocolPhases.Where(p => p.ProtocolPhaseId == phase.ProtocolPhaseId && p.ProtocolMappingId == mapping.ProtocolMappingId).FirstOrDefault();
+                            if (currentPhase == null || currentPhase.CreateDate == null)
+                            {
+                                phase.CreateDate = currentDateTime;
+                                phase.ProtocolMappingId = currentMapping.ProtocolMappingId;
+                                phase.IsRandomized = phase.IsRandomized;
+                                phase.IsEnabled = phase.IsEnabled;
+                                phase.UpdateDate = currentDateTime;
+                                context.Add(phase);
+                            }
+                            else
+                            {
+                                currentPhase.IsRandomized = phase.IsRandomized;
+                                currentPhase.IsEnabled = phase.IsEnabled;
+                                currentPhase.UpdateDate = currentDateTime;
+                                context.Update(currentPhase);
+                            }
+                        }
+                        await context.SaveChangesAsync();
+                    }
+
                     await context.SaveChangesAsync();
                 }
                 return true;
