@@ -35,10 +35,14 @@
          </DataGridSelectColumn>
          <DataGridColumn Caption="Data Category" Width="15%" Editable>
             <DisplayTemplate>
-                @context?.ThorField?.Category?.ThorDataCategoryId
+                @context?.ThorDataCategoryId
             </DisplayTemplate>
             <EditTemplate>
-                <SelectList TItem="ThorCategory" TValue="string" Data="@categoryList" TextField="@((item)=>item.CategoryName)" ValueField="@((item)=>item.ThorDataCategoryId)" SelectedValueChanged="OnSelectedCategoryValueChanged" DefaultItemText="Select the THOR DataCategory"></SelectList>
+                <SelectList TItem="ThorCategory" TValue="string" Data="@categoryList" TextField="@((item)=>item.CategoryName)" ValueField="@((item)=>item.ThorDataCategoryId)" SelectedValueChanged="@(e =>
+                                    {
+                                        context.Item.ThorDataCategoryId = Convert.ToString(e);
+                                        OnSelectedCategoryValueChanged(context.Item.ThorDataCategoryId);
+                                    })" SelectedValue="@(context.Item.ThorDataCategoryId)" DefaultItemText="Select the THOR DataCategory"></SelectList>
             </EditTemplate>
          </DataGridColumn>
          <DataGridColumn Caption="Field" Width="15%" Filterable="true" Editable>

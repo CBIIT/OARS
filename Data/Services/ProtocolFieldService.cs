@@ -52,6 +52,10 @@ namespace TheradexPortal.Data.Services
         {
 
             var protocolFields = await context.ProtocolField.Include(x => x.ThorField).ThenInclude(y => y.Category).Where(pf => pf.ProtocolMappingId == mappingId).ToListAsync();
+            foreach (var protocolField in protocolFields)
+            {
+                protocolField.ThorDataCategoryId = protocolField.ThorField.Category.ThorDataCategoryId;
+            }
 
             return protocolFields;
         }

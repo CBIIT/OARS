@@ -30,5 +30,8 @@ namespace TheradexPortal.Data.Models
         public ProtocolMapping ProtocolMapping { get; set; }
         [ForeignKey(nameof(ThorFieldId))]
         public ThorField ThorField { get; set; }
+
+        [NotMapped]
+        public string ThorDataCategoryId { get; set; }
     }
 }
