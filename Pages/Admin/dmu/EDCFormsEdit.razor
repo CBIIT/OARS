@@ -49,9 +49,9 @@
             <ClearFilterCommandTemplate>
                 <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
             </ClearFilterCommandTemplate>
-            <DeleteCommandTemplate>
-                <Button Color="Color.Danger" Clicked="@(() => DeleteRow(context))">Delete</Button>
-            </DeleteCommandTemplate>
+             <DeleteCommandTemplate>
+                 <Button><Icon Name="IconName.Delete" Clicked="@(() => DeleteRow(context))" /></Button>
+             </DeleteCommandTemplate>
         </DataGridCommandColumn>
      </DataGridColumns>
      <ButtonRowTemplate>
