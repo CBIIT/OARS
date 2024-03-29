@@ -53,7 +53,7 @@
                                         <Image Source="img/notification-icon.png" height="@iconHeight" Class="nci-alert-icon" />
                                     </BarDropdownToggle>
                                     <BarDropdownMenu Class="nci-alert-dropdown">
-                                         <AlertBar @ref="@systemNotes" Note System NoAlertsMessage Toggleable AlertsCountChanged=SystemNotesCountChanged AlertBarToggled=ToggleSystemNotesDropdownFromAlertBar CSS="nci-alert-component" />
+                                         <AlertBar @ref="@systemNotes" Note System NoAlertsMessage Toggleable AlertsCountChanged=SystemNotesCountChanged AlertBarToggled=ToggleSystemNotesDropdown CSS="nci-alert-component" />
                                     </BarDropdownMenu>
                                 </BarDropdown>
                             </Tooltip>
@@ -312,15 +312,15 @@
     {
         primaryNav.RefreshMenu();
     }
-    
+
     protected async Task SystemAlertsCountChanged(int count)
     {
         this.systemAlertsCount = count;
 
         if (this.systemAlertsCount < 1)
         {
-            this.systemAlertsTooltip = this.noSystemAlertsMessage;
             await this.alertBarDropDown!.Hide();
+            this.systemAlertsTooltip = this.noSystemAlertsMessage;
         }
         else
         {
@@ -355,33 +355,35 @@
     {
         if (this.systemAlertsDropdownVisible)
         {
-            await this.alertBarDropDown!.Hide();
-            await SessionData.SetAsync("systemAlertsDropdownDismissed", dismissed);
-            this.systemAlertsDropdownVisible = false;
+            await this.HideSystemAlertsDropdown();
         }
         else
         {
-            await this.alertBarDropDown!.Show();
-            await SessionData.SetAsync("systemAlertsDropdownVisible", visible);
-            this.systemAlertsDropdownVisible = true;
+            if (this.systemNotesDropdownVisible)
+            {
+                await this.HideSystemNotesDropdown();
+            }
+
+            await this.ShowSystemAlertsDropdown();
         }
     }
 
-    // protected async Task ToggleSystemNotesDropdown()
-    // {
-    //     if (this.systemNotesDropdownVisible)
-    //     {
-    //         await this.noteBarDropDown!.Hide();
-    //         this.systemNotesDropdownVisible = false;
-    //         await SessionData.SetAsync("systemNotesDropdownVisible", 0);
-    //     }
-    //     else
-    //     {
-    //         await this.noteBarDropDown!.Show();
-    //         this.systemNotesDropdownVisible = true;
-    //         await SessionData.SetAsync("systemNotesDropdownVisible", 1);
-    //     }
-    // }
+    protected async Task ToggleSystemNotesDropdown()
+    {
+        if (this.systemNotesDropdownVisible)
+        {
+            await this.HideSystemNotesDropdown();
+        }
+        else
+        {
+            if (this.systemAlertsDropdownVisible)
+            {
+                await this.HideSystemAlertsDropdown();
+            }
+
+            await this.ShowSystemNotesDropdown();
+        }
+    }
 
     protected async Task ToggleSystemAlertsDropdownFromAlertBar()
     {
@@ -390,7 +392,35 @@
 
     protected async Task ToggleSystemNotesDropdownFromAlertBar()
     {
-        //await this.ToggleSystemNotesDropdown();
+        await this.ToggleSystemNotesDropdown();
+    }
+
+    protected async Task ShowSystemAlertsDropdown()
+    {
+        this.systemAlertsDropdownVisible = true;
+        await SessionData.SetAsync("systemAlertsDropdownVisible", visible);
+        await this.alertBarDropDown!.Show();
+    }
+
+    protected async Task HideSystemAlertsDropdown()
+    {
+        this.systemAlertsDropdownVisible = false;
+        await SessionData.SetAsync("systemAlertsDropdownDismissed", dismissed);
+        await this.alertBarDropDown!.Hide();
+    }
+
+    protected async Task ShowSystemNotesDropdown()
+    {
+        this.systemNotesDropdownVisible = true;
+        await SessionData.SetAsync("systemNotesDropdownVisible", visible);
+        await this.noteBarDropDown!.Show();
+    }
+
+    protected async Task HideSystemNotesDropdown()
+    {
+        this.systemNotesDropdownVisible = false;
+        await SessionData.SetAsync("systemNotesDropdownVisible", dismissed);
+        await this.noteBarDropDown!.Hide();
     }
 
     private Task OnModalClosing(ModalClosingEventArgs e)
