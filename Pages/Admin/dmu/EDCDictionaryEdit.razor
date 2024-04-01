@@ -27,7 +27,8 @@
            EditMode="DataGridEditMode.Inline"
            RowUpdated="@Save"
            RowInserted="@Save"
-           RowRemoved="@Delete">
+           RowRemoved="@Delete"
+           RowRemoving="@ConfirmDelete">
      <DataGridColumns>
          <DataGridColumn Width="15%" Caption="EDC Form ID" Filterable="true" Sortable="false" Editable>
         </DataGridColumn>
@@ -66,6 +67,7 @@
     [Inject] private IProtocolEDCDictionaryService protocolDictionaryService { get; set; } = null!;
     [Inject] private NavigationManager navigation { get; set; } = null!;
     [Inject] INotificationService notificationService { get; set; }
+    [Inject] private IMessageService messageService { get; set; } = null!;
     [Parameter] public int protocolMappingId { get; set; }
 
     private DataGrid<ProtocolEDCDictionary> dataGridRef;
@@ -92,6 +94,17 @@
             await notificationService.Error("Error saving dictionary");
             return;
         }
+    }
+
+
+    public async Task<CancellableRowChange<ProtocolEDCDictionary>> ConfirmDelete(CancellableRowChange<ProtocolEDCDictionary> item)
+    {
+        if (!await messageService.Confirm("Are you sure you want to delete this dictionary?", "Confirmation"))
+        {
+            item.Cancel = true;
+        }
+
+        return item;
     }
 
     public async void Delete(ProtocolEDCDictionary item)

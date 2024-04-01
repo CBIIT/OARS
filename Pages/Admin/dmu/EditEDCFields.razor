@@ -27,6 +27,7 @@
            EditMode="DataGridEditMode.Inline"
            RowUpdated="@Save"
            RowInserted="@Save"
+           RowRemoving="@ConfirmDelete"
            RowRemoved="@Delete">
      <DataGridColumns>
          <DataGridColumn Width="15%" Caption="EDC Form ID" Filterable="true" Sortable="false" Editable>
@@ -106,6 +107,7 @@
     [Inject] IProtocolEDCFormService protocolEDCFormService { get; set; } = null!;
     [Inject] private NavigationManager navigation { get; set; } = null!;
     [Inject] INotificationService notificationService { get; set; }
+    [Inject] private IMessageService messageService { get; set; } = null!;
     [Parameter] public int protocolMappingId { get; set; }
 
     private DataGrid<ProtocolEDCField> dataGridRef;
@@ -136,6 +138,16 @@
             await notificationService.Error("Error saving field");
             return;
         }
+    }
+
+    public async Task<CancellableRowChange<ProtocolEDCField>> ConfirmDelete(CancellableRowChange<ProtocolEDCField> item)
+    {
+        if (!await messageService.Confirm("Are you sure you want to delete this field?", "Confirmation"))
+        {
+            item.Cancel = true;
+        }
+
+        return item;
     }
 
     public async void Delete(ProtocolEDCField item)
