@@ -122,14 +122,14 @@
         return item;
     }
 
-    private async Task<Boolean> DeleteRow(Blazorise.DataGrid.DeleteCommandContext<TheradexPortal.Data.Models.ProtocolEDCForm> deleteRow)
+    private async Task<Boolean> DeleteRow(ProtocolEDCForm deleteRow)
     {
-        bool deleted = await protocolEDCFormService.DeleteProtocolEDCFormId(deleteRow.Item.ProtocolEDCFormId);
+        bool deleted = await protocolEDCFormService.DeleteProtocolEDCFormId(deleteRow.ProtocolEDCFormId);
 
         if (deleted)
         {
             await notificationService.Success("EDC Form successfully deleted!");
-            var currentDeletedRecord = edcFormList.Where(p => p.ProtocolEDCFormId == deleteRow.Item.ProtocolEDCFormId).FirstOrDefault();
+            var currentDeletedRecord = edcFormList.Where(p => p.ProtocolEDCFormId == deleteRow.ProtocolEDCFormId).FirstOrDefault();
             if (currentDeletedRecord != null) edcFormList.Remove(currentDeletedRecord);
             return true;
         }
