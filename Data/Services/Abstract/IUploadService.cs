@@ -18,8 +18,8 @@ namespace TheradexPortal.Data.Services.Abstract
 
         public FileMetadata GetMetadatafile(ETCTNUploadRequest ETCTNUploadRequestModel, UploadFileModel UploadFile, int userId);
 
-        public string GetCsvUploadKey(Guid id);
+        public string GetCsvUploadKey(string id);
 
-        public string GetMetadataFileUploadKey(Guid id);
+        public string GetMetadataFileUploadKey(string id);
     }
 }

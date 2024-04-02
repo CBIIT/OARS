@@ -68,7 +68,8 @@ namespace TheradexPortal.Data.Services
                 new MedidataDictionaryModel{CodedData = "Frederick MoCha Lab", UserData = "Frederick MoCha Lab" },
                 new MedidataDictionaryModel{CodedData = "NCLN Genomics Lab", UserData = "NCLN Genomics Laboratory" },
                 new MedidataDictionaryModel{CodedData = "NCLN PD Assay Lab at MDA", UserData = "NCLN PD Assay Laboratory at MD Anderson" },
-                new MedidataDictionaryModel{CodedData = "Williams Laboratory at City of Hope", UserData = "Williams Laboratory at City of Hope" }
+                new MedidataDictionaryModel{CodedData = "Williams Laboratory at City of Hope", UserData = "Williams Laboratory at City of Hope" },
+                new MedidataDictionaryModel{CodedData = "NCLN Genomics Laboratory  for HER2", UserData = "NCLN Genomics Laboratory for HER2" }
             };
         }
 
@@ -76,8 +77,7 @@ namespace TheradexPortal.Data.Services
         {
             var studies = new List<string>();
 
-            studies.Add("10323(FUNCTEST)");
-            studies.Add("10355(FUNCTEST)");
+            studies.Add("10358(FUNCTEST)");
 
             return studies;
         }
@@ -146,11 +146,11 @@ namespace TheradexPortal.Data.Services
         {
             var metadataFile = new FileMetadata();
 
-            metadataFile.ID = ETCTNUploadRequestModel.ID;
+            metadataFile.RequestId = ETCTNUploadRequestModel.RequestId;
             metadataFile.Assay = ETCTNUploadRequestModel.Assay;
-            metadataFile.Laboratory = ETCTNUploadRequestModel.Laboratory;
+            metadataFile.SourceLab = ETCTNUploadRequestModel.SourceLab;
             metadataFile.CRF = ETCTNUploadRequestModel.CRF;
-            metadataFile.FileName = UploadFile.OriginalFileName;
+            metadataFile.OriginalFileName = UploadFile.OriginalFileName;
             metadataFile.FilePath = UploadFile.S3Key;
             metadataFile.Bucket = _uploadSettings.AWSBucketName;
             metadataFile.Protocol = ETCTNUploadRequestModel.Protocol;
@@ -159,14 +159,14 @@ namespace TheradexPortal.Data.Services
             return metadataFile;
         }
 
-        public string GetCsvUploadKey(Guid id)
+        public string GetCsvUploadKey(string id)
         {
             var dateKey = $"{DateTime.Now.Year}-{DateTime.Now.Month}/{DateTime.Now.Day}";
 
             return $"{_uploadSettings.FilesUploadPath}/{dateKey}/{id}.csv";
         }
 
-        public string GetMetadataFileUploadKey(Guid id)
+        public string GetMetadataFileUploadKey(string id)
         {
             var dateKey = $"{DateTime.Now.Year}-{DateTime.Now.Month}/{DateTime.Now.Day}";
 

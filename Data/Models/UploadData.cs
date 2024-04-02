@@ -6,13 +6,13 @@ namespace TheradexPortal.Data.Models
 {
     public class ETCTNUploadRequest
     {
-        public Guid ID { get; set; }
+        public string RequestId { get; set; }
 
         [Required]
         public string Protocol { get; set; }
 
         [Required]
-        public string Laboratory { get; set; }
+        public string SourceLab { get; set; }
 
         [Required]
         public string CRF { get; set; }
@@ -43,8 +43,8 @@ namespace TheradexPortal.Data.Models
 
     public class FileMetadata
     {
-        [JsonProperty("id")]
-        public Guid ID { get; set; }
+        [JsonProperty("requestId")]
+        public string RequestId { get; set; }
 
         [JsonProperty("userId")]
         public int UserId { get; set; }
@@ -52,8 +52,8 @@ namespace TheradexPortal.Data.Models
         [JsonProperty("protocol")]
         public string Protocol { get; set; }
 
-        [JsonProperty("laboratory")]
-        public string Laboratory { get; set; }
+        [JsonProperty("sourceLab")]
+        public string SourceLab { get; set; }
 
         [JsonProperty("assay")]
         public string Assay { get; set; }
@@ -61,11 +61,11 @@ namespace TheradexPortal.Data.Models
         [JsonProperty("crf")]
         public string CRF { get; set; }
 
-        [JsonProperty("fileName")]
-        public string FileName { get; set; }
-
         [JsonProperty("filePath")]
         public string FilePath { get; set; }
+
+        [JsonProperty("originalFileName")]
+        public string OriginalFileName { get; set; }
 
         [JsonProperty("bucket")]
         public string Bucket { get; set; }
