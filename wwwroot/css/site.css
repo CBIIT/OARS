@@ -96,11 +96,13 @@
 }
 
 .nci-alert-dropdown {
-    width: 600px;
+    width: 31vw;
     height: auto;
-    max-height: 350px;
+    max-height: 40vh;
     overflow-x: auto;
     overflow-y: auto;
+    background-color: transparent;
+    border-color: transparent;
 }
 
 .nci-alert-accordion {
@@ -115,7 +117,7 @@
 
 .nci-alert-scroll-y {
     overflow-y: auto;
-    max-height: 300px;
+    max-height: 30vh;
 }
 
 .nci-alert-icon {

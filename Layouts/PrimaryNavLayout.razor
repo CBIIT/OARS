@@ -48,7 +48,7 @@
                         <BarItem>
                             <Tooltip Text="@systemNotesTooltip">
                                  <BarDropdown RightAligned @ref="@noteBarDropDown" Visible="@systemNotesDropdownVisible">
-                                    <BarDropdownToggle Class="nci-bar-dropdown">
+                                    <BarDropdownToggle Class="nci-bar-dropdown" onclick="@ToggleSystemNotesDropdown">
                                         <Badge Class="nci-note-badge" Pill Position="Position.Absolute.Top.Is50.Start.Is100.Translate.Middle">@systemNotesCount</Badge>
                                         <Image Source="img/notification-icon.png" height="@iconHeight" Class="nci-alert-icon" />
                                     </BarDropdownToggle>
