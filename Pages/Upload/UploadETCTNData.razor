@@ -43,12 +43,31 @@
                         </Validation>
                         <Validation>
                             <Field ColumnSize="ColumnSize.IsThird">
-                                <FieldLabel>Source Lab</FieldLabel>
+                                <FieldLabel>Receiving Site</FieldLabel>
                                 <FieldBody>
-                                    <Select @bind-SelectedValue="@ETCTNUploadRequestModel.SourceLab">
+                                    <Select @bind-SelectedValue="@ETCTNUploadRequestModel.ReceivingSite">
                                         <ChildContent>
                                             <SelectItem TValue="string"></SelectItem>
-                                            @foreach (var item in labs)
+                                            @foreach (var item in trackingDestinations)
+                                            {
+                                                <SelectItem TValue="string" Value="@item.CodedData">@item.UserData</SelectItem>
+                                            }
+                                        </ChildContent>
+                                        <Feedback>
+                                            <ValidationError>Please choose a Lab</ValidationError>
+                                        </Feedback>
+                                    </Select>
+                                </FieldBody>
+                            </Field>
+                        </Validation>
+                        <Validation>
+                            <Field ColumnSize="ColumnSize.IsThird">
+                                <FieldLabel>Source Site</FieldLabel>
+                                <FieldBody>
+                                    <Select @bind-SelectedValue="@ETCTNUploadRequestModel.SourceSite">
+                                        <ChildContent>
+                                            <SelectItem TValue="string"></SelectItem>
+                                            @foreach (var item in trackingDestinations)
                                             {
                                                 <SelectItem TValue="string" Value="@item.CodedData">@item.UserData</SelectItem>
                                             }
@@ -132,7 +151,7 @@
     [Inject] INotificationService NotificationService { get; set; }
 
     List<string> studies = null;
-    List<MedidataDictionaryModel> labs = null;
+    List<MedidataDictionaryModel> trackingDestinations = null;
     List<MedidataDictionaryModel> assays = null;
     List<CRFModel> crfs = null;
 
@@ -147,10 +166,10 @@
 
     protected override async Task OnInitializedAsync()
     {
-        studies = uploadService.GetStudiesToUpload();
-        labs = uploadService.GetLabsToUpload();
-        assays = uploadService.GetAssaysToUpload();
-        crfs = uploadService.GetCRFsToUpload();
+        studies = uploadService.GetStudies();
+        trackingDestinations = uploadService.GeTrackingDestinations();
+        assays = uploadService.GetAssays();
+        crfs = uploadService.GetCRFs();
 
         userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
 

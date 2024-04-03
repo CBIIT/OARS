@@ -24,7 +24,7 @@ namespace TheradexPortal.Data.Services
             _uploadSettings = uploadSettings.Value;
         }
 
-        public List<MedidataDictionaryModel> GetAssaysToUpload()
+        public List<MedidataDictionaryModel> GetAssays()
         {
             return new List<MedidataDictionaryModel>
             {
@@ -40,7 +40,7 @@ namespace TheradexPortal.Data.Services
             };
         }
 
-        public List<CRFModel> GetCRFsToUpload()
+        public List<CRFModel> GetCRFs()
         {
             return new List<CRFModel>
             {
@@ -52,28 +52,27 @@ namespace TheradexPortal.Data.Services
             };
         }
 
-        public List<MedidataDictionaryModel> GetLabsToUpload()
+        public List<MedidataDictionaryModel> GeTrackingDestinations()
         {
             return new List<MedidataDictionaryModel>
             {
-                new MedidataDictionaryModel{CodedData = "MDACC Tissue Qualification Laboratory (TQL) for HER2", UserData = "MDACC Tissue Qualification Laboratory (TQL) for HER2"},
-                new MedidataDictionaryModel{CodedData = "NCLN Genomics Laboratory at MD Anderson for WES & RNAseq", UserData = "NCLN Genomics Laboratory at MD Anderson for WES & RNAseq" },
-                new MedidataDictionaryModel{CodedData = "Paulovich Laboratory, Fred Hutchinson Cancer Research Center(FHCRC)", UserData = "Paulovich Laboratory,  Fred Hutchinson Cancer Research Center (FHCRC)" },
-                new MedidataDictionaryModel{CodedData = "PPD Laboratories", UserData = "PPD Laboratories" },
-                new MedidataDictionaryModel{CodedData = "Cancer Pharmacokinetics and Pharmacodynamics Facility University of Pittsburgh Cancer Institute", UserData = "Cancer Pharmacokinetics and Pharmacodynamics FacilityUniversity of Pittsburgh Cancer Institute" },
-                new MedidataDictionaryModel{CodedData = "Kaufmann Laboratory Department of Molecular Pharmacology and Experimental Therapeutics Mayo Clinic", UserData = "Kaufmann Laboratory Department of Molecular Pharmacology and Experimental Therapeutics Mayo Clinic" },
-                new MedidataDictionaryModel{CodedData = "PADIS FNLCR", UserData = "PADIS FNLCR" },
-                new MedidataDictionaryModel{CodedData = "NCLN PD Assay Laboratory at MD Anderson", UserData = "NCLN PD Assay Laboratory at MD Anderson" },
-                new MedidataDictionaryModel{CodedData = "EET Biobank", UserData = "EET Biobank" },
-                new MedidataDictionaryModel{CodedData = "Frederick MoCha Lab", UserData = "Frederick MoCha Lab" },
-                new MedidataDictionaryModel{CodedData = "NCLN Genomics Lab", UserData = "NCLN Genomics Laboratory" },
-                new MedidataDictionaryModel{CodedData = "NCLN PD Assay Lab at MDA", UserData = "NCLN PD Assay Laboratory at MD Anderson" },
-                new MedidataDictionaryModel{CodedData = "Williams Laboratory at City of Hope", UserData = "Williams Laboratory at City of Hope" },
-                new MedidataDictionaryModel{CodedData = "NCLN Genomics Laboratory  for HER2", UserData = "NCLN Genomics Laboratory for HER2" }
+               new MedidataDictionaryModel{CodedData="EET Biobank", UserData ="EET Biobank"},
+               new MedidataDictionaryModel{CodedData="NCLN Genomics Laboratory for HER2", UserData ="NCLN Genomics Laboratory  for HER2"},
+               new MedidataDictionaryModel{CodedData="NCLN Genomics Laboratory at MD Anderson for WES &amp; RNAseq", UserData ="NCLN Genomics Laboratory at MD Anderson for WES &amp; RNAseq"},
+               new MedidataDictionaryModel{CodedData="Paulovich Laboratory,  Fred Hutchinson Cancer Research Center (FHCRC)", UserData ="Paulovich Laboratory,  Fred Hutchinson Cancer Research Center (FHCRC)"},
+               new MedidataDictionaryModel{CodedData="PPD Laboratories", UserData ="PPD Laboratories"},
+               new MedidataDictionaryModel{CodedData="NCLN PD Assay Laboratory at MD Anderson", UserData ="NCLN PD Assay Laboratory at MD Anderson"},
+               new MedidataDictionaryModel{CodedData="Kopetz Laboratory, Department of Gastrointestinal Medical Oncology", UserData ="Kopetz Laboratory, Department of Gastrointestinal Medical Oncology, MD Anderson Cancer Center"},
+               new MedidataDictionaryModel{CodedData="Covance Central Laboratory Services", UserData ="Covance Central Laboratory Services"},
+               new MedidataDictionaryModel{CodedData="Frederick MoCha Lab", UserData ="Frederick MoCha Lab"},
+               new MedidataDictionaryModel{CodedData="NCLN PD Assay Lab at Molecular Path Network", UserData ="NCLN PD Assay Lab at Molecular Path Network"},
+               new MedidataDictionaryModel{CodedData="PADIS Lab at Frederick", UserData ="PADIS Lab at Frederick"},
+               new MedidataDictionaryModel{CodedData="NCLN Genomics Laboratory at MDA", UserData ="NCLN Genomics Laboratory at MDA"},
+               new MedidataDictionaryModel{CodedData="MDACC Tissue Qualification Laboratory (TQL)", UserData ="MDACC Tissue Qualification Laboratory (TQL)" }
             };
         }
 
-        public List<string> GetStudiesToUpload()
+        public List<string> GetStudies()
         {
             var studies = new List<string>();
 
@@ -148,7 +147,8 @@ namespace TheradexPortal.Data.Services
 
             metadataFile.RequestId = ETCTNUploadRequestModel.RequestId;
             metadataFile.Assay = ETCTNUploadRequestModel.Assay;
-            metadataFile.SourceLab = ETCTNUploadRequestModel.SourceLab;
+            metadataFile.SourceSite = ETCTNUploadRequestModel.SourceSite;
+            metadataFile.ReceivingSite = ETCTNUploadRequestModel.ReceivingSite;
             metadataFile.CRF = ETCTNUploadRequestModel.CRF;
             metadataFile.OriginalFileName = UploadFile.OriginalFileName;
             metadataFile.FilePath = UploadFile.S3Key;

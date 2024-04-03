@@ -4,13 +4,13 @@ namespace TheradexPortal.Data.Services.Abstract
 {
     public interface IUploadService
     {
-        public List<string> GetStudiesToUpload();
+        public List<string> GetStudies();
 
-        public List<MedidataDictionaryModel> GetAssaysToUpload();
+        public List<MedidataDictionaryModel> GetAssays();
 
-        public List<MedidataDictionaryModel> GetLabsToUpload();
+        public List<MedidataDictionaryModel> GeTrackingDestinations();
 
-        public List<CRFModel> GetCRFsToUpload();
+        public List<CRFModel> GetCRFs();
 
         public Task<bool> UploadCsvFileToS3(string key, int userId, MemoryStream memoryStream);
 
