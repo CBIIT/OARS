@@ -22,19 +22,13 @@
                       ShowPager
                       ShowPageSizes
                        MaxPaginationLinks="5"
-                       PagerPosition="DataGridPagerPosition.Bottom"
-                       PagerOptions="new(){ButtonSize=Size.Default,
-                                PaginationPosition=PagerElementPosition.Default,
-                                TotalItemsPosition=PagerElementPosition.End,
-                                }"
                        PageSize="100"
                       FixedHeader
-                       FixedHeaderDataGridHeight="calc(100vh - 240px)"
-                       FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
                        RowStyling="@OnRowStyling"
                        SelectedRowStyling="@OnSelectedRowStyling"
                        CommandMode="DataGridCommandMode.ButtonRow">
                  <DataGridColumns>
+                     <DataGridColumn Width="100px" Field="@nameof(ReceivingStatusFileData.RowNo)" Caption="#" />
                      <DataGridColumn Width="100px" Field="RowData.SubjectID" Caption="SubjectID" />
                      <DataGridColumn Width="100px" Field="RowData.SpecimenId" Caption="SpecimenId" />
                      <DataGridColumn Width="100px" Field="RowData.SubspecimenID" Caption="SubspecimenID" />
@@ -44,11 +38,20 @@
                      <DataGridColumn Width="100px" Field="RowData.ExplanatoryReason" Caption="ExplanatoryReason" />
                      <DataGridColumn Width="100px" Field="RowData.OtherReason" Caption="OtherReason" />
                      <DataGridColumn Width="100px" Field="@nameof(ReceivingStatusFileData.Status)" Caption="Status" />
-                     <DataGridColumn Width="100px" Field="@nameof(ReceivingStatusFileData.ClientError)" Caption="Error" />
                  </DataGridColumns>
+                 <ButtonRowTemplate>
+                     <Button Color="Color.Primary" Clicked="@OnRefresh">Refresh</Button>
+                     <Button Color="Color.Danger" Clicked="@OnHideModal">Cancel</Button>
+                 </ButtonRowTemplate>
+                 <EmptyTemplate>
+                     <div class="box">
+                         No Upload requests were found!
+                     </div>
+                 </EmptyTemplate>
              </DataGrid>
          </ModalBody>
-         <ModalFooter></ModalFooter>
+         <ModalFooter>
+         </ModalFooter>
      </ModalContent>
  </Modal>
 
@@ -60,9 +63,13 @@
 
     private IList<ReceivingStatusFileData> fileData = new List<ReceivingStatusFileData>();
 
+    private string requestIdToFetch = string.Empty;
+
     public async Task ShowFileData(string requestId, string crf)
     {
-        fileData = await uploadService.GetReceivingStatusFileData(requestId);
+        this.requestIdToFetch = requestId;
+
+        await OnRefresh();
 
         showModal();
     }
@@ -73,8 +80,24 @@
         ETCTNFileDataModal!.Show();
     }
 
+    private Task OnHideModal()
+    {
+        return ETCTNFileDataModal.Hide();
+    }
+
+    private async Task OnRefresh()
+    {
+        fileData = await uploadService.GetReceivingStatusFileData(requestIdToFetch);
+    }
+
     private void OnRowStyling(ReceivingStatusFileData fileData, DataGridRowStyling styling)
     {
+        if (fileData.Status == "Failed")
+            styling.Style = "color: #F08080;";
+        else if (fileData.Status == "Success")
+            styling.Style = "color: lightgreen;";
+        else
+            styling.Style = "color: lightyellow;";
     }
 
     private void OnSelectedRowStyling(ReceivingStatusFileData fileData, DataGridRowStyling styling)

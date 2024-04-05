@@ -10,62 +10,60 @@
 @inject IHttpContextAccessor httpContextAccessor
 @inject IOptions<UploadSettings> uploadSettings;
 
-<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1 mb-3"><h2>Upload Status</h2></Div>
-
+<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>Upload Status</h2></Div>
 <Divider />
-<Div Flex="Flex.AlignItems.Start" Margin="Margin.Is3.FromBottom" Background="Background.Light">
-    <Div Padding="Padding.Is4" Style="@flexContainerStyle">
-        <Row Background="Background.Light">
-            <Column ColumnSize="ColumnSize.IsFull">
-                <DataGrid TItem="FileIngestRequest"
-                          Class="admindatagrid"
-                          Data="@fileIngestRequests"
-                          Responsive
-                          Striped
-                          ShowPager
-                          ShowPageSizes
-                           MaxPaginationLinks="5"
-                           PagerPosition="DataGridPagerPosition.Bottom"
-                           PagerOptions="new(){ButtonSize=Size.Default,
+
+<Row Background="Background.Light">
+    <Column ColumnSize="ColumnSize.IsFull">
+        <DataGrid TItem="FileIngestRequest"
+                  Class="admindatagrid"
+                  Data="@fileIngestRequests"
+                  Responsive
+                  Striped
+                  ShowPager
+                  ShowPageSizes
+                   MaxPaginationLinks="5"
+                   PagerPosition="DataGridPagerPosition.Bottom"
+                   PagerOptions="new(){ButtonSize=Size.Default,
                                 PaginationPosition=PagerElementPosition.Default,
                                 TotalItemsPosition=PagerElementPosition.End,
                                 }"
-                           PageSize="100"
-                          FixedHeader
-                           FixedHeaderDataGridHeight="calc(100vh - 240px)"
-                           FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
-                           RowStyling="@OnRowStyling"
-                           SelectedRowStyling="@OnSelectedRowStyling"
-                           CommandMode="DataGridCommandMode.ButtonRow">
-                     <DataGridColumns>
-                         <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.RequestId)" Caption="Request Id" />
-                         <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.Protocol)" Caption="Protocol" />
-                         <DataGridColumn Width="100px" Field="Metadata.CRF" Caption="CRF" />
-                         <DataGridColumn Width="100px" Field="Metadata.SourceSite" Caption="Source Site" />
-                         <DataGridColumn Width="100px" Field="Metadata.ReceivingSite" Caption="Receiving Site" />
-                         <DataGridColumn Width="100px" Field="Metadata.Assay" Caption="Assay" />
-                         <DataGridColumn Width="100px" Field="Metadata.OriginalFileName" Caption="File Name" />
-                         <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.Status)" Caption="Status" />
-                         <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.ClientError)" Caption="Error" />
-                         <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.CreatedDate)" Caption="Uploaded Date" />
-                         <DataGridColumn Width="125px" Field="@nameof(FileIngestRequest.RequestId)" Caption="View">
-                             <DisplayTemplate>
-                                 <div @onclick:stopPropagation="true" @onclick:preventDefault="true">
-                                     <Button Color="Color.Info" Size="Size.Small" Clicked="@(()=>OnViewClicked(context as FileIngestRequest))">
-                                         View
-                                     </Button>
-                                 </div>
-                             </DisplayTemplate>
-                         </DataGridColumn>
-                     </DataGridColumns>
-                 </DataGrid>
-             </Column>
-         </Row>
-     </Div>
- </Div>
+                   PageSize="100"
+                  FixedHeader
+                   FixedHeaderDataGridHeight="calc(100vh - 240px)"
+                   FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
+                   RowStyling="@OnRowStyling"
+                   SelectedRowStyling="@OnSelectedRowStyling"
+                   CommandMode="DataGridCommandMode.ButtonRow">
+             <DataGridColumns>
+                 <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.RequestId)" Caption="Request Id" />
+                 <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.Protocol)" Caption="Protocol" />
+                 <DataGridColumn Width="100px" Field="Metadata.CRF" Caption="CRF" />
+                 <DataGridColumn Width="100px" Field="Metadata.SourceSite" Caption="Source Site" />
+                 <DataGridColumn Width="100px" Field="Metadata.ReceivingSite" Caption="Receiving Site" />
+                 <DataGridColumn Width="100px" Field="Metadata.Assay" Caption="Assay" />
+                 <DataGridColumn Width="100px" Field="Metadata.OriginalFileName" Caption="File Name" />
+                 <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.Status)" Caption="Status" />
+                 <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.ClientError)" Caption="Error" />
+                 <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.CreatedDate)" Caption="Uploaded Date" />
+                 <DataGridColumn Width="125px" Field="@nameof(FileIngestRequest.RequestId)" Caption="View">
+                     <DisplayTemplate>
+                         <div @onclick:stopPropagation="true" @onclick:preventDefault="true">
+                             <Button Color="Color.Info" Size="Size.Small" Clicked="@(()=>OnViewClicked(context as FileIngestRequest))">
+                                 View
+                             </Button>
+                         </div>
+                     </DisplayTemplate>
+                 </DataGridColumn>
+             </DataGridColumns>
+             <ButtonRowTemplate>
+                 <Button Color="Color.Primary" Clicked="@OnRefresh">Refresh</Button>
+             </ButtonRowTemplate>
+         </DataGrid>
+     </Column>
+ </Row>
 
  <UploadETCTNFileData @ref="uploadETCTNFileData" />
-
 
  @code {
 
@@ -86,7 +84,7 @@
     {
         userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
 
-        this.fileIngestRequests = await uploadService.GetAllRequestsOfUser(userId.Value);
+        await OnRefresh();
 
         await base.OnInitializedAsync();
     }
@@ -102,6 +100,11 @@
     {
         return uploadETCTNFileData?.ShowFileData(request.RequestId, request.Metadata.CRF);
 
+    }
+
+    private async Task OnRefresh()
+    {
+        this.fileIngestRequests = await uploadService.GetAllRequestsOfUser(userId.Value);
     }
 
     private void OnRowStyling(FileIngestRequest request, DataGridRowStyling styling)
