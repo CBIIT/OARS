@@ -8,6 +8,8 @@ using Amazon;
 using System.Text;
 using Microsoft.Extensions.Options;
 using TheradexPortal.Data.Models.Configuration;
+using Amazon.DynamoDBv2.DataModel;
+using Amazon.DynamoDBv2.DocumentModel;
 
 namespace TheradexPortal.Data.Services
 {
@@ -171,6 +173,24 @@ namespace TheradexPortal.Data.Services
             var dateKey = $"{DateTime.Now.Year}-{DateTime.Now.Month}/{DateTime.Now.Day}";
 
             return $"{_uploadSettings.MetadataUploadPath}/{dateKey}/{id}.json";
+        }
+
+        public async Task<List<FileIngestRequest>?> GetAllRequestsOfUser(int userId)
+        {
+            var service = new DynamoDbService();
+
+            var requests = await service.GetAllRequestsOfUser(userId);
+
+            return requests;
+        }
+
+        public async Task<List<ReceivingStatusFileData>?> GetReceivingStatusFileData(string requestId)
+        {
+            var service = new DynamoDbService();
+
+            var requests = await service.GetAllReceivingStatusData(requestId);
+
+            return requests;
         }
     }
 }

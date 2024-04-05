@@ -21,5 +21,9 @@ namespace TheradexPortal.Data.Services.Abstract
         public string GetCsvUploadKey(string id);
 
         public string GetMetadataFileUploadKey(string id);
+
+        public Task<List<FileIngestRequest>?> GetAllRequestsOfUser(int userId);
+
+        public Task<List<ReceivingStatusFileData>?> GetReceivingStatusFileData(string requestId);
     }
 }

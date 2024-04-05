@@ -1,0 +1,84 @@
+﻿@using System.Diagnostics.CodeAnalysis
+@using Microsoft.Extensions.Options
+@using Newtonsoft.Json
+@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@using TheradexPortal.Data.Models.Configuration;
+@inject IHttpContextAccessor httpContextAccessor
+
+<Modal @ref="ETCTNFileDataModal">
+    <ModalContent Size="ModalSize.ExtraLarge">
+        <ModalHeader Background="Background.Primary">
+            <ModalTitle TextColor="TextColor.White">Overview</ModalTitle>
+            <CloseButton TextColor="TextColor.White" />
+        </ModalHeader>
+        <ModalBody Class="overview-Modal-Body">
+            <DataGrid TItem="ReceivingStatusFileData"
+                      Class="admindatagrid"
+                      Data="@fileData"
+                      Responsive
+                      Striped
+                      ShowPager
+                      ShowPageSizes
+                       MaxPaginationLinks="5"
+                       PagerPosition="DataGridPagerPosition.Bottom"
+                       PagerOptions="new(){ButtonSize=Size.Default,
+                                PaginationPosition=PagerElementPosition.Default,
+                                TotalItemsPosition=PagerElementPosition.End,
+                                }"
+                       PageSize="100"
+                      FixedHeader
+                       FixedHeaderDataGridHeight="calc(100vh - 240px)"
+                       FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
+                       RowStyling="@OnRowStyling"
+                       SelectedRowStyling="@OnSelectedRowStyling"
+                       CommandMode="DataGridCommandMode.ButtonRow">
+                 <DataGridColumns>
+                     <DataGridColumn Width="100px" Field="RowData.SubjectID" Caption="SubjectID" />
+                     <DataGridColumn Width="100px" Field="RowData.SpecimenId" Caption="SpecimenId" />
+                     <DataGridColumn Width="100px" Field="RowData.SubspecimenID" Caption="SubspecimenID" />
+                     <DataGridColumn Width="100px" Field="RowData.DateReceived" Caption="DateReceived" />
+                     <DataGridColumn Width="100px" Field="RowData.ShippedDate" Caption="ShippedDate" />
+                     <DataGridColumn Width="100px" Field="RowData.SubmissionIsAdequate" Caption="SubmissionIsAdequate" />
+                     <DataGridColumn Width="100px" Field="RowData.ExplanatoryReason" Caption="ExplanatoryReason" />
+                     <DataGridColumn Width="100px" Field="RowData.OtherReason" Caption="OtherReason" />
+                     <DataGridColumn Width="100px" Field="@nameof(ReceivingStatusFileData.Status)" Caption="Status" />
+                     <DataGridColumn Width="100px" Field="@nameof(ReceivingStatusFileData.ClientError)" Caption="Error" />
+                 </DataGridColumns>
+             </DataGrid>
+         </ModalBody>
+         <ModalFooter></ModalFooter>
+     </ModalContent>
+ </Modal>
+
+ @code {
+
+    [Inject] IUploadService uploadService { get; set; } = null!;
+
+    private Modal? ETCTNFileDataModal;
+
+    private IList<ReceivingStatusFileData> fileData = new List<ReceivingStatusFileData>();
+
+    public async Task ShowFileData(string requestId, string crf)
+    {
+        fileData = await uploadService.GetReceivingStatusFileData(requestId);
+
+        showModal();
+    }
+
+    private void showModal()
+    {
+        StateHasChanged();
+        ETCTNFileDataModal!.Show();
+    }
+
+    private void OnRowStyling(ReceivingStatusFileData fileData, DataGridRowStyling styling)
+    {
+    }
+
+    private void OnSelectedRowStyling(ReceivingStatusFileData fileData, DataGridRowStyling styling)
+    {
+        styling.Background = Background.Info;
+    }
+}

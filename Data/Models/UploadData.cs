@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
+using Amazon.DynamoDBv2.DataModel;
 
 namespace TheradexPortal.Data.Models
 {
@@ -158,5 +159,123 @@ namespace TheradexPortal.Data.Models
 
         [JsonProperty("bucket")]
         public string Bucket { get; set; }
+    }
+
+    public class FileIngestRequest
+    {
+        [DynamoDBHashKey]
+        public string RequestId { get; set; }
+
+        [DynamoDBProperty]
+        public int UserId { get; set; }
+
+        [DynamoDBProperty]
+        public string Protocol { get; set; }
+
+        [DynamoDBProperty]
+        public string MetadataFilePath { get; set; }
+
+        [DynamoDBProperty]
+        public string Bucket { get; set; }
+
+        [DynamoDBProperty]
+        public FileMetadata Metadata { get; set; }
+
+        [DynamoDBProperty]
+        public string Status { get; set; }
+
+        [DynamoDBProperty]
+        public string Error { get; set; }
+
+        [DynamoDBProperty]
+        public string ClientError { get; set; }
+
+        [DynamoDBProperty]
+        public int RetryCount { get; set; }
+
+        [DynamoDBProperty]
+        public DateTime CreatedDate { get; set; }
+
+        [DynamoDBProperty]
+        public DateTime UpdatedDate { get; set; }
+    }
+
+    [DynamoDBTable("ReceivingStatusFileData")]
+    public class ReceivingStatusFileData : BaseFileData
+    {
+        [DynamoDBProperty(AttributeName = "RowData")]
+        public ReceivingStatusRowData RowData { get; set; }
+    }
+
+    public class ReceivingStatusRowData
+    {
+        [DynamoDBProperty(AttributeName = "Protocol")]
+        public string Protocol { get; set; }
+
+        [DynamoDBProperty(AttributeName = "SubjectID")]
+        public string SubjectID { get; set; }
+
+        [DynamoDBProperty(AttributeName = "SpecimenID")]
+        public string SpecimenId { get; set; }
+
+        [DynamoDBProperty(AttributeName = "ShippedDate")]
+        public string ShippedDate { get; set; }
+
+        [DynamoDBProperty(AttributeName = "DateReceived")]
+        public string DateReceived { get; set; }
+
+        [DynamoDBProperty(AttributeName = "SubspecimenID")]
+        public string SubspecimenID { get; set; }
+
+        [DynamoDBProperty(AttributeName = "SubmissionIsAdequate")]
+        public string SubmissionIsAdequate { get; set; }
+
+        [DynamoDBProperty(AttributeName = "ExplanatoryReason")]
+        public string ExplanatoryReason { get; set; }
+
+        [DynamoDBProperty(AttributeName = "OtherReason")]
+        public string OtherReason { get; set; }
+    }
+
+    public class BaseFileData
+    {
+        [DynamoDBHashKey]
+        public string RequestItemId { get; set; }
+
+        [DynamoDBProperty]
+        public string RequestId { get; set; }
+
+        [DynamoDBProperty(AttributeName = "RowNo")]
+        public int RowNo { get; set; }
+
+        [DynamoDBProperty]
+        public DateTime CreatedDate { get; set; }
+
+        [DynamoDBProperty]
+        public DateTime UpdatedDate { get; set; }
+
+        [DynamoDBProperty(AttributeName = "Status")]
+        public string Status { get; set; }
+
+        [DynamoDBProperty(AttributeName = "Error")]
+        public string Error { get; set; }
+
+        [DynamoDBProperty(AttributeName = "ClientError")]
+        public string ClientError { get; set; }
+
+        [DynamoDBProperty(AttributeName = "MedidataUpdateReference")]
+        public string MedidataUpdateReference { get; set; }
+
+        [DynamoDBProperty(AttributeName = "MessageId")]
+        public string MessageId { get; set; }
+
+        [DynamoDBProperty(AttributeName = "RetryCount")]
+        public int RetryCount { get; set; }
+
+        [DynamoDBIgnore]
+        public bool IsSent { get; set; }
+
+        [DynamoDBIgnore]
+        public string ODMXml { get; set; }
     }
 }
