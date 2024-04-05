@@ -174,7 +174,35 @@
                         <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Subgroup</TableRowHeader>
                         @foreach (var study in SelectedStudies)
                         {
-                            <TableRowCell>@getDefaultIfEmpty(subgroup("", ""))</TableRowCell>
+                            <TableRowCell>
+                                @*@if (Study Has Multiple Subgroups) *@
+                                    <Accordion Class="overview-accordion">
+                                        <Collapse>
+                                            <CollapseHeader>
+                                                <AccordionToggle>
+                                                    @subgroupExample.Count Subgroups
+                                                </AccordionToggle>
+                                            </CollapseHeader>
+                                            <CollapseBody>
+                                                <Table Hoverable>
+                                                    <TableHeader>
+                                                        <TableHeaderCell>Subgroup</TableHeaderCell>
+                                                        <TableHeaderCell>Description</TableHeaderCell>
+                                                    </TableHeader>
+                                                    <TableBody>
+                                                        @foreach (var subgroup in subgroupExample)
+                                                        {
+                                                            <TableRow>
+                                                                <TableRowCell>@subgroupExample.IndexOf(subgroup)</TableRowCell>
+                                                                <TableRowCell>@subgroup</TableRowCell>
+                                                            </TableRow>
+                                                        }
+                                                    </TableBody>
+                                                </Table>
+                                            </CollapseBody>
+                                        </Collapse>
+                                    </Accordion>
+                            </TableRowCell>
                         }
                     </TableRow>
                     <TableRow>
@@ -209,6 +237,8 @@
     [Parameter] public List<Protocol> SelectedStudies { get; set; } = new List<Protocol>();
     private Modal? overviewModal;
     private string defaultValue = "N/A";
+
+    private List<string> subgroupExample = new List<string>() { "description 1", "Description2", "desc3", "the fourth description"};
 
     public void ShowStudy(Protocol study)
     {
