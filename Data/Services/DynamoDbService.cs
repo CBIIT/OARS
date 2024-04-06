@@ -19,13 +19,6 @@ namespace TheradexPortal.Data.Services
             _dynamoDbContext = dynamoDbContext;
         }
 
-        public async Task<FileIngestRequest?> GetRequest(string requestId)
-        {
-            var record = await _dynamoDbContext.LoadAsync<FileIngestRequest>(requestId);
-
-            return record;
-        }
-
         public async Task<List<FileIngestRequest>?> GetAllRequestsOfUser(int userId)
         {
             var conditions = new List<ScanCondition>

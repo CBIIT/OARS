@@ -172,5 +172,10 @@ namespace TheradexPortal.Data.Services
 
             return requests;
         }
+
+        //public async Task<Stream> DownloadOriginalUploadedFile(FileIngestRequest request)
+        //{
+        //    return await _awsS3Service.DownloadAsync(request.Metadata.Bucket, request.Metadata.FilePath);
+        //}
     }
 }

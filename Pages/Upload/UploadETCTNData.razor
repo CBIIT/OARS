@@ -15,129 +15,134 @@
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1 mb-3"><h2>Upload CSV</h2></Div>
 
 <Divider />
-<Div Flex="Flex.AlignItems.Start" Margin="Margin.Is3.FromBottom" Background="Background.Light">
-    <Div Padding="Padding.Is4" Style="@flexContainerStyle">
-        <Row>
-            <Column>
-                <Validations @ref="@ValidationsRef" Mode="ValidationMode.Manual" Model="@ETCTNUploadRequestModel" ValidateOnLoad="false">
-                    <Fields>
-                        <Validation>
-                            <Field ColumnSize="ColumnSize.IsThird">
-                                <FieldLabel>Protocol</FieldLabel>
-                                <FieldBody>
-                                    <Select @bind-SelectedValue="@ETCTNUploadRequestModel.Protocol">
-                                        <ChildContent>
-                                            <SelectItem TValue="string"></SelectItem>
-                                            @foreach (var item in studies)
-                                            {
-                                                <SelectItem TValue="string" Value="@item">@item</SelectItem>
-                                            }
-                                        </ChildContent>
-                                        <Feedback>
-                                            <ValidationError>Please choose a Protocol</ValidationError>
-                                        </Feedback>
-                                    </Select>
-                                </FieldBody>
-                            </Field>
-                        </Validation>
-                        <Validation>
-                            <Field ColumnSize="ColumnSize.IsThird">
-                                <FieldLabel>Receiving Site</FieldLabel>
-                                <FieldBody>
-                                    <Select @bind-SelectedValue="@ETCTNUploadRequestModel.ReceivingSite">
-                                        <ChildContent>
-                                            <SelectItem TValue="string"></SelectItem>
-                                            @foreach (var item in trackingDestinations)
-                                            {
-                                                <SelectItem TValue="string" Value="@item.CodedData">@item.UserData</SelectItem>
-                                            }
-                                        </ChildContent>
-                                        <Feedback>
-                                            <ValidationError>Please choose a Lab</ValidationError>
-                                        </Feedback>
-                                    </Select>
-                                </FieldBody>
-                            </Field>
-                        </Validation>
-                        <Validation>
-                            <Field ColumnSize="ColumnSize.IsThird">
-                                <FieldLabel>Source Site</FieldLabel>
-                                <FieldBody>
-                                    <Select @bind-SelectedValue="@ETCTNUploadRequestModel.SourceSite">
-                                        <ChildContent>
-                                            <SelectItem TValue="string"></SelectItem>
-                                            @foreach (var item in trackingDestinations)
-                                            {
-                                                <SelectItem TValue="string" Value="@item.CodedData">@item.UserData</SelectItem>
-                                            }
-                                        </ChildContent>
-                                        <Feedback>
-                                            <ValidationError>Please choose a Lab</ValidationError>
-                                        </Feedback>
-                                    </Select>
-                                </FieldBody>
-                            </Field>
-                        </Validation>
-                    </Fields>
-                    <Fields>
-                        <Validation>
-                            <Field ColumnSize="ColumnSize.IsThird">
-                                <FieldLabel>CRF</FieldLabel>
-                                <FieldBody>
-                                    <RadioGroup TValue="string" @bind-CheckedValue="@ETCTNUploadRequestModel.CRF">
-                                        <ChildContent>
-                                            @foreach (var item in crfs)
-                                            {
-                                                <Radio Value="@item.FormOID">@item.FormName</Radio>
-                                            }
-                                        </ChildContent>
-                                        <Feedback>
-                                            <ValidationError>Please choose a CRF</ValidationError>
-                                        </Feedback>
-                                    </RadioGroup>
-                                </FieldBody>
-                            </Field>
-                        </Validation>
-                        <Validation>
-                            <Field ColumnSize="ColumnSize.IsThird">
-                                <FieldLabel>Assay</FieldLabel>
-                                <FieldBody>
-                                    <Select @bind-SelectedValue="@ETCTNUploadRequestModel.Assay">
-                                        <ChildContent>
-                                            <SelectItem TValue="string"></SelectItem>
-                                            @foreach (var item in assays)
-                                            {
-                                                <SelectItem TValue="string" Value="@item.CodedData">@item.UserData</SelectItem>
-                                            }
-                                        </ChildContent>
-                                        <Feedback>
-                                            <ValidationError>Please choose an Assay</ValidationError>
-                                        </Feedback>
-                                    </Select>
-                                </FieldBody>
-                            </Field>
-                        </Validation>
-                    </Fields>
-                    <Fields>
-                        <Field>
-                            <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Attach File</FieldLabel>
-                            <FieldLabel>Accepted File Types: CSV</FieldLabel>
-                            <FileEdit @ref="@fileEditRef" Changed="@OnFileUpload"
-                                      MaxFileSize="4194304" Filter=".csv" AutoReset="false" DisableProgressReport="false">
-                            </FileEdit>
-                        </Field>
-                    </Fields>
-                </Validations>
-                <Button Color="Color.Primary" Clicked="@OnSubmit">
-                    Submit
-                </Button>
-                <Button Color="Color.Warning" Clicked="@OnReset">
-                    Reset
-                </Button>
-            </Column>
-        </Row>
+
+<LoadingIndicator @ref="loadingIndicator">
+    <Div Flex="Flex.AlignItems.Start" Margin="Margin.Is3.FromBottom" Background="Background.Light">
+        <Div Padding="Padding.Is4" Style="@flexContainerStyle">
+            <Row>
+                <Column>
+                    <Validations @ref="@ValidationsRef" Mode="ValidationMode.Manual" Model="@ETCTNUploadRequestModel" ValidateOnLoad="false">
+                        <Fields>
+                            <Validation>
+                                <Field ColumnSize="ColumnSize.IsThird">
+                                    <FieldLabel>Protocol</FieldLabel>
+                                    <FieldBody>
+                                        <Select @bind-SelectedValue="@ETCTNUploadRequestModel.Protocol">
+                                            <ChildContent>
+                                                <SelectItem TValue="string"></SelectItem>
+                                                @foreach (var item in studies)
+                                                {
+                                                    <SelectItem TValue="string" Value="@item">@item</SelectItem>
+                                                }
+                                            </ChildContent>
+                                            <Feedback>
+                                                <ValidationError>Please choose a Protocol</ValidationError>
+                                            </Feedback>
+                                        </Select>
+                                    </FieldBody>
+                                </Field>
+                            </Validation>
+                            <Validation>
+                                <Field ColumnSize="ColumnSize.IsThird">
+                                    <FieldLabel>Receiving Site</FieldLabel>
+                                    <FieldBody>
+                                        <Select @bind-SelectedValue="@ETCTNUploadRequestModel.ReceivingSite">
+                                            <ChildContent>
+                                                <SelectItem TValue="string"></SelectItem>
+                                                @foreach (var item in trackingDestinations)
+                                                {
+                                                    <SelectItem TValue="string" Value="@item.CodedData">@item.UserData</SelectItem>
+                                                }
+                                            </ChildContent>
+                                            <Feedback>
+                                                <ValidationError>Please choose a Lab</ValidationError>
+                                            </Feedback>
+                                        </Select>
+                                    </FieldBody>
+                                </Field>
+                            </Validation>
+                            <Validation>
+                                <Field ColumnSize="ColumnSize.IsThird">
+                                    <FieldLabel>Source Site</FieldLabel>
+                                    <FieldBody>
+                                        <Select @bind-SelectedValue="@ETCTNUploadRequestModel.SourceSite">
+                                            <ChildContent>
+                                                <SelectItem TValue="string"></SelectItem>
+                                                @foreach (var item in trackingDestinations)
+                                                {
+                                                    <SelectItem TValue="string" Value="@item.CodedData">@item.UserData</SelectItem>
+                                                }
+                                            </ChildContent>
+                                            <Feedback>
+                                                <ValidationError>Please choose a Lab</ValidationError>
+                                            </Feedback>
+                                        </Select>
+                                    </FieldBody>
+                                </Field>
+                            </Validation>
+                        </Fields>
+                        <Fields>
+                            <Validation>
+                                <Field ColumnSize="ColumnSize.IsThird">
+                                    <FieldLabel>CRF</FieldLabel>
+                                    <FieldBody>
+                                        <RadioGroup TValue="string" @bind-CheckedValue="@ETCTNUploadRequestModel.CRF">
+                                            <ChildContent>
+                                                @foreach (var item in crfs)
+                                                {
+                                                    <Radio Value="@item.FormOID">@item.FormName</Radio>
+                                                }
+                                            </ChildContent>
+                                            <Feedback>
+                                                <ValidationError>Please choose a CRF</ValidationError>
+                                            </Feedback>
+                                        </RadioGroup>
+                                    </FieldBody>
+                                </Field>
+                            </Validation>
+                            <Validation>
+                                <Field ColumnSize="ColumnSize.IsThird">
+                                    <FieldLabel>Assay</FieldLabel>
+                                    <FieldBody>
+                                        <Select @bind-SelectedValue="@ETCTNUploadRequestModel.Assay">
+                                            <ChildContent>
+                                                <SelectItem TValue="string"></SelectItem>
+                                                @foreach (var item in assays)
+                                                {
+                                                    <SelectItem TValue="string" Value="@item.CodedData">@item.UserData</SelectItem>
+                                                }
+                                            </ChildContent>
+                                            <Feedback>
+                                                <ValidationError>Please choose an Assay</ValidationError>
+                                            </Feedback>
+                                        </Select>
+                                    </FieldBody>
+                                </Field>
+                            </Validation>
+                        </Fields>
+                        <Fields>
+                            <Validation Validator="@ValidateFile">
+                                <Field>
+                                    <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Attach File</FieldLabel>
+                                    <FieldLabel>Accepted File Types: CSV</FieldLabel>
+                                    <FileEdit @ref="@fileEditRef" Changed="@OnFileUpload"
+                                              MaxFileSize="4194304" Filter=".csv" AutoReset="false" DisableProgressReport="false">
+                                    </FileEdit>
+                                </Field>
+                            </Validation>
+                        </Fields>
+                    </Validations>
+                    <Button Color="Color.Primary" Clicked="@OnSubmit">
+                        Submit
+                    </Button>
+                    <Button Color="Color.Warning" Clicked="@OnReset">
+                        Reset
+                    </Button>
+                </Column>
+            </Row>
+        </Div>
     </Div>
-</Div>
+</LoadingIndicator>
 
 @code {
 
@@ -162,6 +167,8 @@
     ETCTNUploadRequest ETCTNUploadRequestModel { get; set; } = new ETCTNUploadRequest();
 
     UploadFileModel? UploadFile;
+
+    LoadingIndicator loadingIndicator;
 
     protected override async Task OnInitializedAsync()
     {
@@ -215,6 +222,8 @@
     {
         try
         {
+            await loadingIndicator.Show();
+
             var key = uploadService.GetMetadataFileUploadKey(ETCTNUploadRequestModel.RequestId);
 
             var metadataFile = uploadService.GetMetadatafile(ETCTNUploadRequestModel, UploadFile, userId.Value);
@@ -222,6 +231,15 @@
             var json = JsonConvert.SerializeObject(metadataFile);
 
             var isSuccess = await uploadService.UploadMetatdataFileToS3(key, userId.Value, json);
+
+            if (isSuccess)
+            {
+                await NotificationService.Success("Your Csv File was submitted successfully.");
+            }
+            else
+            {
+                await NotificationService.Error("There's an error submitting your Csv File. Please Reset and try again.");
+            }
 
             return isSuccess;
         }
@@ -231,12 +249,18 @@
 
             return false;
         }
+        finally
+        {
+            await loadingIndicator.Hide();
+        }
     }
 
     async Task OnFileUpload(FileChangedEventArgs e)
     {
         try
         {
+            await loadingIndicator.Show();
+
             IFileEntry? selectedFile = e.Files.FirstOrDefault();
 
             if (selectedFile == null)
@@ -244,6 +268,15 @@
 
             try
             {
+                var fileExtension = Path.GetExtension(selectedFile.Name);
+
+                if (fileExtension.ToLower() != ".csv")
+                {
+                    await fileEditRef.Reset().AsTask();
+
+                    return;
+                }
+
                 var originalFileName = Path.GetFileName(selectedFile.Name);
                 var key = uploadService.GetCsvUploadKey(ETCTNUploadRequestModel.RequestId);
 
@@ -277,6 +310,22 @@
         finally
         {
             this.StateHasChanged();
+
+            await loadingIndicator.Hide();
+        }
+    }
+
+    private void ValidateFile(ValidatorEventArgs e)
+    {
+        if (UploadFile == null)
+        {
+            e.ErrorText = "Error test here";
+            e.Status = ValidationStatus.Error;
+        }
+        else
+        {
+            e.ErrorText = null;
+            e.Status = ValidationStatus.Success;
         }
     }
 }

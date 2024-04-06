@@ -29,13 +29,13 @@
                                 }"
                    PageSize="100"
                   FixedHeader
-                   FixedHeaderDataGridHeight="calc(100vh - 240px)"
+                   FixedHeaderDataGridHeight="calc(100vh - 500px)"
                    FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
                    RowStyling="@OnRowStyling"
                    SelectedRowStyling="@OnSelectedRowStyling"
                    CommandMode="DataGridCommandMode.ButtonRow">
              <DataGridColumns>
-                 <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.RequestId)" Caption="Request Id" />
+                 @*                  <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.RequestId)" Caption="Request Id" /> *@
                  <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.Protocol)" Caption="Protocol" />
                  <DataGridColumn Width="100px" Field="Metadata.CRF" Caption="CRF" />
                  <DataGridColumn Width="100px" Field="Metadata.SourceSite" Caption="Source Site" />
@@ -45,24 +45,64 @@
                  <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.Status)" Caption="Status" />
                  <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.ClientError)" Caption="Error" />
                  <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.CreatedDate)" Caption="Uploaded Date" />
-                 <DataGridColumn Width="125px" Field="@nameof(FileIngestRequest.RequestId)" Caption="View">
+                 @*  <DataGridColumn Width="125px" Field="@nameof(FileIngestRequest.RequestId)" Caption="View">
+                <DisplayTemplate>
+                <div @onclick:stopPropagation="true" @onclick:preventDefault="true">
+                <Button Color="Color.Info" Size="Size.Small" Clicked="@(()=>OnViewClicked(context as FileIngestRequest))">
+                View
+                </Button>
+                </div>
+                <div @onclick:stopPropagation="true" @onclick:preventDefault="true">
+                <Button Color="Color.Info" Size="Size.Small" Clicked="@(()=>OnDownloadClicked(context as FileIngestRequest))">
+                Download
+                </Button>
+                </div>
+                </DisplayTemplate>
+                </DataGridColumn> *@
+
+                 <DataGridColumn Sortable="false" Filterable="false" Width="45px">
                      <DisplayTemplate>
-                         <div @onclick:stopPropagation="true" @onclick:preventDefault="true">
-                             <Button Color="Color.Info" Size="Size.Small" Clicked="@(()=>OnViewClicked(context as FileIngestRequest))">
-                                 View
-                             </Button>
-                         </div>
+                         <Button Color="Color.Info" Clicked="@(()=>OnViewClicked(context as FileIngestRequest))">
+                             View
+                         </Button>
                      </DisplayTemplate>
                  </DataGridColumn>
+                 <DataGridColumn Sortable="false" Filterable="false" Width="45px">
+                     <DisplayTemplate>
+                         <Button Color="Color.Info" Clicked="@(()=>OnDownloadClicked(context as FileIngestRequest))">
+                             Download
+                         </Button>
+                     </DisplayTemplate>
+                 </DataGridColumn>
+
              </DataGridColumns>
              <ButtonRowTemplate>
                  <Button Color="Color.Primary" Clicked="@OnRefresh">Refresh</Button>
              </ButtonRowTemplate>
+             <EmptyTemplate>
+                 <div class="box">
+                     No Upload requests were found!
+                 </div>
+             </EmptyTemplate>
          </DataGrid>
      </Column>
  </Row>
 
  <UploadETCTNFileData @ref="uploadETCTNFileData" />
+
+ <script>
+     window.downloadFileFromStream = async (fileName, contentStreamReference) => {
+         const arrayBuffer = await contentStreamReference.arrayBuffer();
+         const blob = new Blob([arrayBuffer]);
+         const url = URL.createObjectURL(blob);
+         const anchorElement = document.createElement('a');
+         anchorElement.href = url;
+         anchorElement.download = fileName ?? '';
+         anchorElement.click();
+         anchorElement.remove();
+         URL.revokeObjectURL(url);
+     }
+ </script>
 
  @code {
 
@@ -73,6 +113,9 @@
     [Inject] NavigationManager Navigation { get; set; }
     [Inject] IEmailService emailService { get; set; } = null!;
     [Inject] INotificationService NotificationService { get; set; }
+    [Inject] IAWSS3Service awsS3Service { get; set; } = null!;
+
+    @inject IJSRuntime JS
 
     private IList<FileIngestRequest> fileIngestRequests = new List<FileIngestRequest>();
     private int? userId = null;
@@ -98,7 +141,22 @@
     private Task OnViewClicked(FileIngestRequest request)
     {
         return uploadETCTNFileData?.ShowFileData(request.RequestId, request.Metadata.CRF);
+    }
 
+    private async Task OnDownloadClicked(FileIngestRequest request)
+    {
+        var response = await awsS3Service.DownloadAsync(request.Metadata.Bucket, request.Metadata.FilePath);
+
+        if (response != null)
+        {
+            using var streamRef = new DotNetStreamReference(stream: response.ResponseStream);
+
+            await JS.InvokeVoidAsync("downloadFileFromStream", request.Metadata.OriginalFileName, streamRef);
+        }
+        else
+        {
+            await NotificationService.Error("There's an error downloading your Csv File. Please try again later.");
+        }
     }
 
     private async Task OnRefresh()
@@ -109,11 +167,11 @@
     private void OnRowStyling(FileIngestRequest request, DataGridRowStyling styling)
     {
         if (request.Status == "Failed")
-            styling.Style = "color: #F08080;";
+            styling.Style = "color: #F08080;!important";
         else if (request.Status == "Success")
-            styling.Style = "color: lightgreen;";
+            styling.Style = "color: lightgreen;!important";
         else
-            styling.Style = "color: lightyellow;";
+            styling.Style = "color: lightyellow;!important";
     }
 
     private void OnSelectedRowStyling(FileIngestRequest request, DataGridRowStyling styling)

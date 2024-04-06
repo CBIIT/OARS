@@ -8,20 +8,20 @@ using Amazon.DynamoDBv2.DataModel;
 
 namespace TheradexPortal.Data.Models
 {
-    public class ETCTNUploadRequest //: IValidatableObject
+    public class ETCTNUploadRequest
     {
         public string RequestId { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Protocol is required")]
         public string Protocol { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Receiving Site is required")]
         public string ReceivingSite { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Source Site is required")]
         public string SourceSite { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "CRF is required")]
         public string CRF { get; set; }
 
         //[RequiredIf(nameof(CRF), "RECEIVING_STATUS")]
