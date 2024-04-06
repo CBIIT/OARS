@@ -35,8 +35,14 @@
                      <DataGridColumn Width="100px" Field="RowData.ShippedDate" Caption="ShippedDate" />
                      <DataGridColumn Width="100px" Field="RowData.SubmissionIsAdequate" Caption="SubmissionIsAdequate" />
                      <DataGridColumn Width="100px" Field="RowData.ExplanatoryReason" Caption="ExplanatoryReason" />
-                     <DataGridColumn Width="100px" Field="RowData.OtherReason" Caption="OtherReason" />
-                     <DataGridColumn Width="100px" Field="@nameof(ReceivingStatusFileData.Status)" Caption="Status" />
+                     <DataGridColumn Width="100px" Field="RowData.OtherReason" Caption="OtherReason" />                     
+                     <DataGridColumn Width="100px" Caption="Status" Editable="false">
+                         <DisplayTemplate>
+                             <Tooltip Style="z-index: 99 !important" Text="@((context as ReceivingStatusFileData).ClientError)">
+                                 @((context as ReceivingStatusFileData).Status)
+                             </Tooltip>
+                         </DisplayTemplate>
+                     </DataGridColumn>
                  </DataGridColumns>
                  <ButtonRowTemplate>
                      <Button Color="Color.Primary" Clicked="@OnRefresh">Refresh</Button>
@@ -44,7 +50,7 @@
                  </ButtonRowTemplate>
                  <EmptyTemplate>
                      <div class="box">
-                         No Upload requests were found!
+                         No Rows were found!
                      </div>
                  </EmptyTemplate>
              </DataGrid>
@@ -92,11 +98,11 @@
     private void OnRowStyling(ReceivingStatusFileData fileData, DataGridRowStyling styling)
     {
         if (fileData.Status == "Failed")
-            styling.Style = "color: #F08080;!important";
+            styling.Style = "color:red;";
         else if (fileData.Status == "Success")
-            styling.Style = "color: lightgreen;!important";
+            styling.Style = "color:#0f880f;";
         else
-            styling.Style = "color: lightyellow;!important";
+            styling.Style = "color:#0755d4;";
     }
 
     private void OnSelectedRowStyling(ReceivingStatusFileData fileData, DataGridRowStyling styling)

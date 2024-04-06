@@ -299,3 +299,15 @@
     margin-left: 0px;
     padding-left: 0px;
 }
+
+.operationSuccess {
+    color: #0f880f !important;
+}
+
+.operationInProgress {
+    color: #0755d4 !important;
+}
+
+.operationFailed {
+    color: red !important;
+}

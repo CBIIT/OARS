@@ -29,52 +29,39 @@
                                 }"
                    PageSize="100"
                   FixedHeader
-                   FixedHeaderDataGridHeight="calc(100vh - 500px)"
+                   FixedHeaderDataGridHeight="calc(100vh - 240px)"
                    FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
                    RowStyling="@OnRowStyling"
                    SelectedRowStyling="@OnSelectedRowStyling"
                    CommandMode="DataGridCommandMode.ButtonRow">
              <DataGridColumns>
-                 @*                  <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.RequestId)" Caption="Request Id" /> *@
                  <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.Protocol)" Caption="Protocol" />
                  <DataGridColumn Width="100px" Field="Metadata.CRF" Caption="CRF" />
                  <DataGridColumn Width="100px" Field="Metadata.SourceSite" Caption="Source Site" />
                  <DataGridColumn Width="100px" Field="Metadata.ReceivingSite" Caption="Receiving Site" />
                  <DataGridColumn Width="100px" Field="Metadata.Assay" Caption="Assay" />
                  <DataGridColumn Width="100px" Field="Metadata.OriginalFileName" Caption="File Name" />
+                 <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.CreatedDate)" Caption="Uploaded Date" />
                  <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.Status)" Caption="Status" />
                  <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.ClientError)" Caption="Error" />
-                 <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.CreatedDate)" Caption="Uploaded Date" />
-                 @*  <DataGridColumn Width="125px" Field="@nameof(FileIngestRequest.RequestId)" Caption="View">
-                <DisplayTemplate>
-                <div @onclick:stopPropagation="true" @onclick:preventDefault="true">
-                <Button Color="Color.Info" Size="Size.Small" Clicked="@(()=>OnViewClicked(context as FileIngestRequest))">
-                View
-                </Button>
-                </div>
-                <div @onclick:stopPropagation="true" @onclick:preventDefault="true">
-                <Button Color="Color.Info" Size="Size.Small" Clicked="@(()=>OnDownloadClicked(context as FileIngestRequest))">
-                Download
-                </Button>
-                </div>
-                </DisplayTemplate>
-                </DataGridColumn> *@
-
+                 @* <DataGridColumn Width="100px" Caption="Status" Editable="false">
+                     <DisplayTemplate>
+                         <Tooltip Style="z-index: 99 !important" Text="@((context as FileIngestRequest).ClientError)">
+                             @((context as FileIngestRequest).Status)
+                         </Tooltip> 
+                     </DisplayTemplate>
+                 </DataGridColumn> *@
                  <DataGridColumn Sortable="false" Filterable="false" Width="45px">
                      <DisplayTemplate>
-                         <Button Color="Color.Info" Clicked="@(()=>OnViewClicked(context as FileIngestRequest))">
-                             View
-                         </Button>
+                         <Div Flex="Flex.Column.JustifyContent.Center">
+                             <Span Flex="Flex.JustifyContent.Center.AlignItems.Center">
+                                 <Icon Name="IconName.Dashboard" IconSize="@IconSize.Large" Clicked="@(()=>OnViewClicked(context as FileIngestRequest))" />
+                                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                 <Icon Name="IconName.Download" IconSize="@IconSize.Large" Clicked="@(()=>OnDownloadClicked(context as FileIngestRequest))" />
+                             </Span>
+                         </Div>
                      </DisplayTemplate>
                  </DataGridColumn>
-                 <DataGridColumn Sortable="false" Filterable="false" Width="45px">
-                     <DisplayTemplate>
-                         <Button Color="Color.Info" Clicked="@(()=>OnDownloadClicked(context as FileIngestRequest))">
-                             Download
-                         </Button>
-                     </DisplayTemplate>
-                 </DataGridColumn>
-
              </DataGridColumns>
              <ButtonRowTemplate>
                  <Button Color="Color.Primary" Clicked="@OnRefresh">Refresh</Button>
@@ -167,11 +154,11 @@
     private void OnRowStyling(FileIngestRequest request, DataGridRowStyling styling)
     {
         if (request.Status == "Failed")
-            styling.Style = "color: #F08080;!important";
+            styling.Style = "color:red;";
         else if (request.Status == "Success")
-            styling.Style = "color: lightgreen;!important";
+            styling.Style = "color:#0f880f;";
         else
-            styling.Style = "color: lightyellow;!important";
+            styling.Style = "color:#0755d4;";
     }
 
     private void OnSelectedRowStyling(FileIngestRequest request, DataGridRowStyling styling)
