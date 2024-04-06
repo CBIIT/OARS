@@ -2,24 +2,26 @@
 using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2;
 using TheradexPortal.Data.Models;
+using TheradexPortal.Data.Services.Abstract;
 
 namespace TheradexPortal.Data.Services
 {
-    public class DynamoDbService
+    public class DynamoDbService : IDynamoDbService
     {
-        private static readonly AmazonDynamoDBClient client = new AmazonDynamoDBClient();
+        private const int BatchSize = 25;
+        protected readonly IDynamoDBContext _dynamoDbContext;
+        protected readonly ILogger<DynamoDbService> _logger;
 
-        public DynamoDbService()
+        public DynamoDbService(ILogger<DynamoDbService> logger, IDynamoDBContext dynamoDbContext)
         {
-            var client = new AmazonDynamoDBClient();
-            context = new DynamoDBContext(client);
-        }
+            _logger = logger;
 
-        public DynamoDBContext context { get; private set; }
+            _dynamoDbContext = dynamoDbContext;
+        }
 
         public async Task<FileIngestRequest?> GetRequest(string requestId)
         {
-            var record = await context.LoadAsync<FileIngestRequest>(requestId);
+            var record = await _dynamoDbContext.LoadAsync<FileIngestRequest>(requestId);
 
             return record;
         }
@@ -28,10 +30,10 @@ namespace TheradexPortal.Data.Services
         {
             var conditions = new List<ScanCondition>
                 {
-                    new ScanCondition("UserId", ScanOperator.Equal, userId)
+                    new ScanCondition("UserId", ScanOperator.Equal, new string[1] { userId.ToString() })
                 };
 
-            var records = await (context.ScanAsync<FileIngestRequest>(conditions).GetNextSetAsync());
+            var records = await (_dynamoDbContext.ScanAsync<FileIngestRequest>(conditions).GetNextSetAsync());
 
             return records;
         }
@@ -43,7 +45,7 @@ namespace TheradexPortal.Data.Services
                     new ScanCondition("RequestId", ScanOperator.Equal, new string[1] { requestId })
                 };
 
-            var records = await (context.ScanAsync<ReceivingStatusFileData>(conditions).GetNextSetAsync());
+            var records = await (_dynamoDbContext.ScanAsync<ReceivingStatusFileData>(conditions).GetNextSetAsync());
 
             return records;
         }

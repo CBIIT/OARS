@@ -243,6 +243,10 @@
     padding-left: 0;
 }
 
+.upload-Modal-Body {
+    overflow-x: scroll;
+}
+
 .collapsible {
     background-color: #eee;
     color: #444;

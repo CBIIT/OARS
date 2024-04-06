@@ -10,6 +10,7 @@ using Microsoft.Extensions.Options;
 using TheradexPortal.Data.Models.Configuration;
 using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2.DocumentModel;
+using System.IO;
 
 namespace TheradexPortal.Data.Services
 {
@@ -18,12 +19,21 @@ namespace TheradexPortal.Data.Services
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
         private readonly UploadSettings _uploadSettings;
+        private readonly IDynamoDbService _dynamoDbService;
+        private readonly IAWSS3Service _awsS3Service;
 
-        public UploadService(IOptions<UploadSettings> uploadSettings, IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
+        public UploadService(IOptions<UploadSettings> uploadSettings, 
+            IDbContextFactory<ThorDBContext> dbFactory, 
+            IErrorLogService errorLogService, 
+            NavigationManager navigationManager,
+            IDynamoDbService dynamoDbService,
+            IAWSS3Service awsS3Service) : base(dbFactory)
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;
             _uploadSettings = uploadSettings.Value;
+            _dynamoDbService = dynamoDbService;
+            _awsS3Service = awsS3Service;
         }
 
         public List<MedidataDictionaryModel> GetAssays()
@@ -87,21 +97,10 @@ namespace TheradexPortal.Data.Services
         {
             try
             {
-                using (var client = new AmazonS3Client(RegionEndpoint.USEast1))
-                {
-                    var uploadRequest = new TransferUtilityUploadRequest
-                    {
-                        InputStream = memoryStream,
-                        Key = key,
-                        BucketName = _uploadSettings.AWSBucketName
-                    };
+                var isSuccess = await _awsS3Service.UploadStreamAsync(_uploadSettings.AWSBucketName, key, memoryStream);
 
-                    var fileTransferUtility = new TransferUtility(client);
+                return isSuccess;
 
-                    await fileTransferUtility.UploadAsync(uploadRequest);
-
-                    return true;
-                }
             }
             catch (Exception ex)
             {
@@ -115,25 +114,10 @@ namespace TheradexPortal.Data.Services
         {
             try
             {
-                using (var client = new AmazonS3Client(RegionEndpoint.USEast1))
-                {
-                    byte[] data = Encoding.ASCII.GetBytes(content);
-                    MemoryStream memoryStream = new MemoryStream(data, 0, data.Length);
+                var isSuccess = await _awsS3Service.UploadDataAsync(_uploadSettings.AWSBucketName, key, content);
 
-                    var uploadRequest = new TransferUtilityUploadRequest
-                    {
-                        InputStream = memoryStream,
-                        Key = key,
-                        BucketName = _uploadSettings.AWSBucketName,
+                return isSuccess;
 
-                    };
-
-                    var fileTransferUtility = new TransferUtility(client);
-
-                    await fileTransferUtility.UploadAsync(uploadRequest);
-
-                    return true;
-                }
             }
             catch (Exception ex)
             {
@@ -156,7 +140,7 @@ namespace TheradexPortal.Data.Services
             metadataFile.FilePath = UploadFile.S3Key;
             metadataFile.Bucket = _uploadSettings.AWSBucketName;
             metadataFile.Protocol = ETCTNUploadRequestModel.Protocol;
-            metadataFile.UserId = userId;
+            metadataFile.UserId = userId.ToString();
 
             return metadataFile;
         }
@@ -177,18 +161,14 @@ namespace TheradexPortal.Data.Services
 
         public async Task<List<FileIngestRequest>?> GetAllRequestsOfUser(int userId)
         {
-            var service = new DynamoDbService();
-
-            var requests = await service.GetAllRequestsOfUser(userId);
+            var requests = await _dynamoDbService.GetAllRequestsOfUser(userId);
 
             return requests;
         }
 
         public async Task<List<ReceivingStatusFileData>?> GetReceivingStatusFileData(string requestId)
         {
-            var service = new DynamoDbService();
-
-            var requests = await service.GetAllReceivingStatusData(requestId);
+            var requests = await _dynamoDbService.GetAllReceivingStatusData(requestId);
 
             return requests;
         }

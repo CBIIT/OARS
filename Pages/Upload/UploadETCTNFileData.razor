@@ -13,12 +13,11 @@
             <ModalTitle TextColor="TextColor.White">Overview</ModalTitle>
             <CloseButton TextColor="TextColor.White" />
         </ModalHeader>
-        <ModalBody Class="overview-Modal-Body">
+        <ModalBody Class="upload-Modal-Body">
             <DataGrid TItem="ReceivingStatusFileData"
                       Class="admindatagrid"
                       Data="@fileData"
                       Responsive
-                      Striped
                       ShowPager
                       ShowPageSizes
                        MaxPaginationLinks="5"

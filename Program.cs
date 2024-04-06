@@ -30,6 +30,10 @@ using ITfoxtec.Identity.Saml2;
 using ITfoxtec.Identity.Saml2.Schemas.Metadata;
 using ITfoxtec.Identity.Saml2.MvcCore.Configuration;
 using Microsoft.Extensions.Logging;
+using Amazon.DynamoDBv2;
+using Microsoft.Extensions.DependencyInjection;
+using Amazon.DynamoDBv2.DataModel;
+using Amazon.S3;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -91,6 +95,15 @@ builder.Services.Configure<AzureAd>(builder.Configuration.GetSection("PowerBICre
 // Load DB context
 builder.Services.AddDbContextFactory<ThorDBContext>(opt =>
     opt.UseOracle(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Load DynamodB context
+builder.Services.AddAWSService<IAmazonDynamoDB>();
+builder.Services.AddSingleton<IDynamoDBContext, DynamoDBContext>(p => new DynamoDBContext(new AmazonDynamoDBClient()));
+builder.Services.AddTransient<IDynamoDbService, DynamoDbService>();
+
+// Load S3
+builder.Services.AddAWSService<IAmazonS3>();
+builder.Services.AddTransient<IAWSS3Service, AWSS3Service>();
 
 var onTokenValidated = async (TokenValidatedContext context) =>
 {

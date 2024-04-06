@@ -24,46 +24,9 @@ namespace TheradexPortal.Data.Models
         [Required]
         public string CRF { get; set; }
 
-        [RequiredIf(nameof(CRF), "RECEIVING_STATUS")]
+        //[RequiredIf(nameof(CRF), "RECEIVING_STATUS")]
         public string Assay { get; set; }
-
-        //public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
-        //{
-        //    if (CRF == "RECEIVING_STATUS")
-        //    {
-        //        yield return new ValidationResult("Assay is required");
-        //    }
-        //}
-
-        //public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
-        //{
-        //    if (Genre == Genre.Classic && ReleaseDate.Year > _classicYear)
-        //    {
-        //        yield return new ValidationResult(
-        //            $"Classic movies must have a release year no later than {_classicYear}.",
-        //            new[] { nameof(ReleaseDate) });
-        //    }
-        //}
     }
-
-    //public class RequiredIfCustomAttribute(string otherProperty, object targetValue) : ValidationAttribute
-    //{
-    //    protected override ValidationResult IsValid(object value, ValidationContext validationContext)
-    //    {
-    //        var otherPropertyValue = validationContext.ObjectType
-    //                                                  .GetProperty(otherProperty)?
-    //                                                  .GetValue(validationContext.ObjectInstance);
-
-    //        if (otherPropertyValue is null || !otherPropertyValue.Equals(targetValue)) return ValidationResult.Success;
-
-    //        if (value is null || string.IsNullOrWhiteSpace(value.ToString()))
-    //        {
-    //            return new ValidationResult(ErrorMessage ?? "This field is required.");
-    //        }
-
-    //        return ValidationResult.Success;
-    //    }
-    //}
 
     public class RequiredIfAttribute : ValidationAttribute
     {
@@ -134,7 +97,7 @@ namespace TheradexPortal.Data.Models
         public string RequestId { get; set; }
 
         [JsonProperty("userId")]
-        public int UserId { get; set; }
+        public string UserId { get; set; }
 
         [JsonProperty("protocol")]
         public string Protocol { get; set; }
@@ -167,7 +130,7 @@ namespace TheradexPortal.Data.Models
         public string RequestId { get; set; }
 
         [DynamoDBProperty]
-        public int UserId { get; set; }
+        public string UserId { get; set; }
 
         [DynamoDBProperty]
         public string Protocol { get; set; }
