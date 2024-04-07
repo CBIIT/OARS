@@ -44,20 +44,20 @@
                  <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.CreatedDate)" Caption="Uploaded Date" />
                  <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.Status)" Caption="Status" />
                  <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.ClientError)" Caption="Error" />
-                 @* <DataGridColumn Width="100px" Caption="Status" Editable="false">
-                     <DisplayTemplate>
-                         <Tooltip Style="z-index: 99 !important" Text="@((context as FileIngestRequest).ClientError)">
-                             @((context as FileIngestRequest).Status)
-                         </Tooltip> 
-                     </DisplayTemplate>
-                 </DataGridColumn> *@
                  <DataGridColumn Sortable="false" Filterable="false" Width="45px">
                      <DisplayTemplate>
                          <Div Flex="Flex.Column.JustifyContent.Center">
                              <Span Flex="Flex.JustifyContent.Center.AlignItems.Center">
-                                 <Icon Name="IconName.Dashboard" IconSize="@IconSize.Large" Clicked="@(()=>OnViewClicked(context as FileIngestRequest))" />
-                                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                 <Icon Name="IconName.Download" IconSize="@IconSize.Large" Clicked="@(()=>OnDownloadClicked(context as FileIngestRequest))" />
+                                 @* <Icon Name="IconName.Dashboard" IconSize="@IconSize.Large" Clicked="@(()=>OnViewClicked(context as FileIngestRequest))" />
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                <Icon Name="IconName.Download" IconSize="@IconSize.Large" Clicked="@(()=>OnDownloadClicked(context as FileIngestRequest))" />
+                                *@
+                                 <Button Color="Color.Info" Size="Size.ExtraSmall" Clicked="@(()=>OnViewClicked(context as FileIngestRequest))">
+                                     View
+                                 </Button>&nbsp;&nbsp;&nbsp;
+                                 <Button Color="Color.Info" Size="Size.ExtraSmall" Clicked="@(()=>OnDownloadClicked(context as FileIngestRequest))">
+                                     Download
+                                 </Button>
                              </Span>
                          </Div>
                      </DisplayTemplate>
