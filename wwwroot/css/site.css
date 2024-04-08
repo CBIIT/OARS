@@ -110,6 +110,13 @@
     max-height: 30vh;
 }
 
+.nci-alert-overlap {
+    position: absolute;
+    z-index: 100;
+    width: 100vw;
+    max-height: 35vh;
+}
+
 .nci-alert-component {
     margin-top: 0px;
     margin-bottom: 0px;
@@ -140,7 +147,7 @@
 /* PBI Embed */
 .pbi-embed-container {
     width: 100%;
-    height: 72vh;
+    height: 78vh;
 }
 
 /* Blazor Debugging */

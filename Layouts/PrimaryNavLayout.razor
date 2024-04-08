@@ -90,7 +90,9 @@
                     <PrimaryNav @ref="@primaryNav" RenderButtons />
                 </BarStart>
             </Bar>
-            <AlertBar @ref="@dashboardAlerts" Alert Dashboard Dismissable CSS="nci-alert-component" />
+            <Div Class="nci-alert-overlap">
+                <AlertBar @ref="@dashboardAlerts" Alert Dashboard Dismissable CSS="nci-alert-component" />
+            </Div>
             <Divider Class="mt-1 mb-0"/>
         </LayoutHeader>
         <LayoutContent>
