@@ -9,7 +9,7 @@
 @inject IConfiguration configuration
 
 <Modal @ref="overviewModal" >
-    <ModalContent Size="ModalSize.ExtraLarge">
+    <ModalContent Size="ModalSize.ExtraLarge" Centered Scrollable>
         <ModalHeader Background="Background.Primary">
             <ModalTitle TextColor="TextColor.White">Overview</ModalTitle>
             <CloseButton TextColor="TextColor.White" />
@@ -175,33 +175,20 @@
                         @foreach (var study in SelectedStudies)
                         {
                             <TableRowCell>
-                                @*@if (Study Has Multiple Subgroups) *@
-                                    <Accordion Class="overview-accordion">
-                                        <Collapse>
-                                            <CollapseHeader>
-                                                <AccordionToggle>
-                                                    @subgroupExample.Count Subgroups
-                                                </AccordionToggle>
-                                            </CollapseHeader>
-                                            <CollapseBody>
-                                                <Table Hoverable>
-                                                    <TableHeader>
-                                                        <TableHeaderCell>Subgroup</TableHeaderCell>
-                                                        <TableHeaderCell>Description</TableHeaderCell>
-                                                    </TableHeader>
-                                                    <TableBody>
-                                                        @foreach (var subgroup in subgroupExample)
-                                                        {
-                                                            <TableRow>
-                                                                <TableRowCell>@subgroupExample.IndexOf(subgroup)</TableRowCell>
-                                                                <TableRowCell>@subgroup</TableRowCell>
-                                                            </TableRow>
-                                                        }
-                                                    </TableBody>
-                                                </Table>
-                                            </CollapseBody>
-                                        </Collapse>
-                                    </Accordion>
+                                @*@if (Study Has Multiple Subgroups) 
+                                {*@
+                                    <Table Hoverable>
+                                        <TableBody>
+                                            @foreach (var subgroup in subgroupExample)
+                                            {
+                                                <TableRow>
+                                                    <TableRowCell>Subgroup @subgroupExample.IndexOf(subgroup)</TableRowCell>
+                                                    <TableRowCell>@subgroup</TableRowCell>
+                                                </TableRow>
+                                            }
+                                        </TableBody>
+                                    </Table>
+                                @*}*@
                             </TableRowCell>
                         }
                     </TableRow>
@@ -238,7 +225,7 @@
     private Modal? overviewModal;
     private string defaultValue = "N/A";
 
-    private List<string> subgroupExample = new List<string>() { "description 1", "Description2", "desc3", "the fourth description"};
+    private List<string> subgroupExample = new List<string>() { "description 1", "Description2", "desc3", "the fourth description that is fairly long and shouldn't be this long but is. Example"};
 
     public void ShowStudy(Protocol study)
     {
