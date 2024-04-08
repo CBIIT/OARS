@@ -15,13 +15,13 @@
             <CloseButton TextColor="TextColor.White" />
         </ModalHeader>
         <ModalBody Class="overview-Modal-Body">
-            <Table Hoverable>
+            <Table Hoverable Responsive FullWidth Narrow>
                 <TableBody>
                     <TableRow>
                         <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Study ID</TableRowHeader>
                         @foreach (var study in SelectedStudies)
                         {
-                            <TableRowCell>@(getDefaultIfEmpty(study.StudyId!))</TableRowCell>
+                            <TableRowCell Class="overview-Modal-Cell">@(getDefaultIfEmpty(study.StudyId!))</TableRowCell>
                         }
                     </TableRow>
                     <TableRow>
@@ -175,20 +175,29 @@
                         @foreach (var study in SelectedStudies)
                         {
                             <TableRowCell>
-                                @*@if (Study Has Multiple Subgroups) 
-                                {*@
-                                    <Table Hoverable>
-                                        <TableBody>
-                                            @foreach (var subgroup in subgroupExample)
-                                            {
-                                                <TableRow>
-                                                    <TableRowCell>Subgroup @subgroupExample.IndexOf(subgroup)</TableRowCell>
-                                                    <TableRowCell>@subgroup</TableRowCell>
-                                                </TableRow>
-                                            }
-                                        </TableBody>
-                                    </Table>
-                                @*}*@
+                                @*@if (Study Has Multiple Subgroups) *@
+                                    <Accordion>
+                                        <Collapse>
+                                        <CollapseHeader>
+                                            <AccordionToggle Class="overview-accordion-header">
+                                                @subgroupExample.Count Subgroups
+                                            </AccordionToggle>
+                                        </CollapseHeader>
+                                        <CollapseBody Class="overview-accordion-body">
+                                                <Table Hoverable Narrow>
+                                                    <TableBody>
+                                                        @foreach (var subgroup in subgroupExample)
+                                                        {
+                                                            <TableRow>
+                                                                <TableRowCell>Subgroup @subgroupExample.IndexOf(subgroup)</TableRowCell>
+                                                                <TableRowCell>@subgroup</TableRowCell>
+                                                            </TableRow>
+                                                        }
+                                                    </TableBody>
+                                                </Table>
+                                            </CollapseBody>
+                                        </Collapse>
+                                    </Accordion>
                             </TableRowCell>
                         }
                     </TableRow>

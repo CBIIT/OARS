@@ -242,15 +242,28 @@
 .overview-Row-Header {
     position: sticky;
     left: 0;
+    z-index: 100;
 }
 
 .overview-Modal-Body {
-    overflow-x: scroll;
     padding-left: 0;
 }
 
-.overview-accordion {
+.overview-Modal-Cell {
+    min-width: 20vw;
+    max-width: 70vw;
+}
 
+.overview-accordion-header {
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-top: 0px;
+    padding-bottom: 0px;
+    margin: 0px;
+}
+
+.overview-accordion-body {
+    margin: -15px;
 }
 
 .collapsible {
