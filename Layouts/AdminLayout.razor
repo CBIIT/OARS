@@ -57,7 +57,7 @@
                                 </BarBrand>
                                 <BarMenu>
                                     <BarStart>
-                                        @if (CheckRole( new List<string> { "IT", "Content" }))
+                                        @if (CheckRole( new List<string> { "IT", "Biz", "Content" }))
                                         {
                                             <BarItem>
                                                 <BarLink To="/admin/alerts">
@@ -74,9 +74,6 @@
                                                     Users
                                                 </BarLink>
                                             </BarItem>
-                                        }
-                                        @if (CheckRole(new List<string> { "IT" }))
-                                        {
                                             <BarItem>
                                                 <BarLink To="/admin/roles">
                                                     <BarIcon IconName="IconName.Coffee" />
@@ -89,6 +86,9 @@
                                                     Groups
                                                 </BarLink>
                                             </BarItem>
+                                            }
+                                            @if (CheckRole(new List<string> { "IT" }))
+                                            {
                                             <BarItem>
                                                 <BarLink To="/admin/dashboards">
                                                     <BarIcon IconName="IconName.ChartPie" />

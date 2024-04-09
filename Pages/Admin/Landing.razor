@@ -7,7 +7,7 @@
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>Administration</h2></Div>
 <Div Padding="Padding.Is2" Background="Background.Light">
 <ListGroup Flush Padding="Padding.Is2">
-    @if (CheckRole( new List<string> { "IT", "Content" }))
+    @if (CheckRole( new List<string> { "IT", "Biz", "Content" }))
     {
         <ListGroupItem>
             <Div Padding="Padding.Is2">
@@ -28,9 +28,6 @@
                 <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart">Administration roles are granted all Dashboards, Reports and Studies by default.</Paragraph>
             </Div>
         </ListGroupItem>
-    }
-    @if (CheckRole(new List<string> { "IT" }))
-    {
         <ListGroupItem>
             <Div Padding="Padding.Is2">
                 <Heading Size="HeadingSize.Is4">Roles</Heading>
@@ -43,6 +40,9 @@
                 <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart">Define access to Studies for a group.</Paragraph>
             </Div>
         </ListGroupItem>
+    }
+    @if (CheckRole(new List<string> { "IT" }))
+    {
         <ListGroupItem>
             <Div Padding="Padding.Is2">
                 <Heading Size="HeadingSize.Is4">Dashboards</Heading>
