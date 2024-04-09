@@ -19,6 +19,7 @@
     flex-wrap: nowrap;
     overflow-x: auto;
     /*height: 20px;*/
+    padding-block: 0px;
 }
 
 .nci-dashboard-navbar .nav-item .active .btn {
@@ -147,7 +148,7 @@
 /* PBI Embed */
 .pbi-embed-container {
     width: 100%;
-    height: 78vh;
+    height: 80vh;
 }
 
 /* Blazor Debugging */
