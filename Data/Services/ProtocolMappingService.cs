@@ -17,7 +17,7 @@ namespace TheradexPortal.Data.Services
 
         public async Task<IList<ProtocolMapping>> GetProtocolMappings()
         {
-            var protocolMappings = await context.ProtocolMapping.ToListAsync();
+            var protocolMappings = await context.ProtocolMapping.Include(p => p.Protocol).ToListAsync();
             var protocols = await context.Protocols.ToListAsync();
 
             var pmStudyIds = new HashSet<string>(protocolMappings.Select(pm => pm.THORStudyId));
