@@ -8,5 +8,6 @@ namespace TheradexPortal.Data.Services.Abstract
         Task<ProtocolMapping> GetProtocolMapping(int id);
         Task<bool> SaveProtocolMapping(ProtocolMapping protocolMapping, IList<ProtocolPhase> phasesSet);
         Task<IList<ProtocolMapping>> GetAllProtocolMappingsFromProfileType(int profileType);
+        Task<bool> PublishProtocolMapping(int id, string environment);
     }
 }

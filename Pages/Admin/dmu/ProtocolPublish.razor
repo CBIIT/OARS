@@ -1,0 +1,83 @@
+﻿@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+@inject IHttpContextAccessor httpContextAccessor
+@inject IConfiguration configuration
+@layout AdminLayout
+
+<Div Padding="Padding.Is4" Margin="Margin.Is3.FromBottom">
+	<Row Padding="Padding.Is2">
+		<Column ColumnSize="ColumnSize.Is2" Style="text-align:right;">
+			<Text>Environment:</Text>
+		</Column>
+		<Column ColumnSize="ColumnSize.Is3">
+			<Select TValue="string" SelectedValue="@selectedEnv" SelectedValueChanged="@OnSelectedValueChanged">
+				<SelectItem Value="0">Select an environment</SelectItem>
+				<SelectItem Value="PublishEnv.Test">Test</SelectItem>
+				<SelectItem Value="PublishEnv.Production">Production</SelectItem>
+			</Select>
+		</Column>
+		<Column ColumnSize="ColumnSize.Is2">
+			<LoadingIndicator @ref="loading">
+				<Field>
+					<FieldBody Margin="Margin.IsAuto">
+						<Button Color="Color.Primary" onclick="@PublishProtocol">Publish Study</Button>
+					</FieldBody>
+				</Field>
+			</LoadingIndicator>
+		</Column>
+	</Row>
+</Div>
+@code {
+	[Inject] private IMessageService messageService { get; set; } = null!;
+	[Inject] private IProtocolMappingService protocolMappingService { get; set; } = null!;
+	[Parameter] public int protocolMappingId { get; set; }
+	private ProtocolMapping mapping;
+	private string selectedEnv = "";
+	private LoadingIndicator loading;
+
+	private enum PublishEnv
+	{
+		Test,
+		Production
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		this.mapping = await protocolMappingService.GetProtocolMapping(protocolMappingId);
+	}
+
+	public async void PublishProtocol()
+	{
+		if (selectedEnv == "")
+		{
+			await messageService.Error("Please select an environment to publish to");
+			return;
+		}
+
+		await loading.Show();
+
+		if(!await messageService.Confirm($"Are you sure you want to publish this study to {selectedEnv}?", "Confirmation"))
+		{
+			await loading.Hide();
+			return;
+		}
+		var result = await protocolMappingService.PublishProtocolMapping(protocolMappingId, selectedEnv);
+
+		await loading.Hide();
+
+		if (result)
+		{
+			await messageService.Success($"Study published to {selectedEnv} successfully");
+		}
+		else
+		{
+			await messageService.Error($"Error publishing study to {selectedEnv}");
+		}
+	}
+
+	Task OnSelectedValueChanged(string value)
+	{
+		selectedEnv = value;
+		return Task.CompletedTask;
+	}
+}

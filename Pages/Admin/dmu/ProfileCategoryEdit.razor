@@ -51,7 +51,7 @@
                 }
             </DisplayTemplate>
             <EditTemplate>
-                <SelectList TItem="ThorCategory" TValue="string?" Data="@categoryList" TextField="@((item)=>item.CategoryName)" ValueField="@((item)=>item.ThorDataCategoryId)" SelectedValueChanged="@( v => {context.CellValue = v;})" SelectedValue="@((string?)context.CellValue)"></SelectList>
+                <SelectList TItem="ThorCategory" TValue="string" Data="@categoryList" TextField="@((item)=>item.CategoryName)" ValueField="@((item)=>item.ThorDataCategoryId)" SelectedValueChanged="@( v => {context.CellValue = v;})" SelectedValue="@((string?)context.CellValue)"></SelectList>
             </EditTemplate>
          </DataGridColumn>
         <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
