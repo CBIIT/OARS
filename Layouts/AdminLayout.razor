@@ -185,7 +185,12 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+        var userClaim = httpContextAccessor.HttpContext?.User.FindFirst(ThorClaimType.UserId);
+        if (userClaim == null)
+        {
+            return;
+        }
+        int userId = Convert.ToInt32(userClaim.Value);
         string pageUri = Navigation.ToBaseRelativePath(Navigation.Uri);
         string pageName = "admin", data1;
 

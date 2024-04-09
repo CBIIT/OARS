@@ -39,7 +39,7 @@
                   @context.ThorDataCategoryId
               </DisplayTemplate>
              <EditTemplate>
-				 <SelectList TItem="ThorCategory" TValue="string?" Data="@categoryList" TextField="@((item)=>item.CategoryName)" ValueField="@((item)=>item.ThorDataCategoryId)" SelectedValueChanged="@( v => {context.CellValue = v;})" SelectedValue="@((string?)context.CellValue)"></SelectList>
+				 <SelectList TItem="ThorCategory" TValue="string" Data="@categoryList" TextField="@((item)=>item.CategoryName)" ValueField="@((item)=>item.ThorDataCategoryId)" SelectedValueChanged="@( v => {context.CellValue = v;})" SelectedValue="@((string?)context.CellValue)"></SelectList>
 			 </EditTemplate>
          </DataGridColumn>
          <DataGridColumn Field="@nameof(ThorField.ThorFieldId)" Width="15%" Caption="THOR Field ID" Editable Filterable="true" Sortable="true">

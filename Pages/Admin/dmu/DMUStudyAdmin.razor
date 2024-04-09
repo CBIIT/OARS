@@ -12,7 +12,7 @@
 <ThorRoleCheck AllowedRoles="@(new List<string> { "??" })"></ThorRoleCheck>
 *@
 <div class="dmu-admin-step-container">
-    <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Protocol Setup</h2></Div>
+    <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Protocol Setup</h2>@this.protocolNum - @this.mappingName</Div>
     <Row Class="dmu-admin-step-container">
         <Steps @ref="stepsRef" SelectedStep="@selectedStep" NavigationAllowed="NavigationAllowed">
             <Items>
@@ -51,6 +51,16 @@
     string selectedStep = "protocolsetup";
     [AllowNull] private Steps stepsRef;
     [Parameter] public int protocolMappingId { get; set; }
+    [Inject] IProtocolMappingService protocolMappingService { get; set; } = null!;
+    private string mappingName;
+    private string protocolNum;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var protocolMapping = await protocolMappingService.GetProtocolMapping(protocolMappingId);
+        this.mappingName = protocolMapping.ProtocolTitle;
+        this.protocolNum = protocolMapping.Protocol.LocalProtocolNumber;
+    }
 
     private bool NavigationAllowed(StepNavigationContext context)
     {
