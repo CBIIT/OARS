@@ -31,6 +31,7 @@
                             <TableRowCell>@(getDefaultIfEmpty(study.ProtocolTitle!))</TableRowCell>
                         }
                     </TableRow>
+                    <!--
                     <TableRow>
                         <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Status</TableRowHeader>
                         @foreach (var study in SelectedStudies)
@@ -38,6 +39,7 @@
                             <TableRowCell>@(getDefaultIfEmpty(study.CurrentStatus!))</TableRowCell>
                         }
                     </TableRow>
+                    -->
                     <TableRow>
                         <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Primary Investigator</TableRowHeader>
                         @foreach (var study in SelectedStudies)
@@ -52,6 +54,7 @@
                             <TableRowCell>@(getDefaultIfEmpty(study.MonitoringMethod!))</TableRowCell>
                         }
                     </TableRow>
+                    <!--
                     <TableRow>
                         <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Medical Monitor</TableRowHeader>
                         @foreach (var study in SelectedStudies)
@@ -59,6 +62,7 @@
                             <TableRowCell>@(getDefaultIfEmpty(""))</TableRowCell>
                         }
                     </TableRow>
+                    -->
                     <TableRow>
                         <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Accrual (Screening/Intervention/Other)</TableRowHeader>
                         @foreach (var study in SelectedStudies)
@@ -66,6 +70,7 @@
                             <TableRowCell>@(getDefaultIfEmpty(accrual(study.TotalScreeningCount!, study.TotalInterventionCount!, study.TotalOtherCount!)))</TableRowCell>
                         }
                     </TableRow>
+                    <!--
                     <TableRow>
                         <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Start Date</TableRowHeader>
                         @foreach (var study in SelectedStudies)
@@ -85,6 +90,7 @@
                             </TableRowCell>
                         }
                     </TableRow>
+                    -->
                     <TableRow>
                         <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Date of Last EDC Update</TableRowHeader>
                         @foreach (var study in SelectedStudies)
@@ -101,6 +107,7 @@
                             </TableRowCell>
                         }
                     </TableRow>
+                    <!--
                     <TableRow>
                         <TableRowHeader Background="Background.Light" Class="overview-Row-Header">End Date</TableRowHeader>
                         @foreach (var study in SelectedStudies)
@@ -120,6 +127,7 @@
                             </TableRowCell>
                         }
                     </TableRow>
+                    -->
                     <TableRow>
                         <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Total Patients</TableRowHeader>
                         @foreach (var study in SelectedStudies)
@@ -170,6 +178,7 @@
                             </TableRowCell>
                         }
                     </TableRow>
+                    <!--
                     <TableRow>
                         <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Subgroup</TableRowHeader>
                         @foreach (var study in SelectedStudies)
@@ -222,6 +231,7 @@
                             <TableRowCell>@getDefaultIfEmpty("")</TableRowCell>
                         }
                     </TableRow>
+                    -->
                 </TableBody>
             </Table>
         </ModalBody>
@@ -232,9 +242,10 @@
 @code {
     [Parameter] public List<Protocol> SelectedStudies { get; set; } = new List<Protocol>();
     private Modal? overviewModal;
-    private string defaultValue = "N/A";
+    private string defaultValue = ""; //"N/A";
 
-    private List<string> subgroupExample = new List<string>() { "description 1", "Description2", "desc3", "the fourth description that is fairly long and shouldn't be this long but is. Example"};
+    //private List<string> subgroupExample = new List<string>() { "description 1", "Description2", "desc3", "the fourth description that is fairly long and shouldn't be this long but is. Example"};
+    private List<string> subgroupExample = new List<string>() { };
 
     public void ShowStudy(Protocol study)
     {

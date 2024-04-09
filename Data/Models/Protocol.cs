@@ -164,14 +164,14 @@ namespace TheradexPortal.Data.Models
         [Column("Created_By")]
         public string? CreatedBy { get; set; }
 
-        [Column("Primary_Agent")]
-        public string? PrimaryAgent { get; set; }
+        //[Column("Primary_Agent")]
+        //public string? PrimaryAgent { get; set; }
 
-        [Column("Other_Agents")]
-        public string? OtherAgents { get; set; }
+        //[Column("Other_Agents")]
+        //public string? OtherAgents { get; set; }
 
-        [Column("SRC_Record_Id")]
-        public string? SrcRecordId { get; set; }
+        //[Column("SRC_Record_Id")]
+        //public string? SrcRecordId { get; set; }
 
         [NotMapped]
         public int RecentOrder { get; set; }
