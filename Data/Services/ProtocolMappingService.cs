@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
+using Polly;
 using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Services.Abstract;
 
@@ -29,30 +30,6 @@ namespace TheradexPortal.Data.Services
                 {
                     continue;
                 }
-                if(pmStudyIds.Contains(protocol.StudyId))
-                {
-                    List<ProtocolMapping> studyMappings = protocolMappings.Select(protocolMapping => protocolMapping).Where(protocolMapping => protocolMapping.THORStudyId == protocol.StudyId).ToList();
-                    if (studyMappings.Count >= 1)
-                    {
-                        foreach (ProtocolMapping mapping in studyMappings)
-                        {
-                            // we can't edit a mapping that's published to prod, so remove it from the list
-                            if (mapping.PublishStatus == ProtocolMappingPublishStatus.PublishedToProd)
-                            {
-                                protocolMappings.Remove(mapping);
-                                studyMappings.Remove(mapping);
-                                if(studyMappings.Count == 0)
-                                {
-                                    pmStudyIds.Remove(pmStudyIds.First(s => s == protocol.StudyId)); // remove this study id so a new one is created if there's no unpublished mappings
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        continue;
-                    }              
-                }
                 if (!pmStudyIds.Contains(protocol.StudyId))
                 {
                     var pm = new ProtocolMapping
@@ -68,7 +45,7 @@ namespace TheradexPortal.Data.Services
                         Status = context.ProtocolMappingStatus.FirstOrDefault(s => s.ProtocolMappingStatusId == 1),
                         ProfileId = 1,
                         MappingVersion = 1,
-                        PublishStatus = ProtocolMappingPublishStatus.NotPublished
+
                     };
                     protocolMappings.Add(pm);
                 }
@@ -117,7 +94,6 @@ namespace TheradexPortal.Data.Services
                     currentMapping.Protocol = mapping.Protocol;
                     currentMapping.MappingVersion = mapping.MappingVersion;
                     currentMapping.SourceProtocolMappingId = mapping.SourceProtocolMappingId;
-                    currentMapping.PublishStatus = mapping.PublishStatus;
                     currentMapping.ProtocolMappingStatusId = mapping.ProtocolMappingStatusId;
                     currentMapping.BillingCode = mapping.BillingCode;
                     currentMapping.ProtocolTitle = mapping.ProtocolTitle;
@@ -168,10 +144,14 @@ namespace TheradexPortal.Data.Services
 			try
             {
 				ProtocolMapping currentMapping = context.ProtocolMapping.Where(p => p.ProtocolMappingId == id).FirstOrDefault();
+                IList<ProtocolMappingStatus> currStatuses = await context.ProtocolMappingStatus.ToListAsync();
+                int publishedToTest = currStatuses.Where(s => s.StatusName == "Published to Test").FirstOrDefault().ProtocolMappingStatusId;
+                int publishedToProd = currStatuses.Where(s => s.StatusName == "Published to Prod").FirstOrDefault().ProtocolMappingStatusId;
+                int archived = currStatuses.Where(s => s.StatusName == "Archived").FirstOrDefault().ProtocolMappingStatusId;
                 
 				if (currentMapping != null)
                 {
-                    currentMapping.PublishStatus = environment == "Production" ? ProtocolMappingPublishStatus.PublishedToProd : ProtocolMappingPublishStatus.PublishedToTest;
+                    currentMapping.ProtocolMappingStatusId = environment == "Production" ? publishedToProd : publishedToTest;
 					context.Update(currentMapping);
 
 					IList<ProtocolMapping> otherMappings = context.ProtocolMapping.Where(p => p.THORStudyId == currentMapping.THORStudyId && p.ProtocolMappingId != currentMapping.ProtocolMappingId).ToList();
@@ -182,9 +162,9 @@ namespace TheradexPortal.Data.Services
                         {
 							foreach (ProtocolMapping mapping in otherMappings)
                             {
-								if(mapping.PublishStatus == ProtocolMappingPublishStatus.PublishedToProd)
+								if(mapping.ProtocolMappingStatusId == publishedToProd)
                                 {
-                                    mapping.PublishStatus = ProtocolMappingPublishStatus.Archived;
+                                    mapping.ProtocolMappingStatusId = archived;
                                     context.Update(mapping);
                                     break; // there should only ever be one other mapping that is published to prod
                                 }
@@ -194,9 +174,9 @@ namespace TheradexPortal.Data.Services
                         { 
                             foreach (ProtocolMapping mapping in otherMappings)
                             {
-                                if(mapping.PublishStatus == ProtocolMappingPublishStatus.PublishedToTest)
+                                if(mapping.ProtocolMappingStatusId == publishedToTest)
                                 {
-                                    mapping.PublishStatus = ProtocolMappingPublishStatus.NotPublished;
+                                    mapping.ProtocolMappingStatusId = archived;
                                     context.Update(mapping);
                                     break; // there should only ever be one other mapping that is published to test
                                 }
@@ -222,5 +202,6 @@ namespace TheradexPortal.Data.Services
 
             return protocolMappings;
         }
+
     }
 }

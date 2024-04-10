@@ -20,7 +20,7 @@
 			<LoadingIndicator @ref="loading">
 				<Field>
 					<FieldBody Margin="Margin.IsAuto">
-						<Button Color="Color.Primary" onclick="@PublishProtocol">Publish Study</Button>
+						<Button Disabled="@allowEdit" Color="Color.Primary" onclick="@PublishProtocol">Publish Study</Button>
 					</FieldBody>
 				</Field>
 			</LoadingIndicator>
@@ -31,6 +31,8 @@
 	[Inject] private IMessageService messageService { get; set; } = null!;
 	[Inject] private IProtocolMappingService protocolMappingService { get; set; } = null!;
 	[Parameter] public int protocolMappingId { get; set; }
+	[Parameter] public bool allowEdit { get; set; }
+
 	private ProtocolMapping mapping;
 	private string selectedEnv = "";
 	private LoadingIndicator loading;

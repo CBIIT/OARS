@@ -19,8 +19,6 @@ namespace TheradexPortal.Data.Models
         public int? MappingVersion { get; set; }
         [Column("Source_Protocol_Mapping_Id")]
         public int? SourceProtocolMappingId { get; set; }
-        [Column("Publish_Status")]
-        public ProtocolMappingPublishStatus PublishStatus { get; set; } = ProtocolMappingPublishStatus.NotPublished;
         [Column("Protocol_Mapping_Status_Id")]
         public int? ProtocolMappingStatusId { get; set; }
         [Column("Billing_Code")]
@@ -44,12 +42,4 @@ namespace TheradexPortal.Data.Models
         public Profile? Profile { get; set; }
 
     }
-
-    public enum ProtocolMappingPublishStatus
-    {
-		NotPublished = 0,
-		PublishedToTest = 1,
-        PublishedToProd = 2,
-        Archived = 3
-	}
 }

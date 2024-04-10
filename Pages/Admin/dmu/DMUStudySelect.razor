@@ -39,11 +39,18 @@
         </DataGridColumn>
         <DataGridColumn Width="50%" Field="Protocol.ProtocolTitle" Sortable="false" Filterable="true" Caption="Title">
         </DataGridColumn>
-        <DataGridColumn Width="20%" Field="Status.StatusName" Sortable="false" Caption="Status">
+        <DataGridColumn Width="10%" Field="Status.StatusName" Sortable="false" Caption="Status">
         </DataGridColumn>
         <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
             <EditCommandTemplate>
-                 <Button><Icon Name="IconName.Edit" Clicked="@(()=>EditMapping(context.Item))" /></Button>
+                 @if(context.Item.Status.StatusName != "Active")
+				 {
+					 <Button><Icon Name="IconName.InfoCircle" Clicked="@(()=>EditMapping(context.Item))" /></Button>
+				 }
+				 else
+				 {
+					 <Button><Icon Name="IconName.Edit" Clicked="@(()=>EditMapping(context.Item))" /></Button>
+				 }
             </EditCommandTemplate>
             <ClearFilterCommandTemplate>
                 <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
@@ -81,7 +88,7 @@
     {
         if(mapping.ProtocolMappingId > 0)
         {
-            navigation.NavigateTo($"/admin/dmu/study-admin/{mapping.ProtocolMappingId}");
+            navigation.NavigateTo($"/admin/dmu/study-admin/{mapping.ProtocolMappingId}?published={mapping.Status.StatusName}");
         }
         else
         {
