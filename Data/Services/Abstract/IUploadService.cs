@@ -26,6 +26,8 @@ namespace TheradexPortal.Data.Services.Abstract
 
         public Task<List<ReceivingStatusFileData>?> GetReceivingStatusFileData(string requestId);
 
-        //public Task<Stream> DownloadOriginalUploadedFile(FileIngestRequest request);
+        public Task<string> GetCsvFileDownloadUrl(FileIngestRequest request);
+
+        public Task<string> GetCRFTemplateDownloadUrl(string crf);
     }
 }

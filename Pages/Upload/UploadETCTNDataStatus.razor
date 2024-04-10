@@ -21,6 +21,9 @@
                   Responsive
                   ShowPager
                   ShowPageSizes
+                  Filterable
+                   FilterMode="DataGridFilterMode.Menu"
+                  Sortable
                    MaxPaginationLinks="5"
                    PagerPosition="DataGridPagerPosition.Bottom"
                    PagerOptions="new(){ButtonSize=Size.Default,
@@ -89,6 +92,15 @@
          anchorElement.remove();
          URL.revokeObjectURL(url);
      }
+
+     window.triggerFileDownload = (fileName, url) => {
+         const anchorElement = document.createElement('a');
+         anchorElement.href = url;
+         anchorElement.download = fileName ?? '';
+         anchorElement.click();
+         anchorElement.remove();
+     }
+
  </script>
 
  @code {
@@ -100,7 +112,7 @@
     [Inject] NavigationManager Navigation { get; set; }
     [Inject] IEmailService emailService { get; set; } = null!;
     [Inject] INotificationService NotificationService { get; set; }
-    [Inject] IAWSS3Service awsS3Service { get; set; } = null!;
+    // [Inject] IAWSS3Service awsS3Service { get; set; } = null!;
 
     @inject IJSRuntime JS
 
@@ -132,18 +144,9 @@
 
     private async Task OnDownloadClicked(FileIngestRequest request)
     {
-        var response = await awsS3Service.DownloadAsync(request.Metadata.Bucket, request.Metadata.FilePath);
+        var preSignedUrl = await uploadService.GetCsvFileDownloadUrl(request);
 
-        if (response != null)
-        {
-            using var streamRef = new DotNetStreamReference(stream: response.ResponseStream);
-
-            await JS.InvokeVoidAsync("downloadFileFromStream", request.Metadata.OriginalFileName, streamRef);
-        }
-        else
-        {
-            await NotificationService.Error("There's an error downloading your Csv File. Please try again later.");
-        }
+        await JS.InvokeVoidAsync("triggerFileDownload", request.Metadata.OriginalFileName, preSignedUrl);
     }
 
     private async Task OnRefresh()

@@ -86,7 +86,7 @@
                                 <Field ColumnSize="ColumnSize.IsThird">
                                     <FieldLabel>CRF</FieldLabel>
                                     <FieldBody>
-                                        <RadioGroup TValue="string" @bind-CheckedValue="@ETCTNUploadRequestModel.CRF">
+                                        <RadioGroup TValue="string" @bind-CheckedValue="@ETCTNUploadRequestModel.CRF" CheckedChanged="OnCRFChanged">
                                             <ChildContent>
                                                 @foreach (var item in crfs)
                                                 {
@@ -97,6 +97,12 @@
                                                 <ValidationError>Please choose a CRF</ValidationError>
                                             </Feedback>
                                         </RadioGroup>
+                                        <Span Visibility="@CheckCRFStatus()">
+                                            <Icon Name="IconName.Download" IconSize="@IconSize.ExtraSmall" />&nbsp;
+                                            <Link Clicked="OnDownloadTemplate" To="#">
+                                                @(crfs.FirstOrDefault(t => t.FormOID == ETCTNUploadRequestModel.CRF)?.FormName)
+                                            </Link>
+                                        </Span>
                                     </FieldBody>
                                 </Field>
                             </Validation>
@@ -144,7 +150,19 @@
     </Div>
 </LoadingIndicator>
 
+<script>
+    window.triggerFileDownload = (fileName, url) => {
+        const anchorElement = document.createElement('a');
+        anchorElement.href = url;
+        anchorElement.download = fileName ?? '';
+        anchorElement.click();
+        anchorElement.remove();
+    }
+</script>
+
 @code {
+
+    @inject IJSRuntime JS
 
     string flexContainerStyle = $"width:75%;";
 
@@ -188,6 +206,27 @@
         {
             await reset();
         }
+    }
+
+    private void OnCRFChanged()
+    {
+
+    }
+
+    private Blazorise.Visibility CheckCRFStatus()
+    {
+        if (ETCTNUploadRequestModel.CRF != null)
+            return Visibility.Visible;
+        else
+            return Visibility.Invisible;
+    }
+
+    async Task OnDownloadTemplate()
+    {
+        var preSignedUrl = await uploadService.GetCRFTemplateDownloadUrl(ETCTNUploadRequestModel.CRF);
+        var fileName = crfs.First(t => t.FormOID == ETCTNUploadRequestModel.CRF).FormName;
+
+        await JS.InvokeVoidAsync("triggerFileDownload", $"{fileName}.csv", preSignedUrl);
     }
 
     async Task reset()

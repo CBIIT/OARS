@@ -3,6 +3,8 @@ using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2;
 using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Services.Abstract;
+using Amazon.DynamoDBv2.Model;
+using Amazon.Runtime;
 
 namespace TheradexPortal.Data.Services
 {
@@ -29,6 +31,34 @@ namespace TheradexPortal.Data.Services
             var records = await (_dynamoDbContext.ScanAsync<FileIngestRequest>(conditions).GetNextSetAsync());
 
             return records;
+
+            //QueryRequest queryRequest = new QueryRequest
+            //{
+            //    TableName = "FileIngestRequest",
+            //    IndexName = "UserId-index",
+            //    KeyConditionExpression = "UserId = :v_userid",
+            //    //ExpressionAttributeNames = new Dictionary<String, String> {
+            //    //    {"#dt", "Date"}
+            //    //},
+            //    ExpressionAttributeValues = new Dictionary<string, AttributeValue> {
+            //        {":v_userid", new AttributeValue { S =  userId.ToString() }}
+            //    },
+            //    ScanIndexForward = true
+            //};
+
+            //var response = await _dynamoDbContext.QueryAsync(queryRequest);
+
+            //var request = new ScanRequest
+            //{
+            //    TableName = "FileIngestRequest",
+            //    IndexName = "UserId-index",
+            //    FilterExpression = "UserId = :value",
+            //    ExpressionAttributeValues = new Dictionary<string, AttributeValue> { { userId.ToString(), new AttributeValue { S = userId.ToString() } } }
+            //};
+
+            //var response = await _dynamoDbContext.Cli.ScanAsync(request);
+
+            //return response.items;
         }
 
         public async Task<List<ReceivingStatusFileData>?> GetAllReceivingStatusData(string requestId)

@@ -8,8 +8,6 @@ namespace TheradexPortal.Data.Services.Abstract
 
         Task<bool> UploadStreamAsync(string bucketName, string objectKey, Stream stream);
 
-        Task<string> DownloadObjectFromBucketAsync(string bucketName, string objectKey);
-
-        Task<GetObjectResponse> DownloadAsync(string bucketName, string objectKey);
+        Task<string> GetPreSignedUrl(string bucketName, string objectKey);
     }
 }

@@ -173,6 +173,18 @@ namespace TheradexPortal.Data.Services
             return requests;
         }
 
+        public Task<string> GetCsvFileDownloadUrl(FileIngestRequest request)
+        {
+            return _awsS3Service.GetPreSignedUrl(request.Metadata.Bucket, request.Metadata.FilePath);
+        }
+
+        public Task<string> GetCRFTemplateDownloadUrl(string crf)
+        {
+            var objectKey = $"{_uploadSettings.TemplatesPath}/{crf}.csv";
+
+            return _awsS3Service.GetPreSignedUrl(_uploadSettings.AWSBucketName, objectKey);
+        }
+
         //public async Task<Stream> DownloadOriginalUploadedFile(FileIngestRequest request)
         //{
         //    return await _awsS3Service.DownloadAsync(request.Metadata.Bucket, request.Metadata.FilePath);
