@@ -23,6 +23,7 @@
                 <Step Name="protocolfieldedit">Edit EDC Fields</Step>
                 <Step Name="protocoldictionary">EDC Dictionary</Step>
                 <Step Name="protocolcategoryfieldedit">THOR Category - Field</Step>
+                <Step Name="protocoltac">Protocol TAC</Step>
                 <Step Name="protocolagentedit">Protocol Agent</Step>
                 <Step Name="protocolsubgroupedit">Protocol Sub Group</Step>
                 <Step Name="protocolpublish">
@@ -33,6 +34,7 @@
                 </Step>
             </Items>
             <Content>
+
                 <StepPanel Name="protocolsetup"><ProtocolSetupEdit protocolMappingId="@protocolMappingId" allowEdit="@(!IsActive())"></ProtocolSetupEdit></StepPanel>
                 <StepPanel Name="protocolconfig"><ThorFieldFormat protocolMappingId="@protocolMappingId" allowEdit="@(!IsActive())"></ThorFieldFormat></StepPanel>
                 <StepPanel Name="protocolfileupload"><ProtocolFileUpload protocolMappingId="@protocolMappingId" allowEdit="@(!IsActive())"></ProtocolFileUpload></StepPanel>
@@ -40,6 +42,7 @@
                 <StepPanel Name="protocolfieldedit"><EditEDCFields protocolMappingId="@protocolMappingId" allowEdit="@(!IsActive())"></EditEDCFields></StepPanel>
                 <StepPanel Name="protocoldictionary"><EDCDictionaryEdit protocolMappingId="@protocolMappingId" allowEdit="@(!IsActive())"></EDCDictionaryEdit></StepPanel>
                 <StepPanel Name="protocolcategoryfieldedit"><ProtocolCategoryFieldsEdit protocolMappingId="@protocolMappingId" allowEdit="@(!IsActive())"></ProtocolCategoryFieldsEdit></StepPanel>
+                <StepPanel Name="protocoltac"><ProtocolTAC protocolMappingId="@protocolMappingId" allowEdit="@(!IsActive())"></ProtocolTAC></StepPanel>
                 <StepPanel Name="protocolagentedit"><ProtocolAgentEdit protocolMappingId="@protocolMappingId" allowEdit="@(!IsActive())"></ProtocolAgentEdit></StepPanel>
                 <StepPanel Name="protocolsubgroupedit"><ProtocolSubGroupEdit protocolMappingId="@protocolMappingId" allowEdit="@(!IsActive())"></ProtocolSubGroupEdit></StepPanel>
                 <StepPanel Name="protocolpublish"><ProtocolPublish protocolMappingId="@protocolMappingId" allowEdit="@(!IsActive())"></ProtocolPublish></StepPanel>
