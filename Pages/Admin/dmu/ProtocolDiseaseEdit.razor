@@ -1,0 +1,140 @@
+﻿@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+@inject IHttpContextAccessor httpContexDiseasecessor
+@inject IConfiguration configuration
+@layout AdminLayout
+@page "/admin/dmu/protocol-Disease/{protocolMappingId:int}"
+
+<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })"></AdminRoleCheck>
+<DataGrid @ref=dataGridRef
+          TItem="ProtocolDisease"
+          Class="admindatagrid"
+          Data="@protocolDiseaseList"
+          Editable
+          Responsive
+          Striped
+          ShowPager
+          ShowPageSizes
+          Filterable
+           FilterMethod="DataGridFilterMethod.StartsWith"
+           MaxPaginationLinks="5"
+           PagerPosition="DataGridPagerPosition.Bottom"
+           PagerOptions="new(){ButtonSize=Size.Default,
+                                PaginationPosition=PagerElementPosition.Default,
+                                TotalItemsPosition=PagerElementPosition.End,
+                                }"
+          FixedHeader
+           FixedHeaderDataGridHeight="calc(100vh - 240px)"
+           FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
+           EditMode="DataGridEditMode.Inline"
+           RowUpdated="@Save"
+           RowInserted="@Save"
+          @bind-SelectedRow="@selectedRow"
+          RowRemoving=@ConfirmDelete
+          RowRemoved=@DeleteRow>
+     <DataGridColumns>
+        <DataGridColumn Field="@nameof(ProtocolDisease.DiseaseName)" Width="30%" Caption="Disease Name" Editable Filterable="true" Sortable="true">
+        </DataGridColumn>
+        <DataGridColumn Field="@nameof(ProtocolDisease.MeddraCode)" Width="50%" Caption="Reporting Meddra Code" Editable Filterable="true" Sortable="true">
+         </DataGridColumn>
+         
+        <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="true">
+            <EditCommandTemplate>
+                <Button><Icon Name="IconName.Edit" Clicked="@context.Clicked" /></Button>
+            </EditCommandTemplate>
+            <SaveCommandTemplate>
+                <Button><Icon Name="IconName.Save" Clicked="@context.Clicked" /></Button>
+            </SaveCommandTemplate>
+            <CancelCommandTemplate>
+                <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
+            </CancelCommandTemplate>
+            <ClearFilterCommandTemplate>
+                <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
+            </ClearFilterCommandTemplate>
+             <DeleteCommandTemplate>
+                 <Button><Icon Name="IconName.Delete" Clicked="@context.Clicked" /></Button>
+             </DeleteCommandTemplate>
+        </DataGridCommandColumn>
+     </DataGridColumns>
+     <ButtonRowTemplate>
+         <Button Color="Color.Primary" Clicked="context.NewCommand.Clicked">Add</Button>
+     </ButtonRowTemplate>
+     <EmptyTemplate>
+         <div class="box">
+             No Protocol Diseases were found.
+         </div>
+     </EmptyTemplate>
+ </DataGrid>
+
+
+@code {
+    [Inject] IProtocolDiseaseService ProtocolDiseaseService { get; set; } = null!;
+    [Inject] private NavigationManager navigation { get; set; } = null!;
+    [Inject] INotificationService notificationService { get; set; }
+    [Inject] private IMessageService messageService { get; set; } = null!;
+
+    [Parameter] public int protocolMappingId { get; set; }
+
+    private DataGrid<ProtocolDisease> dataGridRef;
+    private IList<ProtocolDisease> protocolDiseaseList;
+    private ProtocolDisease selectedRow;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (protocolMappingId != null) this.protocolDiseaseList = await ProtocolDiseaseService.GetProtocolDiseaseByProtocolMappingId(protocolMappingId);
+    }
+
+    public async void Save(SavedRowItem<ProtocolDisease, Dictionary<string, object>> e)
+    {
+        var toSave = e.Item;
+        toSave.ProtocolMappingId = this.protocolMappingId;
+
+        if (toSave.MeddraCode == "" || toSave.DiseaseName == "")
+        {
+            await notificationService.Error("Please make sure to enter the Disease Code and Disease Description values in order to save!");
+            return;
+        }
+
+        bool saved = await ProtocolDiseaseService.SaveProtocolDisease(toSave);
+
+        if (saved)
+        {
+            await notificationService.Success("Protocol Disease successfully saved");
+            return;
+        }
+        else
+        {
+            await notificationService.Error("Error saving the Protocol Disease");
+            return;
+        }
+    }
+
+
+    public async Task<CancellableRowChange<ProtocolDisease>> ConfirmDelete(CancellableRowChange<ProtocolDisease> item)
+    {
+        if (!await messageService.Confirm("Are you sure you want to delete this protocol Disease?", "Confirmation"))
+        {
+            item.Cancel = true;
+        }
+
+        return item;
+    }
+
+    private async Task<Boolean> DeleteRow(ProtocolDisease deleteRow)
+    {
+        bool deleted = await ProtocolDiseaseService.DeleteProtocolDisease(deleteRow.ProtocolDiseaseId);
+
+        if (deleted)
+        {
+            await notificationService.Success("Protocol Disease successfully deleted!");
+            var currentDeletedRecord = protocolDiseaseList.Where(p => p.ProtocolDiseaseId == deleteRow.ProtocolDiseaseId).FirstOrDefault();
+            if (currentDeletedRecord != null) protocolDiseaseList.Remove(currentDeletedRecord);
+            return true;
+        }
+        else
+        {
+            await notificationService.Error("Error deleting the Protocol Disease");
+            return false;
+        }
+    }
+}
