@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using Polly;
+using System.ComponentModel.Design;
 using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Services.Abstract;
 
@@ -139,50 +140,42 @@ namespace TheradexPortal.Data.Services
             }
         }
 
-        public async Task<bool> PublishProtocolMapping(int id, string environment)
+        public async Task<bool> PublishProtocolMapping(int id)
         {
 			try
             {
 				ProtocolMapping currentMapping = context.ProtocolMapping.Where(p => p.ProtocolMappingId == id).FirstOrDefault();
                 IList<ProtocolMappingStatus> currStatuses = await context.ProtocolMappingStatus.ToListAsync();
-                int publishedToTest = currStatuses.Where(s => s.StatusName == "Published to Test").FirstOrDefault().ProtocolMappingStatusId;
                 int publishedToProd = currStatuses.Where(s => s.StatusName == "Published to Prod").FirstOrDefault().ProtocolMappingStatusId;
                 int archived = currStatuses.Where(s => s.StatusName == "Archived").FirstOrDefault().ProtocolMappingStatusId;
-                
+                int active = currStatuses.Where(s => s.StatusName == "Active").FirstOrDefault().ProtocolMappingStatusId;
 				if (currentMapping != null)
                 {
-                    currentMapping.ProtocolMappingStatusId = environment == "Production" ? publishedToProd : publishedToTest;
+                    currentMapping.ProtocolMappingStatusId = publishedToProd;
 					context.Update(currentMapping);
 
 					IList<ProtocolMapping> otherMappings = context.ProtocolMapping.Where(p => p.THORStudyId == currentMapping.THORStudyId && p.ProtocolMappingId != currentMapping.ProtocolMappingId).ToList();
 
 					if (otherMappings != null && otherMappings.Count > 0)
                     {
-                        if(environment == "Production")
+						foreach (ProtocolMapping mapping in otherMappings)
                         {
-							foreach (ProtocolMapping mapping in otherMappings)
+							if(mapping.ProtocolMappingStatusId == publishedToProd)
                             {
-								if(mapping.ProtocolMappingStatusId == publishedToProd)
-                                {
-                                    mapping.ProtocolMappingStatusId = archived;
-                                    context.Update(mapping);
-                                    break; // there should only ever be one other mapping that is published to prod
-                                }
-							}
-						}
-                        else if (environment == "Test")
-                        { 
-                            foreach (ProtocolMapping mapping in otherMappings)
-                            {
-                                if(mapping.ProtocolMappingStatusId == publishedToTest)
-                                {
-                                    mapping.ProtocolMappingStatusId = archived;
-                                    context.Update(mapping);
-                                    break; // there should only ever be one other mapping that is published to test
-                                }
+                                mapping.ProtocolMappingStatusId = archived;
+                                context.Update(mapping);
+                                break; // there should only ever be one other mapping that is published to prod
                             }
-                        }
+						}
                     }
+
+                    // Create a new active mapping from the old one
+                    ProtocolMapping newMapping = currentMapping;
+                    newMapping.ProtocolMappingId = 0;
+                    newMapping.ProtocolMappingStatusId = active;
+                    newMapping.MappingVersion = currentMapping.MappingVersion + 1;
+                    context.Add(newMapping);
+
 					await context.SaveChangesAsync();
 					return true;
 				}
