@@ -39,7 +39,7 @@ namespace TheradexPortal.Data.Models
         public ProtocolMappingStatus? Status { get; set; }
 
         [ForeignKey(nameof(ProfileId))]
-        public Profile? Profile { get; set; }
+        public virtual Profile? Profile { get; set; }
 
     }
 }

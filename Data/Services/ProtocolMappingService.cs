@@ -56,7 +56,7 @@ namespace TheradexPortal.Data.Services
 
         public async Task<ProtocolMapping> GetProtocolMapping(int id)
         {
-            var protocolMapping = await context.ProtocolMapping.Where(p => p.ProtocolMappingId == id).Include(p => p.Protocol).FirstOrDefaultAsync();
+            var protocolMapping = await context.ProtocolMapping.Where(p => p.ProtocolMappingId == id).Include(p => p.Protocol).Include(p => p.Profile).FirstOrDefaultAsync();
             return protocolMapping;
         }
 
