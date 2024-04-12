@@ -6,15 +6,13 @@
 
 <Div Padding="Padding.Is4" Margin="Margin.Is3.FromBottom">
 	<Row Padding="Padding.Is2">
-		<Column ColumnSize="ColumnSize.Is2">
-			<LoadingIndicator @ref="loading">
-				<Field>
-					<FieldBody Margin="Margin.IsAuto">
-						<Button Disabled="@allowEdit" Color="Color.Primary" onclick="@PublishProtocol">Publish Study</Button>
-					</FieldBody>
-				</Field>
-			</LoadingIndicator>
-		</Column>
+		<LoadingIndicator @ref="loading">
+			<Field>
+				<FieldBody Margin="Margin.IsAuto">
+					<Button Block Disabled="@allowEdit" Color="Color.Primary" onclick="@PublishProtocol">Publish Study</Button>
+				</FieldBody>
+			</Field>
+		</LoadingIndicator>
 	</Row>
 </Div>
 @code {
