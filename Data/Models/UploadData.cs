@@ -85,6 +85,13 @@ namespace TheradexPortal.Data.Models
         public string CodedData { get; set; }
     }
 
+    public class ProtocolData
+    {
+        public string Protocol { get; set; }
+        public List<MedidataDictionaryModel> Sites { get; set; }
+        public List<MedidataDictionaryModel> Assays { get; set; }
+    }
+
     public class CRFModel
     {
         public string FormOID { get; set; }

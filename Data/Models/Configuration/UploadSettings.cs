@@ -7,5 +7,7 @@
         public string MetadataUploadPath { get; set; }
 
         public string TemplatesPath { get; set; }
+
+        public string ProtocolDataPath { get; set; }
     }
 }

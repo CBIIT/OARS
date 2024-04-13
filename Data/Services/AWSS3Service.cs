@@ -87,50 +87,50 @@ namespace TheradexPortal.Data.Services
             }
         }
 
-        //public async Task<string> DownloadObjectFromBucketAsync(string bucketName, string objectKey)
-        //{
-        //    try
-        //    {
-        //        var request = new GetObjectRequest
-        //        {
-        //            BucketName = bucketName,
-        //            Key = objectKey
-        //        };
+        public async Task<string> GetDataAsync(string bucketName, string objectKey)
+        {
+            try
+            {
+                var request = new GetObjectRequest
+                {
+                    BucketName = bucketName,
+                    Key = objectKey
+                };
 
-        //        _logger.LogInformation($"Downloading the Object ({objectKey}) from bucket ({bucketName}).");
+                _logger.LogInformation($"Downloading the Object ({objectKey}) from bucket ({bucketName}).");
 
-        //        using GetObjectResponse response = await _s3Client.GetObjectAsync(request);
+                using GetObjectResponse response = await _s3Client.GetObjectAsync(request);
 
-        //        if (response.HttpStatusCode == System.Net.HttpStatusCode.OK)
-        //        {
-        //            _logger.LogInformation($"Successfully downloaded the Object ({objectKey}) from bucket ({bucketName}).");
+                if (response.HttpStatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    _logger.LogInformation($"Successfully downloaded the Object ({objectKey}) from bucket ({bucketName}).");
 
-        //            StreamReader reader = new StreamReader(response.ResponseStream);
+                    StreamReader reader = new StreamReader(response.ResponseStream);
 
-        //            string content = reader.ReadToEnd();
+                    string content = reader.ReadToEnd();
 
-        //            return content;
-        //        }
-        //        else
-        //        {
-        //            _logger.LogInformation($"Could not download the Object ({objectKey}) from bucket ({bucketName}); HttpStatusCode: {response.HttpStatusCode};");
+                    return content;
+                }
+                else
+                {
+                    _logger.LogInformation($"Could not download the Object ({objectKey}) from bucket ({bucketName}); HttpStatusCode: {response.HttpStatusCode};");
 
-        //            return null;
-        //        }
-        //    }
-        //    catch (AmazonS3Exception ex)
-        //    {
-        //        _logger.LogError($"Exception downloading the Object ({objectKey}) from bucket ({bucketName}); AmazonS3Exception: {ex};");
+                    return null;
+                }
+            }
+            catch (AmazonS3Exception ex)
+            {
+                _logger.LogError($"Exception downloading the Object ({objectKey}) from bucket ({bucketName}); AmazonS3Exception: {ex};");
 
-        //        return null;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError($"Exception downloading the Object ({objectKey}) from bucket ({bucketName}); Exception: {ex};");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Exception downloading the Object ({objectKey}) from bucket ({bucketName}); Exception: {ex};");
 
-        //        return null;
-        //    }
-        //}
+                return null;
+            }
+        }
 
         //public async Task<GetObjectResponse> DownloadAsync(string bucketName, string objectKey)
         //{
@@ -173,17 +173,17 @@ namespace TheradexPortal.Data.Services
         //    }
         //}
 
-        public async Task<string> GetPreSignedUrl(string bucketName, string objectKey)
+        public async Task<string> GetPreSignedUrl(string bucketName, string objectKey, string fileName)
         {
             GetPreSignedUrlRequest preSignedUrlRequest = new GetPreSignedUrlRequest
             {
                 BucketName = bucketName,
                 Key = objectKey,
-                Expires = DateTime.UtcNow.AddMinutes(5)
+                Expires = DateTime.UtcNow.AddMinutes(5),
+                ResponseHeaderOverrides = new ResponseHeaderOverrides { ContentDisposition = $"attachment; filename=\"{fileName}\"" }
             };
 
             return _s3Client.GetPreSignedURL(preSignedUrlRequest);
         }
-
     }
 }

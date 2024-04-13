@@ -4,11 +4,13 @@ namespace TheradexPortal.Data.Services.Abstract
 {
     public interface IUploadService
     {
-        public List<string> GetStudies();
+        //public List<string> GetStudies();
 
-        public List<MedidataDictionaryModel> GetAssays();
+        //public List<MedidataDictionaryModel> GetAssays();
 
-        public List<MedidataDictionaryModel> GeTrackingDestinations();
+        //public List<MedidataDictionaryModel> GeTrackingDestinations();
+
+        public Task<List<ProtocolData>> GetProtocolData();
 
         public List<CRFModel> GetCRFs();
 
@@ -28,6 +30,6 @@ namespace TheradexPortal.Data.Services.Abstract
 
         public Task<string> GetCsvFileDownloadUrl(FileIngestRequest request);
 
-        public Task<string> GetCRFTemplateDownloadUrl(string crf);
+        public Task<string> GetCRFTemplateDownloadUrl(string crf, string fileName);
     }
 }

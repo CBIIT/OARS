@@ -23,20 +23,20 @@
                 <Column>
                     <Validations @ref="@ValidationsRef" Mode="ValidationMode.Manual" Model="@ETCTNUploadRequestModel" ValidateOnLoad="false">
                         <Fields>
-                            <Validation>
+                            <Validation Validator="@ValidationRule.IsNotEmpty">
                                 <Field ColumnSize="ColumnSize.IsThird">
                                     <FieldLabel>Protocol</FieldLabel>
                                     <FieldBody>
-                                        <Select @bind-SelectedValue="@ETCTNUploadRequestModel.Protocol">
+                                        <Select @bind-SelectedValue="SelectedProtocol">
                                             <ChildContent>
                                                 <SelectItem TValue="string"></SelectItem>
-                                                @foreach (var item in studies)
+                                                @foreach (var item in protocols)
                                                 {
                                                     <SelectItem TValue="string" Value="@item">@item</SelectItem>
                                                 }
                                             </ChildContent>
                                             <Feedback>
-                                                <ValidationError>Please choose a Protocol</ValidationError>
+                                                <ValidationError>Protocol is required</ValidationError>
                                             </Feedback>
                                         </Select>
                                     </FieldBody>
@@ -55,7 +55,7 @@
                                                 }
                                             </ChildContent>
                                             <Feedback>
-                                                <ValidationError>Please choose a Lab</ValidationError>
+                                                <ValidationError>ReceivingSite is required</ValidationError>
                                             </Feedback>
                                         </Select>
                                     </FieldBody>
@@ -74,7 +74,7 @@
                                                 }
                                             </ChildContent>
                                             <Feedback>
-                                                <ValidationError>Please choose a Lab</ValidationError>
+                                                <ValidationError>SourceSite is required</ValidationError>
                                             </Feedback>
                                         </Select>
                                     </FieldBody>
@@ -94,13 +94,18 @@
                                                 }
                                             </ChildContent>
                                             <Feedback>
-                                                <ValidationError>Please choose a CRF</ValidationError>
+                                                <ValidationError>CRF is required</ValidationError>
                                             </Feedback>
                                         </RadioGroup>
                                         <Span Visibility="@CheckCRFStatus()">
                                             <Icon Name="IconName.Download" IconSize="@IconSize.ExtraSmall" />&nbsp;
                                             <Link Clicked="OnDownloadTemplate" To="#">
-                                                @(crfs.FirstOrDefault(t => t.FormOID == ETCTNUploadRequestModel.CRF)?.FormName)
+                                            Download
+                                            </Link>
+                                            &nbsp;&nbsp;&nbsp;&nbsp;
+                                            <Icon Name="IconName.ListUl" IconSize="@IconSize.ExtraSmall" />&nbsp;
+                                            <Link Clicked="OnInstructionsView" To="#">
+                                            Instructions
                                             </Link>
                                         </Span>
                                     </FieldBody>
@@ -119,7 +124,7 @@
                                                 }
                                             </ChildContent>
                                             <Feedback>
-                                                <ValidationError>Please choose an Assay</ValidationError>
+                                                <ValidationError>Assay is required</ValidationError>
                                             </Feedback>
                                         </Select>
                                     </FieldBody>
@@ -131,8 +136,7 @@
                                 <Field>
                                     <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Attach File</FieldLabel>
                                     <FieldLabel>Accepted File Types: CSV</FieldLabel>
-                                    <FileEdit @ref="@fileEditRef" Changed="@OnFileUpload"
-                                              MaxFileSize="4194304" Filter=".csv" AutoReset="false" DisableProgressReport="false">
+                                    <FileEdit @ref="@fileEditRef" Changed="@OnFileUpload" MaxFileSize="4194304" Filter=".csv" AutoReset="false" DisableProgressReport="false">
                                     </FileEdit>
                                 </Field>
                             </Validation>
@@ -150,19 +154,52 @@
     </Div>
 </LoadingIndicator>
 
-<script>
-    window.triggerFileDownload = (fileName, url) => {
-        const anchorElement = document.createElement('a');
-        anchorElement.href = url;
-        anchorElement.download = fileName ?? '';
-        anchorElement.click();
-        anchorElement.remove();
-    }
-</script>
+<Modal @ref="modalUploadInstructions" Closing="@OnModalClosing">
+    <ModalContent Centered Size="ModalSize.Large">
+         <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
+             <ModalTitle>Upload Instructions</ModalTitle>
+             <CloseButton />
+         </ModalHeader>
+         <ModalBody>
+             <ListGroup Flush Padding="Padding.Is2">
+                 <ListGroupItem>
+                     <Div Padding="Padding.Is2">
+                         <Heading Size="HeadingSize.Is4">@ETCTNUploadRequestModel.CRF</Heading>
+                            <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart">Define User information such as First Name, Last Name, Active, etc.</Paragraph>
+                            <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart">Users must be assigned a Primary role and any number of secondary roles.</Paragraph>
+                            <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart">Define Dashboards, Reports and Admin pages the user can access via Roles.</Paragraph>
+                            <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart">Define Study Groups and Individual Studies users can access.</Paragraph>
+                            <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart">Administration roles are granted all Dashboards, Reports and Studies by default.</Paragraph>
+                        </Div>
+                    </ListGroupItem>
+                </ListGroup>
+            </ModalBody>
+            <ModalFooter>
+            </ModalFooter>
+        </ModalContent>
+    </Modal>
 
-@code {
+    <script>
+        window.triggerFileDownload = (fileName, url) => {
+            const anchorElement = document.createElement('a');
+            anchorElement.href = url;
+            anchorElement.download = fileName ?? '';
+            anchorElement.click();
+            anchorElement.remove();
+        }
+
+        window.blazorOpen = (args) => {
+            window.open(args);
+        };
+
+    </script>
+
+    @code {
 
     @inject IJSRuntime JS
+
+    private Modal modalUploadInstructions;
+    private bool cancelClose;
 
     string flexContainerStyle = $"width:75%;";
 
@@ -172,10 +209,12 @@
     [Inject] IEmailService emailService { get; set; } = null!;
     [Inject] INotificationService NotificationService { get; set; }
 
-    List<string> studies = null;
-    List<MedidataDictionaryModel> trackingDestinations = null;
-    List<MedidataDictionaryModel> assays = null;
-    List<CRFModel> crfs = null;
+    // List<string> studies = null;
+    List<MedidataDictionaryModel> trackingDestinations = new List<MedidataDictionaryModel>();
+    List<MedidataDictionaryModel> assays = new List<MedidataDictionaryModel>();
+    List<CRFModel> crfs = new List<CRFModel>();
+    List<ProtocolData> protocolData = new List<ProtocolData>();
+    List<string> protocols = new List<string>();
 
     int? userId = null;
     FileEdit fileEditRef;
@@ -188,15 +227,22 @@
 
     LoadingIndicator loadingIndicator;
 
+    public string SelectedProtocol
+    {
+        get
+        {
+            return ETCTNUploadRequestModel.Protocol;
+        }
+        set
+        {
+            ETCTNUploadRequestModel.Protocol = value;
+
+            OnProtocolChanged();
+        }
+    }
+
     protected override async Task OnInitializedAsync()
     {
-        studies = uploadService.GetStudies();
-        trackingDestinations = uploadService.GeTrackingDestinations();
-        assays = uploadService.GetAssays();
-        crfs = uploadService.GetCRFs();
-
-        userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
-
         await base.OnInitializedAsync();
     }
 
@@ -204,13 +250,40 @@
     {
         if (firstRender)
         {
-            await reset();
+            protocolData = await uploadService.GetProtocolData();
+
+            crfs = uploadService.GetCRFs();
+
+            protocols = protocolData.Select(t => t.Protocol + "(FUNCTEST)").ToList();
+
+            userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+
+            await OnReset();
         }
+    }
+
+    void OnProtocolChanged()
+    {
+        if (string.IsNullOrEmpty(ETCTNUploadRequestModel.Protocol))
+            return;
+
+        var data = protocolData.First(t => ETCTNUploadRequestModel.Protocol.StartsWith(t.Protocol));
+
+        trackingDestinations = data.Sites;
+
+        assays = data.Assays;
     }
 
     private void OnCRFChanged()
     {
+    }
 
+    private Task OnModalClosing(ModalClosingEventArgs e)
+    {
+        e.Cancel = cancelClose
+            || e.CloseReason != CloseReason.UserClosing;
+
+        return Task.CompletedTask;
     }
 
     private Blazorise.Visibility CheckCRFStatus()
@@ -223,13 +296,21 @@
 
     async Task OnDownloadTemplate()
     {
-        var preSignedUrl = await uploadService.GetCRFTemplateDownloadUrl(ETCTNUploadRequestModel.CRF);
         var fileName = crfs.First(t => t.FormOID == ETCTNUploadRequestModel.CRF).FormName;
 
-        await JS.InvokeVoidAsync("triggerFileDownload", $"{fileName}.csv", preSignedUrl);
+        var preSignedUrl = await uploadService.GetCRFTemplateDownloadUrl(ETCTNUploadRequestModel.CRF, $"{fileName}.csv");
+
+        string[] values = { preSignedUrl, "_blank" };
+        CancellationToken token = new CancellationToken(false);
+        await JS.InvokeAsync<object>("open", token, values);
     }
 
-    async Task reset()
+    private Task OnInstructionsView()
+    {
+        return modalUploadInstructions.Show();
+    }
+
+    async Task OnReset()
     {
         await fileEditRef.Reset().AsTask();
 
@@ -239,7 +320,13 @@
 
         ETCTNUploadRequestModel.RequestId = Guid.NewGuid().ToString();
 
+        SelectedProtocol = null;
+
         UploadFile = null;
+
+        trackingDestinations = new List<MedidataDictionaryModel>();
+
+        assays = new List<MedidataDictionaryModel>();
     }
 
     async Task OnSubmit()
@@ -248,13 +335,8 @@
         {
             await UploadMetadata();
 
-            await reset();
+            await OnReset();
         }
-    }
-
-    async Task OnReset()
-    {
-        await reset();
     }
 
     async Task<bool> UploadMetadata()
@@ -358,12 +440,10 @@
     {
         if (UploadFile == null)
         {
-            e.ErrorText = "Error test here";
             e.Status = ValidationStatus.Error;
         }
         else
         {
-            e.ErrorText = null;
             e.Status = ValidationStatus.Success;
         }
     }

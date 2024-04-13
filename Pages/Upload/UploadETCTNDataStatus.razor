@@ -81,18 +81,6 @@
  <UploadETCTNFileData @ref="uploadETCTNFileData" />
 
  <script>
-     window.downloadFileFromStream = async (fileName, contentStreamReference) => {
-         const arrayBuffer = await contentStreamReference.arrayBuffer();
-         const blob = new Blob([arrayBuffer]);
-         const url = URL.createObjectURL(blob);
-         const anchorElement = document.createElement('a');
-         anchorElement.href = url;
-         anchorElement.download = fileName ?? '';
-         anchorElement.click();
-         anchorElement.remove();
-         URL.revokeObjectURL(url);
-     }
-
      window.triggerFileDownload = (fileName, url) => {
          const anchorElement = document.createElement('a');
          anchorElement.href = url;
@@ -100,6 +88,10 @@
          anchorElement.click();
          anchorElement.remove();
      }
+
+     window.blazorOpen = (args) => {
+         window.open(args);
+     };
 
  </script>
 
@@ -146,7 +138,9 @@
     {
         var preSignedUrl = await uploadService.GetCsvFileDownloadUrl(request);
 
-        await JS.InvokeVoidAsync("triggerFileDownload", request.Metadata.OriginalFileName, preSignedUrl);
+        string[] values = { preSignedUrl, "_blank" };
+        CancellationToken token = new CancellationToken(false);
+        await JS.InvokeAsync<object>("open", token, values);
     }
 
     private async Task OnRefresh()
