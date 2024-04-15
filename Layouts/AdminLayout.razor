@@ -15,7 +15,7 @@
             <LayoutHeader>
                 <Bar Breakpoint="Breakpoint.Desktop" NavigationBreakpoint="Breakpoint.Desktop" Style="@GetHeaderColor()" Class="nci-navbar px-4">
                     <BarBrand>
-                            <Image Source="img/theradex-logo.png" AlternateText="Theradex Oncology" /><span class="navbar-sitename">@environment</span>
+                            <Image Source="img/OarsLogo.svg" AlternateText="NCI-OARS" /><span class="navbar-sitename">@environment</span>
                     </BarBrand>
                     <BarToggler />
                     <BarMenu>
@@ -137,9 +137,9 @@
 
         environment = configuration.GetValue<string>("System:Environment");
         if (environment != "Prod")
-            environment = "NCI Theradex Oncology Reporting-" + environment;
+            environment = "NCI Oncology Automated Reporting System-" + environment;
         else
-            environment = "NCI Theradex Oncology Reporting";
+            environment = "NCI Oncology Automated Reporting System";
     }
 
     private string GetHeaderColor()

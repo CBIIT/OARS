@@ -1,5 +1,8 @@
 /* Navbar Overrides */
 
+.nci-login-banner {
+    height: 80px;
+}
 .nci-navbar {
     height: 50px;
 }
