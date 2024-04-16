@@ -53,7 +53,7 @@
         </DataGridCommandColumn>
     </DataGridColumns>
     <ButtonRowTemplate>
-        <Button Color="Color.Primary" Clicked="@context.NewCommand.Clicked">Add</Button>
+        <Button Color="Color.Primary" Clicked="@context.NewCommand.Clicked" Disabled="@allowEdit">Add</Button>
     </ButtonRowTemplate>
     <EmptyTemplate>
         <div class="box">

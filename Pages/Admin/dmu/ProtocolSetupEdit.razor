@@ -225,7 +225,7 @@
         <Column ColumnSize="ColumnSize.Is4">
             <Field Flex="Flex.JustifyContent.Center">
                 <Div>
-                    <Button Color="Color.Light" Clicked="@Cancel">Cancel</Button>
+                    <Button Color="Color.Light" Disabled="@allowEdit" Clicked="@Cancel">Cancel</Button>
                     <Button Class="dmu-admin-button-orange" Type="ButtonType.Submit" PreventDefaultOnSubmit Clicked="@SaveNewProtocolMapping" Disabled="@allowEdit">Save</Button>
                 </Div>
             </Field>
