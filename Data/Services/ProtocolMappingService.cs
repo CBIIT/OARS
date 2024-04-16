@@ -183,10 +183,24 @@ namespace TheradexPortal.Data.Services
                     }
 
                     // Create a new active mapping from the old one
-                    ProtocolMapping newMapping = currentMapping;
-                    newMapping.ProtocolMappingId = 0;
-                    newMapping.ProtocolMappingStatusId = active.ProtocolMappingStatusId;
-                    newMapping.MappingVersion = currentMapping.MappingVersion + 1;
+                    ProtocolMapping newMapping = new ProtocolMapping
+                    {
+                        ProtocolMappingId = 0,
+                        ProtocolMappingStatusId = active.ProtocolMappingStatusId,
+                        MappingVersion = currentMapping.MappingVersion + 1,
+                        ProfileId = currentMapping.ProfileId,
+                        THORStudyId = currentMapping.THORStudyId,
+                        Protocol = currentMapping.Protocol,
+                        Profile = currentMapping.Profile,
+                        SourceProtocolMappingId = currentMapping.SourceProtocolMappingId,
+                        BillingCode = currentMapping.BillingCode,
+                        ProtocolTitle = currentMapping.ProtocolTitle,
+                        Sponsor = currentMapping.Sponsor,
+                        ProtocolDataSystemId = currentMapping.ProtocolDataSystemId,
+                        DateFormat = currentMapping.DateFormat,
+                        DataFileFolder = currentMapping.DataFileFolder,
+                        CreateDate = DateTime.Now
+                    };
                     context.Add(newMapping);
 
 					await context.SaveChangesAsync();
