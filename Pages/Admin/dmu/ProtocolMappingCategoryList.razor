@@ -3,7 +3,7 @@
 @inject IHttpContextAccessor httpContextAccessor
 @inject IConfiguration configuration
 @layout AdminLayout
-@*@page "/admin/dmu/mappingtest/{protocolMappingId:int}" TODO: Remove this once there's a way to get to this page*@
+@page "/admin/dmu/category-list-map/{protocolMappingId:int}"
 <AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })"></AdminRoleCheck>
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Mapping</h2></Div>
 <Row Background="Background.Light" Style="padding-bottom:10px;">
