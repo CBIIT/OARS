@@ -14,7 +14,7 @@
         <Column><Text><b>Data Mapping Status:</b> @MappingStatus()</Text></Column>
         <Column><Text><b>Data Mapping Version:</b> @protocolMapping.Profile.ProfileName</Text></Column>
         <Column><Text><b>Lead Protocol Organization:</b> @protocolMapping.Sponsor</Text></Column>
-        <Column><Button Color="Color.Primary">Generate Mapping Document</Button></Column>
+        <Column><Button Color="Color.Primary" Clicked="@GenerateMapping()">Generate Mapping Document</Button></Column>
 
     </Row>
 </Row>
@@ -102,10 +102,15 @@
         }
 
         if(notStarted == protocolDataCategoryList.Count)
-		{
-			return "Not Started";
-		}
+        {
+            return "Not Started";
+        }
 
         return "Complete";
+    }
+
+    private void GenerateMapping()
+    {
+        // placeholder for generating the mapping document
     }
 }
