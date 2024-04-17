@@ -134,12 +134,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-
-        environment = configuration.GetValue<string>("System:Environment");
-        if (environment != "Prod")
-            environment = "NCI Oncology Automated Reporting System-" + environment;
-        else
-            environment = "NCI Oncology Automated Reporting System";
+        environment = configuration.GetValue<string>("System:Environment") == "Prod" ? "" : configuration.GetValue<string>("System:Environment");
     }
 
     private string GetHeaderColor()

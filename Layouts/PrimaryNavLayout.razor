@@ -189,7 +189,7 @@
     </ModalContent>
 </Modal>
 
-@code {
+    @code {
     private string environment = "";
     private PrimaryNav? primaryNav;
     private AlertBar? systemAlerts;
@@ -255,12 +255,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        environment = configuration.GetValue<string>("System:Environment");
-        if (environment != "Prod")
-            environment = "NCI-Oncology Automated Reporting System-" + environment;
-        else
-            environment = "NCI-Oncology Automated Reporting System";
-
+        environment = configuration.GetValue<string>("System:Environment") == "Prod" ? "" : configuration.GetValue<string>("System:Environment");
+ 
         // Display or Hide Admin button
         bool isAdmin = Convert.ToBoolean(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.IsAdmin).Value);
         if (isAdmin)
