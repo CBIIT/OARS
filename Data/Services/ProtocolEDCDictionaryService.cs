@@ -34,6 +34,19 @@ namespace TheradexPortal.Data.Services
             {
                 DateTime currentDateTime = DateTime.UtcNow;
 
+                int? statusId = context.ProtocolMapping.Where(x => x.ProtocolMappingId == mappingId).Select(x => x.ProtocolMappingStatusId).FirstOrDefault();
+                if (statusId != null)
+                {
+                    string? statusText = context.ProtocolMappingStatus.Where(x => x.ProtocolMappingStatusId == statusId).Select(x => x.StatusName).FirstOrDefault();
+                    if (statusText != "Active")
+                    {
+                        return false;
+                    }   
+                }
+                else
+                {
+                    return false;
+                }
                 ProtocolEDCDictionary currentDictionary = context.ProtocolEDCDictionary.Where(p => p.ProtocolEDCDictionaryId == dictionary.ProtocolEDCDictionaryId).FirstOrDefault();
 
                 if (currentDictionary == null || dictionary.CreateDate == null)

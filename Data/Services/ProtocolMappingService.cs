@@ -225,6 +225,5 @@ namespace TheradexPortal.Data.Services
 
             return protocolMappings;
         }
-
     }
 }
