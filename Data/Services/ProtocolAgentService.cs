@@ -22,6 +22,20 @@ namespace TheradexPortal.Data.Services
             try
             {
                 ProtocolAgent currAgent = context.ProtocolAgents.FirstOrDefault(x => x.ProtocolAgentId == agent.ProtocolAgentId);
+                int? statusId = context.ProtocolMapping.Where(x => x.ProtocolMappingId == mappingId).Select(x => x.ProtocolMappingStatusId).FirstOrDefault();
+                if (statusId != null)
+                {
+                    string? statusText = context.ProtocolMappingStatus.Where(x => x.ProtocolMappingStatusId == statusId).Select(x => x.StatusName).FirstOrDefault();
+                    if (statusText != "Active")
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    return false;
+                }
+
                 if (currAgent == null || agent.CreateDate == null)
                 {
                     agent.ProtocolMappingId = mappingId;
