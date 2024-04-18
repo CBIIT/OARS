@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Oracle.ManagedDataAccess.Client;
+using System.Data;
 using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Services.Abstract;
 using YamlDotNet.Core.Events;
@@ -56,13 +57,24 @@ namespace TheradexPortal.Data.Services
                 return false;
             }
         }
-        public async Task<bool> BulkSaveFields(List<ProtocolEDCField> fields)
+        public async Task<bool> BulkSaveFields(DataTable fields)
         {
             // EF doesn't natively support bulk inserts, so the closest we can get is doing an AddRange and then SaveChanges
+            // this isn't very performant, so do it the oracle way here
+            DateTime curDateTime = DateTime.UtcNow;
             try
             {
-                context.AddRange(fields);
-                await context.SaveChangesAsync();
+                using (var connection = new OracleConnection(context.Database.GetDbConnection().ConnectionString))
+                {
+                    connection.Open();
+                    using (var bulkCopy = new OracleBulkCopy(connection))
+                    {
+                        bulkCopy.DestinationSchemaName = "DMU";
+                        bulkCopy.DestinationTableName = "\"ProtocolEDCField\"";
+                        bulkCopy.BatchSize = fields.Rows.Count;
+                        bulkCopy.WriteToServer(fields);
+                    }
+                }
                 return true;
             }
             catch (Exception ex)

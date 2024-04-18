@@ -53,16 +53,16 @@ namespace TheradexPortal.Data.Services
             }
             
             XmlNodeList fields = document.GetElementsByTagName("ItemDef");
-            List<ProtocolEDCField> fieldsToSave = new List<ProtocolEDCField>();
+            DataTable fieldsToSave = SetUpFieldTable();
             foreach (XmlNode field in fields)
             {
-                ProtocolEDCField newField = CreateField(field, formIds);
-                if (newField != null && newField.EDCFieldIdentifier != null && newField.EDCFieldName != null)
+                DataRow newField = CreateField(field, formIds, fieldsToSave);
+                if (newField != null && newField["EDC_Field_Identifier"] != null && newField["EDC_Field_Name"] != null)
                 {
-                    fieldsToSave.Add(newField);
+                    fieldsToSave.Rows.Add(newField);
                 }
             }
-            if(fieldsToSave.Count > 0)
+            if(fieldsToSave.Rows.Count > 0)
             {
                bool saveFieldResult = await _fieldService.BulkSaveFields(fieldsToSave);
                 if (!saveFieldResult)
@@ -113,6 +113,19 @@ namespace TheradexPortal.Data.Services
             return dictionaries;
         }
 
+        private DataTable SetUpFieldTable()
+        {
+            DataTable fields = new DataTable();
+            fields.Columns.Add("Protocol_EDC_Field_Id", typeof(int));
+            fields.Columns.Add("Protocol_EDC_Form_Id", typeof(int));
+            fields.Columns.Add("EDC_Field_Identifier", typeof(string));
+            fields.Columns.Add("EDC_Field_Name", typeof(string));
+            fields.Columns.Add("EDC_Dictionary_Name", typeof(string));
+            fields.Columns.Add("Create_Date", typeof(DateTime));
+            fields.Columns.Add("Update_Date", typeof(DateTime));
+            return fields;
+        }
+
         private ProtocolEDCForm CreateForm(XmlNode form, int protocolMappingId)
         {
             ProtocolEDCForm newForm = new ProtocolEDCForm();
@@ -125,22 +138,22 @@ namespace TheradexPortal.Data.Services
             return newForm;
         }
 
-        private ProtocolEDCField CreateField(XmlNode field, Dictionary<string, int> formIds)
+        private DataRow CreateField(XmlNode field, Dictionary<string, int> formIds, DataTable fields)
         {
-            ProtocolEDCField newField = new ProtocolEDCField();
-            newField.CreateDate = DateTime.Now;
-            newField.UpdateDate = DateTime.Now;
+            DataRow newField = fields.NewRow();
+            newField["Create_Date"] = DateTime.Now;
+            newField["Update_Date"] = DateTime.Now;
 
-            newField.EDCFieldIdentifier = field.Attributes["OID"].Value;
+            newField["EDC_Field_Identifier"] = field.Attributes["OID"].Value;
             if(field.Attributes["OID"].Value != null)
             {
                 string formIdentifier = field.Attributes["OID"].Value.Split('.')[0];
                 formIds.TryGetValue(formIdentifier, out int formId);
-                newField.ProtocolEDCFormId = formId;
+                newField["Protocol_EDC_Form_Id"] = formId;
             }
             if (field["CodeListRef"] != null)
             {
-                newField.EDCDictionaryName = field["CodeListRef"].Attributes["CodeListOID"].Value;
+                newField["EDC_Dictionary_Name"] = field["CodeListRef"].Attributes["CodeListOID"].Value;
             }
 
             if (field["Question"] != null)
@@ -150,7 +163,7 @@ namespace TheradexPortal.Data.Services
                 {
                     if (translation.Attributes["xml:lang"].Value == "en")
                     {
-                        newField.EDCFieldName = translation.InnerText;
+                        newField["EDC_Field_Name"] = translation.InnerText;
                         break;
                     }
                 }
