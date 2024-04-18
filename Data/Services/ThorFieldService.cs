@@ -23,7 +23,7 @@ namespace TheradexPortal.Data.Services
 
         public async Task<IList<ThorField>> GetFields()
         {
-            return await context.THORField.OrderBy(c => c.SortOrder).ToListAsync();
+            return await context.THORField.Include(f => f.Category).OrderBy(c => c.SortOrder).ToListAsync();
         }
         
         public async Task<bool> SaveField(ThorField field)
