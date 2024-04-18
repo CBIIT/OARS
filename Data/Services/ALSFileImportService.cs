@@ -1,6 +1,4 @@
-﻿using Blazorise;
-using System.Data;
-using System.Drawing.Printing;
+﻿using System.Data;
 using System.Xml;
 using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Services.Abstract;
