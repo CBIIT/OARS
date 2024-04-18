@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Services.Abstract;
+using YamlDotNet.Core.Events;
 
 namespace TheradexPortal.Data.Services
 {
@@ -64,6 +65,19 @@ namespace TheradexPortal.Data.Services
         {
             try
             {
+                int? statusId = context.ProtocolMapping.Where(x => x.ProtocolMappingId == protocolMappingId).Select(x => x.ProtocolMappingStatusId).FirstOrDefault();
+                if (statusId != null)
+                {
+                    string? statusText = context.ProtocolMappingStatus.Where(x => x.ProtocolMappingStatusId == statusId).Select(x => x.StatusName).FirstOrDefault();
+                    if (statusText != "Active")
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    return false;
+                }
                 string protocolMappingFormat = "MM/dd/yyyy";
                 var protocolMapping = _protocolMappingService.GetProtocolMapping(protocolMappingId).Result;
                 if (protocolMapping != null && protocolMapping.DateFormat != null) protocolMappingFormat = protocolMapping.DateFormat;

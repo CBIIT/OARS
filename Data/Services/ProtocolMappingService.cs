@@ -165,6 +165,7 @@ namespace TheradexPortal.Data.Services
 				if (currentMapping != null)
                 {
                     currentMapping.ProtocolMappingStatusId = publishedToProd.ProtocolMappingStatusId;
+                    currentMapping.IsPublished = true;
 					context.Update(currentMapping);
 
 					IList<ProtocolMapping> otherMappings = context.ProtocolMapping.Where(p => p.THORStudyId == currentMapping.THORStudyId && p.ProtocolMappingId != currentMapping.ProtocolMappingId).ToList();
@@ -176,6 +177,7 @@ namespace TheradexPortal.Data.Services
 							if(mapping.ProtocolMappingStatusId == publishedToProd.ProtocolMappingStatusId)
                             {
                                 mapping.ProtocolMappingStatusId = archived.ProtocolMappingStatusId;
+                                mapping.IsPublished = false;
                                 context.Update(mapping);
                                 break; // there should only ever be one other mapping that is published to prod
                             }
@@ -199,7 +201,8 @@ namespace TheradexPortal.Data.Services
                         ProtocolDataSystemId = currentMapping.ProtocolDataSystemId,
                         DateFormat = currentMapping.DateFormat,
                         DataFileFolder = currentMapping.DataFileFolder,
-                        CreateDate = DateTime.Now
+                        CreateDate = DateTime.Now,
+                        IsPublished = false
                     };
                     context.Add(newMapping);
 
@@ -222,6 +225,5 @@ namespace TheradexPortal.Data.Services
 
             return protocolMappings;
         }
-
     }
 }

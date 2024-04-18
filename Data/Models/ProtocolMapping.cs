@@ -35,6 +35,8 @@ namespace TheradexPortal.Data.Models
         public string? DataFileFolder { get; set; }
         [Column("Create_Date")]
         public DateTime? CreateDate { get; set; }
+        [Column("Is_Published")]
+        public bool IsPublished { get; set; }
         [ForeignKey(nameof(ProtocolMappingStatusId))]
         public ProtocolMappingStatus? Status { get; set; }
 
