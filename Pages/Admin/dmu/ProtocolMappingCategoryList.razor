@@ -14,7 +14,7 @@
         <Column><Text><b>Data Mapping Status:</b> @MappingStatus()</Text></Column>
         <Column><Text><b>Data Mapping Version:</b> @protocolMapping.Profile.ProfileName</Text></Column>
         <Column><Text><b>Lead Protocol Organization:</b> @protocolMapping.Sponsor</Text></Column>
-        <Column><Button Color="Color.Primary" Clicked="@GenerateMapping()">Generate Mapping Document</Button></Column>
+        <Column><Button Color="Color.Primary" Clicked="@GenerateMapping">Generate Mapping Document</Button></Column>
 
     </Row>
 </Row>
@@ -109,7 +109,7 @@
         return "Complete";
     }
 
-    private void GenerateMapping()
+    public void GenerateMapping()
     {
         // placeholder for generating the mapping document
     }
