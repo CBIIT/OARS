@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 using Amazon.DynamoDBv2.DataModel;
+using System.ComponentModel;
+using Microsoft.PowerBI.Api.Models;
 
 namespace TheradexPortal.Data.Models
 {
@@ -154,11 +156,43 @@ namespace TheradexPortal.Data.Models
         [DynamoDBProperty]
         public int Status { get; set; }
 
+        public string InternalStatus
+        {
+            get
+            {
+                return ((RequestStatusV2)Status).ToString();
+            }
+        }
+
         [DynamoDBProperty]
         public string Error { get; set; }
 
         [DynamoDBProperty]
         public string ClientError { get; set; }
+
+        public string ClientStatus
+        {
+            get
+            {
+
+                if (Status >= 101 && Status <= 110)
+                {
+                    return RequestStatusV2.Received.ToString();
+                }
+                else if (Status >= 111 && Status <= 120)
+                {
+                    return RequestStatusV2.InProgress.ToString();
+                }
+                else if (Status >= 121 && Status <= 130)
+                {
+                    return ((RequestStatusV2)Status).ToString();
+                }
+                else
+                {
+                    return "UnKnown";
+                }
+            }
+        }
 
         [DynamoDBProperty]
         public int RetryCount { get; set; }
@@ -169,6 +203,71 @@ namespace TheradexPortal.Data.Models
         [DynamoDBProperty]
         public DateTime UpdatedDate { get; set; }
     }
+
+    //101 to 110 Received Statuses
+    //111 to 120 InProgress Statuses
+    //121 to 130 Final Statuses
+    public enum RequestStatusV2
+    {
+        [Description("Received")]
+        Received = 101,
+
+        [Description("InProgress")]
+        InProgress = 111,
+
+        [Description("Validating")]
+        Validating = 112,
+
+        [Description("Validated")]
+        Validated = 113,
+
+        [Description("CreatedMedidataODM")]
+        CreatedMedidataODM = 116,
+
+        [Description("Retry")]
+        Retry = 118,
+
+        [Description("Success")]
+        Success = 121,
+
+        [Description("PartialSuccess")]
+        PartialSuccess = 122,
+
+        [Description("Failed")]
+        Failed = 125
+    }
+
+
+    //201 to 210 Received Statuses
+    //211 to 220 InProgress Statuses
+    //221 to 230 Final Statuses
+    public enum RequestItemStatusV2
+    {
+        [Description("Received")]
+        Received = 201,
+
+        [Description("InProgress")]
+        InProgress = 211,
+
+        [Description("Validating")]
+        Validating = 212,
+
+        [Description("Validated")]
+        Validated = 213,
+
+        [Description("CreatedMedidataODM")]
+        CreatedMedidataODM = 216,
+
+        [Description("Retry")]
+        Retry = 218,
+
+        [Description("Success")]
+        Success = 221,
+
+        [Description("Failed")]
+        Failed = 225
+    }
+
 
     [DynamoDBTable("ReceivingStatusFileData")]
     public class ReceivingStatusFileData : BaseFileData
@@ -227,11 +326,44 @@ namespace TheradexPortal.Data.Models
         [DynamoDBProperty(AttributeName = "Status")]
         public int Status { get; set; }
 
+        public string InternalStatus
+        {
+            get
+            {
+                return ((RequestItemStatusV2)Status).ToString();
+            }
+        }
+
         [DynamoDBProperty(AttributeName = "Error")]
         public string Error { get; set; }
 
         [DynamoDBProperty(AttributeName = "ClientError")]
         public string ClientError { get; set; }
+
+        public string ClientStatus
+        {
+            get
+            {
+
+                if (Status >= 201 && Status <= 210)
+                {
+                    return RequestItemStatusV2.Received.ToString();
+                }
+                else if (Status >= 211 && Status <= 220)
+                {
+                    return RequestItemStatusV2.InProgress.ToString();
+                }
+                else if (Status >= 221 && Status <= 230)
+                {
+                    return ((RequestItemStatusV2)Status).ToString();
+                }
+                else
+                {
+                    return "UnKnown";
+                }
+            }
+        }
+
 
         [DynamoDBProperty(AttributeName = "MedidataUpdateReference")]
         public string MedidataUpdateReference { get; set; }
