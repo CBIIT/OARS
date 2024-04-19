@@ -70,7 +70,8 @@
         if (firstRender)
         {
             // Set the Timer delay.  5000 milliseconds, you can change it to 10 mins.
-            timerObj = new Timer(20000);
+            var timeoutMS = configuration.GetValue<int>("System:TimeoutMS");
+            timerObj = new Timer(timeoutMS);
             timerObj.Elapsed += UpdateTimer;
             timerObj.AutoReset = false;
             timerObj.Start();
