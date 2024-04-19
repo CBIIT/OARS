@@ -152,7 +152,7 @@ namespace TheradexPortal.Data.Models
         public FileMetadata Metadata { get; set; }
 
         [DynamoDBProperty]
-        public string Status { get; set; }
+        public int Status { get; set; }
 
         [DynamoDBProperty]
         public string Error { get; set; }
@@ -225,7 +225,7 @@ namespace TheradexPortal.Data.Models
         public DateTime UpdatedDate { get; set; }
 
         [DynamoDBProperty(AttributeName = "Status")]
-        public string Status { get; set; }
+        public int Status { get; set; }
 
         [DynamoDBProperty(AttributeName = "Error")]
         public string Error { get; set; }
@@ -241,11 +241,5 @@ namespace TheradexPortal.Data.Models
 
         [DynamoDBProperty(AttributeName = "RetryCount")]
         public int RetryCount { get; set; }
-
-        [DynamoDBIgnore]
-        public bool IsSent { get; set; }
-
-        [DynamoDBIgnore]
-        public string ODMXml { get; set; }
     }
 }

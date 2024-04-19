@@ -23,14 +23,30 @@ namespace TheradexPortal.Data.Services
 
         public async Task<List<FileIngestRequest>?> GetAllRequestsOfUser(int userId)
         {
-            var conditions = new List<ScanCondition>
-                {
-                    new ScanCondition("UserId", ScanOperator.Equal, new string[1] { userId.ToString() })
-                };
+            //var conditions = new List<ScanCondition>
+            //    {
+            //        new ScanCondition("UserId", ScanOperator.Equal, new string[1] { userId.ToString() })
+            //    };
 
-            var records = await (_dynamoDbContext.ScanAsync<FileIngestRequest>(conditions).GetNextSetAsync());
+            //var records = await (_dynamoDbContext.ScanAsync<FileIngestRequest>(conditions).GetNextSetAsync());
 
-            return records;
+            //return records;
+
+            var search = _dynamoDbContext.ScanAsync<FileIngestRequest>
+            (
+              new[] {
+                new ScanCondition
+                  (
+                    nameof(FileIngestRequest.UserId),
+                    ScanOperator.Equal,
+                    userId.ToString()
+                  )
+              }
+            );
+
+            var result = await search.GetRemainingAsync();
+
+            return result;
 
             //QueryRequest queryRequest = new QueryRequest
             //{
@@ -63,14 +79,30 @@ namespace TheradexPortal.Data.Services
 
         public async Task<List<ReceivingStatusFileData>?> GetAllReceivingStatusData(string requestId)
         {
-            var conditions = new List<ScanCondition>
-                {
-                    new ScanCondition("RequestId", ScanOperator.Equal, new string[1] { requestId })
-                };
+            //var conditions = new List<ScanCondition>
+            //    {
+            //        new ScanCondition("RequestId", ScanOperator.Equal, new string[1] { requestId })
+            //    };
 
-            var records = await (_dynamoDbContext.ScanAsync<ReceivingStatusFileData>(conditions).GetNextSetAsync());
+            //var records = await (_dynamoDbContext.ScanAsync<ReceivingStatusFileData>(conditions).GetNextSetAsync());
 
-            return records;
+            //return records;
+
+            var search = _dynamoDbContext.ScanAsync<ReceivingStatusFileData>
+            (
+              new[] {
+                            new ScanCondition
+                              (
+                                nameof(ReceivingStatusFileData.RequestId),
+                                ScanOperator.Equal,
+                                requestId
+                              )
+                    }
+            );
+
+            var result = await search.GetRemainingAsync();
+
+            return result;
         }
     }
 }

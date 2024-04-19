@@ -10,7 +10,7 @@ namespace TheradexPortal.Data.Services.Abstract
 
         //public List<MedidataDictionaryModel> GeTrackingDestinations();
 
-        public Task<List<ProtocolData>> GetProtocolData();
+        public Task<List<ProtocolData>> GetProtocolData(int userId, bool allStudies);
 
         public List<CRFModel> GetCRFs();
 

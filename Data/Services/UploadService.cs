@@ -23,12 +23,14 @@ namespace TheradexPortal.Data.Services
         private readonly UploadSettings _uploadSettings;
         private readonly IDynamoDbService _dynamoDbService;
         private readonly IAWSS3Service _awsS3Service;
+        private readonly IStudyService _studyService;
 
         public UploadService(IOptions<UploadSettings> uploadSettings,
             IDbContextFactory<ThorDBContext> dbFactory,
             IErrorLogService errorLogService,
             NavigationManager navigationManager,
             IDynamoDbService dynamoDbService,
+            IStudyService studyService,
             IAWSS3Service awsS3Service) : base(dbFactory)
         {
             _errorLogService = errorLogService;
@@ -36,6 +38,7 @@ namespace TheradexPortal.Data.Services
             _uploadSettings = uploadSettings.Value;
             _dynamoDbService = dynamoDbService;
             _awsS3Service = awsS3Service;
+            _studyService = studyService;
         }
 
         //public List<MedidataDictionaryModel> GetAssays()
@@ -83,7 +86,7 @@ namespace TheradexPortal.Data.Services
         //    return studies;
         //}
 
-        public async Task<List<ProtocolData>> GetProtocolData()
+        public async Task<List<ProtocolData>> GetProtocolData(int userId, bool allStudies)
         {
             try
             {
@@ -95,6 +98,8 @@ namespace TheradexPortal.Data.Services
                 }
 
                 var protocols = JsonConvert.DeserializeObject<List<ProtocolData>>(dataFileContent);
+
+                var protocolsWithAccess = _studyService.GetProtocolsForUserAsync(userId, allStudies);
 
                 return protocols;
             }

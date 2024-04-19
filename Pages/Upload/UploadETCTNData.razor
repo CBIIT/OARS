@@ -208,6 +208,7 @@
     [Inject] NavigationManager Navigation { get; set; }
     [Inject] IEmailService emailService { get; set; } = null!;
     [Inject] INotificationService NotificationService { get; set; }
+    [Inject] private IUserService userService { get; set; } = null!;
 
     // List<string> studies = null;
     List<MedidataDictionaryModel> trackingDestinations = new List<MedidataDictionaryModel>();
@@ -250,13 +251,15 @@
     {
         if (firstRender)
         {
-            protocolData = await uploadService.GetProtocolData();
+            userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+
+            User curUser = await userService.GetUserAsync(userId.Value);
+
+            protocolData = await uploadService.GetProtocolData(userId.Value, curUser.AllStudies);
 
             crfs = uploadService.GetCRFs();
 
             protocols = protocolData.Select(t => t.Protocol + "(FUNCTEST)").ToList();
-
-            userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
 
             await OnReset();
         }
