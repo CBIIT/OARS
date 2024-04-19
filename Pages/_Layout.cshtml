@@ -45,7 +45,16 @@
     <script>
         var timeoutMS = @Json.Serialize(@configuration.GetSection("System").GetSection("TimeoutMS").Value)
     </script>
-    <script src="js/timeout-user.js"></script>
+    <script>
+        function timeOutCall(dotnethelper) {
+            document.onmousemove = resetTimeDelay;
+            document.onkeypress = resetTimeDelay;
+
+            function resetTimeDelay() {
+                dotnethelper.invokeMethodAsync("TimerInterval");
+            }
+        }
+    </script>
     <script src="_framework/blazor.server.js"></script>
 </body>
 </html>

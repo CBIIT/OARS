@@ -64,7 +64,7 @@ namespace TheradexPortal.Controllers
             Claim userId = ((ClaimsIdentity)User.Identity).Claims.Where(c => c.Type == "UserId").FirstOrDefault();
 
             if (userId != null)
-                _userService.SaveActivityLog(Convert.ToInt32(userId.Value), ThorActivityType.Debug, "Entered Timeout");
+                _userService.SaveActivityLog(Convert.ToInt32(userId.Value), ThorActivityType.Logout, "Timeout");
 
             if (!User.Identity.IsAuthenticated)
             {
