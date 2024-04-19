@@ -156,13 +156,7 @@ namespace TheradexPortal.Data.Models
         [DynamoDBProperty]
         public int Status { get; set; }
 
-        public string InternalStatus
-        {
-            get
-            {
-                return ((RequestStatusV2)Status).ToString();
-            }
-        }
+        public string InternalStatus { get; set; }
 
         [DynamoDBProperty]
         public string Error { get; set; }
@@ -170,29 +164,7 @@ namespace TheradexPortal.Data.Models
         [DynamoDBProperty]
         public string ClientError { get; set; }
 
-        public string ClientStatus
-        {
-            get
-            {
-
-                if (Status >= 101 && Status <= 110)
-                {
-                    return RequestStatusV2.Received.ToString();
-                }
-                else if (Status >= 111 && Status <= 120)
-                {
-                    return RequestStatusV2.InProgress.ToString();
-                }
-                else if (Status >= 121 && Status <= 130)
-                {
-                    return ((RequestStatusV2)Status).ToString();
-                }
-                else
-                {
-                    return "UnKnown";
-                }
-            }
-        }
+        public string ClientStatus { get; set; }
 
         [DynamoDBProperty]
         public int RetryCount { get; set; }
@@ -326,13 +298,7 @@ namespace TheradexPortal.Data.Models
         [DynamoDBProperty(AttributeName = "Status")]
         public int Status { get; set; }
 
-        public string InternalStatus
-        {
-            get
-            {
-                return ((RequestItemStatusV2)Status).ToString();
-            }
-        }
+        public string InternalStatus { get; set; }
 
         [DynamoDBProperty(AttributeName = "Error")]
         public string Error { get; set; }
@@ -340,30 +306,7 @@ namespace TheradexPortal.Data.Models
         [DynamoDBProperty(AttributeName = "ClientError")]
         public string ClientError { get; set; }
 
-        public string ClientStatus
-        {
-            get
-            {
-
-                if (Status >= 201 && Status <= 210)
-                {
-                    return RequestItemStatusV2.Received.ToString();
-                }
-                else if (Status >= 211 && Status <= 220)
-                {
-                    return RequestItemStatusV2.InProgress.ToString();
-                }
-                else if (Status >= 221 && Status <= 230)
-                {
-                    return ((RequestItemStatusV2)Status).ToString();
-                }
-                else
-                {
-                    return "UnKnown";
-                }
-            }
-        }
-
+        public string ClientStatus { get; set; }
 
         [DynamoDBProperty(AttributeName = "MedidataUpdateReference")]
         public string MedidataUpdateReference { get; set; }

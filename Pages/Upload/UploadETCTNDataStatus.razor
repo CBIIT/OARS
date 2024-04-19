@@ -47,65 +47,65 @@
                  <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.CreatedDate)" Caption="Uploaded Date" />
                  <DataGridColumn Width="100px" Caption="Internal Status" Editable="false">
                      <DisplayTemplate>
-                         <Tooltip Style="z-index: 99 !important" Text="@((context as FileIngestRequest).Error)">
-                             @((context as FileIngestRequest).InternalStatus)
-                         </Tooltip>
-                     </DisplayTemplate>
-                 </DataGridColumn>
-                 <DataGridColumn Width="100px" Caption="Status" Editable="false">
-                     <DisplayTemplate>
-                         <Tooltip Style="z-index: 99 !important" Text="@((context as FileIngestRequest).ClientError)">
-                             @((context as FileIngestRequest).ClientStatus)
-                         </Tooltip>
-                     </DisplayTemplate>
-                 </DataGridColumn>
-                 @*<DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.InternalStatus)" Caption="Internal Status" />
-                <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.Error)" Caption="Internal Error" />
-                <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.ClientStatus)" Caption="Status" />
-                <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.ClientError)" Caption="Error" /> *@
-                 <DataGridColumn Sortable="false" Filterable="false" Width="45px">
-                     <DisplayTemplate>
-                         <Div Flex="Flex.Column.JustifyContent.Center">
-                             <Span Flex="Flex.JustifyContent.Center.AlignItems.Center">
-                                 <Button Color="Color.Info" Size="Size.ExtraSmall" Clicked="@(()=>OnViewClicked(context as FileIngestRequest))">
-                                     View
-                                 </Button>&nbsp;&nbsp;&nbsp;
-                                 <Button Color="Color.Info" Size="Size.ExtraSmall" Clicked="@(()=>OnDownloadClicked(context as FileIngestRequest))">
-                                     Download
-                                 </Button>
-                             </Span>
-                         </Div>
-                     </DisplayTemplate>
-                 </DataGridColumn>
-             </DataGridColumns>
-             <ButtonRowTemplate>
-                 <Button Color="Color.Primary" Clicked="@OnRefresh">Refresh</Button>
-             </ButtonRowTemplate>
-             <EmptyTemplate>
-                 <div class="box">
-                     No Upload requests were found!
-                 </div>
-             </EmptyTemplate>
-         </DataGrid>
-     </Column>
- </Row>
+                         <Badge Color="@GetStatusColor((context as FileIngestRequest).ClientStatus)" Pill>
+                            <Tooltip Text="@((context as FileIngestRequest).Error)">
+                                @((context as FileIngestRequest).InternalStatus)
+                            </Tooltip>
+                        </Badge>   
+                    </DisplayTemplate>
+                </DataGridColumn>
+                <DataGridColumn Width="100px" Caption="Status" Editable="false">
+                    <DisplayTemplate>
+                        <Badge Color="@GetStatusColor((context as FileIngestRequest).ClientStatus)" Pill>
+                            <Tooltip Text="@((context as FileIngestRequest).ClientError)">
+                                @((context as FileIngestRequest).ClientStatus)
+                            </Tooltip>
+                        </Badge>
+                    </DisplayTemplate>
+                </DataGridColumn>
+                <DataGridColumn Sortable="false" Filterable="false" Width="45px">
+                    <DisplayTemplate>
+                        <Div Flex="Flex.Column.JustifyContent.Center">
+                            <Span Flex="Flex.JustifyContent.Center.AlignItems.Center">
+                                <Button Color="Color.Info" Size="Size.ExtraSmall" Clicked="@(()=>OnViewClicked(context as FileIngestRequest))">
+                                    View
+                                </Button>&nbsp;&nbsp;&nbsp;
+                                <Button Color="Color.Info" Size="Size.ExtraSmall" Clicked="@(()=>OnDownloadClicked(context as FileIngestRequest))">
+                                    Download
+                                </Button>
+                            </Span>
+                        </Div>
+                    </DisplayTemplate>
+                </DataGridColumn>
+            </DataGridColumns>
+            <ButtonRowTemplate>
+                <Button Color="Color.Primary" Clicked="@OnRefresh">Refresh</Button>
+            </ButtonRowTemplate>
+            <EmptyTemplate>
+                <div class="box">
+                    No Upload requests were found!
+                </div>
+            </EmptyTemplate>
+        </DataGrid>
+    </Column>
+</Row>
 
- <UploadETCTNFileData @ref="uploadETCTNFileData" />
+<UploadETCTNFileData @ref="uploadETCTNFileData" />
 
- <script>
-     window.triggerFileDownload = (fileName, url) => {
-         const anchorElement = document.createElement('a');
-         anchorElement.href = url;
-         anchorElement.download = fileName ?? '';
-         anchorElement.click();
-         anchorElement.remove();
-     }
+<script>
+    window.triggerFileDownload = (fileName, url) => {
+        const anchorElement = document.createElement('a');
+        anchorElement.href = url;
+        anchorElement.download = fileName ?? '';
+        anchorElement.click();
+        anchorElement.remove();
+    }
 
-     window.blazorOpen = (args) => {
-         window.open(args);
-     };
+    window.blazorOpen = (args) => {
+        window.open(args);
+    };
 
- </script>
+</script>
 
  @code {
 
@@ -168,6 +168,16 @@
             styling.Style = "color:#0f880f;";
         else
             styling.Style = "color:#0755d4;";
+    }
+
+    private Blazorise.Color GetStatusColor(string status)
+    {
+        if (status == RequestStatusV2.Failed.ToString() || status == RequestStatusV2.PartialSuccess.ToString())
+            return Color.Danger;
+        else if (status == RequestStatusV2.Success.ToString())
+            return Color.Success;
+        else
+            return Color.Secondary;
     }
 
     private void OnSelectedRowStyling(FileIngestRequest request, DataGridRowStyling styling)

@@ -13,6 +13,7 @@ using Amazon.DynamoDBv2.DocumentModel;
 using System.IO;
 using Newtonsoft.Json;
 using Org.BouncyCastle.Bcpg.OpenPgp;
+using Microsoft.PowerBI.Api.Models;
 
 namespace TheradexPortal.Data.Services
 {
@@ -191,14 +192,64 @@ namespace TheradexPortal.Data.Services
         {
             var requests = await _dynamoDbService.GetAllRequestsOfUser(userId);
 
+            if (requests != null)
+            {
+                foreach (var request in requests)
+                {
+                    if (request.Status >= 101 && request.Status <= 110)
+                    {
+                        request.ClientStatus = RequestStatusV2.Received.ToString();
+                    }
+                    else if (request.Status >= 111 && request.Status <= 120)
+                    {
+                        request.ClientStatus = RequestStatusV2.InProgress.ToString();
+                    }
+                    else if (request.Status >= 121 && request.Status <= 130)
+                    {
+                        request.ClientStatus = ((RequestStatusV2)request.Status).ToString();
+                    }
+                    else
+                    {
+                        request.ClientStatus = "UnKnown";
+                    }
+
+                    request.InternalStatus = ((RequestStatusV2)request.Status).ToString();
+                }
+            }
+
             return requests;
         }
 
         public async Task<List<ReceivingStatusFileData>?> GetReceivingStatusFileData(string requestId)
         {
-            var requests = await _dynamoDbService.GetAllReceivingStatusData(requestId);
+            var requestItems = await _dynamoDbService.GetAllReceivingStatusData(requestId);
 
-            return requests;
+            if (requestItems != null)
+            {
+                foreach (var requestItem in requestItems)
+                {
+                    if (requestItem.Status >= 201 && requestItem.Status <= 210)
+                    {
+                        requestItem.ClientStatus = RequestItemStatusV2.Received.ToString();
+                    }
+                    else if (requestItem.Status >= 211 && requestItem.Status <= 220)
+                    {
+                        requestItem.ClientStatus = RequestItemStatusV2.InProgress.ToString();
+                    }
+                    else if (requestItem.Status >= 221 && requestItem.Status <= 230)
+                    {
+                        requestItem.ClientStatus = ((RequestItemStatusV2)requestItem.Status).ToString();
+                    }
+                    else
+                    {
+                        requestItem.ClientStatus = "UnKnown";
+                    }
+
+                    requestItem.InternalStatus = ((RequestItemStatusV2)requestItem.Status).ToString();
+                }
+            }
+
+            return requestItems;
         }
 
         public Task<string> GetCsvFileDownloadUrl(FileIngestRequest request)
