@@ -45,13 +45,13 @@
                  <DataGridColumn Width="100px" Field="Metadata.Assay" Caption="Assay" />
                  <DataGridColumn Width="100px" Field="Metadata.OriginalFileName" Caption="File Name" />
                  <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.CreatedDate)" Caption="Uploaded Date" />
-                 <DataGridColumn Width="100px" Caption="Internal Status" Editable="false">
+                 <DataGridColumn Width="100px" Caption="Internal Status" Editable="false" Displayable="@IsAdminDisplay">
                      <DisplayTemplate>
                          <Badge Color="@GetStatusColor((context as FileIngestRequest).ClientStatus)" Pill>
                             <Tooltip Text="@((context as FileIngestRequest).Error)">
                                 @((context as FileIngestRequest).InternalStatus)
                             </Tooltip>
-                        </Badge>   
+                        </Badge>
                     </DisplayTemplate>
                 </DataGridColumn>
                 <DataGridColumn Width="100px" Caption="Status" Editable="false">
@@ -116,18 +116,20 @@
     [Inject] NavigationManager Navigation { get; set; }
     [Inject] IEmailService emailService { get; set; } = null!;
     [Inject] INotificationService NotificationService { get; set; }
-    // [Inject] IAWSS3Service awsS3Service { get; set; } = null!;
 
     @inject IJSRuntime JS
 
     private IList<FileIngestRequest> fileIngestRequests = new List<FileIngestRequest>();
     private int? userId = null;
+    bool IsAdminDisplay = false;
 
     private UploadETCTNFileData? uploadETCTNFileData;
 
     protected override async Task OnInitializedAsync()
     {
         userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+
+        IsAdminDisplay = Convert.ToBoolean(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.IsAdmin).Value);
 
         await OnRefresh();
 
@@ -143,7 +145,7 @@
 
     private Task OnViewClicked(FileIngestRequest request)
     {
-        return uploadETCTNFileData?.ShowFileData(request.RequestId, request.Metadata.CRF);
+        return uploadETCTNFileData?.ShowFileData(request.RequestId, request.Metadata.CRF, IsAdminDisplay);
     }
 
     private async Task OnDownloadClicked(FileIngestRequest request)

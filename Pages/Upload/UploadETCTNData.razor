@@ -12,13 +12,32 @@
 
 <AdminRoleCheck AllowedRoles="@(new List<string> { "IT", "Biz" })"></AdminRoleCheck>
 
-<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1 mb-3"><h2>Upload CSV</h2></Div>
+<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1 mb-3"><h2>Upload ETCTN Data</h2></Div>
 
 <Divider />
 
 <LoadingIndicator @ref="loadingIndicator">
     <Div Flex="Flex.AlignItems.Start" Margin="Margin.Is3.FromBottom" Background="Background.Light">
         <Div Padding="Padding.Is4" Style="@flexContainerStyle">
+
+            <Row>
+                <Column>
+                    <Div>
+                        <Alert Color="Color.Warning" CSS="nci-alert-component" Visible>
+                            <AlertDescription TextOverflow="TextOverflow.Wrap">
+                            </AlertDescription>
+                            <AlertMessage>
+                                <b>Welcome to the CSV Upload Dashboard in OARS!</b> Please begin by selecting the Protocol, Receiving Site and Source Site using the dropdown menus.<br />
+                                Next, select the appropriate case report form (CRF) using the radio buttons and use the adjacent dropdown menu to choose an applicable Assay.<br />
+                                Located below the CRF selectors are links for Downloading blank csv templates and general Instructions.<br />
+                                Finally, click on “Choose file” to search your computer for the csv file of interest and once it’s ready, click on “Submit.”<br />
+                                Also, there is a “Reset” button if it’s necessary to change the selected csv file prior to submitting the file to upload.
+                            </AlertMessage>
+                        </Alert>                        
+                    </Div>
+                </Column>
+            </Row>
+
             <Row>
                 <Column>
                     <Validations @ref="@ValidationsRef" Mode="ValidationMode.Manual" Model="@ETCTNUploadRequestModel" ValidateOnLoad="false">
@@ -157,44 +176,127 @@
 <Modal @ref="modalUploadInstructions" Closing="@OnModalClosing">
     <ModalContent Centered Size="ModalSize.Large">
          <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
-             <ModalTitle>Upload Instructions</ModalTitle>
-             <CloseButton />
-         </ModalHeader>
-         <ModalBody>
-             <ListGroup Flush Padding="Padding.Is2">
+             <ModalTitle>@ETCTNUploadRequestModel.CRF</ModalTitle>
+                <CloseButton />
+            </ModalHeader>
+            <ModalBody>
+                <ListGroup Flush Padding="Padding.Is2" Display="@IsCRFInstructions("RECEIVING_STATUS")">
                  <ListGroupItem>
                      <Div Padding="Padding.Is2">
-                         <Heading Size="HeadingSize.Is4">@ETCTNUploadRequestModel.CRF</Heading>
-                            <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart">Define User information such as First Name, Last Name, Active, etc.</Paragraph>
-                            <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart">Users must be assigned a Primary role and any number of secondary roles.</Paragraph>
-                            <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart">Define Dashboards, Reports and Admin pages the user can access via Roles.</Paragraph>
-                            <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart">Define Study Groups and Individual Studies users can access.</Paragraph>
-                            <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart">Administration roles are granted all Dashboards, Reports and Studies by default.</Paragraph>
-                        </Div>
-                    </ListGroupItem>
-                </ListGroup>
-            </ModalBody>
-            <ModalFooter>
-            </ModalFooter>
-        </ModalContent>
-    </Modal>
+                         <Heading Size="HeadingSize.Is6">Protocol</Heading>
+                         <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>Numeric Protocol ID (e.g. 10355)</Small></Paragraph>
+                     </Div>
+                 </ListGroupItem>
+                 <ListGroupItem>
+                     <Div Padding="Padding.Is2">
+                         <Heading Size="HeadingSize.Is6">Subject ID</Heading>
+                         <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>Subject ID represented as institution code-#### (e.g. TX035-0004)</Small></Paragraph>
+                     </Div>
+                 </ListGroupItem>
+                 <ListGroupItem>
+                     <Div Padding="Padding.Is2">
+                         <Heading Size="HeadingSize.Is6">Specimen Id</Heading>
+                         <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>Specimen ID is defined as the Protocol ID-Rave Patient Unique Identifier Number-## (e.g. 10358-B9247D41-17)</Small></Paragraph>
+                     </Div>
+                 </ListGroupItem>
+                 <ListGroupItem>
+                     <Div Padding="Padding.Is2">
+                         <Heading Size="HeadingSize.Is6">Shipped Date</Heading>
+                         <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>Date the Specimen was shipped from the Source Site (e.g. 3-Jan-22)</Small></Paragraph>
+                     </Div>
+                 </ListGroupItem>
+                 <ListGroupItem>
+                     <Div Padding="Padding.Is2">
+                         <Heading Size="HeadingSize.Is6">Subspecimen ID</Heading>
+                         <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>6 digit alphanumberic identifier given to subspecimens at the EET Biobank (e.g. 0D4HZP)</Small></Paragraph>
+                     </Div>
+                 </ListGroupItem>
+                 <ListGroupItem>
+                     <Div Padding="Padding.Is2">
+                         <Heading Size="HeadingSize.Is6">Submission is Adequate</Heading>
+                         <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>Does the Submission meet the requirements specified in the Study Protocol Document for the specimens?  (e.g. yes or no)</Small></Paragraph>
+                     </Div>
+                 </ListGroupItem>
+                 <ListGroupItem>
+                     <Div Padding="Padding.Is2">
+                         <Heading Size="HeadingSize.Is6">Explanatory Reason</Heading>
+                         <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>If "Submission is Adequate" field is a "no", please explain here (e.g. Minimal dry ice)</Small></Paragraph>
+                     </Div>
+                 </ListGroupItem>
+                 <ListGroupItem>
+                     <Div Padding="Padding.Is2">
+                         <Heading Size="HeadingSize.Is6">Other Reason</Heading>
+                         <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>If there is any further explanation please provide here (e.g. Package damaged)</Small></Paragraph>
+                     </Div>
+                 </ListGroupItem>
+             </ListGroup>
 
-    <script>
-        window.triggerFileDownload = (fileName, url) => {
-            const anchorElement = document.createElement('a');
-            anchorElement.href = url;
-            anchorElement.download = fileName ?? '';
-            anchorElement.click();
-            anchorElement.remove();
-        }
+             <ListGroup Flush Padding="Padding.Is2" Display="@IsCRFInstructions("BIOSPECIMEN_ROADMAP")">
+                 <ListGroupItem>
+                     <Div Padding="Padding.Is2">
+                         <Heading Size="HeadingSize.Is6">Protocol</Heading>
+                         <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>Numeric Protocol ID (e.g. 10355)</Small></Paragraph>
+                     </Div>
+                 </ListGroupItem>
+                 <ListGroupItem>
+                     <Div Padding="Padding.Is2">
+                         <Heading Size="HeadingSize.Is6">Subspecimen ID</Heading>
+                         <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>6 digit alphanumberic identifier given to subspecimens at the EET Biobank (e.g. 0D4HZP)</Small></Paragraph>
+                     </Div>
+                 </ListGroupItem>
+                 <ListGroupItem>
+                     <Div Padding="Padding.Is2">
+                         <Heading Size="HeadingSize.Is6">Outcome</Heading>
+                         <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>Indicates whether the event was successful or not (e.g. Pass or Fail)</Small></Paragraph>
+                     </Div>
+                 </ListGroupItem>
+                 <ListGroupItem>
+                     <Div Padding="Padding.Is2">
+                         <Heading Size="HeadingSize.Is6">Details</Heading>
+                         <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>Description of the entered "Outcome" (e.g. Assay Failure - stop)</Small></Paragraph>
+                     </Div>
+                 </ListGroupItem>
+                 <ListGroupItem>
+                     <Div Padding="Padding.Is2">
+                         <Heading Size="HeadingSize.Is6">Date</Heading>
+                         <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>Date of the Event (e.g. 8-Jan-22)</Small></Paragraph>
+                     </Div>
+                 </ListGroupItem>
+                 <ListGroupItem>
+                     <Div Padding="Padding.Is2">
+                         <Heading Size="HeadingSize.Is6">AssayVersion</Heading>
+                         <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>Number Assay Version (e.g. 2)</Small></Paragraph>
+                     </Div>
+                 </ListGroupItem>
+                 <ListGroupItem>
+                     <Div Padding="Padding.Is2">
+                         <Heading Size="HeadingSize.Is6">Active</Heading>
+                         <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>Active or Inactive (e.g. 1 or 0)</Small></Paragraph>
+                     </Div>
+                 </ListGroupItem>
+             </ListGroup>
+         </ModalBody>
+         <ModalFooter>
+         </ModalFooter>
+     </ModalContent>
+ </Modal>
 
-        window.blazorOpen = (args) => {
-            window.open(args);
-        };
+ <script>
+     window.triggerFileDownload = (fileName, url) => {
+         const anchorElement = document.createElement('a');
+         anchorElement.href = url;
+         anchorElement.download = fileName ?? '';
+         anchorElement.click();
+         anchorElement.remove();
+     }
 
-    </script>
+     window.blazorOpen = (args) => {
+         window.open(args);
+     };
 
-    @code {
+ </script>
+
+ @code {
 
     @inject IJSRuntime JS
 
@@ -218,6 +320,8 @@
     List<string> protocols = new List<string>();
 
     int? userId = null;
+    bool IsAdmin = false;
+
     FileEdit fileEditRef;
 
     Validations ValidationsRef { get; set; }
@@ -311,6 +415,14 @@
     private Task OnInstructionsView()
     {
         return modalUploadInstructions.Show();
+    }
+
+    private IFluentDisplay IsCRFInstructions(string crf)
+    {
+        if (ETCTNUploadRequestModel.CRF == crf)
+            return Display.Block;
+        else
+            return Display.None;
     }
 
     async Task OnReset()

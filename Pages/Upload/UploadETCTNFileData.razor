@@ -38,7 +38,7 @@
                      <DataGridColumn Width="100px" Field="RowData.SubmissionIsAdequate" Caption="SubmissionIsAdequate" />
                      <DataGridColumn Width="100px" Field="RowData.ExplanatoryReason" Caption="ExplanatoryReason" />
                      <DataGridColumn Width="100px" Field="RowData.OtherReason" Caption="OtherReason" />
-                     <DataGridColumn Width="100px" Caption="Internal Status" Editable="false">
+                     <DataGridColumn Width="100px" Caption="Internal Status" Editable="false" Displayable="@IsAdminDisplay">
                          <DisplayTemplate>
                              <Badge Color="@GetStatusColor((context as ReceivingStatusFileData).ClientStatus)" Pill>
                                 <Tooltip Text="@((context as ReceivingStatusFileData).Error)">
@@ -88,9 +88,13 @@
 
     private string requestIdToFetch = string.Empty;
 
-    public async Task ShowFileData(string requestId, string crf)
+    bool IsAdminDisplay = false;
+
+    public async Task ShowFileData(string requestId, string crf, bool isAdmin)
     {
         this.requestIdToFetch = requestId;
+
+        IsAdminDisplay = isAdmin;
 
         await OnRefresh();
 
