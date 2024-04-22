@@ -18,9 +18,17 @@ namespace TheradexPortal.Data.Services
             _navManager = navigationManager;
         }
 
-        public async Task<IList<ProtocolMapping>> GetProtocolMappings()
+        public async Task<IList<ProtocolMapping>> GetProtocolMappings(bool includeArchived)
         {
-            var protocolMappings = await context.ProtocolMapping.Include(p => p.Protocol).Include(p => p.Status).ToListAsync();
+            IList<ProtocolMapping> protocolMappings = new List<ProtocolMapping>();
+            if (includeArchived)
+            {
+                protocolMappings = await context.ProtocolMapping.Include(p => p.Protocol).Include(p => p.Status).ToListAsync();
+            } else
+            {
+                protocolMappings = await context.ProtocolMapping.Include(p => p.Protocol).Include(p => p.Status).Where(p => p.Status.StatusName != "Archived").ToListAsync();
+            }
+            
             var protocols = await context.Protocols.ToListAsync();
 
             var pmStudyIds = new HashSet<string>(protocolMappings.Select(pm => pm.THORStudyId));
@@ -57,7 +65,7 @@ namespace TheradexPortal.Data.Services
 
         public async Task<ProtocolMapping> GetProtocolMapping(int id)
         {
-            var protocolMapping = await context.ProtocolMapping.Where(p => p.ProtocolMappingId == id).Include(p => p.Protocol).FirstOrDefaultAsync();
+            var protocolMapping = await context.ProtocolMapping.Where(p => p.ProtocolMappingId == id).Include(p => p.Protocol).Include(p => p.Profile).FirstOrDefaultAsync();
             return protocolMapping;
         }
 

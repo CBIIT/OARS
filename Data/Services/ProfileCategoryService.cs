@@ -16,7 +16,7 @@ namespace TheradexPortal.Data.Services
         }
         public async Task<IList<ProfileDataCategory>> GetCategories(int profileId)
         {
-            return await context.ProfileDataCategory.Where(c => c.ProfileId == profileId).ToListAsync();
+            return await context.ProfileDataCategory.Where(c => c.ProfileId == profileId).Include(c => c.ThorCategory).ToListAsync();
         }
 
         public async Task<bool> SaveCategory(int profileId, ProfileDataCategory category)
