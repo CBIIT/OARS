@@ -60,6 +60,7 @@
     [Inject] IProfileService profileService { get; set; } = null!;
     [Inject] private NavigationManager navigation { get; set; } = null!;
     [Inject] IUserService userService { get; set; } = null!;
+    [Inject] IMessageService messageService { get; set; } = null!;
 
     private IList<Profile> profileList = new List<Profile>();
     private int selectedMappingProfileId = 0;
@@ -84,8 +85,13 @@
         navigation.NavigateTo("/admin/dmu/global-admin");
     }
 
-    private void NavigateToProfileEdit()
+    private async void NavigateToProfileEdit()
     {
+        if(selectedMappingProfileId == 0)
+        {
+            await messageService.Warning("You must select a profile or create a new one.");
+            return;
+        }
         navigation.NavigateTo($"/admin/dmu/profile-categories/{selectedMappingProfileId}");
     }
 
