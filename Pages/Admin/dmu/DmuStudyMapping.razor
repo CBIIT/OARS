@@ -18,7 +18,7 @@
           ShowPager
           ShowPageSizes
           Filterable
-           FilterMethod="DataGridFilterMethod.StartsWith"
+           FilterMethod="DataGridFilterMethod.Contains"
            MaxPaginationLinks="5"
            PagerPosition="DataGridPagerPosition.Bottom"
            PagerOptions="new(){ButtonSize=Size.Default,
@@ -28,7 +28,7 @@
           FixedHeader
            FixedHeaderDataGridHeight="calc(100vh - 240px)"
            FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
-           SelectionMode="DataGridSelectionMode.Multiple"
+           SelectionMode="DataGridSelectionMode.Single"
            @bind-SelectedRows="selectedProtocols">
      <DataGridColumns>
          <DataGridMultiSelectColumn Width="30px"></DataGridMultiSelectColumn>
@@ -41,9 +41,6 @@
         <DataGridColumn Width="10%" Field="Status.StatusName" Sortable="false" Caption="Status">
         </DataGridColumn>
     </DataGridColumns>
-    <ButtonRowTemplate>
-         <Button Color="Color.Primary" Clicked="@ProcessSelectedStudies">Load Study for Mapping</Button>
-    </ButtonRowTemplate>
     <EmptyTemplate>
         <div class="box">
             No studies were found.
@@ -68,34 +65,9 @@
         studyList = await protocolMappingService.GetProtocolMappings();
     }
 
-    private async Task EditMapping(ProtocolMapping mapping)
-    {
-        if(mapping.ProtocolMappingId > 0)
-        {
-            navigation.NavigateTo($"/admin/dmu/study-admin/{mapping.ProtocolMappingId}?published={mapping.Status.StatusName}");
-        }
-        else
-        {
-            List<ProtocolPhase> phases = new List<ProtocolPhase>();
-            await protocolMappingService.SaveProtocolMapping(mapping, phases);
-            navigation.NavigateTo($"/admin/dmu/study-admin/{mapping.ProtocolMappingId}");
-        }
-    }
-
-    private void AddStudy()
-	{
-		navigation.NavigateTo("/admin/dmu/study-setup");
-	}
-
     private async Task ProcessSelectedStudies()
 	{
-        if (selectedProtocols.Count > 1)
-        {
-            notificationService.Error("Error: Please Select only 1 study for Load Study for Data Mapping");
-        }
-        else
-        {
-            //TODO: Add logic to process selected study
-        }
+        //TODO: Add logic to process selected study
+        //navigation.NavigateTo($"/admin/dmu/study-admin/{mapping.ProtocolMappingId}?published={mapping.Status.StatusName}");
     }
 }
