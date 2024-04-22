@@ -1,8 +1,9 @@
-ALTER TABLE "ProtocolMapping"
-ADD ("Publish_Status" int);
+INSERT INTO "ProtocolCategoryStatus" ("Protocol_Category_Status_Id", "Category_Status_Name", "Is_Active", "Create_Date", "Update_Date") 
+VALUES (1, 'Not Started', 'Y', SYSDATE, SYSDATE);
 
-UPDATE "ProtocolMapping" SET "Publish_Status" = 0 WHERE "Is_Published" = 'N';
-UPDATE "ProtocolMapping" SET "Publish_Status" = 1 WHERE "Is_Published" = 'Y';
+INSERT INTO "ProtocolCategoryStatus" ("Protocol_Category_Status_Id", "Category_Status_Name", "Is_Active", "Create_Date", "Update_Date") 
+VALUES (2, 'Incomplete', 'Y', SYSDATE, SYSDATE);
 
-ALTER TABLE "ProtocolMapping"
-DROP COLUMN "Is_Published";
+INSERT INTO "ProtocolCategoryStatus" ("Protocol_Category_Status_Id", "Category_Status_Name", "Is_Active", "Create_Date", "Update_Date") 
+VALUES (3, 'Complete', 'Y', SYSDATE, SYSDATE);
+
