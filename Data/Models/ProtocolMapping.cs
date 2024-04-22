@@ -19,8 +19,6 @@ namespace TheradexPortal.Data.Models
         public int? MappingVersion { get; set; }
         [Column("Source_Protocol_Mapping_Id")]
         public int? SourceProtocolMappingId { get; set; }
-        [Column("Is_Published")]
-        public bool IsPublished { get; set; } = false;
         [Column("Protocol_Mapping_Status_Id")]
         public int? ProtocolMappingStatusId { get; set; }
         [Column("Billing_Code")]
@@ -37,11 +35,13 @@ namespace TheradexPortal.Data.Models
         public string? DataFileFolder { get; set; }
         [Column("Create_Date")]
         public DateTime? CreateDate { get; set; }
+        [Column("Is_Published")]
+        public bool IsPublished { get; set; }
         [ForeignKey(nameof(ProtocolMappingStatusId))]
         public ProtocolMappingStatus? Status { get; set; }
 
         [ForeignKey(nameof(ProfileId))]
-        public Profile? Profile { get; set; }
+        public virtual Profile? Profile { get; set; }
 
     }
 }

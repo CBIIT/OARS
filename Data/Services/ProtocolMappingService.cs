@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
+using Polly;
+using System.ComponentModel.Design;
 using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Services.Abstract;
 
@@ -17,7 +20,7 @@ namespace TheradexPortal.Data.Services
 
         public async Task<IList<ProtocolMapping>> GetProtocolMappings()
         {
-            var protocolMappings = await context.ProtocolMapping.Include(p => p.Protocol).ToListAsync();
+            var protocolMappings = await context.ProtocolMapping.Include(p => p.Protocol).Include(p => p.Status).ToListAsync();
             var protocols = await context.Protocols.ToListAsync();
 
             var pmStudyIds = new HashSet<string>(protocolMappings.Select(pm => pm.THORStudyId));
@@ -28,7 +31,6 @@ namespace TheradexPortal.Data.Services
                 {
                     continue;
                 }
-
                 if (!pmStudyIds.Contains(protocol.StudyId))
                 {
                     var pm = new ProtocolMapping
@@ -44,7 +46,7 @@ namespace TheradexPortal.Data.Services
                         Status = context.ProtocolMappingStatus.FirstOrDefault(s => s.ProtocolMappingStatusId == 1),
                         ProfileId = 1,
                         MappingVersion = 1,
-                        IsPublished = false
+
                     };
                     protocolMappings.Add(pm);
                 }
@@ -55,7 +57,7 @@ namespace TheradexPortal.Data.Services
 
         public async Task<ProtocolMapping> GetProtocolMapping(int id)
         {
-            var protocolMapping = await context.ProtocolMapping.Where(p => p.ProtocolMappingId == id).Include(p => p.Protocol).FirstOrDefaultAsync();
+            var protocolMapping = await context.ProtocolMapping.Where(p => p.ProtocolMappingId == id).Include(p => p.Protocol).Include(p => p.Profile).FirstOrDefaultAsync();
             return protocolMapping;
         }
 
@@ -93,7 +95,6 @@ namespace TheradexPortal.Data.Services
                     currentMapping.Protocol = mapping.Protocol;
                     currentMapping.MappingVersion = mapping.MappingVersion;
                     currentMapping.SourceProtocolMappingId = mapping.SourceProtocolMappingId;
-                    currentMapping.IsPublished = mapping.IsPublished;
                     currentMapping.ProtocolMappingStatusId = mapping.ProtocolMappingStatusId;
                     currentMapping.BillingCode = mapping.BillingCode;
                     currentMapping.ProtocolTitle = mapping.ProtocolTitle;
@@ -138,6 +139,84 @@ namespace TheradexPortal.Data.Services
                 return false;
             }
         }
+
+        public async Task<bool> PublishProtocolMapping(int id)
+        {
+			try
+            {
+				ProtocolMapping currentMapping = context.ProtocolMapping.Where(p => p.ProtocolMappingId == id).FirstOrDefault();
+                IList<ProtocolMappingStatus> currStatuses = await context.ProtocolMappingStatus.ToListAsync();
+                if (currStatuses.Count < 3)
+                {
+                    // if there aren't the three statuses we're expecting, we can't publish
+                    return false;
+                }
+
+                ProtocolMappingStatus publishedToProd = currStatuses.Where(s => s.StatusName == "Published To Prod").FirstOrDefault();     
+                ProtocolMappingStatus archived = currStatuses.Where(s => s.StatusName == "Archived").FirstOrDefault();
+                ProtocolMappingStatus active = currStatuses.Where(s => s.StatusName == "Active").FirstOrDefault();
+
+                if(publishedToProd == null || archived == null || active == null)
+                {
+                    // if any of the statuses are missing then something has changed in the DB, or the statuses don't exist
+                    return false;
+                }
+
+				if (currentMapping != null)
+                {
+                    currentMapping.ProtocolMappingStatusId = publishedToProd.ProtocolMappingStatusId;
+                    currentMapping.IsPublished = true;
+					context.Update(currentMapping);
+
+					IList<ProtocolMapping> otherMappings = context.ProtocolMapping.Where(p => p.THORStudyId == currentMapping.THORStudyId && p.ProtocolMappingId != currentMapping.ProtocolMappingId).ToList();
+
+					if (otherMappings != null && otherMappings.Count > 0)
+                    {
+						foreach (ProtocolMapping mapping in otherMappings)
+                        {
+							if(mapping.ProtocolMappingStatusId == publishedToProd.ProtocolMappingStatusId)
+                            {
+                                mapping.ProtocolMappingStatusId = archived.ProtocolMappingStatusId;
+                                mapping.IsPublished = false;
+                                context.Update(mapping);
+                                break; // there should only ever be one other mapping that is published to prod
+                            }
+						}
+                    }
+
+                    // Create a new active mapping from the old one
+                    ProtocolMapping newMapping = new ProtocolMapping
+                    {
+                        ProtocolMappingId = 0,
+                        ProtocolMappingStatusId = active.ProtocolMappingStatusId,
+                        MappingVersion = currentMapping.MappingVersion + 1,
+                        ProfileId = currentMapping.ProfileId,
+                        THORStudyId = currentMapping.THORStudyId,
+                        Protocol = currentMapping.Protocol,
+                        Profile = currentMapping.Profile,
+                        SourceProtocolMappingId = currentMapping.SourceProtocolMappingId,
+                        BillingCode = currentMapping.BillingCode,
+                        ProtocolTitle = currentMapping.ProtocolTitle,
+                        Sponsor = currentMapping.Sponsor,
+                        ProtocolDataSystemId = currentMapping.ProtocolDataSystemId,
+                        DateFormat = currentMapping.DateFormat,
+                        DataFileFolder = currentMapping.DataFileFolder,
+                        CreateDate = DateTime.Now,
+                        IsPublished = false
+                    };
+                    context.Add(newMapping);
+
+					await context.SaveChangesAsync();
+					return true;
+				}
+				return false;
+			}
+			catch (Exception ex)
+            {
+				await _errorLogService.SaveErrorLogAsync(0, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+				return false;
+			}
+		}
 
         public async Task<IList<ProtocolMapping>> GetAllProtocolMappingsFromProfileType(int profileType)
         {
