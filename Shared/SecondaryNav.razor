@@ -89,15 +89,15 @@
                     <BarItem>
                         <BarDropdown>
                             <BarDropdownToggle>
-                                    @if (IsReportFavorite(curReport))
-                                    {
-                                        <BarIcon IconName=IconName.Star />
-                                    }
+                                @if (IsReportFavorite(curReport))
+                                {
+                                    <BarIcon IconName=IconName.Star />
+                                }
                                 <BarIcon IconName=@GetReportIcon(curReport) />
                                 @curReport.Name
                             </BarDropdownToggle>
                             <BarDropdownMenu Style="margin-left: -35px;">
-                                    <TertiaryNav DashboardId="@curReport.DashboardId" Level2Name="@curReport.Name"></TertiaryNav>
+                                <TertiaryNav DashboardId="@curReport.DashboardId" Level2Name="@curReport.Name"></TertiaryNav>
                             </BarDropdownMenu>
                         </BarDropdown>
                     </BarItem>
@@ -133,15 +133,15 @@
 
     protected string GetReportLink(Report report)
     {
-        if(report.CustomPagePath != null)
-        {
-            return $"{report.CustomPagePath}/{report.DashboardId}/{report.ReportId}";
-            //return report.CustomPagePath;
-        }
-        else
-        {
-            return $"{ThorConstants.DASHBOARD_PAGE_PATH}/{report.DashboardId}/{report.ReportId}";
-        }
+        // if(report.CustomPagePath != null)
+        // {
+        //     return $"{report.CustomPagePath}/{report.DashboardId}/{report.ReportId}";
+        //     //return report.CustomPagePath;
+        // }
+        // else
+        // {
+             return $"{ThorConstants.DASHBOARD_PAGE_PATH}/{report.DashboardId}/{report.ReportId}";
+        // }
     }
 
     protected string GetReportIcon(Report report)

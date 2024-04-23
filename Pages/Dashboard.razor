@@ -30,9 +30,16 @@ else
         <Container Fluid Class="mt-2">
             @if(report != null && report.IsFullPage)
             {
-                <PowerBiFullReport Dashboard="dashboard" Report="report" @ref="fullReportRef" />
+                if (report.CustomPagePath != null)
+                {
+                    <DynamicComponent Type="@(Type.GetType($"TheradexPortal.Shared.{report.CustomPagePath!}") ?? typeof(NotFound))" />
+                }
+                else
+                {
+                    <PowerBiFullReport Dashboard="dashboard" Report="report" @ref="fullReportRef" />
+                }
             }
-            else if(report != null)
+            else if(report != null) /* Unused as IsFullPage will always be set */
             {
                 <PowerBiCustomLayout Dashboard="dashboard" Report="report" @ref="customReportRef" />
             }
@@ -91,7 +98,7 @@ else
             To = this.getHelpUrl(),
             ShowAction = this.helpFileFound
         },
-          new SecondaryNavAction
+        new SecondaryNavAction
         {
             IconName = IconName.Star,
             Label = "Add to Favorites",
