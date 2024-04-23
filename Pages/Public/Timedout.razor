@@ -55,6 +55,14 @@
         await base.OnInitializedAsync();
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            
+        }
+    }
+
     Task OnButtonClicked()
     {
         Navigation.NavigateTo($"landing", true);
