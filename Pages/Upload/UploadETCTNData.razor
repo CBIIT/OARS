@@ -101,11 +101,11 @@
                             </Validation>
                         </Fields>
                         <Fields>
-                            <Validation>
+                            <Validation Validator="@ValidationRule.IsNotEmpty">
                                 <Field ColumnSize="ColumnSize.IsThird">
                                     <FieldLabel>CRF</FieldLabel>
                                     <FieldBody>
-                                        <RadioGroup TValue="string" @bind-CheckedValue="@ETCTNUploadRequestModel.CRF" CheckedChanged="OnCRFChanged">
+                                        <RadioGroup TValue="string" @bind-CheckedValue="SelectedCRF">
                                             <ChildContent>
                                                 @foreach (var item in crfs)
                                                 {
@@ -155,7 +155,7 @@
                                 <Field>
                                     <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Attach File</FieldLabel>
                                     <FieldLabel>Accepted File Types: CSV</FieldLabel>
-                                    <FileEdit @ref="@fileEditRef" Changed="@OnFileUpload" MaxFileSize="4194304" Filter=".csv" AutoReset="false" DisableProgressReport="false">
+                                    <FileEdit @ref="@fileEditRef" Changed="@OnFileUpload" MaxFileSize="4194304" Filter=".csv" AutoReset="false" DisableProgressReport="false" Disabled="@(SelectedCRF == null)">
                                     </FileEdit>
                                 </Field>
                             </Validation>
@@ -299,6 +299,7 @@
  @code {
 
     @inject IJSRuntime JS
+    @inject IConfiguration configuration
 
     private Modal modalUploadInstructions;
     private bool cancelClose;
@@ -321,6 +322,7 @@
 
     int? userId = null;
     bool IsAdmin = false;
+    string currentEnvironment = null;
 
     FileEdit fileEditRef;
 
@@ -346,6 +348,20 @@
         }
     }
 
+    public string SelectedCRF
+    {
+        get
+        {
+            return ETCTNUploadRequestModel.CRF;
+        }
+        set
+        {
+            ETCTNUploadRequestModel.CRF = value;
+
+            clearFile();
+        }
+    }
+
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
@@ -358,6 +374,8 @@
             userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
 
             User curUser = await userService.GetUserAsync(userId.Value);
+
+            currentEnvironment = configuration.GetValue<string>("System:Environment");
 
             protocolData = await uploadService.GetProtocolData(userId.Value, curUser.AllStudies);
 
@@ -381,8 +399,9 @@
         assays = data.Assays;
     }
 
-    private void OnCRFChanged()
+    async Task OnCRFChanged()
     {
+        await clearFile();
     }
 
     private Task OnModalClosing(ModalClosingEventArgs e)
@@ -427,7 +446,7 @@
 
     async Task OnReset()
     {
-        await fileEditRef.Reset().AsTask();
+        //await fileEditRef.Reset().AsTask();
 
         await ValidationsRef.ClearAll();
 
@@ -437,11 +456,22 @@
 
         SelectedProtocol = null;
 
-        UploadFile = null;
+        SelectedCRF = null;
+
+        // UploadFile = null;
 
         trackingDestinations = new List<MedidataDictionaryModel>();
 
         assays = new List<MedidataDictionaryModel>();
+
+        await clearFile();
+    }
+
+    async Task clearFile()
+    {
+        await fileEditRef.Reset().AsTask();
+
+        UploadFile = null;
     }
 
     async Task OnSubmit()
@@ -460,9 +490,9 @@
         {
             await loadingIndicator.Show();
 
-            var key = uploadService.GetMetadataFileUploadKey(ETCTNUploadRequestModel.RequestId);
+            var key = uploadService.GetMetadataFileUploadKey(ETCTNUploadRequestModel.RequestId, ETCTNUploadRequestModel.CRF);
 
-            var metadataFile = uploadService.GetMetadatafile(ETCTNUploadRequestModel, UploadFile, userId.Value);
+            var metadataFile = uploadService.GetMetadatafile(ETCTNUploadRequestModel, UploadFile, userId.Value, currentEnvironment);
 
             var json = JsonConvert.SerializeObject(metadataFile);
 
@@ -499,7 +529,7 @@
 
             IFileEntry? selectedFile = e.Files.FirstOrDefault();
 
-            if (selectedFile == null)
+            if (selectedFile == null || string.IsNullOrWhiteSpace(SelectedCRF))
                 return;
 
             try
@@ -514,7 +544,7 @@
                 }
 
                 var originalFileName = Path.GetFileName(selectedFile.Name);
-                var key = uploadService.GetCsvUploadKey(ETCTNUploadRequestModel.RequestId);
+                var key = uploadService.GetCsvUploadKey(ETCTNUploadRequestModel.RequestId, SelectedCRF);
 
                 using (var stream = new MemoryStream())
                 {

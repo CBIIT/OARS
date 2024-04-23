@@ -18,11 +18,11 @@ namespace TheradexPortal.Data.Services.Abstract
 
         public Task<bool> UploadMetatdataFileToS3(string key, int userId, string content);
 
-        public FileMetadata GetMetadatafile(ETCTNUploadRequest ETCTNUploadRequestModel, UploadFileModel UploadFile, int userId);
+        public FileMetadata GetMetadatafile(ETCTNUploadRequest ETCTNUploadRequestModel, UploadFileModel UploadFile, int userId, string env);
 
-        public string GetCsvUploadKey(string id);
+        public string GetCsvUploadKey(string id, string crf);
 
-        public string GetMetadataFileUploadKey(string id);
+        public string GetMetadataFileUploadKey(string id, string crf);
 
         public Task<List<FileIngestRequest>?> GetAllRequestsOfUser(int userId);
 

@@ -108,6 +108,9 @@ namespace TheradexPortal.Data.Models
         [JsonProperty("userId")]
         public string UserId { get; set; }
 
+        [JsonProperty("environment")]
+        public string Environment { get; set; }
+
         [JsonProperty("protocol")]
         public string Protocol { get; set; }
 

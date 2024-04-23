@@ -156,7 +156,7 @@ namespace TheradexPortal.Data.Services
             }
         }
 
-        public FileMetadata GetMetadatafile(ETCTNUploadRequest ETCTNUploadRequestModel, UploadFileModel UploadFile, int userId)
+        public FileMetadata GetMetadatafile(ETCTNUploadRequest ETCTNUploadRequestModel, UploadFileModel UploadFile, int userId, string env)
         {
             var metadataFile = new FileMetadata();
 
@@ -170,22 +170,23 @@ namespace TheradexPortal.Data.Services
             metadataFile.Bucket = _uploadSettings.AWSBucketName;
             metadataFile.Protocol = ETCTNUploadRequestModel.Protocol;
             metadataFile.UserId = userId.ToString();
+            metadataFile.Environment = env;
 
             return metadataFile;
         }
 
-        public string GetCsvUploadKey(string id)
+        public string GetCsvUploadKey(string id, string crf)
         {
             var dateKey = $"{DateTime.Now.Year}-{DateTime.Now.Month}/{DateTime.Now.Day}";
 
-            return $"{_uploadSettings.FilesUploadPath}/{dateKey}/{id}.csv";
+            return $"{_uploadSettings.FilesUploadPath}/{crf}/{dateKey}/{id}.csv";
         }
 
-        public string GetMetadataFileUploadKey(string id)
+        public string GetMetadataFileUploadKey(string id, string crf)
         {
             var dateKey = $"{DateTime.Now.Year}-{DateTime.Now.Month}/{DateTime.Now.Day}";
 
-            return $"{_uploadSettings.MetadataUploadPath}/{dateKey}/{id}.json";
+            return $"{_uploadSettings.MetadataUploadPath}/{crf}/{dateKey}/{id}.json";
         }
 
         public async Task<List<FileIngestRequest>?> GetAllRequestsOfUser(int userId)
