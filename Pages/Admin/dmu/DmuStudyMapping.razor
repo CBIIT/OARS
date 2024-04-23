@@ -62,7 +62,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        studyList = await protocolMappingService.GetProtocolMappings();
+        studyList = await protocolMappingService.GetProtocolMappings(false);
     }
 
     private async Task ProcessSelectedStudies()
