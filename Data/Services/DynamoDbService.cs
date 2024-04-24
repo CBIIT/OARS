@@ -46,7 +46,7 @@ namespace TheradexPortal.Data.Services
 
             var result = await search.GetRemainingAsync();
 
-            return result;
+            return result?.OrderBy(p => p.CreatedDate).ToList();
 
             //QueryRequest queryRequest = new QueryRequest
             //{
@@ -102,7 +102,7 @@ namespace TheradexPortal.Data.Services
 
             var result = await search.GetRemainingAsync();
 
-            return result;
+            return result?.OrderBy(p => p.RowNo).ToList();
         }
     }
 }
