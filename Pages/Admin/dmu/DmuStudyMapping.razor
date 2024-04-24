@@ -40,6 +40,11 @@
         </DataGridColumn>
         <DataGridColumn Width="10%" Field="Status.StatusName" Sortable="false" Caption="Status">
         </DataGridColumn>
+         <DataGridColumn Sortable="false" Filterable="false" Width="140px">
+             <DisplayTemplate>
+                 <Button><Icon Name="IconName.Edit" Clicked="@(()=>EditMapping(context as ProtocolMapping))" /></Button>
+             </DisplayTemplate>
+         </DataGridColumn>
     </DataGridColumns>
     <EmptyTemplate>
         <div class="box">
@@ -65,9 +70,8 @@
         studyList = await protocolMappingService.GetProtocolMappings(false);
     }
 
-    private async Task ProcessSelectedStudies()
-	{
-        //TODO: Add logic to process selected study
-        //navigation.NavigateTo($"/admin/dmu/study-admin/{mapping.ProtocolMappingId}?published={mapping.Status.StatusName}");
+    private async Task EditMapping(ProtocolMapping mapping)
+    {
+        navigation.NavigateTo($"/admin/dmu/study-admin/{mapping.ProtocolMappingId}?published={mapping?.Status.StatusName}");
     }
 }
