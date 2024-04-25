@@ -72,6 +72,6 @@
 
     private async Task EditMapping(ProtocolMapping mapping)
     {
-        navigation.NavigateTo($"/admin/dmu/study-admin/{mapping.ProtocolMappingId}?published={mapping?.Status.StatusName}");
+        navigation.NavigateTo($"/admin/dmu/category-list-map/{mapping.ProtocolMappingId}");
     }
 }
