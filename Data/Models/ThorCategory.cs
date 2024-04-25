@@ -21,6 +21,8 @@ namespace TheradexPortal.Data.Models
         public DateTime? CreateDate { get; set; }
         [Column("Update_Date")]
         public DateTime? UpdateDate { get; set;}
+        [Column("Primary_Form_Id")]
+        public int? PrimaryFormId { get; set; }
     }
 
 }

@@ -14,6 +14,12 @@ namespace TheradexPortal.Data.Services
             _errorLogService = errorLogService;
             _navManager = navigationManager;
         }
+
+        public async Task<IList<ProtocolEDCForm>> GetProtocolEDCForms()
+        {
+            return await context.ProtocolEDCForm.ToListAsync();
+        }
+
         public async Task<IList<ProtocolEDCForm>> GetFormsForMappingId(int protocolMappingId) {
             return await context.ProtocolEDCForm.Where(p=>p.ProtocolMappingId == protocolMappingId).ToListAsync();
         }
