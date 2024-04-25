@@ -33,7 +33,7 @@
                                 Finally, click on “Choose file” to search your computer for the csv file of interest and once it’s ready, click on “Submit.”<br />
                                 Also, there is a “Reset” button if it’s necessary to change the selected csv file prior to submitting the file to upload.
                             </AlertMessage>
-                        </Alert>                        
+                        </Alert>
                     </Div>
                 </Column>
             </Row>
@@ -180,123 +180,42 @@
                 <CloseButton />
             </ModalHeader>
             <ModalBody>
-                <ListGroup Flush Padding="Padding.Is2" Display="@IsCRFInstructions("RECEIVING_STATUS")">
-                 <ListGroupItem>
-                     <Div Padding="Padding.Is2">
-                         <Heading Size="HeadingSize.Is6">Protocol</Heading>
-                         <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>Numeric Protocol ID (e.g. 10355)</Small></Paragraph>
-                     </Div>
-                 </ListGroupItem>
-                 <ListGroupItem>
-                     <Div Padding="Padding.Is2">
-                         <Heading Size="HeadingSize.Is6">Subject ID</Heading>
-                         <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>Subject ID represented as institution code-#### (e.g. TX035-0004)</Small></Paragraph>
-                     </Div>
-                 </ListGroupItem>
-                 <ListGroupItem>
-                     <Div Padding="Padding.Is2">
-                         <Heading Size="HeadingSize.Is6">Specimen Id</Heading>
-                         <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>Specimen ID is defined as the Protocol ID-Rave Patient Unique Identifier Number-## (e.g. 10358-B9247D41-17)</Small></Paragraph>
-                     </Div>
-                 </ListGroupItem>
-                 <ListGroupItem>
-                     <Div Padding="Padding.Is2">
-                         <Heading Size="HeadingSize.Is6">Shipped Date</Heading>
-                         <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>Date the Specimen was shipped from the Source Site (e.g. 3-Jan-22)</Small></Paragraph>
-                     </Div>
-                 </ListGroupItem>
-                 <ListGroupItem>
-                     <Div Padding="Padding.Is2">
-                         <Heading Size="HeadingSize.Is6">Subspecimen ID</Heading>
-                         <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>6 digit alphanumberic identifier given to subspecimens at the EET Biobank (e.g. 0D4HZP)</Small></Paragraph>
-                     </Div>
-                 </ListGroupItem>
-                 <ListGroupItem>
-                     <Div Padding="Padding.Is2">
-                         <Heading Size="HeadingSize.Is6">Submission is Adequate</Heading>
-                         <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>Does the Submission meet the requirements specified in the Study Protocol Document for the specimens?  (e.g. yes or no)</Small></Paragraph>
-                     </Div>
-                 </ListGroupItem>
-                 <ListGroupItem>
-                     <Div Padding="Padding.Is2">
-                         <Heading Size="HeadingSize.Is6">Explanatory Reason</Heading>
-                         <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>If "Submission is Adequate" field is a "no", please explain here (e.g. Minimal dry ice)</Small></Paragraph>
-                     </Div>
-                 </ListGroupItem>
-                 <ListGroupItem>
-                     <Div Padding="Padding.Is2">
-                         <Heading Size="HeadingSize.Is6">Other Reason</Heading>
-                         <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>If there is any further explanation please provide here (e.g. Package damaged)</Small></Paragraph>
-                     </Div>
-                 </ListGroupItem>
-             </ListGroup>
+                <ListGroup Flush Padding="Padding.Is2">
+                 @if (crfRule != null)
+                {
+                    foreach (var item in crfRule.Rules)
+                    {
+                        <ListGroupItem>
+                            <Div Padding="Padding.Is2">
+                                <Heading Size="HeadingSize.Is6">@item.Column</Heading>
+                                    <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>@item.Description</Small></Paragraph>
+                                </Div>
+                         </ListGroupItem>
+                    }
+                }
+            </ListGroup>
+        </ModalBody>
+        <ModalFooter>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
 
-             <ListGroup Flush Padding="Padding.Is2" Display="@IsCRFInstructions("BIOSPECIMEN_ROADMAP")">
-                 <ListGroupItem>
-                     <Div Padding="Padding.Is2">
-                         <Heading Size="HeadingSize.Is6">Protocol</Heading>
-                         <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>Numeric Protocol ID (e.g. 10355)</Small></Paragraph>
-                     </Div>
-                 </ListGroupItem>
-                 <ListGroupItem>
-                     <Div Padding="Padding.Is2">
-                         <Heading Size="HeadingSize.Is6">Subspecimen ID</Heading>
-                         <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>6 digit alphanumberic identifier given to subspecimens at the EET Biobank (e.g. 0D4HZP)</Small></Paragraph>
-                     </Div>
-                 </ListGroupItem>
-                 <ListGroupItem>
-                     <Div Padding="Padding.Is2">
-                         <Heading Size="HeadingSize.Is6">Outcome</Heading>
-                         <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>Indicates whether the event was successful or not (e.g. Pass or Fail)</Small></Paragraph>
-                     </Div>
-                 </ListGroupItem>
-                 <ListGroupItem>
-                     <Div Padding="Padding.Is2">
-                         <Heading Size="HeadingSize.Is6">Details</Heading>
-                         <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>Description of the entered "Outcome" (e.g. Assay Failure - stop)</Small></Paragraph>
-                     </Div>
-                 </ListGroupItem>
-                 <ListGroupItem>
-                     <Div Padding="Padding.Is2">
-                         <Heading Size="HeadingSize.Is6">Date</Heading>
-                         <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>Date of the Event (e.g. 8-Jan-22)</Small></Paragraph>
-                     </Div>
-                 </ListGroupItem>
-                 <ListGroupItem>
-                     <Div Padding="Padding.Is2">
-                         <Heading Size="HeadingSize.Is6">AssayVersion</Heading>
-                         <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>Number Assay Version (e.g. 2)</Small></Paragraph>
-                     </Div>
-                 </ListGroupItem>
-                 <ListGroupItem>
-                     <Div Padding="Padding.Is2">
-                         <Heading Size="HeadingSize.Is6">Active</Heading>
-                         <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>Active or Inactive (e.g. 1 or 0)</Small></Paragraph>
-                     </Div>
-                 </ListGroupItem>
-             </ListGroup>
-         </ModalBody>
-         <ModalFooter>
-         </ModalFooter>
-     </ModalContent>
- </Modal>
+<script>
+    window.triggerFileDownload = (fileName, url) => {
+        const anchorElement = document.createElement('a');
+        anchorElement.href = url;
+        anchorElement.download = fileName ?? '';
+        anchorElement.click();
+        anchorElement.remove();
+    }
 
- <script>
-     window.triggerFileDownload = (fileName, url) => {
-         const anchorElement = document.createElement('a');
-         anchorElement.href = url;
-         anchorElement.download = fileName ?? '';
-         anchorElement.click();
-         anchorElement.remove();
-     }
+    window.blazorOpen = (args) => {
+        window.open(args);
+    };
 
-     window.blazorOpen = (args) => {
-         window.open(args);
-     };
+</script>
 
- </script>
-
- @code {
+@code {
 
     @inject IJSRuntime JS
     @inject IConfiguration configuration
@@ -313,12 +232,13 @@
     [Inject] INotificationService NotificationService { get; set; }
     [Inject] private IUserService userService { get; set; } = null!;
 
-    // List<string> studies = null;
     List<MedidataDictionaryModel> trackingDestinations = new List<MedidataDictionaryModel>();
     List<MedidataDictionaryModel> assays = new List<MedidataDictionaryModel>();
     List<CRFModel> crfs = new List<CRFModel>();
     List<ProtocolData> protocolData = new List<ProtocolData>();
+    List<CRFRule> crfRules = new List<CRFRule>();
     List<string> protocols = new List<string>();
+    CRFRule crfRule = null;
 
     int? userId = null;
     bool IsAdmin = false;
@@ -379,6 +299,8 @@
 
             protocolData = await uploadService.GetProtocolData(userId.Value, curUser.AllStudies);
 
+            crfRules = await uploadService.GetCRFRules();
+
             crfs = uploadService.GetCRFs();
 
             protocols = protocolData.Select(t => t.Protocol + "(FUNCTEST)").ToList();
@@ -433,6 +355,8 @@
 
     private Task OnInstructionsView()
     {
+        crfRule = crfRules.First(t => t.CRF == ETCTNUploadRequestModel.CRF);
+
         return modalUploadInstructions.Show();
     }
 

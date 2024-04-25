@@ -12,6 +12,9 @@ namespace TheradexPortal.Data.Services.Abstract
 
         public Task<List<ProtocolData>> GetProtocolData(int userId, bool allStudies);
 
+        public Task<List<CRFRule>> GetCRFRules();
+
+
         public List<CRFModel> GetCRFs();
 
         public Task<bool> UploadCsvFileToS3(string key, int userId, MemoryStream memoryStream);

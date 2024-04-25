@@ -94,6 +94,19 @@ namespace TheradexPortal.Data.Models
         public List<MedidataDictionaryModel> Assays { get; set; }
     }
 
+    public class CRFRule
+    {
+        public string CRF { get; set; }
+        public List<CRFRuleInfo> Rules { get; set; }
+    }
+
+    public class CRFRuleInfo
+    {
+        public string Column { get; set; }
+
+        public string Description { get; set; }
+    }
+
     public class CRFModel
     {
         public string FormOID { get; set; }

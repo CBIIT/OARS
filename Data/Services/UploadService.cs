@@ -110,6 +110,27 @@ namespace TheradexPortal.Data.Services
             }
         }
 
+        public async Task<List<CRFRule>> GetCRFRules()
+        {
+            try
+            {
+                var dataFileContent = await _awsS3Service.GetDataAsync(_uploadSettings.AWSBucketName, _uploadSettings.CRFRulesPath);
+
+                if (dataFileContent == null)
+                {
+                    return null;
+                }
+
+                var crfRules = JsonConvert.DeserializeObject<List<CRFRule>>(dataFileContent);
+
+                return crfRules;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
         public List<CRFModel> GetCRFs()
         {
             return new List<CRFModel>

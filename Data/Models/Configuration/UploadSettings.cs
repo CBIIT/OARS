@@ -9,5 +9,7 @@
         public string TemplatesPath { get; set; }
 
         public string ProtocolDataPath { get; set; }
+
+        public string CRFRulesPath { get; set; }
     }
 }
