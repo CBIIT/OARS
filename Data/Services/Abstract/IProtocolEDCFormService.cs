@@ -4,6 +4,7 @@ namespace TheradexPortal.Data.Services.Abstract
 {
     public interface IProtocolEDCFormService
     {
+        public Task<IList<ProtocolEDCForm>> GetProtocolEDCForms();
         public Task<IList<ProtocolEDCForm>> GetProtocolEDCFormsByProtocolMappingId(int protocolMappingId);
         public Task<bool> SaveProtocolEDCForm(ProtocolEDCForm protocolEDCForm);
         public Task<bool> BulkSaveForms(List<ProtocolEDCForm> forms);
