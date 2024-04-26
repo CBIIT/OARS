@@ -191,5 +191,6 @@ namespace TheradexPortal.Data
         public DbSet<ProtocolTac> ProtocolTacs { get; set; }
         public DbSet<ProtocolDisease> ProtocolDiseases { get; set; }
         public DbSet<ProtocolDataCategory> ProtocolDataCategories { get; set; }
+        public DbSet<ProtocolCategoryStatus> ProtocolCategoryStatus { get; set; }
     }
 }

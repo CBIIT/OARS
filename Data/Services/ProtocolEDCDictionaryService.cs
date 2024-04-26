@@ -11,9 +11,11 @@ namespace TheradexPortal.Data.Services
     public class ProtocolEDCDictionaryService : BaseService, IProtocolEDCDictionaryService
     {
         private readonly IErrorLogService _errorLogService;
-        public ProtocolEDCDictionaryService(IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService) : base(dbFactory)
+        private readonly IConfiguration _configuration;
+        public ProtocolEDCDictionaryService(IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService, IConfiguration configuration) : base(dbFactory)
         {
             _errorLogService = errorLogService;
+            _configuration = configuration;
         }
 
         public async Task<List<ProtocolEDCDictionary>> GetDictionariesByMappingId(int mappingId)
@@ -81,9 +83,10 @@ namespace TheradexPortal.Data.Services
             // that isn't performant at all for datasets as large as these dictionaries, so do it the Oracle way
          
             DateTime curDateTime = DateTime.UtcNow;
+            string connString = _configuration.GetConnectionString("DefaultConnection");
             try
             {
-                using (var connection = new OracleConnection(context.Database.GetDbConnection().ConnectionString))
+                using (var connection = new OracleConnection(connString))
                 {
                     connection.Open();
                     using (var bulkCopy = new OracleBulkCopy(connection))
