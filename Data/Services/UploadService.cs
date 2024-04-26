@@ -40,52 +40,7 @@ namespace TheradexPortal.Data.Services
             _dynamoDbService = dynamoDbService;
             _awsS3Service = awsS3Service;
             _studyService = studyService;
-        }
-
-        //public List<MedidataDictionaryModel> GetAssays()
-        //{
-        //    return new List<MedidataDictionaryModel>
-        //    {
-        //        new MedidataDictionaryModel{CodedData = "BCA", UserData = "BCA" },
-        //        new MedidataDictionaryModel{CodedData = "Bioanalyzer", UserData = "Bioanalyzer" },
-        //        new MedidataDictionaryModel{CodedData = "Bradford", UserData = "Bradford" },
-        //        new MedidataDictionaryModel{CodedData = "E-gel", UserData = "E-gel" },
-        //        new MedidataDictionaryModel{CodedData = "Picogreen", UserData = "Picogreen" },
-        //        new MedidataDictionaryModel{CodedData = "Quant-iT", UserData = "Quant-iT" },
-        //        new MedidataDictionaryModel{CodedData = "Qubit", UserData = "Qubit" },
-        //        new MedidataDictionaryModel{CodedData = "Tapestation", UserData = "Tapestation" },
-        //        new MedidataDictionaryModel{CodedData = "Nanodrop (Spec)", UserData = "Nanodrop (Spec)" }
-        //    };
-        //}        
-
-        //public List<MedidataDictionaryModel> GeTrackingDestinations()
-        //{
-        //    return new List<MedidataDictionaryModel>
-        //    {
-        //       new MedidataDictionaryModel{CodedData="EET Biobank", UserData ="EET Biobank"},
-        //       new MedidataDictionaryModel{CodedData="NCLN Genomics Laboratory for HER2", UserData ="NCLN Genomics Laboratory  for HER2"},
-        //       new MedidataDictionaryModel{CodedData="NCLN Genomics Laboratory at MD Anderson for WES &amp; RNAseq", UserData ="NCLN Genomics Laboratory at MD Anderson for WES &amp; RNAseq"},
-        //       new MedidataDictionaryModel{CodedData="Paulovich Laboratory,  Fred Hutchinson Cancer Research Center (FHCRC)", UserData ="Paulovich Laboratory,  Fred Hutchinson Cancer Research Center (FHCRC)"},
-        //       new MedidataDictionaryModel{CodedData="PPD Laboratories", UserData ="PPD Laboratories"},
-        //       new MedidataDictionaryModel{CodedData="NCLN PD Assay Laboratory at MD Anderson", UserData ="NCLN PD Assay Laboratory at MD Anderson"},
-        //       new MedidataDictionaryModel{CodedData="Kopetz Laboratory, Department of Gastrointestinal Medical Oncology", UserData ="Kopetz Laboratory, Department of Gastrointestinal Medical Oncology, MD Anderson Cancer Center"},
-        //       new MedidataDictionaryModel{CodedData="Covance Central Laboratory Services", UserData ="Covance Central Laboratory Services"},
-        //       new MedidataDictionaryModel{CodedData="Frederick MoCha Lab", UserData ="Frederick MoCha Lab"},
-        //       new MedidataDictionaryModel{CodedData="NCLN PD Assay Lab at Molecular Path Network", UserData ="NCLN PD Assay Lab at Molecular Path Network"},
-        //       new MedidataDictionaryModel{CodedData="PADIS Lab at Frederick", UserData ="PADIS Lab at Frederick"},
-        //       new MedidataDictionaryModel{CodedData="NCLN Genomics Laboratory at MDA", UserData ="NCLN Genomics Laboratory at MDA"},
-        //       new MedidataDictionaryModel{CodedData="MDACC Tissue Qualification Laboratory (TQL)", UserData ="MDACC Tissue Qualification Laboratory (TQL)" }
-        //    };
-        //}
-
-        //public List<string> GetStudies()
-        //{
-        //    var studies = new List<string>();
-
-        //    studies.Add("10358(FUNCTEST)");
-
-        //    return studies;
-        //}
+        }        
 
         public async Task<List<ProtocolData>> GetProtocolData(int userId, bool allStudies)
         {
@@ -200,7 +155,7 @@ namespace TheradexPortal.Data.Services
         {
             var dateKey = $"{DateTime.Now.Year}-{DateTime.Now.Month}/{DateTime.Now.Day}";
 
-            return $"{_uploadSettings.FilesUploadPath}/{crf}/{dateKey}/{id}.csv";
+            return $"{_uploadSettings.FilesUploadPath}/{crf}/{dateKey}/{Guid.NewGuid()}.csv";
         }
 
         public string GetMetadataFileUploadKey(string id, string crf)

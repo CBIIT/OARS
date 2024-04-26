@@ -90,7 +90,7 @@
     </Column>
 </Row>
 
-<UploadETCTNFileData @ref="uploadETCTNFileData" />
+<UploadETCTNFileData @ref="UploadETCTNFileDataModal" />
 
 <script>
     window.triggerFileDownload = (fileName, url) => {
@@ -121,9 +121,11 @@
 
     private IList<FileIngestRequest> fileIngestRequests = new List<FileIngestRequest>();
     private int? userId = null;
-    bool IsAdminDisplay = false;
+    private bool IsAdminDisplay = false;
 
-    private UploadETCTNFileData? uploadETCTNFileData;
+    private Modal ETCTNFileDataModal;
+
+    private UploadETCTNFileData? UploadETCTNFileDataModal;
 
     protected override async Task OnInitializedAsync()
     {
@@ -145,7 +147,7 @@
 
     private Task OnViewClicked(FileIngestRequest request)
     {
-        return uploadETCTNFileData?.ShowFileData(request.RequestId, request.Metadata.CRF, IsAdminDisplay);
+        return UploadETCTNFileDataModal.Show(request.RequestId, request.Metadata.CRF, IsAdminDisplay);
     }
 
     private async Task OnDownloadClicked(FileIngestRequest request)

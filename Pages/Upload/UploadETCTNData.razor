@@ -12,14 +12,13 @@
 
 <AdminRoleCheck AllowedRoles="@(new List<string> { "IT", "Biz" })"></AdminRoleCheck>
 
-<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1 mb-3"><h2>Upload ETCTN Data</h2></Div>
+<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1 mb-3"><h2>ETCTN Data Uploads</h2></Div>
 
 <Divider />
 
 <LoadingIndicator @ref="loadingIndicator">
     <Div Flex="Flex.AlignItems.Start" Margin="Margin.Is3.FromBottom" Background="Background.Light">
         <Div Padding="Padding.Is4" Style="@flexContainerStyle">
-
             <Row>
                 <Column>
                     <Div>
@@ -27,7 +26,7 @@
                             <AlertDescription TextOverflow="TextOverflow.Wrap">
                             </AlertDescription>
                             <AlertMessage>
-                                <b>Welcome to the CSV Upload Dashboard in OARS!</b> Please begin by selecting the Protocol, Receiving Site and Source Site using the dropdown menus.<br />
+                                <b>Welcome to the ETCTN Data Uploads in OARS!</b> Please begin by selecting the Protocol, Receiving Site and Source Site using the dropdown menus.<br />
                                 Next, select the appropriate case report form (CRF) using the radio buttons and use the adjacent dropdown menu to choose an applicable Assay.<br />
                                 Located below the CRF selectors are links for Downloading blank csv templates and general Instructions.<br />
                                 Finally, click on “Choose file” to search your computer for the csv file of interest and once it’s ready, click on “Submit.”<br />
@@ -173,7 +172,7 @@
     </Div>
 </LoadingIndicator>
 
-<Modal @ref="modalUploadInstructions" Closing="@OnModalClosing">
+<Modal @ref="UploadInstructionsModal" Closing="@OnModalClosing">
     <ModalContent Centered Size="ModalSize.Large">
          <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
              <ModalTitle>@ETCTNUploadRequestModel.CRF</ModalTitle>
@@ -220,7 +219,7 @@
     @inject IJSRuntime JS
     @inject IConfiguration configuration
 
-    private Modal modalUploadInstructions;
+    private Modal UploadInstructionsModal;
     private bool cancelClose;
 
     string flexContainerStyle = $"width:75%;";
@@ -357,21 +356,11 @@
     {
         crfRule = crfRules.First(t => t.CRF == ETCTNUploadRequestModel.CRF);
 
-        return modalUploadInstructions.Show();
-    }
-
-    private IFluentDisplay IsCRFInstructions(string crf)
-    {
-        if (ETCTNUploadRequestModel.CRF == crf)
-            return Display.Block;
-        else
-            return Display.None;
+        return UploadInstructionsModal.Show();
     }
 
     async Task OnReset()
     {
-        //await fileEditRef.Reset().AsTask();
-
         await ValidationsRef.ClearAll();
 
         ETCTNUploadRequestModel = new ETCTNUploadRequest();
@@ -381,8 +370,6 @@
         SelectedProtocol = null;
 
         SelectedCRF = null;
-
-        // UploadFile = null;
 
         trackingDestinations = new List<MedidataDictionaryModel>();
 
@@ -414,6 +401,8 @@
         {
             await loadingIndicator.Show();
 
+            ETCTNUploadRequestModel.RequestId = GetRequestId();
+
             var key = uploadService.GetMetadataFileUploadKey(ETCTNUploadRequestModel.RequestId, ETCTNUploadRequestModel.CRF);
 
             var metadataFile = uploadService.GetMetadatafile(ETCTNUploadRequestModel, UploadFile, userId.Value, currentEnvironment);
@@ -443,6 +432,29 @@
         {
             await loadingIndicator.Hide();
         }
+    }
+
+    private string GetRequestId()
+    {
+        // Generate a new GUID
+        Guid guid = Guid.NewGuid();
+
+        // Convert the GUID to bytes
+        byte[] bytes = guid.ToByteArray();
+
+        // Create a base64 string from the bytes
+        string base64String = Convert.ToBase64String(bytes);
+
+        // Remove padding characters from base64 string
+        base64String = base64String.TrimEnd('=');
+
+        // Replace invalid characters
+        base64String = base64String.Replace('+', 'P').Replace('/', 'S').Replace('=', 'E');
+
+        // Prefix the unique code with "RS"
+        string uniqueCode = "RS" + base64String;
+
+        return uniqueCode;
     }
 
     async Task OnFileUpload(FileChangedEventArgs e)

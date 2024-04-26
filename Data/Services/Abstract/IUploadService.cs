@@ -4,16 +4,9 @@ namespace TheradexPortal.Data.Services.Abstract
 {
     public interface IUploadService
     {
-        //public List<string> GetStudies();
-
-        //public List<MedidataDictionaryModel> GetAssays();
-
-        //public List<MedidataDictionaryModel> GeTrackingDestinations();
-
         public Task<List<ProtocolData>> GetProtocolData(int userId, bool allStudies);
 
         public Task<List<CRFRule>> GetCRFRules();
-
 
         public List<CRFModel> GetCRFs();
 

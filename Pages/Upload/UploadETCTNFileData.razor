@@ -14,138 +14,38 @@
             <CloseButton TextColor="TextColor.White" />
         </ModalHeader>
         <ModalBody Class="upload-Modal-Body">
-            <DataGrid TItem="ReceivingStatusFileData"
-                      Class="admindatagrid"
-                      Data="@fileData"
-                      Responsive
-                      ShowPager
-                      ShowPageSizes
-                       MaxPaginationLinks="5"
-                       PageSize="100"
-                      FixedHeader
-                      Filterable
-                       FilterMode="DataGridFilterMode.Menu"
-                       RowStyling="@OnRowStyling"
-                       SelectedRowStyling="@OnSelectedRowStyling"
-                       CommandMode="DataGridCommandMode.ButtonRow">
-                 <DataGridColumns>
-                     <DataGridColumn Width="100px" Field="@nameof(ReceivingStatusFileData.RowNo)" Caption="#" />
-                     <DataGridColumn Width="100px" Field="RowData.SubjectID" Caption="SubjectID" />
-                     <DataGridColumn Width="100px" Field="RowData.SpecimenId" Caption="SpecimenId" />
-                     <DataGridColumn Width="100px" Field="RowData.SubspecimenID" Caption="SubspecimenID" />
-                     <DataGridColumn Width="100px" Field="RowData.DateReceived" Caption="DateReceived" />
-                     <DataGridColumn Width="100px" Field="RowData.ShippedDate" Caption="ShippedDate" />
-                     <DataGridColumn Width="100px" Field="RowData.SubmissionIsAdequate" Caption="SubmissionIsAdequate" />
-                     <DataGridColumn Width="100px" Field="RowData.ExplanatoryReason" Caption="ExplanatoryReason" />
-                     <DataGridColumn Width="100px" Field="RowData.OtherReason" Caption="OtherReason" />
-                     <DataGridColumn Width="100px" Caption="Internal Status" Editable="false" Displayable="@IsAdminDisplay">
-                         <DisplayTemplate>
-                             <Badge Color="@GetStatusColor((context as ReceivingStatusFileData).ClientStatus)" Pill>
-                                <Tooltip Text="@((context as ReceivingStatusFileData).Error)">
-                                    @{
-                                        if ((context as ReceivingStatusFileData).RetryCount > 0)
-                                            @((context as ReceivingStatusFileData).InternalStatus + " (" + (context as ReceivingStatusFileData).RetryCount + ")")
-                                        else
-                                            @((context as ReceivingStatusFileData).InternalStatus)
-                                    }
-                                </Tooltip>
-                            </Badge>
-                        </DisplayTemplate>
-                    </DataGridColumn>
-                    <DataGridColumn Width="100px" Caption="Status" Editable="false">
-                        <DisplayTemplate>
-                            <Badge Color="@GetStatusColor((context as ReceivingStatusFileData).ClientStatus)" Pill>
-                                <Tooltip Text="@((context as ReceivingStatusFileData).ClientError)">
-                                    @((context as ReceivingStatusFileData).ClientStatus)
-                                </Tooltip>
-                            </Badge>
-                        </DisplayTemplate>
-                    </DataGridColumn>
-                </DataGridColumns>
-                <ButtonRowTemplate>
-                    <Button Color="Color.Primary" Clicked="@OnRefresh">Refresh</Button>
-                    <Button Color="Color.Danger" Clicked="@OnHideModal">Cancel</Button>
-                </ButtonRowTemplate>
-                <EmptyTemplate>
-                    <div class="box">
-                        No Rows were found!
-                    </div>
-                </EmptyTemplate>
-            </DataGrid>
+            <Div @bind-Visible="@receivingStatusVisible">
+                <ReceivingStatusData IsAdminDisplay="@isAdminDisplay" RequestId="@requestIdToFetch"></ReceivingStatusData>
+            </Div>            
         </ModalBody>
         <ModalFooter>
         </ModalFooter>
     </ModalContent>
 </Modal>
 
- @code {
+@code {
 
-    [Inject] IUploadService uploadService { get; set; } = null!;
-
-    private Modal? ETCTNFileDataModal;
-
-    private IList<ReceivingStatusFileData> fileData = new List<ReceivingStatusFileData>();
-
+    private Modal ETCTNFileDataModal;
     private string requestIdToFetch = string.Empty;
+    private bool isAdminDisplay = false;
+    private bool receivingStatusVisible = false;
 
-    bool IsAdminDisplay = false;
-
-    public async Task ShowFileData(string requestId, string crf, bool isAdmin)
+    public async Task Show(string requestId, string crf, bool isAdmin)
     {
         this.requestIdToFetch = requestId;
+        this.isAdminDisplay = isAdmin;
+        this.receivingStatusVisible = (crf == "RECEIVING_STATUS");
 
-        IsAdminDisplay = isAdmin;
-
-        await OnRefresh();
-
-        showModal();
-    }
-
-    private void showModal()
-    {
         StateHasChanged();
+
         ETCTNFileDataModal!.Show();
     }
 
-    private Task OnHideModal()
-    {
-        return ETCTNFileDataModal.Hide();
-    }
-
-    private async Task OnRefresh()
-    {
-        fileData = await uploadService.GetReceivingStatusFileData(requestIdToFetch);
-    }
-
-    private void OnRowStyling(ReceivingStatusFileData fileData, DataGridRowStyling styling)
-    {
-        // if (fileData.Status == "Failed")
-        //     styling.Style = "color:red;";
-        // else if (fileData.Status == "Success")
-        //     styling.Style = "color:#0f880f;";
-        // else
-        //     styling.Style = "color:#0755d4;";
-
-        if (fileData.ClientStatus == RequestItemStatusV2.Failed.ToString())
-            styling.Style = "color:red;";
-        else if (fileData.ClientStatus == RequestItemStatusV2.Success.ToString())
-            styling.Style = "color:#0f880f;";
-        else
-            styling.Style = "color:#0755d4;";
-    }
-
-    private Blazorise.Color GetStatusColor(string status)
-    {
-        if (status == RequestStatusV2.Failed.ToString() || status == RequestStatusV2.PartialSuccess.ToString())
-            return Color.Danger;
-        else if (status == RequestStatusV2.Success.ToString())
-            return Color.Success;
-        else
-            return Color.Secondary;
-    }
-
-    private void OnSelectedRowStyling(ReceivingStatusFileData fileData, DataGridRowStyling styling)
-    {
-        styling.Background = Background.Info;
-    }
+    // private IFluentDisplay IsCRFInstructions(string crf)
+    // {
+    //     if (ETCTNUploadRequestModel.CRF == crf)
+    //         return Display.Block;
+    //     else
+    //         return Display.None;
+    // }
 }
