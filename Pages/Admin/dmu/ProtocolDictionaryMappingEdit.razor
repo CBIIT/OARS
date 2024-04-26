@@ -8,10 +8,13 @@
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Mapping</h2></Div>
 <Row Background="Background.Light" Style="padding-bottom:10px;">
     <Row>
-        <Text><b>Protocol:</b> @protocolTitle</Text>
+        <Column><Text><b>Protocol:</b> @protocolTitle</Text></Column> <Column><Text><b>Form Label:</b> @formLabel</Text></Column>
     </Row>
     <Row>
-
+        <Column><Text><b>Report Category:</b> @categoryName</Text></Column> <Column><b>Field Label:</b> @currMapping.ProtocolEDCField.EDCFieldName</Column>
+    </Row>
+    <Row>
+        <Column><Text><b>OARS Field:</b> @currMapping.ThorField.FieldLabel</Text></Column>
     </Row>
 </Row>
 <DataGrid @ref=dataGridRef
@@ -31,14 +34,20 @@
                                 }"
           FixedHeader
           FixedHeaderDataGridHeight="calc(100vh - 240px)"
-          FixedHeaderDataGridMaxHeight="calc(100vh - 240px)">
+          FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
+          EditMode="DataGridEditMode.Inline"
+          RowUpdated="@Save"
+          RowInserted="@Save">
     <DataGridColumns>
-        <DataGridColumn Field="@nameof(ProtocolDictionaryMapping.ProtocolEDCDictionaryId)" Width="50%" Caption="For each EDC Dictionary Value">
+        <DataGridColumn Field="@nameof(ProtocolDictionaryMapping.ProtocolEDCDictionaryId)" Width="50%" Caption="For each EDC Dictionary Value" Editable Filterable="true" Sortable="true">
             <DisplayTemplate>
                 @context.ProtocolEDCDictionaryName
             </DisplayTemplate>
+            <EditTemplate>
+                @context.Item.ProtocolEDCDictionaryName
+            </EditTemplate>
         </DataGridColumn>
-        <DataGridColumn Field="@nameof(ProtocolDictionaryMapping.THORDictionaryId)" Width="50%" Caption="Select THOR Dictionary Value">
+        <DataGridColumn Field="@nameof(ProtocolDictionaryMapping.THORDictionaryId)" Width="50%" Caption="Select THOR Dictionary Value" Editable Filterable="true" Sortable="true">
             <DisplayTemplate>
                 @thorDictionaries.Where(d => d.ThorDictionaryId == context.THORDictionaryId).Select(d => d.DictionaryName).FirstOrDefault()
             </DisplayTemplate>
@@ -49,8 +58,10 @@
                               ValueField="@((item) => item.ThorDictionaryId)"
                               Data="@thorDictionaries"
                               Placeholder="Search for a THOR Dictionary Value"
-                              @bind-SelectedValue="context.Item.THORDictionaryId"
-                              Virtualize />
+                              SelectedValue="context.Item.THORDictionaryId"
+                              SelectedValueChanged="v=>context.CellValue=v"
+                              Virtualize>
+                              </Autocomplete>
             </EditTemplate>
         </DataGridColumn>
         <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
@@ -60,6 +71,9 @@
             <SaveCommandTemplate>
                 <Button><Icon Name="IconName.Save" Clicked="@context.Clicked" /></Button>
             </SaveCommandTemplate>
+            <CancelCommandTemplate>
+				<Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
+            </CancelCommandTemplate>
         </DataGridCommandColumn>
     </DataGridColumns>
     <EmptyTemplate>
@@ -70,22 +84,25 @@
 </DataGrid>
 
 
-@code {
+    @code {
     [Inject] IProtocolDictionaryMappingService dictionaryMappingService { get; set; } = null!;
     [Inject] IThorDictionaryService thorDictionaryService { get; set; } = null!;
+    [Inject] IProtocolFieldMappingService protocolFieldMappingService { get; set; } = null!;
     [Inject] private NavigationManager navigation { get; set; } = null!;
     [Inject] INotificationService notificationService { get; set; }
     [Inject] private IMessageService messageService { get; set; } = null!;
 
-    [Parameter] public int protocolMappingId { get; set; }
+    [SupplyParameterFromQuery][Parameter] public int protocolMappingId { get; set; }
     [Parameter] public int fieldId { get; set; }
     [Parameter] public string protocolTitle { get; set; }
     [Parameter] public string categoryName { get; set; }
+    [Parameter] public string formLabel { get; set; }
 
     private DataGrid<ProtocolDictionaryMapping> dataGridRef;
     private IList<ProtocolDictionaryMapping> protocolDictionaryList;
     private IList<ThorDictionary> thorDictionaries;
     private List<int> selectedValues;
+    private ProtocolFieldMapping currMapping;
 
     protected override async Task OnInitializedAsync()
     {
@@ -95,7 +112,26 @@
             this.thorDictionaries = await thorDictionaryService.GetDictionaries();
         }
 
-        // also will need to get the mapping from the fieldId, the get the actual ProtocolField id and obj, then can populate other stuff
+        currMapping = await protocolFieldMappingService.GetProtocolFieldMapping(fieldId);
 
+    }
+
+    public async void Save(SavedRowItem<ProtocolDictionaryMapping, Dictionary<string, object>> e)
+    {
+        var toSave = e.Item;
+        toSave.ProtocolFieldMappingId = this.fieldId;
+
+        bool saved = await dictionaryMappingService.SaveProtocolDictionaryMapping(toSave);
+
+        if(saved)
+        {
+            await notificationService.Success("Dictionary Mapping successfully saved");
+			return;
+		}
+		else
+		{
+			await notificationService.Error("Error saving dictionary mapping");
+			return;
+        }
     }
 }

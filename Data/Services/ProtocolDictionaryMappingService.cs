@@ -24,11 +24,12 @@ namespace TheradexPortal.Data.Services
         public async Task<List<ProtocolDictionaryMapping>> GetProtocolDictionaryMappings(int protocolMappingId, int fieldId)
         {
             var protocolDictionaryMappings = await context.ProtocolDictionaryMapping.Where(p => p.ProtocolFieldMappingId == fieldId).ToListAsync();
+            var mappingDictionaryIds = protocolDictionaryMappings.Select(p => p.ProtocolEDCDictionaryId).ToList();
             var protocolEDCDictionaries = await context.ProtocolEDCDictionary.Where(p => p.ProtocolMappingId == protocolMappingId).ToListAsync();
-
+ 
             foreach (var dictionary in protocolEDCDictionaries)
             {
-                if (!protocolDictionaryMappings.Any(p => p.ProtocolEDCDictionaryId == dictionary.ProtocolEDCDictionaryId))
+                if (!mappingDictionaryIds.Contains(dictionary.ProtocolEDCDictionaryId))
                 {
                     protocolDictionaryMappings.Add(new ProtocolDictionaryMapping
                     {

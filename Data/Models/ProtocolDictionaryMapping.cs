@@ -17,6 +17,7 @@ namespace TheradexPortal.Data.Models
         public DateTime? CreateDate { get; set; }
 
         // Display fields
+        [NotMapped]
         public string? ProtocolEDCDictionaryName { get; set; }
     }
 }
