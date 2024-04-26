@@ -30,9 +30,9 @@
            RowRemoved="@Delete"
            RowRemoving="@ConfirmDelete">
      <DataGridColumns>
-         <DataGridColumn Width="15%" Caption="NSC Number" Field="@nameof(ProtocolAgent.NscNumber)" Filterable="true" Sortable="false" Editable>
+         <DataGridColumn Width="30%" Caption="NSC Number" Field="@nameof(ProtocolAgent.NscNumber)" Filterable="true" Sortable="false" Editable>
         </DataGridColumn>
-        <DataGridColumn Field="@nameof(ProtocolAgent.AgentName)" Width="15%" Caption="Agent Name" Filterable="true" Sortable="false" Editable>
+        <DataGridColumn Field="@nameof(ProtocolAgent.AgentName)" Width="30%" Caption="Agent Name" Filterable="true" Sortable="false" Editable>
         </DataGridColumn>
          <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="true">
              <EditCommandTemplate>

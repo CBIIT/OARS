@@ -25,6 +25,44 @@ namespace TheradexPortal.Data.Services
                 .ToListAsync();
         }
 
+        public async Task<List<ProtocolDataCategory>> GetCategoriesByMappingProfile(int mappingId)
+        {
+            var profile = await context.ProtocolMapping.Include(x => x.Profile).Where(x => x.ProtocolMappingId == mappingId).FirstOrDefaultAsync();
+            if (profile == null)
+            {
+                return new List<ProtocolDataCategory>();
+            } else
+            {
+                var profileDataCategories = await context.ProfileDataCategory
+                    .Include(x => x.ThorCategory).Where(x => x.ProfileId == profile.ProfileId).ToListAsync();
+                var protocolDataCategories = await context.ProtocolDataCategories
+                .Include(x => x.ProtocolMapping)
+                .Include(x => x.THORDataCategory)
+                .Include(x => x.ProtocolCategoryStatus)
+                .Where(x => x.ProtocolMappingId == mappingId)
+                .ToListAsync();
+
+                foreach (var profileCategory in profileDataCategories)
+                {
+                    if(protocolDataCategories.Find(x => x.THORDataCategoryId == profileCategory.ThorDataCategoryId) == null)
+                    {
+                        ProtocolDataCategory newCategory = new ProtocolDataCategory
+                        {
+                            ProtocolMappingId = mappingId,
+                            THORDataCategoryId = profileCategory.ThorDataCategoryId,
+                            THORDataCategory = profileCategory.ThorCategory,
+                            ProtocolCategoryStatus = await context.ProtocolCategoryStatus.FirstOrDefaultAsync(x => x.ProtocolCategoryStatusId == 1),
+                            ProtocolCategoryStatusId = 1,
+                            CreateDate = DateTime.Now,
+                            UpdateDate = DateTime.Now
+                        };
+                        protocolDataCategories.Add(newCategory);
+                    }
+                }
+                return protocolDataCategories;
+            }
+        }
+
         public async Task<ProtocolDataCategory> GetCategory(int categoryId)
         {
             var category = await context.ProtocolDataCategories
