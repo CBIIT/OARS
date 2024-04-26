@@ -17,7 +17,7 @@ public class ALSFileImportService : IALSFileImportService
         _dictionaryService = dictionaryService;
 	}
 
-    public async void ParseALSFile(Stream inputFileStream, int protocolMappingId)
+    public async Task ParseALSFile(Stream inputFileStream, int protocolMappingId)
     {
         if (inputFileStream.Position > 0)
         {

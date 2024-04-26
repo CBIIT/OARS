@@ -2,6 +2,6 @@
 {
     public interface IALSFileImportService
     {
-        public void ParseALSFile(Stream inputFileStream, int protocolMappingId);
+        public Task ParseALSFile(Stream inputFileStream, int protocolMappingId);
     }
 }

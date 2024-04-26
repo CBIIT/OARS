@@ -106,7 +106,7 @@
             {
                 try
                 {
-                    alsFileImportService.ParseALSFile(ms, this.protocolMappingId);
+                    await alsFileImportService.ParseALSFile(ms, this.protocolMappingId);
                 } catch (Exception ex)
                 {
                     await notificationService.Error(ex.Message);
@@ -117,7 +117,7 @@
             {
                 try
                 {
-                    xmlFileImportService.ParseXMLFile(ms, this.protocolMappingId);
+                    await xmlFileImportService.ParseXMLFile(ms, this.protocolMappingId);
                 } catch(Exception ex){
                     await notificationService.Error(ex.Message);
                 }

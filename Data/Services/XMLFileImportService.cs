@@ -19,7 +19,7 @@ namespace TheradexPortal.Data.Services
             _dictionaryService = dictionaryService;
         }
 
-        public async void ParseXMLFile(Stream inputFileStream, int protocolMappingId)
+        public async Task ParseXMLFile(Stream inputFileStream, int protocolMappingId)
         {
             if (inputFileStream.Position > 0)
             {
