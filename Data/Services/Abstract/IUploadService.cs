@@ -24,6 +24,8 @@ namespace TheradexPortal.Data.Services.Abstract
 
         public Task<List<ReceivingStatusFileData>?> GetReceivingStatusFileData(string requestId);
 
+        public Task<List<BiospecimenRoadmapFileData>?> GetBiospecimenRoadmapFileData(string requestId);
+
         public Task<string> GetCsvFileDownloadUrl(FileIngestRequest request);
 
         public Task<string> GetCRFTemplateDownloadUrl(string crf, string fileName);

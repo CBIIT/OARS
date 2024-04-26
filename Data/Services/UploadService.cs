@@ -229,6 +229,38 @@ namespace TheradexPortal.Data.Services
             return requestItems;
         }
 
+        public async Task<List<BiospecimenRoadmapFileData>?> GetBiospecimenRoadmapFileData(string requestId)
+        {
+            var requestItems = await _dynamoDbService.GetAllBiospecimenRoadmapData(requestId);
+
+            if (requestItems != null)
+            {
+                foreach (var requestItem in requestItems)
+                {
+                    if (requestItem.Status >= 201 && requestItem.Status <= 210)
+                    {
+                        requestItem.ClientStatus = RequestItemStatusV2.Received.ToString();
+                    }
+                    else if (requestItem.Status >= 211 && requestItem.Status <= 220)
+                    {
+                        requestItem.ClientStatus = RequestItemStatusV2.InProgress.ToString();
+                    }
+                    else if (requestItem.Status >= 221 && requestItem.Status <= 230)
+                    {
+                        requestItem.ClientStatus = ((RequestItemStatusV2)requestItem.Status).ToString();
+                    }
+                    else
+                    {
+                        requestItem.ClientStatus = "UnKnown";
+                    }
+
+                    requestItem.InternalStatus = ((RequestItemStatusV2)requestItem.Status).ToString();
+                }
+            }
+
+            return requestItems;
+        }
+
         public Task<string> GetCsvFileDownloadUrl(FileIngestRequest request)
         {
             return _awsS3Service.GetPreSignedUrl(request.Metadata.Bucket, request.Metadata.FilePath, request.Metadata.OriginalFileName);

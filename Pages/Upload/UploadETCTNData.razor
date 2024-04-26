@@ -451,8 +451,15 @@
         // Replace invalid characters
         base64String = base64String.Replace('+', 'P').Replace('/', 'S').Replace('=', 'E');
 
+        string prefix = "";
+
+        if (ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS")
+            prefix = "RS";
+        else if (ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP")
+            prefix = "BR";
+
         // Prefix the unique code with "RS"
-        string uniqueCode = "RS" + base64String;
+        string uniqueCode = prefix + base64String;
 
         return uniqueCode;
     }

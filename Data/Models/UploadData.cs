@@ -273,7 +273,7 @@ namespace TheradexPortal.Data.Models
         public string SubjectID { get; set; }
 
         [DynamoDBProperty(AttributeName = "SpecimenID")]
-        public string SpecimenId { get; set; }
+        public string SpecimenID { get; set; }
 
         [DynamoDBProperty(AttributeName = "ShippedDate")]
         public string ShippedDate { get; set; }
@@ -292,6 +292,38 @@ namespace TheradexPortal.Data.Models
 
         [DynamoDBProperty(AttributeName = "OtherReason")]
         public string OtherReason { get; set; }
+    }
+
+
+    [DynamoDBTable("BiospecimenRoadmapFileData")]
+    public class BiospecimenRoadmapFileData : BaseFileData
+    {
+        [DynamoDBProperty(AttributeName = "RowData")]
+        public BiospecimenRoadmapRowData RowData { get; set; }
+    }
+
+    public class BiospecimenRoadmapRowData
+    {
+        [DynamoDBProperty(AttributeName = "Protocol")]
+        public string Protocol { get; set; }
+
+        [DynamoDBProperty(AttributeName = "SubspecimenID")]
+        public string SubspecimenID { get; set; }
+
+        [DynamoDBProperty(AttributeName = "Outcome")]
+        public string Outcome { get; set; }
+
+        [DynamoDBProperty(AttributeName = "Details")]
+        public string Details { get; set; }
+
+        [DynamoDBProperty(AttributeName = "Date")]
+        public string Date { get; set; }
+
+        [DynamoDBProperty(AttributeName = "AssayVersion")]
+        public string AssayVersion { get; set; }
+
+        [DynamoDBProperty(AttributeName = "Active")]
+        public string Active { get; set; }
     }
 
     public class BaseFileData

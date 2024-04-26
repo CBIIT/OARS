@@ -8,5 +8,7 @@ namespace TheradexPortal.Data.Services.Abstract
         Task<List<FileIngestRequest>?> GetAllRequestsOfUser(int userId);
 
         Task<List<ReceivingStatusFileData>?> GetAllReceivingStatusData(string requestId);
+
+        Task<List<BiospecimenRoadmapFileData>?> GetAllBiospecimenRoadmapData(string requestId);
     }
 }

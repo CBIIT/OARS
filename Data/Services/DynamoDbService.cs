@@ -104,5 +104,24 @@ namespace TheradexPortal.Data.Services
 
             return result?.OrderBy(p => p.RowNo).ToList();
         }
+
+        public async Task<List<BiospecimenRoadmapFileData>?> GetAllBiospecimenRoadmapData(string requestId)
+        {
+            var search = _dynamoDbContext.ScanAsync<BiospecimenRoadmapFileData>
+            (
+              new[] {
+                            new ScanCondition
+                              (
+                                nameof(BiospecimenRoadmapFileData.RequestId),
+                                ScanOperator.Equal,
+                                requestId
+                              )
+                    }
+            );
+
+            var result = await search.GetRemainingAsync();
+
+            return result?.OrderBy(p => p.RowNo).ToList();
+        }
     }
 }

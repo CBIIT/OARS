@@ -8,7 +8,7 @@
 
 @inject IHttpContextAccessor httpContextAccessor
 
-<DataGrid TItem="ReceivingStatusFileData"
+<DataGrid TItem="BiospecimenRoadmapFileData"
           Class="admindatagrid"
           Data="@fileData"
           Responsive
@@ -23,25 +23,23 @@
            SelectedRowStyling="@OnSelectedRowStyling"
            CommandMode="DataGridCommandMode.ButtonRow">
      <DataGridColumns>
-         <DataGridColumn Width="100px" Field="@nameof(ReceivingStatusFileData.RowNo)" Caption="#" />
+         <DataGridColumn Width="100px" Field="@nameof(BiospecimenRoadmapFileData.RowNo)" Caption="#" />
          <DataGridColumn Width="100px" Field="RowData.Protocol" Caption="Protocol" />
-         <DataGridColumn Width="100px" Field="RowData.SubjectID" Caption="Subject ID" />
-         <DataGridColumn Width="100px" Field="RowData.SpecimenID" Caption="Specimen ID" />
          <DataGridColumn Width="100px" Field="RowData.SubspecimenID" Caption="Subspecimen ID" />
-         <DataGridColumn Width="100px" Field="RowData.DateReceived" Caption="Date Received" />
-         <DataGridColumn Width="100px" Field="RowData.ShippedDate" Caption="Shipped Date" />
-         <DataGridColumn Width="100px" Field="RowData.SubmissionIsAdequate" Caption="Submission is Adequate" />
-         <DataGridColumn Width="100px" Field="RowData.ExplanatoryReason" Caption="Explanatory Reason" />
-         <DataGridColumn Width="100px" Field="RowData.OtherReason" Caption="Other Reason" />
+         <DataGridColumn Width="100px" Field="RowData.Outcome" Caption="Outcome" />
+         <DataGridColumn Width="100px" Field="RowData.Details" Caption="Details" />
+         <DataGridColumn Width="100px" Field="RowData.Date" Caption="Date" />
+         <DataGridColumn Width="100px" Field="RowData.AssayVersion" Caption="AssayVersion" />
+         <DataGridColumn Width="100px" Field="RowData.Active" Caption="Active" />
          <DataGridColumn Width="100px" Caption="Internal Status" Editable="false" Displayable="@IsAdminDisplay">
              <DisplayTemplate>
-                 <Badge Color="@GetStatusColor((context as ReceivingStatusFileData).ClientStatus)" Pill>
-                    <Tooltip Text="@((context as ReceivingStatusFileData).Error)">
+                 <Badge Color="@GetStatusColor((context as BiospecimenRoadmapFileData).ClientStatus)" Pill>
+                    <Tooltip Text="@((context as BiospecimenRoadmapFileData).Error)">
                         @{
-                            if ((context as ReceivingStatusFileData).RetryCount > 0)
-                                @((context as ReceivingStatusFileData).InternalStatus + " (" + (context as ReceivingStatusFileData).RetryCount + ")")
+                            if ((context as BiospecimenRoadmapFileData).RetryCount > 0)
+                                @((context as BiospecimenRoadmapFileData).InternalStatus + " (" + (context as BiospecimenRoadmapFileData).RetryCount + ")")
                             else
-                                @((context as ReceivingStatusFileData).InternalStatus)
+                                @((context as BiospecimenRoadmapFileData).InternalStatus)
                         }
                     </Tooltip>
                 </Badge>
@@ -49,9 +47,9 @@
         </DataGridColumn>
         <DataGridColumn Width="100px" Caption="Status" Editable="false">
             <DisplayTemplate>
-                <Badge Color="@GetStatusColor((context as ReceivingStatusFileData).ClientStatus)" Pill>
-                    <Tooltip Text="@((context as ReceivingStatusFileData).ClientError)">
-                        @((context as ReceivingStatusFileData).ClientStatus)
+                <Badge Color="@GetStatusColor((context as BiospecimenRoadmapFileData).ClientStatus)" Pill>
+                    <Tooltip Text="@((context as BiospecimenRoadmapFileData).ClientError)">
+                        @((context as BiospecimenRoadmapFileData).ClientStatus)
                     </Tooltip>
                 </Badge>
             </DisplayTemplate>
@@ -74,15 +72,15 @@
     [Parameter] public bool IsAdminDisplay { get; set; } = false;
     [Parameter] public string RequestId { get; set; } = string.Empty;
 
-    private List<ReceivingStatusFileData> fileData { get; set; } = new List<ReceivingStatusFileData>();
+    private List<BiospecimenRoadmapFileData> fileData { get; set; } = new List<BiospecimenRoadmapFileData>();
 
     protected override async Task OnParametersSetAsync()
     {
         if (RequestId != string.Empty)
-            fileData = await uploadService.GetReceivingStatusFileData(RequestId);
+            fileData = await uploadService.GetBiospecimenRoadmapFileData(RequestId);
     }
 
-    private void OnRowStyling(ReceivingStatusFileData fileData, DataGridRowStyling styling)
+    private void OnRowStyling(BiospecimenRoadmapFileData fileData, DataGridRowStyling styling)
     {
         if (fileData.ClientStatus == RequestItemStatusV2.Failed.ToString())
             styling.Style = "color:red;";
@@ -92,7 +90,7 @@
             styling.Style = "color:#0755d4;";
     }
 
-    private void OnSelectedRowStyling(ReceivingStatusFileData fileData, DataGridRowStyling styling)
+    private void OnSelectedRowStyling(BiospecimenRoadmapFileData fileData, DataGridRowStyling styling)
     {
         styling.Background = Background.Info;
     }
@@ -109,7 +107,7 @@
 
     private async Task OnRefresh()
     {
-        this.fileData = await uploadService.GetReceivingStatusFileData(RequestId);
+        this.fileData = await uploadService.GetBiospecimenRoadmapFileData(RequestId);
     }
 
 }
