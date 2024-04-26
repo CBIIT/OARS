@@ -6,6 +6,7 @@ namespace TheradexPortal.Data.Services.Abstract
     {
         public Task<IList<ProtocolFieldMapping>> GetProtocolFieldMappings();
         public Task<IList<ProtocolFieldMapping>> GetProtocolFieldMappings(string fieldId);
+        public Task<IList<ProtocolFieldMapping>> GetProtocolFieldMappingsForCategory(string categoryId);
         public Task<ProtocolFieldMapping> GetProtocolFieldMapping(int id);
         public Task<bool> SaveProtocolFieldMapping(ProtocolFieldMapping protocolFieldMapping);
         public Task<bool> DeleteProtocolFieldMapping(ProtocolFieldMapping protocolFieldMapping);

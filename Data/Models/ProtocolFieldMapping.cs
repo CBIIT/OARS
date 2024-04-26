@@ -18,6 +18,8 @@ namespace TheradexPortal.Data.Models
         public DateTime UpdateDate { get; set; }
         [ForeignKey("ProtocolEDCFieldId")]
         public ProtocolEDCField ProtocolEDCField { get; set; }
+        [ForeignKey("ThorFieldId")]
+        public ThorField ThorField { get; set; }
         [NotMapped]
         public int ProtocolEDCFormId { get; set; }
     }

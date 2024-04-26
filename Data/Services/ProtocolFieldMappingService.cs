@@ -6,7 +6,7 @@ using TheradexPortal.Data.Services.Abstract;
 
 namespace TheradexPortal.Data.Services
 {
-    public class ProtocolFieldMappingService: BaseService, IProtocolFieldMappingService
+    public class ProtocolFieldMappingService : BaseService, IProtocolFieldMappingService
     {
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
@@ -26,9 +26,28 @@ namespace TheradexPortal.Data.Services
             return await context.ProtocolFieldMappings.Where(x => x.ThorFieldId == fieldId).Include(x => x.ProtocolEDCField).Include(p => p.ProtocolEDCField.ProtocolEDCForm).ToListAsync();
         }
 
+        public async Task<IList<ProtocolFieldMapping>> GetProtocolFieldMappingsForCategory(string categoryId)
+        {
+            var thorFields = await context.THORField.Where(x => x.ThorDataCategoryId == categoryId).ToListAsync();
+            var fieldIds = thorFields.Select(x => x.ThorFieldId).ToList();
+            var mappings = await context.ProtocolFieldMappings.Where(x => fieldIds.Contains(x.ThorFieldId)).Include(x => x.ProtocolEDCField).Include(p => p.ProtocolEDCField.ProtocolEDCForm).ToListAsync();
+
+            foreach (string fieldId in fieldIds)
+            {
+                if (!mappings.Any(x => x.ThorFieldId == fieldId))
+                {
+                    ProtocolFieldMapping mapping = new ProtocolFieldMapping();
+                    mapping.ThorFieldId = fieldId;
+                    mappings.Add(mapping);
+                }
+            }
+
+            return mappings;
+        }
+
         public async Task<ProtocolFieldMapping> GetProtocolFieldMapping(int id)
         {
-            var fieldMapping = await context.ProtocolFieldMappings.FirstOrDefaultAsync(x => x.ProtocolFieldMappingId == id);
+            var fieldMapping = await context.ProtocolFieldMappings.Include(x=>x.ThorField).Include(x=>x.ProtocolEDCField).FirstOrDefaultAsync(x => x.ProtocolFieldMappingId == id);
             return fieldMapping;
         }
 
@@ -69,7 +88,8 @@ namespace TheradexPortal.Data.Services
                 context.ProtocolFieldMappings.Remove(mapping);
                 await context.SaveChangesAsync();
                 return true;
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 await _errorLogService.SaveErrorLogAsync(0, "", ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
                 return false;
