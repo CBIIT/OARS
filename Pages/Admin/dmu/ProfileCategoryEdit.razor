@@ -38,11 +38,11 @@
                  @{
                     if(context.ThorCategory != null)
                     {
-                        @context.ThorCategory.CategoryName
+                        @(context.ThorCategory.CategoryName + " (" + context.ThorDataCategoryId + ")")
                     }
                     else if (context.ThorCategory == null && context.ThorDataCategoryId != null)
 					{
-						@this.categoryList.First(x => x.ThorDataCategoryId == context.ThorDataCategoryId).CategoryName
+						@(this.categoryList.First(x => x.ThorDataCategoryId == context.ThorDataCategoryId).CategoryName + " (" + context.ThorDataCategoryId + ")")
 					}
 					else
 					{
@@ -51,7 +51,7 @@
                 }
             </DisplayTemplate>
             <EditTemplate>
-                <SelectList TItem="ThorCategory" TValue="string?" Data="@categoryList" TextField="@((item)=>item.CategoryName)" ValueField="@((item)=>item.ThorDataCategoryId)" SelectedValueChanged="@( v => {context.CellValue = v;})" SelectedValue="@((string?)context.CellValue)"></SelectList>
+                <SelectList TItem="ThorCategory" TValue="string" Data="@categoryList" TextField="@((item)=> item.CategoryName + " (" + item.ThorDataCategoryId + ")")" ValueField="@((item)=>item.ThorDataCategoryId)" SelectedValueChanged="@( v => {context.CellValue = v;})" SelectedValue="@((string?)context.CellValue)"></SelectList>
             </EditTemplate>
          </DataGridColumn>
         <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
@@ -90,12 +90,10 @@
     private DataGrid<ProfileDataCategory> dataGridRef;
     private IList<ProfileDataCategory> profileCategories;
     private IList<ThorCategory> categoryList;
-    private Profile selectedProfile;
 
     protected override async Task OnInitializedAsync()
     {
         this.profileCategories = await profileCategoryService.GetCategories(profile);
-        this.selectedProfile = await profileService.GetProfile(profile);
         this.categoryList = await categoryService.GetCategories();
         
     }

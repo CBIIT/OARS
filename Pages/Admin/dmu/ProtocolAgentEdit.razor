@@ -30,13 +30,13 @@
            RowRemoved="@Delete"
            RowRemoving="@ConfirmDelete">
      <DataGridColumns>
-         <DataGridColumn Width="15%" Caption="NSC Number" Field="@nameof(ProtocolAgent.NscNumber)" Filterable="true" Sortable="false" Editable>
+         <DataGridColumn Width="30%" Caption="NSC Number" Field="@nameof(ProtocolAgent.NscNumber)" Filterable="true" Sortable="false" Editable>
         </DataGridColumn>
-        <DataGridColumn Field="@nameof(ProtocolAgent.AgentName)" Width="15%" Caption="Agent Name" Filterable="true" Sortable="false" Editable>
+        <DataGridColumn Field="@nameof(ProtocolAgent.AgentName)" Width="30%" Caption="Agent Name" Filterable="true" Sortable="false" Editable>
         </DataGridColumn>
          <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="true">
              <EditCommandTemplate>
-                 <Button><Icon Name="IconName.Edit" Clicked="@context.Clicked" /></Button>
+                 <Button Disabled="@allowEdit"><Icon Name="IconName.Edit" Clicked="@context.Clicked" /></Button>
              </EditCommandTemplate>
              <SaveCommandTemplate>
                  <Button><Icon Name="IconName.Save" Clicked="@context.Clicked" /></Button>
@@ -53,7 +53,7 @@
          </DataGridCommandColumn>
      </DataGridColumns>
      <ButtonRowTemplate>
-         <Button Color="Color.Primary" Clicked="@context.NewCommand.Clicked">Add</Button>
+         <Button Color="Color.Primary" Clicked="@context.NewCommand.Clicked" Disabled="@allowEdit">Add</Button>
      </ButtonRowTemplate>
      <EmptyTemplate>
          <div class="box">
@@ -67,6 +67,7 @@
     [Inject] private IMessageService messageService { get; set; } = null!;
     [Inject] INotificationService notificationService { get; set; }
     [Parameter] public int protocolMappingId { get; set; }
+    [Parameter] public bool allowEdit { get; set; }
 
     private DataGrid<ProtocolAgent> dataGridRef;
     private IList<ProtocolAgent> protocolAgents = new List<ProtocolAgent>();

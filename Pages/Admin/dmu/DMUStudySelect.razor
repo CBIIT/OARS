@@ -33,17 +33,24 @@
            @bind-SelectedRows="selectedProtocols">
      <DataGridColumns>
          <DataGridMultiSelectColumn Width="30px"></DataGridMultiSelectColumn>
-        <DataGridColumn Width="10%" Caption="Hx" Field="Protocol.RecentOrder" Editable Filterable="false" Sortable="false">
+        <DataGridColumn Width="10%" Caption="Version" Field="@nameof(ProtocolMapping.MappingVersion)" Editable Filterable="false" Sortable="false">
         </DataGridColumn>
         <DataGridColumn Width="20%" Field="Protocol.StudyId" Sortable="false" Filterable="true" Caption="Study ID">
         </DataGridColumn>
         <DataGridColumn Width="50%" Field="Protocol.ProtocolTitle" Sortable="false" Filterable="true" Caption="Title">
         </DataGridColumn>
-        <DataGridColumn Width="20%" Field="Status.StatusName" Sortable="false" Caption="Status">
+        <DataGridColumn Width="10%" Field="Status.StatusName" Sortable="false" Caption="Status">
         </DataGridColumn>
         <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
             <EditCommandTemplate>
-                 <Button><Icon Name="IconName.Edit" Clicked="@(()=>EditMapping(context.Item))" /></Button>
+                 @if(context.Item.Status.StatusName != "Active")
+				 {
+					 <Button><Icon Name="IconName.InfoCircle" Clicked="@(()=>EditMapping(context.Item))" /></Button>
+				 }
+				 else
+				 {
+					 <Button><Icon Name="IconName.Edit" Clicked="@(()=>EditMapping(context.Item))" /></Button>
+				 }
             </EditCommandTemplate>
             <ClearFilterCommandTemplate>
                 <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
@@ -53,6 +60,7 @@
     <ButtonRowTemplate>
         <Button Color="Color.Primary" Clicked="context.NewCommand.Clicked">Create Study</Button>
         <Button Color="Color.Danger" Clicked="@ProcessSelectedStudies">Process Selected Studies</Button>
+        <Button Color="Color.Secondary" Clicked="@ShowHideArchived">@(includeArchived ? "Hide Archived" : "Show Archived")</Button>
     </ButtonRowTemplate>
     <EmptyTemplate>
         <div class="box">
@@ -61,7 +69,7 @@
     </EmptyTemplate>
 </DataGrid>
 
- @code {
+@code {
     [Inject] private NavigationManager navigation { get; set; } = null!;
     [Inject] INotificationService notificationService { get; set; }
     [Inject] IProtocolMappingService protocolMappingService { get; set; }
@@ -71,17 +79,18 @@
     private IList<ProtocolMapping> studyList;
 
     private List<ProtocolMapping> selectedProtocols;
+    private bool includeArchived = false;
 
     protected override async Task OnInitializedAsync()
     {
-        studyList = await protocolMappingService.GetProtocolMappings();
+        studyList = await protocolMappingService.GetProtocolMappings(includeArchived);
     }
 
     private async Task EditMapping(ProtocolMapping mapping)
     {
         if(mapping.ProtocolMappingId > 0)
         {
-            navigation.NavigateTo($"/admin/dmu/study-admin/{mapping.ProtocolMappingId}");
+            navigation.NavigateTo($"/admin/dmu/study-admin/{mapping.ProtocolMappingId}?published={mapping.Status.StatusName}");
         }
         else
         {
@@ -92,10 +101,16 @@
     }
 
     private void AddStudy()
-	{
-		navigation.NavigateTo("/admin/dmu/study-setup");
-	}
+    {
+        navigation.NavigateTo("/admin/dmu/study-setup");
+    }
 
+    private async void ShowHideArchived()
+    {
+        includeArchived = !includeArchived;
+        studyList = await protocolMappingService.GetProtocolMappings(includeArchived);
+        await dataGridRef.Refresh();
+    }
     private async Task ProcessSelectedStudies()
 	{
         //Placeholder for future functionality

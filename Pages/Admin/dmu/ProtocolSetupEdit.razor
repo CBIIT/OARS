@@ -40,13 +40,13 @@
             <Text>* Protocol:</Text>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-            <TextEdit MaxLength="50" @bind-Text="@currentProtocolMap.THORStudyId"></TextEdit>
+            <TextEdit MaxLength="50" Disabled="@allowEdit" @bind-Text="@currentProtocolMap.THORStudyId"></TextEdit>
         </Column>
         <Column ColumnSize="ColumnSize.Is2" Class="dmu-column-border-left">
-            <Check TValue="bool" @bind-Checked="@phase1">Phase 1</Check>
+            <Check TValue="bool" @bind-Checked="@phase1" Disabled="@allowEdit">Phase 1</Check>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-            <Select TValue="string" @bind-SelectedValue="@phase1IsRandomized">
+            <Select TValue="string" @bind-SelectedValue="@phase1IsRandomized" Disabled="@allowEdit">
                 <SelectItem Value="@YesNoSelect.S">Select</SelectItem>
                 <SelectItem Value="@YesNoSelect.Y">Randomized</SelectItem>
                 <SelectItem Value="@YesNoSelect.N">Non-Randomized</SelectItem>
@@ -58,7 +58,7 @@
             <Text>Status:</Text>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-            <Select @bind-SelectedValue="@currentProtocolMap.ProtocolMappingStatusId">
+            <Select @bind-SelectedValue="@currentProtocolMap.ProtocolMappingStatusId" Disabled="@allowEdit">
                 <SelectItem Value="0" Hidden>Select</SelectItem>
                 <SelectItem Value="1">Active</SelectItem>
                 <SelectItem Value="2">Testing</SelectItem>
@@ -66,10 +66,10 @@
             </Select>
         </Column>
         <Column ColumnSize="ColumnSize.Is2" Class="dmu-column-border-left">
-            <Check TValue="bool" @bind-Checked="@phase2">Phase 2</Check>
+            <Check TValue="bool" @bind-Checked="@phase2" Disabled="@allowEdit">Phase 2</Check>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-            <Select TValue="string" @bind-SelectedValue="@phase2IsRandomized">
+            <Select TValue="string" @bind-SelectedValue="@phase2IsRandomized" Disabled="@allowEdit">
                 <SelectItem Value="@YesNoSelect.S">Select</SelectItem>
                 <SelectItem Value="@YesNoSelect.Y">Randomized</SelectItem>
                 <SelectItem Value="@YesNoSelect.N">Non-Randomized</SelectItem>
@@ -81,13 +81,13 @@
             <Text>Billing Code:</Text>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-            <TextEdit MaxLength="50" @bind-Text="@currentProtocolMap.BillingCode"></TextEdit>
+            <TextEdit MaxLength="50" @bind-Text="@currentProtocolMap.BillingCode" Disabled="@allowEdit"></TextEdit>
         </Column>
         <Column ColumnSize="ColumnSize.Is2" Class="dmu-column-border-left">
-            <Check TValue="bool" @bind-Checked="@phase3">Phase 3</Check>
+            <Check TValue="bool" @bind-Checked="@phase3" Disabled="@allowEdit">Phase 3</Check>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-            <Select TValue="string" @bind-SelectedValue="@phase3IsRandomized">
+            <Select TValue="string" @bind-SelectedValue="@phase3IsRandomized" Disabled="@allowEdit">
                 <SelectItem Value="@YesNoSelect.S">Select</SelectItem>
                 <SelectItem Value="@YesNoSelect.Y">Randomized</SelectItem>
                 <SelectItem Value="@YesNoSelect.N">Non-Randomized</SelectItem>
@@ -99,13 +99,13 @@
             <Text>Title:</Text>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-            <TextEdit MaxLength="50" @bind-Text="@currentProtocolMap.ProtocolTitle"></TextEdit>
+            <TextEdit MaxLength="50" @bind-Text="@currentProtocolMap.ProtocolTitle" Disabled="@allowEdit"></TextEdit>
         </Column>
         <Column ColumnSize="ColumnSize.Is2" Class="dmu-column-border-left">
-            <Check TValue="bool" @bind-Checked="@phase4">Phase 4</Check>
+            <Check TValue="bool" @bind-Checked="@phase4" Disabled="@allowEdit">Phase 4</Check>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-            <Select TValue="string" @bind-SelectedValue="@phase4IsRandomized">
+            <Select TValue="string" @bind-SelectedValue="@phase4IsRandomized" Disabled="@allowEdit">
                 <SelectItem Value="@YesNoSelect.S">Select</SelectItem>
                 <SelectItem Value="@YesNoSelect.Y">Randomized</SelectItem>
                 <SelectItem Value="@YesNoSelect.N">Non-Randomized</SelectItem>
@@ -117,7 +117,7 @@
             <Text>Sponsor:</Text>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-            <TextEdit MaxLength="50" @bind-Text="@currentProtocolMap.Sponsor"></TextEdit>
+            <TextEdit MaxLength="50" @bind-Text="@currentProtocolMap.Sponsor" Disabled="@allowEdit"></TextEdit>
         </Column>
         <Column ColumnSize="ColumnSize.Is2" Class="dmu-column-border-left">
 
@@ -131,7 +131,7 @@
             <Text>*EDC System:</Text>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-            <Select TValue="int?" @bind-SelectedValue="@currentProtocolMap.ProtocolDataSystemId">
+            <Select TValue="int?" @bind-SelectedValue="@currentProtocolMap.ProtocolDataSystemId" Disabled="@allowEdit">
                 <SelectItem Value="@invalidId">Select the EDC System</SelectItem>
                 @foreach (var edcSystem in edcSystemList)
                 {
@@ -151,7 +151,7 @@
             <Text>*Monitoring Method:</Text>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-            <Select TValue="int?" @bind-SelectedValue="@currentProtocolMap.ProfileId">
+            <Select TValue="int?" @bind-SelectedValue="@currentProtocolMap.ProfileId" Disabled="@allowEdit">
                 <SelectItem Value="@invalidId">Select Monitoring Method</SelectItem>
                 @foreach (var profile in profileList)
                 {
@@ -171,7 +171,7 @@
             <Text>Copy Mappings From:</Text>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-            <Select TValue="int?" @bind-SelectedValue="@currentProtocolMap.SourceProtocolMappingId">
+            <Select TValue="int?" @bind-SelectedValue="@currentProtocolMap.SourceProtocolMappingId" Disabled="@allowEdit">
                 <SelectItem Value="@invalidId">Select Protocol to copy from</SelectItem>
                 @foreach (var protocolMapping in protocolMappings)
                 {
@@ -194,7 +194,7 @@
             <Text>*Date Format:</Text>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-            <TextEdit Placeholder="ddMMMyyyy:HH:mm:ss.ff" MaxLength="50" @bind-Text="@currentProtocolMap.DateFormat"></TextEdit>
+            <TextEdit Placeholder="ddMMMyyyy:HH:mm:ss.ff" MaxLength="50" @bind-Text="@currentProtocolMap.DateFormat" Disabled="@allowEdit"></TextEdit>
         </Column>
         <Column ColumnSize="ColumnSize.Is2" Class="dmu-column-border-left">
 
@@ -208,7 +208,7 @@
             <Text>*Data File Folder:</Text>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-            <TextEdit MaxLength="50" @bind-Text="@currentProtocolMap.DataFileFolder"></TextEdit>
+            <TextEdit MaxLength="50" @bind-Text="@currentProtocolMap.DataFileFolder" Disabled="@allowEdit"></TextEdit>
         </Column>
         <Column ColumnSize="ColumnSize.Is2" Class="dmu-column-border-left">
         </Column>
@@ -225,14 +225,14 @@
         <Column ColumnSize="ColumnSize.Is4">
             <Field Flex="Flex.JustifyContent.Center">
                 <Div>
-                    <Button Color="Color.Light" Clicked="@Cancel">Cancel</Button>
-                    <Button Class="dmu-admin-button-orange" Type="ButtonType.Submit" PreventDefaultOnSubmit Clicked="@SaveNewProtocolMapping">Save</Button>
+                    <Button Color="Color.Light" Disabled="@allowEdit" Clicked="@Cancel">Cancel</Button>
+                    <Button Class="dmu-admin-button-orange" Type="ButtonType.Submit" PreventDefaultOnSubmit Clicked="@SaveNewProtocolMapping" Disabled="@allowEdit">Save</Button>
                 </Div>
             </Field>
         </Column>
     </Row>
 </Div>
- @code {
+@code {
     [Inject] IProfileService profileService { get; set; } = null!;
     [Inject] IProtocolDataSystemService protocolDataSystemService { get; set; } = null!;
     [Inject] IProtocolMappingService protocolMappingService { get; set; } = null!;
@@ -241,6 +241,7 @@
     [Inject] IUserService userService { get; set; } = null!;
 
     [Parameter] public int protocolMappingId { get; set; }
+    [Parameter] public bool allowEdit {get; set;}
 
     private IList<Profile> profileList = new List<Profile>();
     private int selectedMappingProfileId = 0;

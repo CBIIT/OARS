@@ -30,15 +30,13 @@
            RowRemoved="@Delete"
            RowRemoving="@ConfirmDelete">
      <DataGridColumns>
-         <DataGridColumn Width="15%" Caption="EDC Form ID" Filterable="true" Sortable="false" Editable>
-        </DataGridColumn>
         <DataGridColumn Field="@nameof(ProtocolEDCDictionary.EDCDictionaryName)" Width="15%" Caption="EDC Dictionary Name" Filterable="true" Sortable="false" Editable>
          </DataGridColumn>
         <DataGridColumn Field="@nameof(ProtocolEDCDictionary.EDCItemName)" Caption="EDC Dictionary Options" Width="15%" Filterable="true" Editable></DataGridColumn>
          <DataGridColumn Field="@nameof(ProtocolEDCDictionary.EDCItemId)" Caption="EDC Dictionary Value" Width="15%" Filterable="true" Editable></DataGridColumn>
          <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="true">
              <EditCommandTemplate>
-                 <Button><Icon Name="IconName.Edit" Clicked="@context.Clicked" /></Button>
+                 <Button Disabled="@allowEdit"><Icon Name="IconName.Edit" Clicked="@context.Clicked" /></Button>
              </EditCommandTemplate>
              <SaveCommandTemplate>
                  <Button><Icon Name="IconName.Save" Clicked="@context.Clicked" /></Button>
@@ -55,7 +53,7 @@
          </DataGridCommandColumn>
      </DataGridColumns>
      <ButtonRowTemplate>
-         <Button Color="Color.Primary" Clicked="@context.NewCommand.Clicked">Add</Button>
+         <Button Color="Color.Primary" Clicked="@context.NewCommand.Clicked" Disabled="@allowEdit">Add</Button>
      </ButtonRowTemplate>
      <EmptyTemplate>
          <div class="box">
@@ -69,6 +67,7 @@
     [Inject] INotificationService notificationService { get; set; }
     [Inject] private IMessageService messageService { get; set; } = null!;
     [Parameter] public int protocolMappingId { get; set; }
+    [Parameter] public bool allowEdit { get; set; }
 
     private DataGrid<ProtocolEDCDictionary> dataGridRef;
     private IList<ProtocolEDCDictionary> protocolDicts = new List<ProtocolEDCDictionary>();

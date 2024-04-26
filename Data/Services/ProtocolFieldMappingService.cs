@@ -20,7 +20,7 @@ namespace TheradexPortal.Data.Services
         {
             return await context.ProtocolFieldMappings.ToListAsync();
         }
-
+        
         public async Task<IList<ProtocolFieldMapping>> GetProtocolFieldMappings(string fieldId)
         {
             return await context.ProtocolFieldMappings.Where(x => x.ThorFieldId == fieldId).Include(x => x.ProtocolEDCField).Include(p => p.ProtocolEDCField.ProtocolEDCForm).ToListAsync();
@@ -93,7 +93,7 @@ namespace TheradexPortal.Data.Services
             {
                 await _errorLogService.SaveErrorLogAsync(0, "", ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
                 return false;
-            }
+            }   
         }
     }
 }

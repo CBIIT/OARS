@@ -35,7 +35,7 @@
          </DataGridColumn>
          <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
              <EditCommandTemplate>
-                 <Button><Icon Name="IconName.Edit" Clicked="@context.Clicked" /></Button>
+                 <Button Disabled="@allowEdit"><Icon Name="IconName.Edit" Clicked="@context.Clicked" /></Button>
              </EditCommandTemplate>
              <SaveCommandTemplate>
                  <Button><Icon Name="IconName.Save" Clicked="@context.Clicked" /></Button>
@@ -54,23 +54,23 @@
          </div>
      </EmptyTemplate>
  </DataGrid>
- @code {
+@code {
     [Inject] IProtocolFieldService protocolFieldService { get; set; } = null!;
     [Inject] private NavigationManager navigation { get; set; } = null!;
     [Inject] INotificationService notificationService { get; set; }
     [Parameter] public int protocolMappingId { get; set; }
-
+    [Parameter] public bool allowEdit { get; set; }
     private DataGrid<ProtocolField> dataGridRef;
     private IList<ProtocolField> protocolFields = new List<ProtocolField>();
 
     protected override async Task OnInitializedAsync()
-	{
-		this.protocolFields = await protocolFieldService.GetProtocolFieldsByMappingId(this.protocolMappingId);
-	}
+    {
+        this.protocolFields = await protocolFieldService.GetProtocolFieldsByMappingId(this.protocolMappingId);
+    }
 
     public async void Save(SavedRowItem<ProtocolField, Dictionary<string, object>> savedRowItem)
-	{
-		var toSave = savedRowItem.Item;
+    {
+        var toSave = savedRowItem.Item;
         bool saved = await protocolFieldService.SaveProtocolField(this.protocolMappingId, toSave);
 
         if (saved)
@@ -83,5 +83,5 @@
             await notificationService.Error("Error saving field format");
             return;
         }
-	}
+    }
 }

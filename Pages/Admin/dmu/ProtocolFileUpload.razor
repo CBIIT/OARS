@@ -11,55 +11,62 @@
     <h2>File Upload</h2>
 </Div>
 <Div Padding="Padding.Is4" Margin="Margin.Is3.FromBottom">
-    <Row Padding="Padding.Is2">
-        <Column ColumnSize="ColumnSize.Is2" Style="text-align:right;">
-            <Text>File Type:</Text>
-        </Column>
-        <Column ColumnSize="ColumnSize.Is3">
-            <Select TValue="string" SelectedValue="@selectedFileType" SelectedValueChanged="@OnSelectedValueChanged">
-                <SelectItem Value="0" Hidden>Select File Type</SelectItem>
-                <SelectItem Value="FileTypeSelect.XML">XML</SelectItem>
-                <SelectItem Value="FileTypeSelect.ALS">ALS</SelectItem>
-                <SelectItem Value="FileTypeSelect.CSV">CSV</SelectItem>
-            </Select>
-        </Column>
-        <Column ColumnSize="ColumnSize.Is7">
-            @if(selectedFileType == "ALS" || selectedFileType == "XML")
-            {
-                <Text>@selectedFileType can only be uploaded once. Remapping the study might be required.</Text>
-                <p>To upload a new @selectedFileType, 
-                    <ol>
-                        <li>Clear Uploads</li>
-						<li>Upload new @selectedFileType</li>
-                    </ol>
-                    Additional Data Points outside the ALS can be added by uploading a CSV file.
-                </p>
-            }
-        </Column>
-    </Row>
-    <Row Padding="Padding.Is2">
-        @if (selectedFileType == "ALS" || selectedFileType == "XML")
-        {
-            <Column ColumnSize
-            ="ColumnSize.Is2" Style="text-align:right;">
-                <Text>Select a file:</Text>
+    @if (!allowEdit)
+    {
+        <Row Padding="Padding.Is2">
+            <Column ColumnSize="ColumnSize.Is2" Style="text-align:right;">
+                <Text>File Type:</Text>
             </Column>
             <Column ColumnSize="ColumnSize.Is3">
-                <LoadingIndicator @ref="loading">
-                    <Field>
-                        <FieldBody Margin="Margin.IsAuto">
-                            <FilePicker Upload="@OnFileUpload" ShowMode="FilePickerShowMode.List" />
-                        </FieldBody>
-                    </Field>
-                </LoadingIndicator>
+                <Select TValue="string" SelectedValue="@selectedFileType" SelectedValueChanged="@OnSelectedValueChanged">
+                    <SelectItem Value="0" Hidden>Select File Type</SelectItem>
+                    <SelectItem Value="FileTypeSelect.XML">XML</SelectItem>
+                    <SelectItem Value="FileTypeSelect.ALS">ALS</SelectItem>
+                    <SelectItem Value="FileTypeSelect.CSV">CSV</SelectItem>
+                </Select>
+            </Column>
+            <Column ColumnSize="ColumnSize.Is7">
+                @if (selectedFileType == "ALS" || selectedFileType == "XML")
+                {
+                    <Text>@selectedFileType can only be uploaded once. Remapping the study might be required.</Text>
+                    <p>
+                        To upload a new @selectedFileType,
+                        <ol>
+                            <li>Clear Uploads</li>
+                            <li>Upload new @selectedFileType</li>
+                        </ol>
+                        Additional Data Points outside the ALS can be added by uploading a CSV file.
+                    </p>
+                }
+            </Column>
+        </Row>
+        <Row Padding="Padding.Is2">
+            @if (selectedFileType == "ALS" || selectedFileType == "XML")
+            {
+                <Column ColumnSize="ColumnSize.Is2" Style="text-align:right;">
+                    <Text>Select a file:</Text>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <LoadingIndicator @ref="loading">
+                        <Field>
+                            <FieldBody Margin="Margin.IsAuto">
+                                <FilePicker Upload="@OnFileUpload" ShowMode="FilePickerShowMode.List" />
+                            </FieldBody>
+                        </Field>
+                    </LoadingIndicator>
 
-            </Column>
-            <Column ColumnSize="ColumnSize.Is2">
-                <Button Color="Color.Danger" onclick="@ClearUploads">Clear Uploads</Button>
-            </Column>
-        }
-    </Row>
-        
+                </Column>
+                <Column ColumnSize="ColumnSize.Is2">
+                    <Button Color="Color.Danger" onclick="@ClearUploads" Disabled="@allowEdit">Clear Uploads</Button>
+                </Column>
+            }
+        </Row>
+    }
+    else
+    {
+        <Text>This mapping has already been published and is in readonly mode.</Text>
+    }
+
 </Div>
 @code {
     private FilePicker UploadField;
@@ -72,6 +79,7 @@
     [Inject] INotificationService notificationService { get; set; }
     [Inject] private NavigationManager navigation { get; set; } = null!;
     [Parameter] public int protocolMappingId { get; set; }
+    [Parameter] public bool allowEdit { get; set; }
 
     private string selectedFileType = String.Empty;
 
@@ -98,7 +106,7 @@
             {
                 try
                 {
-                    alsFileImportService.ParseALSFile(ms, this.protocolMappingId);
+                    await alsFileImportService.ParseALSFile(ms, this.protocolMappingId);
                 } catch (Exception ex)
                 {
                     await notificationService.Error(ex.Message);
@@ -109,7 +117,7 @@
             {
                 try
                 {
-                    xmlFileImportService.ParseXMLFile(ms, this.protocolMappingId);
+                    await xmlFileImportService.ParseXMLFile(ms, this.protocolMappingId);
                 } catch(Exception ex){
                     await notificationService.Error(ex.Message);
                 }

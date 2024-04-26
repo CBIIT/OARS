@@ -21,6 +21,19 @@ namespace TheradexPortal.Data.Services
         {
             try
             {
+                int? statusId = context.ProtocolMapping.Where(x => x.ProtocolMappingId == mappingId).Select(x => x.ProtocolMappingStatusId).FirstOrDefault();
+                if (statusId != null)
+                {
+                    string? statusText = context.ProtocolMappingStatus.Where(x => x.ProtocolMappingStatusId == statusId).Select(x => x.StatusName).FirstOrDefault();
+                    if (statusText != "Active")
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    return false;
+                }
                 ProtocolSubGroup currSubGroup = context.ProtocolSubGroups.FirstOrDefault(x => x.ProtocolSubGroupId == subgroup.ProtocolSubGroupId);
                 if (currSubGroup == null || subgroup.CreateDate == null)
                 {
