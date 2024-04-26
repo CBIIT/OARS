@@ -94,9 +94,9 @@
 
     [SupplyParameterFromQuery][Parameter] public int protocolMappingId { get; set; }
     [Parameter] public int fieldId { get; set; }
-    [Parameter] public string protocolTitle { get; set; }
-    [Parameter] public string categoryName { get; set; }
-    [Parameter] public string formLabel { get; set; }
+    [SupplyParameterFromQuery][Parameter] public string protocolTitle { get; set; }
+    [SupplyParameterFromQuery][Parameter] public string categoryName { get; set; }
+    [SupplyParameterFromQuery][Parameter] public string formLabel { get; set; }
 
     private DataGrid<ProtocolDictionaryMapping> dataGridRef;
     private IList<ProtocolDictionaryMapping> protocolDictionaryList;
