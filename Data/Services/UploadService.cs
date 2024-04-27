@@ -40,9 +40,24 @@ namespace TheradexPortal.Data.Services
             _dynamoDbService = dynamoDbService;
             _awsS3Service = awsS3Service;
             _studyService = studyService;
-        }        
+        }
 
-        public async Task<List<ProtocolData>> GetProtocolData(int userId, bool allStudies)
+        public async Task<UploadConfiguration> GetUploadConfigurationAsync(int userId, bool allStudies)
+        {
+            var uploadConfiguration = new UploadConfiguration();
+
+            uploadConfiguration.ProtocolData = await GetProtocolData(userId, allStudies);
+
+            uploadConfiguration.CRFRules = await GetCRFRules();
+
+            uploadConfiguration.CRFs = GetCRFs();
+
+            uploadConfiguration.WebReportingETCTNDataUploadURL = _uploadSettings.WebReportingETCTNDataUploadURL;
+
+            return uploadConfiguration;
+        }
+
+        private async Task<List<ProtocolData>> GetProtocolData(int userId, bool allStudies)
         {
             try
             {
@@ -65,7 +80,7 @@ namespace TheradexPortal.Data.Services
             }
         }
 
-        public async Task<List<CRFRule>> GetCRFRules()
+        private async Task<List<CRFRule>> GetCRFRules()
         {
             try
             {
@@ -90,11 +105,12 @@ namespace TheradexPortal.Data.Services
         {
             return new List<CRFModel>
             {
-                //new CRFModel{FormName = "TSO500 Library QC", FormOID = "LIBRARY_QC" },
-                //new CRFModel{FormName = "TSO500 Sequencing QC", FormOID = "SEQUENCING_QC" },
                 new CRFModel{FormName = "Biospecimen Roadmap", FormOID = "BIOSPECIMEN_ROADMAP" },
                 new CRFModel{FormName = "Receiving Status", FormOID = "RECEIVING_STATUS" },
-                //new CRFModel{FormName = "Shipping Status", FormOID = "SHIPPING_STATUS" }
+                new CRFModel{FormName = "Shipping Status", FormOID = "SHIPPING_STATUS" },
+                new CRFModel{FormName = "IFA", FormOID = "IFA_RESULT_SUMMARY" },
+                new CRFModel{FormName = "TSO500 Library QC", FormOID = "LIBRARY_QC" },
+                new CRFModel{FormName = "TSO500 Sequencing QC", FormOID = "SEQUENCING_QC" }
             };
         }
 
@@ -151,18 +167,18 @@ namespace TheradexPortal.Data.Services
             return metadataFile;
         }
 
-        public string GetCsvUploadKey(string id, string crf)
+        public string GetCsvUploadKey(ETCTNUploadRequest ETCTNUploadRequestModel)
         {
             var dateKey = $"{DateTime.Now.Year}-{DateTime.Now.Month}/{DateTime.Now.Day}";
 
-            return $"{_uploadSettings.FilesUploadPath}/{crf}/{dateKey}/{Guid.NewGuid()}.csv";
+            return $"{_uploadSettings.FilesUploadPath}/{ETCTNUploadRequestModel.CRF}/{dateKey}/{Guid.NewGuid()}.csv";
         }
 
-        public string GetMetadataFileUploadKey(string id, string crf)
+        public string GetMetadataFileUploadKey(ETCTNUploadRequest ETCTNUploadRequestModel)
         {
             var dateKey = $"{DateTime.Now.Year}-{DateTime.Now.Month}/{DateTime.Now.Day}";
 
-            return $"{_uploadSettings.MetadataUploadPath}/{crf}/{dateKey}/{id}.json";
+            return $"{_uploadSettings.MetadataUploadPath}/{ETCTNUploadRequestModel.CRF}/{dateKey}/{ETCTNUploadRequestModel.RequestId}.json";
         }
 
         public async Task<List<FileIngestRequest>?> GetAllRequestsOfUser(int userId)
@@ -259,6 +275,44 @@ namespace TheradexPortal.Data.Services
             }
 
             return requestItems;
+        }
+
+        public string GetRequestId(ETCTNUploadRequest ETCTNUploadRequestModel)
+        {
+            // Generate a new GUID
+            Guid guid = Guid.NewGuid();
+
+            // Convert the GUID to bytes
+            byte[] bytes = guid.ToByteArray();
+
+            // Create a base64 string from the bytes
+            string base64String = Convert.ToBase64String(bytes);
+
+            // Remove padding characters from base64 string
+            base64String = base64String.TrimEnd('=');
+
+            // Replace invalid characters
+            base64String = base64String.Replace('+', 'P').Replace('/', 'S').Replace('=', 'E');
+
+            string prefix = "";
+
+            if (ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS")
+                prefix = "RS";
+            else if (ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP")
+                prefix = "BR";
+            else if (ETCTNUploadRequestModel.CRF == "LIBRARY_QC")
+                prefix = "LQ";
+            else if (ETCTNUploadRequestModel.CRF == "SEQUENCING_QC")
+                prefix = "SQ";
+            else if (ETCTNUploadRequestModel.CRF == "SHIPPING_STATUS")
+                prefix = "SS";
+            else if (ETCTNUploadRequestModel.CRF == "IFA_RESULT_SUMMARY")
+                prefix = "IF";
+
+            // Prefix the unique code
+            string uniqueCode = prefix + base64String;
+
+            return uniqueCode;
         }
 
         public Task<string> GetCsvFileDownloadUrl(FileIngestRequest request)

@@ -4,11 +4,13 @@ namespace TheradexPortal.Data.Services.Abstract
 {
     public interface IUploadService
     {
-        public Task<List<ProtocolData>> GetProtocolData(int userId, bool allStudies);
+        //public Task<List<ProtocolData>> GetProtocolData(int userId, bool allStudies);
 
-        public Task<List<CRFRule>> GetCRFRules();
+        //public Task<List<CRFRule>> GetCRFRules();
 
-        public List<CRFModel> GetCRFs();
+        //public List<CRFModel> GetCRFs();
+
+        public Task<UploadConfiguration> GetUploadConfigurationAsync(int userId, bool allStudies);
 
         public Task<bool> UploadCsvFileToS3(string key, int userId, MemoryStream memoryStream);
 
@@ -16,9 +18,9 @@ namespace TheradexPortal.Data.Services.Abstract
 
         public FileMetadata GetMetadatafile(ETCTNUploadRequest ETCTNUploadRequestModel, UploadFileModel UploadFile, int userId, string env);
 
-        public string GetCsvUploadKey(string id, string crf);
+        public string GetCsvUploadKey(ETCTNUploadRequest ETCTNUploadRequestModel);
 
-        public string GetMetadataFileUploadKey(string id, string crf);
+        public string GetMetadataFileUploadKey(ETCTNUploadRequest ETCTNUploadRequestModel);
 
         public Task<List<FileIngestRequest>?> GetAllRequestsOfUser(int userId);
 
@@ -29,5 +31,7 @@ namespace TheradexPortal.Data.Services.Abstract
         public Task<string> GetCsvFileDownloadUrl(FileIngestRequest request);
 
         public Task<string> GetCRFTemplateDownloadUrl(string crf, string fileName);
+
+        public string GetRequestId(ETCTNUploadRequest ETCTNUploadRequestModel);
     }
 }

@@ -113,6 +113,17 @@ namespace TheradexPortal.Data.Models
         public string FormName { get; set; }
     }
 
+    public class UploadConfiguration
+    {
+        public List<ProtocolData> ProtocolData { get; set; }
+
+        public List<CRFRule> CRFRules { get; set; }
+
+        public List<CRFModel> CRFs { get; set; }
+
+        public string WebReportingETCTNDataUploadURL { get; set; }
+    }
+
     public class FileMetadata
     {
         [JsonProperty("requestId")]

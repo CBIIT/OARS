@@ -109,13 +109,15 @@
                                                 @foreach (var item in crfs)
                                                 {
                                                     <Radio Value="@item.FormOID">@item.FormName</Radio>
+
+                                                    <br>
                                                 }
                                             </ChildContent>
                                             <Feedback>
                                                 <ValidationError>CRF is required</ValidationError>
                                             </Feedback>
                                         </RadioGroup>
-                                        <Span Visibility="@CheckCRFStatus()">
+                                        <Div Visibility="@CheckInstructionsVisibility()">
                                             <Icon Name="IconName.Download" IconSize="@IconSize.ExtraSmall" />&nbsp;
                                             <Link Clicked="OnDownloadTemplate" To="#">
                                             Download
@@ -125,7 +127,13 @@
                                             <Link Clicked="OnInstructionsView" To="#">
                                             Instructions
                                             </Link>
-                                        </Span>
+                                        </Div>
+                                        <Div Visibility="@CheckExternalLinkVisibility()">
+                                            <Icon Name="IconName.ExternalLinkSquareAlt" IconSize="@IconSize.ExtraSmall" />&nbsp;
+                                            <Link Target="Target.Blank" To="@webReportingETCTNDataUploadURL">
+                                            Click here to access User Interface for this Csv Upload.
+                                            </Link>
+                                        </Div>
                                     </FieldBody>
                                 </Field>
                             </Validation>
@@ -154,7 +162,7 @@
                                 <Field>
                                     <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Attach File</FieldLabel>
                                     <FieldLabel>Accepted File Types: CSV</FieldLabel>
-                                    <FileEdit @ref="@fileEditRef" Changed="@OnFileUpload" MaxFileSize="4194304" Filter=".csv" AutoReset="false" DisableProgressReport="false" Disabled="@(SelectedCRF == null)">
+                                    <FileEdit @ref="@fileEditRef" Changed="@OnFileUpload" MaxFileSize="4194304" Filter=".csv" AutoReset="false" DisableProgressReport="false" Disabled="@IsFileUploadDisabled()">
                                     </FileEdit>
                                 </Field>
                             </Validation>
@@ -189,8 +197,17 @@
                                 <Heading Size="HeadingSize.Is6">@item.Column</Heading>
                                     <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>@item.Description</Small></Paragraph>
                                 </Div>
-                         </ListGroupItem>
+                            </ListGroupItem>
                     }
+                }
+                else
+                {
+                    <ListGroupItem>
+                        <Div Padding="Padding.Is2">
+                            <Heading Size="HeadingSize.Is6">Instructions not available.</Heading>
+                            <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>Please try again later.</Small></Paragraph>
+                        </Div>
+                    </ListGroupItem>
                 }
             </ListGroup>
         </ModalBody>
@@ -238,6 +255,7 @@
     List<CRFRule> crfRules = new List<CRFRule>();
     List<string> protocols = new List<string>();
     CRFRule crfRule = null;
+    string webReportingETCTNDataUploadURL = null;
 
     int? userId = null;
     bool IsAdmin = false;
@@ -290,21 +308,43 @@
     {
         if (firstRender)
         {
-            userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+            try
+            {
+                await loadingIndicator.Show();
 
-            User curUser = await userService.GetUserAsync(userId.Value);
+                userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
 
-            currentEnvironment = configuration.GetValue<string>("System:Environment");
+                User curUser = await userService.GetUserAsync(userId.Value);
 
-            protocolData = await uploadService.GetProtocolData(userId.Value, curUser.AllStudies);
+                currentEnvironment = configuration.GetValue<string>("System:Environment");
 
-            crfRules = await uploadService.GetCRFRules();
+                var uploadConfiguration = await uploadService.GetUploadConfigurationAsync(userId.Value, curUser.AllStudies);
 
-            crfs = uploadService.GetCRFs();
+                protocolData = uploadConfiguration.ProtocolData;
 
-            protocols = protocolData.Select(t => t.Protocol + "(FUNCTEST)").ToList();
+                crfRules = uploadConfiguration.CRFRules;
 
-            await OnReset();
+                crfs = uploadConfiguration.CRFs;
+
+                webReportingETCTNDataUploadURL = uploadConfiguration.WebReportingETCTNDataUploadURL;
+
+                if (protocolData == null)
+                {
+                    await NotificationService.Error("There's an error loading the studies. Please try again later.");
+                }
+                else
+                    protocols = protocolData.Select(t => t.Protocol + "(FUNCTEST)").ToList();
+
+                await OnReset();
+            }
+            catch(Exception ex)
+            {
+                errorLogService.SaveErrorLogAsync(userId.Value, Navigation.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+            }
+            finally
+            {
+                await loadingIndicator.Hide();
+            }
         }
     }
 
@@ -333,12 +373,30 @@
         return Task.CompletedTask;
     }
 
-    private Blazorise.Visibility CheckCRFStatus()
+    private Blazorise.Visibility CheckInstructionsVisibility()
     {
-        if (ETCTNUploadRequestModel.CRF != null)
+        if (ETCTNUploadRequestModel.CRF != null && (ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS" || ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP"))
             return Visibility.Visible;
         else
             return Visibility.Invisible;
+    }
+
+    private Blazorise.Visibility CheckExternalLinkVisibility()
+    {
+        if (ETCTNUploadRequestModel.CRF != null && !(ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS" || ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP"))
+            return Visibility.Visible;
+        else
+            return Visibility.Invisible;
+    }
+
+    private bool IsFileUploadDisabled()
+    {
+        if (SelectedCRF == null)
+            return true;
+        else if (ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS" || ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP")
+            return false;
+        else
+            return true;
     }
 
     async Task OnDownloadTemplate()
@@ -354,7 +412,7 @@
 
     private Task OnInstructionsView()
     {
-        crfRule = crfRules.First(t => t.CRF == ETCTNUploadRequestModel.CRF);
+        crfRule = crfRules.FirstOrDefault(t => t.CRF == ETCTNUploadRequestModel.CRF);
 
         return UploadInstructionsModal.Show();
     }
@@ -401,9 +459,9 @@
         {
             await loadingIndicator.Show();
 
-            ETCTNUploadRequestModel.RequestId = GetRequestId();
+            ETCTNUploadRequestModel.RequestId = uploadService.GetRequestId(ETCTNUploadRequestModel);
 
-            var key = uploadService.GetMetadataFileUploadKey(ETCTNUploadRequestModel.RequestId, ETCTNUploadRequestModel.CRF);
+            var key = uploadService.GetMetadataFileUploadKey(ETCTNUploadRequestModel);
 
             var metadataFile = uploadService.GetMetadatafile(ETCTNUploadRequestModel, UploadFile, userId.Value, currentEnvironment);
 
@@ -434,36 +492,6 @@
         }
     }
 
-    private string GetRequestId()
-    {
-        // Generate a new GUID
-        Guid guid = Guid.NewGuid();
-
-        // Convert the GUID to bytes
-        byte[] bytes = guid.ToByteArray();
-
-        // Create a base64 string from the bytes
-        string base64String = Convert.ToBase64String(bytes);
-
-        // Remove padding characters from base64 string
-        base64String = base64String.TrimEnd('=');
-
-        // Replace invalid characters
-        base64String = base64String.Replace('+', 'P').Replace('/', 'S').Replace('=', 'E');
-
-        string prefix = "";
-
-        if (ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS")
-            prefix = "RS";
-        else if (ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP")
-            prefix = "BR";
-
-        // Prefix the unique code with "RS"
-        string uniqueCode = prefix + base64String;
-
-        return uniqueCode;
-    }
-
     async Task OnFileUpload(FileChangedEventArgs e)
     {
         try
@@ -473,7 +501,9 @@
             IFileEntry? selectedFile = e.Files.FirstOrDefault();
 
             if (selectedFile == null || string.IsNullOrWhiteSpace(SelectedCRF))
+            {
                 return;
+            }
 
             try
             {
@@ -487,7 +517,7 @@
                 }
 
                 var originalFileName = Path.GetFileName(selectedFile.Name);
-                var key = uploadService.GetCsvUploadKey(ETCTNUploadRequestModel.RequestId, SelectedCRF);
+                var key = uploadService.GetCsvUploadKey(ETCTNUploadRequestModel);
 
                 using (var stream = new MemoryStream())
                 {
@@ -499,7 +529,7 @@
                     {
                         UploadFile = new UploadFileModel { OriginalFileName = originalFileName, S3Key = key };
 
-                        await NotificationService.Success("File uploaded successfully.");
+                        await NotificationService.Success("File uploaded successfully. Please Submit your request now.");
                     }
                     else
                     {

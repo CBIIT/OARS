@@ -11,5 +11,7 @@
         public string ProtocolDataPath { get; set; }
 
         public string CRFRulesPath { get; set; }
+
+        public string WebReportingETCTNDataUploadURL { get; set; }
     }
 }
