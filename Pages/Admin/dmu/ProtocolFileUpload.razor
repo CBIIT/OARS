@@ -106,10 +106,11 @@
         try
         {
             var name = e.File.Name.ToLower().Split('.');
+            int last = name.Length - 1;
             await e.File.OpenReadStream(25000000).CopyToAsync(ms);
             if(selectedFileType == "ALS")
             {
-                if(!name.Contains("xls") && !name.Contains("xml"))
+                if(name[last] != "xml" || name[last-1] != "xls")
                 {
                     await notificationService.Error("Invalid file type. Please upload an .xls.xml file");
                     return;
@@ -121,13 +122,14 @@
                     navigation.NavigateTo(navigation.Uri, true);
                 } catch (Exception ex)
                 {
+                    await RollbackUpload(this.protocolMappingId);
                     await notificationService.Error(ex.Message);
                 }
 
             }
             else if(selectedFileType == "XML")
             {
-                if(!name.Contains("xml") || name.Contains("xls")){
+                if((!name.Contains("xml") || name.Contains("xls")) || name[last] != "xml"){
                     await notificationService.Error("Invalid file type. Please upload an .xml file");
                     return;
                 }
@@ -137,6 +139,7 @@
                     await notificationService.Success("XML file uploaded successfully");
                     navigation.NavigateTo(navigation.Uri, true);
                 } catch(Exception ex){
+                    await RollbackUpload(this.protocolMappingId);
                     await notificationService.Error(ex.Message);
                 }
             }
@@ -161,33 +164,54 @@
         // Delete all dictionaries, forms that are related to the protocolMappingId
         await notificationService.Info("Clearing uploads");
         var formIds = await formService.GetFormIdsForMappingId(this.protocolMappingId);
+        try
+        {
+            if (formIds != null && formIds.Count > 0)
+            {
+                var result = await fieldService.DeleteAllFieldsForFormIds(formIds.ToList());
+                if (!result)
+                {
+                    await notificationService.Error("Error deleting fields");
+                    return;
+                }
+
+                result = await formService.DeleteAllFormsForMappingId(this.protocolMappingId);
+                if (!result)
+                {
+                    await notificationService.Error("Error deleting forms");
+                    return;
+                }
+            }
+
+            var dictResult = await dictionaryService.DeleteAllDictionariesForMappingId(this.protocolMappingId);
+            if (!dictResult)
+            {
+                await notificationService.Error("Error deleting dictionaries");
+                return;
+            }
+            await notificationService.Success("Uploads cleared");
+        } catch (Exception ex)
+        {
+            await notificationService.Error(ex.Message);
+            return;
+        } finally
+        {
+            await loading.Hide();
+            navigation.NavigateTo(navigation.Uri, true);
+        }
+
+    }
+
+    private async Task RollbackUpload(int protocolMappingId)
+    {
+        // If an error occurs, delete all forms, fields, and dictionaries that are related to the protocolMappingId
+        var formIds = await formService.GetFormIdsForMappingId(protocolMappingId);
         if (formIds != null && formIds.Count > 0)
         {
-            var result = await fieldService.DeleteAllFieldsForFormIds(formIds.ToList());
-            if (!result)
-            {
-                await notificationService.Error("Error deleting fields");
-                return;
-            }
-
-            result = await formService.DeleteAllFormsForMappingId(this.protocolMappingId);
-            if (!result)
-            {
-                await notificationService.Error("Error deleting forms");
-                return;
-            }
+            await fieldService.DeleteAllFieldsForFormIds(formIds.ToList());
+            await formService.DeleteAllFormsForMappingId(protocolMappingId);
+            await dictionaryService.DeleteAllDictionariesForMappingId(protocolMappingId);
         }
-
-        var dictResult = await dictionaryService.DeleteAllDictionariesForMappingId(this.protocolMappingId);
-        if(!dictResult){
-            await notificationService.Error("Error deleting dictionaries");
-            return;
-        }
-
-        await notificationService.Success("Uploads cleared");
-        await loading.Hide();
-        navigation.NavigateTo(navigation.Uri, true);
-
     }
 
     Task OnSelectedValueChanged(string value)
