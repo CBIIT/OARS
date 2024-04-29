@@ -58,7 +58,6 @@
         </DataGridCommandColumn>
     </DataGridColumns>
     <ButtonRowTemplate>
-        <Button Color="Color.Primary" Clicked="context.NewCommand.Clicked">Create Study</Button>
         <Button Color="Color.Danger" Clicked="@ProcessSelectedStudies">Process Selected Studies</Button>
         <Button Color="Color.Secondary" Clicked="@ShowHideArchived">@(includeArchived ? "Hide Archived" : "Show Archived")</Button>
     </ButtonRowTemplate>
