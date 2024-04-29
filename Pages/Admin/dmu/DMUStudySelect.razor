@@ -43,11 +43,15 @@
         </DataGridColumn>
         <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
             <EditCommandTemplate>
-                 @if(context.Item.Status.StatusName != "Active")
+                 @if(context.Item.Status.StatusName != "Active" && context.Item.ProtocolMappingId != 0)
 				 {
-					 <Button><Icon Name="IconName.InfoCircle" Clicked="@(()=>EditMapping(context.Item))" /></Button>
-				 }
-				 else
+                    <Button><Icon Name="IconName.InfoCircle" Clicked="@(()=>EditMapping(context.Item))" /></Button>
+                }
+                else if(context.Item.ProtocolMappingId == 0)
+                {
+                    <Button><Icon Name="IconName.Add" Clicked="@(()=>EditMapping(context.Item))"/></Button>
+                }
+                else
 				 {
 					 <Button><Icon Name="IconName.Edit" Clicked="@(()=>EditMapping(context.Item))" /></Button>
 				 }
