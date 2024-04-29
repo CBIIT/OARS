@@ -129,7 +129,7 @@
             {
                 if(!name.Contains("xml") || name.Contains("xls")){
                     await notificationService.Error("Invalid file type. Please upload an .xml file");
-					return;
+                    return;
                 }
                 try
                 {
@@ -157,6 +157,7 @@
         {
             return;
         }
+        await loading.Show();
         // Delete all dictionaries, forms that are related to the protocolMappingId
         await notificationService.Info("Clearing uploads");
         var formIds = await formService.GetFormIdsForMappingId(this.protocolMappingId);
@@ -179,11 +180,12 @@
 
         var dictResult = await dictionaryService.DeleteAllDictionariesForMappingId(this.protocolMappingId);
         if(!dictResult){
-			await notificationService.Error("Error deleting dictionaries");
-			return;
-		}
+            await notificationService.Error("Error deleting dictionaries");
+            return;
+        }
 
         await notificationService.Success("Uploads cleared");
+        await loading.Hide();
         navigation.NavigateTo(navigation.Uri, true);
 
     }
