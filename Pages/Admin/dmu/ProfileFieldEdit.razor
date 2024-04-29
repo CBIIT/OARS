@@ -35,7 +35,7 @@
           RowUpdated="@Save"
           RowInserted="@Save">
     <DataGridColumns>
-        <DataGridColumn Width="35%" Caption="THOR Data Category" Editable Filterable="true" Sortable="false">
+        <DataGridColumn Width="35%" Caption="OARS Data Category" Editable Filterable="true" Sortable="false">
             <DisplayTemplate>
                 @context?.ThorField?.Category?.ThorDataCategoryId
             </DisplayTemplate>
@@ -43,7 +43,7 @@
                 <SelectList TItem="ThorCategory" TValue="string" Data="@categoryList" TextField="@((item)=>item.CategoryName)" ValueField="@((item)=>item.ThorDataCategoryId)" SelectedValueChanged="OnSelectedCategoryValueChanged" DefaultItemText="Select the THOR DataCategory"></SelectList>
             </EditTemplate>
         </DataGridColumn>
-        <DataGridColumn Width="35%" Field="THORFieldId" Caption="THOR Field" Editable Filterable="true" Sortable="false">
+        <DataGridColumn Width="35%" Field="THORFieldId" Caption="OARS Field" Editable Filterable="true" Sortable="false">
             <DisplayTemplate>
                 @context?.THORFieldId - @context?.ThorField?.FieldLabel
             </DisplayTemplate>
@@ -53,7 +53,7 @@
                             SelectedValueChanged="@(e =>
                         {
                             context.CellValue = Convert.ToString(e);
-                        } )" DefaultItemText="Select the THOR Field">
+                        } )" DefaultItemText="Select the OARS Field">
                 </SelectList>
             </EditTemplate>
         </DataGridColumn>
