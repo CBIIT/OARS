@@ -34,7 +34,7 @@
            RowUpdated="@Save"
            RowInserted="@Save">
      <DataGridColumns>
-          <DataGridColumn Width="15%" Field="@nameof(ThorField.ThorDataCategoryId)" Caption="THOR Data Category" Editable Filterable="true" Sortable="true">
+          <DataGridColumn Width="15%" Field="@nameof(ThorField.ThorDataCategoryId)" Caption="OARS Data Category" Editable Filterable="true" Sortable="true">
               <DisplayTemplate>
                 @(context.Category.CategoryName + " (" + context.ThorDataCategoryId + ")") 
               </DisplayTemplate>
@@ -42,11 +42,11 @@
 				 <SelectList TItem="ThorCategory" TValue="string" Data="@categoryList" TextField="@((item)=>item.CategoryName + " (" + item.ThorDataCategoryId + ")")" ValueField="@((item)=>item.ThorDataCategoryId)" SelectedValueChanged="@( v => {context.CellValue = v;})" SelectedValue="@((string?)context.CellValue)"></SelectList>
 			 </EditTemplate>
          </DataGridColumn>
-         <DataGridColumn Field="@nameof(ThorField.ThorFieldId)" Width="15%" Caption="THOR Field ID" Editable Filterable="true" Sortable="true">
+         <DataGridColumn Field="@nameof(ThorField.ThorFieldId)" Width="15%" Caption="OARS Field ID" Editable Filterable="true" Sortable="true">
          </DataGridColumn>
-          <DataGridColumn Width="15%" Field="@nameof(ThorField.FieldLabel)" Caption="THOR Field Label" Editable Filterable="true" Sortable="true">
+          <DataGridColumn Width="15%" Field="@nameof(ThorField.FieldLabel)" Caption="OARS Field Label" Editable Filterable="true" Sortable="true">
          </DataGridColumn>
-         <DataGridColumn Width="10%" Caption="THOR Field Type" Field="@nameof(ThorField.ThorFieldTypeId)" Editable Filterable="true" Sortable="true">
+         <DataGridColumn Width="10%" Caption="OARS Field Type" Field="@nameof(ThorField.ThorFieldTypeId)" Editable Filterable="true" Sortable="true">
              <DisplayTemplate>
                  @{
                      if(context.FieldType != null)
@@ -78,7 +78,7 @@
                  </Select>
              </EditTemplate>
          </DataGridColumn>
-         <DataGridColumn Field="@nameof(ThorField.ThorDictionaryId)" Caption="THOR Dictionary Name" Width="20%" Editable Filterable="true" Sortable="true">
+         <DataGridColumn Field="@nameof(ThorField.ThorDictionaryId)" Caption="OARS Dictionary Name" Width="20%" Editable Filterable="true" Sortable="true">
              <DisplayTemplate>
                  @{
                     if (context.Dictionary != null)
@@ -151,7 +151,7 @@
      </ButtonRowTemplate>
      <EmptyTemplate>
          <div class="box">
-             No THOR fields were found.
+             No OARS fields were found.
          </div>
      </EmptyTemplate>
  </DataGrid>

@@ -47,7 +47,7 @@
                 @context.Item.ProtocolEDCDictionaryName
             </EditTemplate>
         </DataGridColumn>
-        <DataGridColumn Field="@nameof(ProtocolDictionaryMapping.THORDictionaryId)" Width="50%" Caption="Select THOR Dictionary Value" Editable Filterable="true" Sortable="true">
+        <DataGridColumn Field="@nameof(ProtocolDictionaryMapping.THORDictionaryId)" Width="50%" Caption="Select OARS Dictionary Value" Editable Filterable="true" Sortable="true">
             <DisplayTemplate>
                 @thorDictionaries.Where(d => d.ThorDictionaryId == context.THORDictionaryId).Select(d => d.DictionaryName).FirstOrDefault()
             </DisplayTemplate>
@@ -57,7 +57,7 @@
                               TextField="@((item) => item.DictionaryName)"
                               ValueField="@((item) => item.ThorDictionaryId)"
                               Data="@thorDictionaries"
-                              Placeholder="Search for a THOR Dictionary Value"
+                              Placeholder="Search for an OARS Dictionary Value"
                               SelectedValue="context.Item.THORDictionaryId"
                               SelectedValueChanged="v=>context.CellValue=v"
                               Virtualize>
