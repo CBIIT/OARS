@@ -73,7 +73,7 @@
     protected override async Task OnInitializedAsync()
     {
         if (protocolMappingId != null){
-            this.protocolDataCategoryList = await protocolDataCategoryService.GetCategoriesByMappingId(protocolMappingId);
+            this.protocolDataCategoryList = await protocolDataCategoryService.GetCategoriesByMappingProfile(protocolMappingId);
             this.protocolMapping = await protocolMappingService.GetProtocolMapping(protocolMappingId);
         }
     }

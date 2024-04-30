@@ -2,6 +2,6 @@
 {
     public interface IXMLFileImportService
     {
-        public void ParseXMLFile(Stream inputFileStream, int protocolMappingId);
+        public Task ParseXMLFile(Stream inputFileStream, int protocolMappingId);
     }
 }

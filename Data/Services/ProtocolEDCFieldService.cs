@@ -10,9 +10,11 @@ namespace TheradexPortal.Data.Services
     public class ProtocolEDCFieldService : BaseService, IProtocolEDCFieldService
     {
         private readonly IErrorLogService _errorLogService;
-        public ProtocolEDCFieldService(IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService) : base(dbFactory)
+        private readonly IConfiguration _configuration;
+        public ProtocolEDCFieldService(IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService, IConfiguration configuration) : base(dbFactory)
         {
             _errorLogService = errorLogService;
+            _configuration = configuration;
         }
 
         public async Task<List<ProtocolEDCField>> GetFieldsByFormIds(List<int> formIds)
@@ -62,9 +64,10 @@ namespace TheradexPortal.Data.Services
             // EF doesn't natively support bulk inserts, so the closest we can get is doing an AddRange and then SaveChanges
             // this isn't very performant, so do it the oracle way here
             DateTime curDateTime = DateTime.UtcNow;
+            string connString = _configuration.GetConnectionString("DefaultConnection");
             try
             {
-                using (var connection = new OracleConnection(context.Database.GetDbConnection().ConnectionString))
+                using (var connection = new OracleConnection(connString))
                 {
                     connection.Open();
                     using (var bulkCopy = new OracleBulkCopy(connection))

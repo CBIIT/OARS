@@ -33,7 +33,7 @@
            RowUpdated="@Save"
            RowInserted="@Save">
      <DataGridColumns>
-         <DataGridColumn Width="35%" Field="@nameof(ProfileDataCategory.ThorDataCategoryId)" Caption="THOR Data Category" Editable Filterable="true" Sortable="true">
+         <DataGridColumn Width="35%" Field="@nameof(ProfileDataCategory.ThorDataCategoryId)" Caption="OARS Data Category" Editable Filterable="true" Sortable="true">
              <DisplayTemplate>
                  @{
                     if(context.ThorCategory != null)
@@ -90,12 +90,10 @@
     private DataGrid<ProfileDataCategory> dataGridRef;
     private IList<ProfileDataCategory> profileCategories;
     private IList<ThorCategory> categoryList;
-    private Profile selectedProfile;
 
     protected override async Task OnInitializedAsync()
     {
         this.profileCategories = await profileCategoryService.GetCategories(profile);
-        this.selectedProfile = await profileService.GetProfile(profile);
         this.categoryList = await categoryService.GetCategories();
         
     }

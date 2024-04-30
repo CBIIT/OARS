@@ -33,7 +33,7 @@
            @bind-SelectedRows="selectedProtocols">
      <DataGridColumns>
          <DataGridMultiSelectColumn Width="30px"></DataGridMultiSelectColumn>
-        <DataGridColumn Width="10%" Caption="Hx" Field="Protocol.RecentOrder" Editable Filterable="false" Sortable="false">
+        <DataGridColumn Width="10%" Caption="Version" Field="@nameof(ProtocolMapping.MappingVersion)" Editable Filterable="false" Sortable="false">
         </DataGridColumn>
         <DataGridColumn Width="20%" Field="Protocol.StudyId" Sortable="false" Filterable="true" Caption="Study ID">
         </DataGridColumn>
@@ -58,7 +58,6 @@
         </DataGridCommandColumn>
     </DataGridColumns>
     <ButtonRowTemplate>
-        <Button Color="Color.Primary" Clicked="context.NewCommand.Clicked">Create Study</Button>
         <Button Color="Color.Danger" Clicked="@ProcessSelectedStudies">Process Selected Studies</Button>
         <Button Color="Color.Secondary" Clicked="@ShowHideArchived">@(includeArchived ? "Hide Archived" : "Show Archived")</Button>
     </ButtonRowTemplate>

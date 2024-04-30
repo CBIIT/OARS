@@ -1,0 +1,137 @@
+﻿@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+@inject IHttpContextAccessor httpContextAccessor
+@inject IConfiguration configuration
+@layout AdminLayout
+@page "/admin/dmu/dictionary-list-map/{fieldId:int}"
+<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })"></AdminRoleCheck>
+<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Mapping</h2></Div>
+<Row Background="Background.Light" Style="padding-bottom:10px;">
+    <Row>
+        <Column><Text><b>Protocol:</b> @protocolTitle</Text></Column> <Column><Text><b>Form Label:</b> @formLabel</Text></Column>
+    </Row>
+    <Row>
+        <Column><Text><b>Report Category:</b> @categoryName</Text></Column> <Column><b>Field Label:</b> @currMapping.ProtocolEDCField.EDCFieldName</Column>
+    </Row>
+    <Row>
+        <Column><Text><b>OARS Field:</b> @currMapping.ThorField.FieldLabel</Text></Column>
+    </Row>
+</Row>
+<DataGrid @ref=dataGridRef
+          TItem="ProtocolDictionaryMapping"
+          Class="admindatagrid"
+          Data="@protocolDictionaryList"
+          Editable
+          Responsive
+          Striped
+          ShowPager
+          ShowPageSizes
+          MaxPaginationLinks="5"
+          PagerPosition="DataGridPagerPosition.Bottom"
+          PagerOptions="new(){ButtonSize=Size.Default,
+                                PaginationPosition=PagerElementPosition.Default,
+                                TotalItemsPosition=PagerElementPosition.End,
+                                }"
+          FixedHeader
+          FixedHeaderDataGridHeight="calc(100vh - 240px)"
+          FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
+          EditMode="DataGridEditMode.Inline"
+          RowUpdated="@Save"
+          RowInserted="@Save">
+    <DataGridColumns>
+        <DataGridColumn Field="@nameof(ProtocolDictionaryMapping.ProtocolEDCDictionaryId)" Width="50%" Caption="For each EDC Dictionary Value" Editable Filterable="true" Sortable="true">
+            <DisplayTemplate>
+                @context.ProtocolEDCDictionaryName
+            </DisplayTemplate>
+            <EditTemplate>
+                @context.Item.ProtocolEDCDictionaryName
+            </EditTemplate>
+        </DataGridColumn>
+        <DataGridColumn Field="@nameof(ProtocolDictionaryMapping.THORDictionaryId)" Width="50%" Caption="Select OARS Dictionary Value" Editable Filterable="true" Sortable="true">
+            <DisplayTemplate>
+                @thorDictionaries.Where(d => d.ThorDictionaryId == context.THORDictionaryId).Select(d => d.DictionaryName).FirstOrDefault()
+            </DisplayTemplate>
+            <EditTemplate>
+                <Autocomplete TItem="ThorDictionary"
+                              TValue="int"
+                              TextField="@((item) => item.DictionaryName)"
+                              ValueField="@((item) => item.ThorDictionaryId)"
+                              Data="@thorDictionaries"
+                              Placeholder="Search for an OARS Dictionary Value"
+                              SelectedValue="context.Item.THORDictionaryId"
+                              SelectedValueChanged="v=>context.CellValue=v"
+                              Virtualize>
+                              </Autocomplete>
+            </EditTemplate>
+        </DataGridColumn>
+        <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
+            <EditCommandTemplate>
+                <Button><Icon Name="IconName.Edit" Clicked="@context.Clicked" /></Button>
+            </EditCommandTemplate>
+            <SaveCommandTemplate>
+                <Button><Icon Name="IconName.Save" Clicked="@context.Clicked" /></Button>
+            </SaveCommandTemplate>
+            <CancelCommandTemplate>
+				<Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
+            </CancelCommandTemplate>
+        </DataGridCommandColumn>
+    </DataGridColumns>
+    <EmptyTemplate>
+        <div class="box">
+            No dictionary mappings found.
+        </div>
+    </EmptyTemplate>
+</DataGrid>
+
+
+    @code {
+    [Inject] IProtocolDictionaryMappingService dictionaryMappingService { get; set; } = null!;
+    [Inject] IThorDictionaryService thorDictionaryService { get; set; } = null!;
+    [Inject] IProtocolFieldMappingService protocolFieldMappingService { get; set; } = null!;
+    [Inject] private NavigationManager navigation { get; set; } = null!;
+    [Inject] INotificationService notificationService { get; set; }
+    [Inject] private IMessageService messageService { get; set; } = null!;
+
+    [SupplyParameterFromQuery][Parameter] public int protocolMappingId { get; set; }
+    [Parameter] public int fieldId { get; set; }
+    [SupplyParameterFromQuery][Parameter] public string protocolTitle { get; set; }
+    [SupplyParameterFromQuery][Parameter] public string categoryName { get; set; }
+    [SupplyParameterFromQuery][Parameter] public string formLabel { get; set; }
+
+    private DataGrid<ProtocolDictionaryMapping> dataGridRef;
+    private IList<ProtocolDictionaryMapping> protocolDictionaryList;
+    private IList<ThorDictionary> thorDictionaries;
+    private List<int> selectedValues;
+    private ProtocolFieldMapping currMapping;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (protocolMappingId != null)
+        {
+            this.protocolDictionaryList = await dictionaryMappingService.GetProtocolDictionaryMappings(protocolMappingId, fieldId);
+            this.thorDictionaries = await thorDictionaryService.GetDictionaries();
+        }
+
+        currMapping = await protocolFieldMappingService.GetProtocolFieldMapping(fieldId);
+
+    }
+
+    public async void Save(SavedRowItem<ProtocolDictionaryMapping, Dictionary<string, object>> e)
+    {
+        var toSave = e.Item;
+        toSave.ProtocolFieldMappingId = this.fieldId;
+
+        bool saved = await dictionaryMappingService.SaveProtocolDictionaryMapping(toSave);
+
+        if(saved)
+        {
+            await notificationService.Success("Dictionary Mapping successfully saved");
+			return;
+		}
+		else
+		{
+			await notificationService.Error("Error saving dictionary mapping");
+			return;
+        }
+    }
+}

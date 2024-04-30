@@ -19,7 +19,7 @@ namespace TheradexPortal.Data.Services
             _dictionaryService = dictionaryService;
         }
 
-        public async void ParseXMLFile(Stream inputFileStream, int protocolMappingId)
+        public async Task ParseXMLFile(Stream inputFileStream, int protocolMappingId)
         {
             if (inputFileStream.Position > 0)
             {
@@ -105,9 +105,9 @@ namespace TheradexPortal.Data.Services
             DataTable dictionaries = new DataTable();
             dictionaries.Columns.Add("Protocol_EDC_Dictionary_Id", typeof(int));
             dictionaries.Columns.Add("Protocol_Mapping_Id", typeof(int));
-            dictionaries.Columns.Add("EDC_Dictionary_Name", typeof(string));
             dictionaries.Columns.Add("EDC_Item_Id", typeof(string));
             dictionaries.Columns.Add("EDC_Item_Name", typeof(string));
+            dictionaries.Columns.Add("EDC_Dictionary_Name", typeof(string));
             dictionaries.Columns.Add("Create_Date", typeof(DateTime));
             dictionaries.Columns.Add("Updated_Date", typeof(DateTime));
             return dictionaries;
