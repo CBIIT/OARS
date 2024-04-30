@@ -359,3 +359,7 @@
 .dmu-column-border-left {
     border-left: 1px solid black;
 }
+
+ul.steps > li.step {
+    cursor: default;
+}
