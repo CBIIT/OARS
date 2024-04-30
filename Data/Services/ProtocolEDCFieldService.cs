@@ -109,11 +109,26 @@ namespace TheradexPortal.Data.Services
         {
             try
             {
-                // Similar to above, this version of EF doesn't support bulk deletes and RemoveRange is too slow, so we have to do it this way
-                string command = "DELETE FROM DMU.\"ProtocolEDCField\" WHERE \"Protocol_EDC_Form_Id\" IN (" + String.Join(",", formIds) + ")";
-                
-                context.Database.ExecuteSqlRaw(command);
-                return true;
+                if (formIds.Count > 999)
+                {
+                    // Oracle has a limit of 1000 items in an IN clause, so we have to split it up
+                    List<int> formIdsCopy = new List<int>(formIds);
+                    while (formIdsCopy.Count > 0)
+                    {
+                        List<int> formIdsBatch = formIdsCopy.Take(999).ToList();
+                        formIdsCopy.RemoveRange(0, formIdsBatch.Count);
+                        string command = "DELETE FROM DMU.\"ProtocolEDCField\" WHERE \"Protocol_EDC_Form_Id\" IN (" + String.Join(",", formIdsBatch) + ")";
+                        context.Database.ExecuteSqlRaw(command);
+                    }
+                    return true;
+                }
+                else
+                {
+                    // Similar to above, this version of EF doesn't support bulk deletes and RemoveRange is too slow, so we have to do it this way
+                    string command = "DELETE FROM DMU.\"ProtocolEDCField\" WHERE \"Protocol_EDC_Form_Id\" IN (" + String.Join(",", formIds) + ")";
+                    context.Database.ExecuteSqlRaw(command);
+                    return true;
+                }
             }
             catch (Exception ex)
             {
