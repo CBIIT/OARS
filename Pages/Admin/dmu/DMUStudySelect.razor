@@ -34,6 +34,16 @@
      <DataGridColumns>
          <DataGridMultiSelectColumn Width="30px"></DataGridMultiSelectColumn>
         <DataGridColumn Width="10%" Caption="Version" Field="@nameof(ProtocolMapping.MappingVersion)" Editable Filterable="false" Sortable="false">
+            <DisplayTemplate>
+                @if(context.ProtocolMappingId == 0)
+				{
+					<Text>N/A</Text>
+				}
+				else
+				{
+					<Text>@context.MappingVersion</Text>
+				}
+            </DisplayTemplate>
         </DataGridColumn>
         <DataGridColumn Width="20%" Field="Protocol.StudyId" Sortable="false" Filterable="true" Caption="Study ID">
         </DataGridColumn>
