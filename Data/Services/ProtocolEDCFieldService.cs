@@ -65,7 +65,7 @@ namespace TheradexPortal.Data.Services
             // this isn't very performant, so do it the oracle way here
             DateTime curDateTime = DateTime.UtcNow;
             try
-            {                
+            {
                 using (var bulkCopy = new OracleBulkCopy(oracleConnection))
                 {
                     bulkCopy.DestinationSchemaName = "DMU";
