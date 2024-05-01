@@ -83,19 +83,14 @@ namespace TheradexPortal.Data.Services
             // that isn't performant at all for datasets as large as these dictionaries, so do it the Oracle way
          
             DateTime curDateTime = DateTime.UtcNow;
-            string connString = _configuration.GetConnectionString("DefaultConnection");
             try
             {
-                using (var connection = new OracleConnection(connString))
+                using (var bulkCopy = new OracleBulkCopy(oracleConnection))
                 {
-                    connection.Open();
-                    using (var bulkCopy = new OracleBulkCopy(connection))
-                    {
-                        bulkCopy.DestinationSchemaName = "DMU";
-                        bulkCopy.DestinationTableName = "\"ProtocolEDCDictionary\"";
-                        bulkCopy.BatchSize = dictionaries.Rows.Count;
-                        bulkCopy.WriteToServer(dictionaries);
-                    }
+                    bulkCopy.DestinationSchemaName = "DMU";
+                    bulkCopy.DestinationTableName = "\"ProtocolEDCDictionary\"";
+                    bulkCopy.BatchSize = dictionaries.Rows.Count;
+                    bulkCopy.WriteToServer(dictionaries);
                 }
 
                 return true;

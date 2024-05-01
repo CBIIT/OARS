@@ -64,19 +64,14 @@ namespace TheradexPortal.Data.Services
             // EF doesn't natively support bulk inserts, so the closest we can get is doing an AddRange and then SaveChanges
             // this isn't very performant, so do it the oracle way here
             DateTime curDateTime = DateTime.UtcNow;
-            string connString = _configuration.GetConnectionString("DefaultConnection");
             try
-            {
-                using (var connection = new OracleConnection(connString))
+            {                
+                using (var bulkCopy = new OracleBulkCopy(oracleConnection))
                 {
-                    connection.Open();
-                    using (var bulkCopy = new OracleBulkCopy(connection))
-                    {
-                        bulkCopy.DestinationSchemaName = "DMU";
-                        bulkCopy.DestinationTableName = "\"ProtocolEDCField\"";
-                        bulkCopy.BatchSize = fields.Rows.Count;
-                        bulkCopy.WriteToServer(fields);
-                    }
+                    bulkCopy.DestinationSchemaName = "DMU";
+                    bulkCopy.DestinationTableName = "\"ProtocolEDCField\"";
+                    bulkCopy.BatchSize = fields.Rows.Count;
+                    bulkCopy.WriteToServer(fields);
                 }
                 return true;
             }
