@@ -63,6 +63,14 @@ namespace TheradexPortal.Data.Services
             return protocolMappings;
         }
 
+        public async Task<IList<ProtocolMapping>> GetExistingProtocolMappings()
+        {
+            // Get only the existing protocol mappings
+            // as opposed to the method above which also creates objects for protocols that don't have a mapping yet
+
+            var mappings = await context.ProtocolMapping.Include(p => p.Protocol).Include(p => p.Status).Where(p => p.Status.StatusName != "Archived").ToListAsync();
+            return mappings;
+        }
         public async Task<ProtocolMapping> GetProtocolMapping(int id)
         {
             var protocolMapping = await context.ProtocolMapping.Where(p => p.ProtocolMappingId == id).Include(p => p.Protocol).Include(p => p.Profile).FirstOrDefaultAsync();
