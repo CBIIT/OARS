@@ -6,6 +6,12 @@
 @page "/admin/dmu/form-field-mapping/{categoryId}"
 <AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })"></AdminRoleCheck>
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Mapping</h2></Div>
+@* add complete/incomplete toggle, single/multi toggle
+    should have two separate components that are switched between depending on the toggle
+    if category is single form, show single form component, if category is multi form, show multi form component
+    in single form view, only allow multi form fields to be added more than once (don't worry about this right now but just to keep a note of it)
+    single form is what's here now, multi form will have a datagrid foreach form that uses the same category + fields in another ref obj
+*@
 <Row Background="Background.Light" Style="padding-bottom:10px;">
     <Row>
         <Text><b>Protocol:</b> @protocol</Text>
@@ -13,116 +19,128 @@
     <Row>
         <Text><b>Report Category:</b> @currCategory.CategoryName</Text>
     </Row>
-    <Row>
-       @if (currCategory.IsMultiForm)
-       { 
-            <SelectList TItem="ProtocolEDCForm" Data="@protocolEDCFormList" TValue="int" ValueField="@((item) => item.ProtocolEDCFormId)" TextField="@((item) => item.EDCFormName)" SelectedValue="@((int) currCategory.PrimaryFormId)" SelectedValueChanged="@(v=>UpdatePrimaryForm(v))" DefaultItemText="Select a primary form" DefaultItemValue="0"></SelectList>
-       }
-    </Row>
 </Row>
-<DataGrid @ref=dataGridRef
-          TItem="ProtocolFieldMapping"
-          Class="admindatagrid"
-          Data="@protocolFieldMappingList"
-          Editable
-          Responsive
-          Striped
-          ShowPager
-          ShowPageSizes
-          MaxPaginationLinks="5"
-          PagerPosition="DataGridPagerPosition.Bottom"
-          PagerOptions="new(){ButtonSize=Size.Default,
+@if (!isMultiForm)
+{
+    <DataGrid @ref=dataGridRef
+              TItem="ProtocolFieldMapping"
+              Class="admindatagrid"
+              Data="@protocolFieldMappingList"
+              Editable
+              Responsive
+              Striped
+              ShowPager
+              ShowPageSizes
+              MaxPaginationLinks="5"
+              PagerPosition="DataGridPagerPosition.Bottom"
+              PagerOptions="new(){ButtonSize=Size.Default,
                                 PaginationPosition=PagerElementPosition.Default,
                                 TotalItemsPosition=PagerElementPosition.End,
                                 }"
-          FixedHeader
-          FixedHeaderDataGridHeight="calc(100vh - 240px)"
-          FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
-          EditMode="DataGridEditMode.Inline"
-          RowUpdated="@Save"
-          RowInserted="@Save"
-          RowRemoved="@Delete"
-          RowRemoving="@ConfirmDelete">
-    <DataGridColumns>
-        <DataGridColumn Field="@nameof(ProtocolFieldMapping.ThorFieldId)" Width="33%" Caption="Select THOR Field" Editable="true">
-            <DisplayTemplate>
-                @{
-                    if (context.ThorFieldId != null && context.ThorFieldId != "")
-					{
-						<Text>@thorFieldList.First(x => x.ThorFieldId == context.ThorFieldId).FieldLabel</Text>
-					}
-					else
-					{
-						<Text>@context.ThorField.FieldLabel</Text>
-					}
-                }
-            </DisplayTemplate>
-            <EditTemplate>
-                <SelectList TItem="ThorField" TValue="string" Data="@thorFieldList" TextField="@((item) => item.FieldLabel)" ValueField="@((item) => item.ThorFieldId)" SelectedValue="@(context.Item.ThorFieldId)" SelectedValueChanged="@(v=> context.CellValue=v)"></SelectList>
-            </EditTemplate>
-        </DataGridColumn>
-        <DataGridColumn Field="@nameof(ProtocolFieldMapping.ProtocolEDCFormId)" Width="33%" Caption="Select EDC Form" Filterable="true" Editable="true">
-            <DisplayTemplate>
-                @{
-                    if (context.ProtocolEDCFormId != null && context.ProtocolEDCFormId != 0)
-                    {
-                        <Text>@protocolEDCFormList.First(x => x.ProtocolEDCFormId == context.ProtocolEDCFormId).EDCFormIdentifier</Text>
+              FixedHeader
+              FixedHeaderDataGridHeight="calc(100vh - 240px)"
+              FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
+              EditMode="DataGridEditMode.Inline"
+              RowUpdated="@Save"
+              RowInserted="@Save"
+              RowRemoved="@Delete"
+              RowRemoving="@ConfirmDelete">
+        <DataGridColumns>
+            <DataGridColumn Field="@nameof(ProtocolFieldMapping.ThorFieldId)" Width="33%" Caption="Select OARS Field" Editable="true">
+                <DisplayTemplate>
+                    <Text>@GetThorFieldLabel(context)</Text>
+                </DisplayTemplate>
+                <EditTemplate>
+                    <Text>@GetThorFieldLabel(context.Item)</Text>
+                  </EditTemplate>
+            </DataGridColumn>
+            <DataGridColumn Field="@nameof(ProtocolFieldMapping.ProtocolEDCFormId)" Width="33%" Caption="Select EDC Form" Filterable="true" Editable="true">
+                <DisplayTemplate>
+                    @{
+                        if (context.ProtocolEDCFormId != null && context.ProtocolEDCFormId != 0)
+                        {
+                            <Text>@protocolEDCFormList.First(x => x.ProtocolEDCFormId == context.ProtocolEDCFormId).EDCFormIdentifier</Text>
+                        }
+                        else
+                        {
+                            <Text>@context.ProtocolEDCField.ProtocolEDCForm.EDCFormIdentifier</Text>
+                        }
                     }
-                    else
-                    {
-                        <Text>@context.ProtocolEDCField.ProtocolEDCForm.EDCFormIdentifier</Text>
+                </DisplayTemplate>
+                <EditTemplate>
+                    <Autocomplete TItem="ProtocolEDCForm" Data="@protocolEDCFormList" TValue="int" TextField="@((item) => item.EDCFormIdentifier)" ValueField="@((item) => item.ProtocolEDCFormId)" SelectedValueChanged="@(e => {@GetFields(e); context.CellValue=e;})" SelectedValue="@(context.Item.ProtocolEDCFormId)" Placeholder="@(GetPlaceholder(context.Item))" Virtualize></Autocomplete>
+                </EditTemplate>
+            </DataGridColumn>
+            <DataGridColumn Field="@nameof(ProtocolFieldMapping.ProtocolEDCFieldId)" Width="30%" Caption="Select EDC Field" Editable="true">
+                <DisplayTemplate>
+                    @{
+                        if (context.ProtocolEDCFieldId != null && context.ProtocolEDCFieldId != 0 && context.ProtocolEDCField == null)
+                        {
+                            var currentField = protocolEDCFieldList.First(x => x.ProtocolEDCFieldId == context.ProtocolEDCFieldId);
+                            <Text>@(currentField.EDCFieldIdentifier + " - " + currentField.EDCFieldName)</Text>
+                        }
+                        else
+                        {
+                            <Text>@context.ProtocolEDCField.EDCFieldIdentifier</Text>
+                        }
                     }
-                }
-            </DisplayTemplate>
-            <EditTemplate>
-                <Autocomplete TItem="ProtocolEDCForm" Data="@protocolEDCFormList" TValue="int" TextField="@((item) => item.EDCFormIdentifier)" ValueField="@((item) => item.ProtocolEDCFormId)" SelectedValueChanged="@(e => {@GetFields(e); context.CellValue=e;})" SelectedValue="@(context.Item.ProtocolEDCFormId)" Placeholder="@(GetPlaceholder(context.Item))" Virtualize></Autocomplete>
-            </EditTemplate>
-        </DataGridColumn>
-        <DataGridColumn Field="@nameof(ProtocolFieldMapping.ProtocolEDCFieldId)" Width="30%" Caption="Select EDC Field" Editable="true">
-            <DisplayTemplate>
-                @{
-                    if (context.ProtocolEDCFieldId != null && context.ProtocolEDCFieldId != 0 && context.ProtocolEDCField == null)
-                    {
-                        <Text>@protocolEDCFieldList.First(x => x.ProtocolEDCFieldId == context.ProtocolEDCFieldId).EDCFieldIdentifier</Text>
-                    }
-                    else
-                    {
-                        <Text>@context.ProtocolEDCField.EDCFieldIdentifier</Text>
-                    }
-                }
-            </DisplayTemplate>
-            <EditTemplate>
-                <SelectList TItem="ProtocolEDCField" TValue="int" Data="@protocolEDCFieldList" TextField="@((item)=>item.EDCFieldIdentifier)"
-                            ValueField="@((item) => item.ProtocolEDCFieldId)"
-                            SelectedValueChanged="@( v =>{context.CellValue = v;})"
-                            SelectedValue="@((int?)context.CellValue ?? context.Item.ProtocolEDCFieldId)"
-                            DefaultItemText="Select"></SelectList>
-            </EditTemplate>
-        </DataGridColumn>
-        <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="true">
-            <SaveCommandTemplate>
-                <Button><Icon Name="IconName.Save" Clicked="@context.Clicked" /></Button>
-            </SaveCommandTemplate>
-            <EditCommandTemplate>
-                <Button><Icon Name="IconName.Edit" Clicked="@context.Clicked" /></Button>
-            </EditCommandTemplate>
-            <DeleteCommandTemplate>
-                <Button><Icon Name="IconName.Delete" Clicked="@context.Clicked" /></Button>
-            </DeleteCommandTemplate>
-            <CancelCommandTemplate>
-                <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
-            </CancelCommandTemplate>
-        </DataGridCommandColumn>
-    </DataGridColumns>
-    <ButtonRowTemplate>
-        <Button Color="Color.Primary" Clicked="@context.NewCommand.Clicked">Add</Button>
-    </ButtonRowTemplate>
-    <EmptyTemplate>
-        <div class="box">
-            No multi-form field mappings found.
-        </div>
-    </EmptyTemplate>
-</DataGrid>
+                </DisplayTemplate>
+                <EditTemplate>
+                    <SelectList TItem="ProtocolEDCField" TValue="int" Data="@protocolEDCFieldList" TextField="@((item)=>item.EDCFieldIdentifier + " - " + item.EDCFieldName)"
+                                ValueField="@((item) => item.ProtocolEDCFieldId)"
+                                SelectedValueChanged="@( v =>{context.CellValue = v;})"
+                                SelectedValue="@((int?)context.CellValue ?? context.Item.ProtocolEDCFieldId)"
+                                DefaultItemText="Select"></SelectList>
+                </EditTemplate>
+            </DataGridColumn> @* add additional columns that enable Dictionary Mapping if the field has a dictionary associated and multi form field ADD button if field is multi form
+        add button adds new mapping to ref list, then refreshes the grid
+        *@
+            <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="true">
+                <SaveCommandTemplate>
+                    <Button><Icon Name="IconName.Save" Clicked="@context.Clicked" /></Button>
+                </SaveCommandTemplate>
+                <EditCommandTemplate>
+                    <Button><Icon Name="IconName.Edit" Clicked="@context.Clicked" /></Button>
+                </EditCommandTemplate>
+                <DeleteCommandTemplate>
+                    <Button><Icon Name="IconName.Delete" Clicked="@context.Clicked" /></Button>
+                </DeleteCommandTemplate>
+                <CancelCommandTemplate>
+                    <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
+                </CancelCommandTemplate>
+            </DataGridCommandColumn>
+            <DataGridColumn Field="ThorField.ThorDictionaryId">
+                <DisplayTemplate>
+                   @if(context.ThorField.ThorDictionaryId != null)
+				   {
+					   <Button Color="Color.Link" Clicked="@EditDictionaryMapping">Edit</Button>
+				   }
+                   else{
+                       <Text>N/A</Text>
+                   }
+                </DisplayTemplate>
+            </DataGridColumn>
+        </DataGridColumns>
+        <ButtonRowTemplate>
+            <Button Color="Color.Primary" Clicked="@context.NewCommand.Clicked">Add</Button>
+        </ButtonRowTemplate>
+        <EmptyTemplate>
+            <div class="box">
+                No multi-form field mappings found.
+            </div>
+        </EmptyTemplate>
+    </DataGrid>
+}
+else{
+    <Row>
+        @if (currCategory.IsMultiForm) // this should only show up on multi form view
+        {
+            <SelectList TItem="ProtocolEDCForm" Data="@protocolEDCFormList" TValue="int" ValueField="@((item) => item.ProtocolEDCFormId)" TextField="@((item) => item.EDCFormName)" SelectedValue="@((int) currCategory.PrimaryFormId)" SelectedValueChanged="@(v=>UpdatePrimaryForm(v))" DefaultItemText="Select a primary form" DefaultItemValue="0"></SelectList>
+        }
+    </Row>
+}
+
+
 
 
 @code {
@@ -144,6 +162,7 @@
     private IList<ProtocolEDCField> protocolEDCFieldList;
     private IList<ThorField> thorFieldList;
     private ThorCategory currCategory;
+    private bool isMultiForm;
 
     protected override async Task OnInitializedAsync()
     {
@@ -187,6 +206,18 @@
             return protocolEDCFormList.First(x => x.ProtocolEDCFormId == item.ProtocolEDCFormId).EDCFormIdentifier;
         }
         return item.ProtocolEDCField.ProtocolEDCForm.EDCFormIdentifier;
+    }
+
+    public string GetThorFieldLabel(ProtocolFieldMapping item)
+    {
+        if (item.ThorFieldId != null && item.ThorFieldId != "")
+        {
+            return thorFieldList.First(x => x.ThorFieldId == item.ThorFieldId).FieldLabel;
+        }
+        else
+        {
+            return item.ThorField.FieldLabel;
+        }
 	}
 
     public async Task<CancellableRowChange<ProtocolFieldMapping>> ConfirmDelete(CancellableRowChange<ProtocolFieldMapping> item)
@@ -229,5 +260,10 @@
 			await notificationService.Error("Error updating primary form");
 			return;
 		}
+	}
+
+    public async void EditDictionaryMapping()
+	{
+		navigation.NavigateTo($"/admin/dmu/dictionary-mapping/{categoryId}"); // double check this
 	}
 }
