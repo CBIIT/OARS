@@ -49,9 +49,10 @@
               RowUpdated="@Save"
               RowInserted="@Save"
               RowRemoved="@Delete"
-              RowRemoving="@ConfirmDelete">
+              RowRemoving="@ConfirmDelete"
+              SortMode="DataGridSortMode.Multiple">
         <DataGridColumns>
-            <DataGridColumn Field="@nameof(ProtocolFieldMapping.ThorFieldId)" Width="25%" Caption="Select OARS Field" Editable="true">
+            <DataGridColumn Field="@nameof(ProtocolFieldMapping.ThorFieldId)" Width="25%" Caption="Select OARS Field" Editable="true" SortDirection="SortDirection.Ascending" Sortable>
                 <DisplayTemplate>
                     <Text>@GetThorFieldLabel(context)</Text>
                 </DisplayTemplate>
@@ -59,16 +60,17 @@
                     <Text>@GetThorFieldLabel(context.Item)</Text>
                   </EditTemplate>
             </DataGridColumn>
-            <DataGridColumn Field="@nameof(ProtocolFieldMapping.ProtocolEDCFormId)" Width="25%" Caption="Select EDC Form" Filterable="true" Editable="true">
+            <DataGridColumn Field="@nameof(ProtocolFieldMapping.ProtocolEDCFormId)" Width="25%" Caption="Select EDC Form" Filterable="true" Editable="true" SortDirection="SortDirection.Ascending" Sortable>
                 <DisplayTemplate>
                     @{
                         if (context.ProtocolEDCFormId != null && context.ProtocolEDCFormId != 0)
                         {
-                            <Text>@protocolEDCFormList.First(x => x.ProtocolEDCFormId == context.ProtocolEDCFormId).EDCFormIdentifier</Text>
+                            var currForm = protocolEDCFormList.First(x => x.ProtocolEDCFormId == context.ProtocolEDCFormId);
+                            <Text>@(currForm.EDCFormIdentifier + " - " + currForm.EDCFormName)</Text>
                         }
                         else if(context.ProtocolEDCFieldId != 0 && context.ProtocolEDCField != null && context.ProtocolEDCField.ProtocolEDCForm != null)
                         {
-                            <Text>@context.ProtocolEDCField.ProtocolEDCForm.EDCFormIdentifier</Text>
+                            <Text>@(context.ProtocolEDCField.ProtocolEDCForm.EDCFormIdentifier + " - " + context.ProtocolEDCField.ProtocolEDCForm.EDCFormName)</Text>
                         } else
                         {
                             <Text>Not Mapped</Text>
@@ -76,7 +78,7 @@
                     }
                 </DisplayTemplate>
                 <EditTemplate>
-                    <Autocomplete TItem="ProtocolEDCForm" Data="@protocolEDCFormList" TValue="int" TextField="@((item) => item.EDCFormIdentifier)" ValueField="@((item) => item.ProtocolEDCFormId)" SelectedValueChanged="@(e => {@GetFields(e); context.CellValue=e;})" SelectedValue="@(context.Item.ProtocolEDCFormId)" Placeholder="@(GetPlaceholder(context.Item))" Virtualize></Autocomplete>
+                    <Autocomplete TItem="ProtocolEDCForm" Data="@protocolEDCFormList" TValue="int" TextField="@((item) => {return item.EDCFormIdentifier + " - " + item.EDCFormName;})" ValueField="@((item) => item.ProtocolEDCFormId)" SelectedValueChanged="@(e => {@GetFields(e); context.CellValue=e;})" SelectedValue="@(context.Item.ProtocolEDCFormId)" Placeholder="@(GetPlaceholder(context.Item))" Virtualize></Autocomplete>
                 </EditTemplate>
             </DataGridColumn>
             <DataGridColumn Field="@nameof(ProtocolFieldMapping.ProtocolEDCFieldId)" Width="25%" Caption="Select EDC Field" Editable="true">
@@ -155,10 +157,6 @@
 else{
     foreach(var form in multiFormList){
         <Row>
-            @* Update this to instead just update the fields in this table
-                Reuse that update primary logic in Switch for Primary Form
-                Will need to update that piece to save it in the form mappings table instead of on Category
-            *@
             <Column><b>Form @FormIndex(): </b><SelectList TItem="ProtocolEDCForm" Data="@protocolEDCFormList" TValue="int" ValueField="@((item) => item.ProtocolEDCFormId)" TextField="@((item) => item.EDCFormName)" SelectedValue="@(form.ProtocolEDCFormId ?? 0)" SelectedValueChanged="@(v=> { form.ProtocolEDCFormId = v; UpdateFields(v, form.ProtocolFormMappingId); this.protocolFormMappingService.SaveProtocolFormMapping(form);})" DefaultItemText="Select a Form" DefaultItemValue="0"></SelectList></Column>
             <Column><Switch TValue="bool" Checked="@form.IsPrimaryForm" CheckedChanged="@((v) => {UpdatePrimaryForm(v, form);})">Primary Form</Switch></Column>
         </Row>
@@ -184,7 +182,7 @@ else{
 			  RowRemoved="@Delete"
 			  RowRemoving="@ConfirmDelete">
 		<DataGridColumns>
-			<DataGridColumn Field="@nameof(ProtocolFieldMapping.ThorFieldId)" Width="25%" Caption="Select OARS Field" Editable="true">
+			<DataGridColumn Field="@nameof(ProtocolFieldMapping.ThorFieldId)" Width="25%" Caption="Select OARS Field" Editable="true" SortDirection="SortDirection.Ascending" Sortable>
 				<DisplayTemplate>
 					<Text>@GetThorFieldLabel(context)</Text>
 				</DisplayTemplate>
@@ -192,7 +190,7 @@ else{
 					<Text>@GetThorFieldLabel(context.Item)</Text>
 				  </EditTemplate>
 			</DataGridColumn>
-                <DataGridColumn Field="@nameof(ProtocolFieldMapping.ProtocolEDCFieldId)" Width="25%" Caption="Select EDC Field" Editable="true">
+                <DataGridColumn Field="@nameof(ProtocolFieldMapping.ProtocolEDCFieldId)" Width="25%" Caption="Select EDC Field" Editable="true" Sortable>
                     <DisplayTemplate>
                         @{
                             if (context.ProtocolEDCFieldId != null && context.ProtocolEDCFieldId != 0)
