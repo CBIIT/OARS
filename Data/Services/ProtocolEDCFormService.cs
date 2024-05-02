@@ -91,8 +91,19 @@ namespace TheradexPortal.Data.Services
         {
             try
             {
-                context.RemoveRange(context.ProtocolEDCForm.Where(f => f.ProtocolMappingId == mappingId));
-                await context.SaveChangesAsync();
+                // Similar to above, this version of EF doesn't support bulk deletes and RemoveRange is too slow, so we have to do it this way
+                string command = $@"
+                    DELETE from
+                    (
+                        SELECT 
+                            frm.*
+                        FROM 
+                            DMU.""ProtocolEDCForm"" frm 
+                        WHERE 
+                            frm.""Protocol_Mapping_Id"" = {mappingId}
+                    )";
+
+                context.Database.ExecuteSqlRaw(command);
                 return true;
             } catch (Exception ex)
             {

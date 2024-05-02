@@ -100,13 +100,24 @@ namespace TheradexPortal.Data.Services
             }
         }
 
-        public async Task<bool> DeleteAllFieldsForFormIds(List<int> formIds)
+        public async Task<bool> DeleteAllFieldsForFormIds(int protocolMappingId)
         {
             try
             {
                 // Similar to above, this version of EF doesn't support bulk deletes and RemoveRange is too slow, so we have to do it this way
-                string command = "DELETE FROM DMU.\"ProtocolEDCField\" WHERE \"Protocol_EDC_Form_Id\" IN (" + String.Join(",", formIds) + ")";
-                
+                string command = $@"
+                    DELETE from 
+                      (
+                        SELECT 
+                            fld.*
+                        FROM 
+                            DMU.""ProtocolEDCField"" fld
+                            INNER JOIN DMU.""ProtocolEDCForm"" frm 
+                                ON frm.""Protocol_EDC_Form_Id"" = fld.""Protocol_EDC_Form_Id""
+                        WHERE 
+                            frm.""Protocol_Mapping_Id"" = {protocolMappingId}
+                      );";  
+
                 context.Database.ExecuteSqlRaw(command);
                 return true;
             }

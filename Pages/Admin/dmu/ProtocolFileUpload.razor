@@ -103,6 +103,7 @@
     public async void OnFileUpload(FileUploadEventArgs e)
     {
         await loading.Show();
+        var hideLoading = true;
         MemoryStream ms = new MemoryStream();
         try
         {
@@ -120,8 +121,9 @@
                 try
                 {
                     await alsFileImportService.ParseALSFile(ms, this.protocolMappingId);
-                    await notificationService.Success("ALS file uploaded successfully");
+                    await notificationService.Success("ALS file uploaded successfully. Refreshing mapping...");
                     navigation.NavigateTo(navigation.Uri, true);
+                    hideLoading = false; // Leave the loading spinner displayed while the page is reloading.
                 } catch (Exception ex)
                 {
                     await RollbackUpload(this.protocolMappingId);
@@ -138,8 +140,9 @@
                 try
                 {
                     await xmlFileImportService.ParseXMLFile(ms, this.protocolMappingId);
-                    await notificationService.Success("XML file uploaded successfully");
+                    await notificationService.Success("XML file uploaded successfully. Refreshing mapping...");
                     navigation.NavigateTo(navigation.Uri, true);
+                    hideLoading = false; // Leave the loading spinner displayed while the page is reloading.
                 } catch(Exception ex){
                     await RollbackUpload(this.protocolMappingId);
                     await notificationService.Error(ex.Message);
@@ -152,7 +155,8 @@
         }
         finally
         {
-            await loading.Hide();
+            if (hideLoading)
+                await loading.Hide();
         }
     }
 
@@ -165,27 +169,24 @@
         await loading.Show();
         // Delete all dictionaries, forms that are related to the protocolMappingId
         await notificationService.Info("Clearing uploads");
-        var formIds = await formService.GetFormIdsForMappingId(this.protocolMappingId);
+        // var formIds = await formService.GetFormIdsForMappingId(this.protocolMappingId);
         var transaction = databaseConnectionService.GetDbTransaction();
         try
         {
-            if (formIds != null && formIds.Count > 0)
+            var result = await fieldService.DeleteAllFieldsForFormIds(this.protocolMappingId);
+            if (!result)
             {
-                var result = await fieldService.DeleteAllFieldsForFormIds(formIds.ToList());
-                if (!result)
-                {
-                    transaction.Rollback();
-                    await notificationService.Error("Error deleting fields");
-                    return;
-                }
+                transaction.Rollback();
+                await notificationService.Error("Error deleting fields");
+                return;
+            }
 
-                result = await formService.DeleteAllFormsForMappingId(this.protocolMappingId);
-                if (!result)
-                {
-                    transaction.Rollback();
-                    await notificationService.Error("Error deleting forms");
-                    return;
-                }
+            result = await formService.DeleteAllFormsForMappingId(this.protocolMappingId);
+            if (!result)
+            {
+                transaction.Rollback();
+                await notificationService.Error("Error deleting forms");
+                return;
             }
 
             var dictResult = await dictionaryService.DeleteAllDictionariesForMappingId(this.protocolMappingId);
@@ -196,17 +197,15 @@
                 return;
             }
             transaction.Commit();
-            await notificationService.Success("Uploads cleared");
+            await notificationService.Success("Uploads cleared. Refreshing mapping...");
+            // Leave the loading spinner displayed while the page is reloading.
+            navigation.NavigateTo(navigation.Uri, true);
         } catch (Exception ex)
         {
             transaction.Rollback();
             await notificationService.Error(ex.Message);
             return;
-        } finally
-        {
-            await loading.Hide();
-            navigation.NavigateTo(navigation.Uri, true);
-        }
+        } 
 
     }
 
@@ -216,7 +215,7 @@
         var formIds = await formService.GetFormIdsForMappingId(protocolMappingId);
         if (formIds != null && formIds.Count > 0)
         {
-            await fieldService.DeleteAllFieldsForFormIds(formIds.ToList());
+            await fieldService.DeleteAllFieldsForFormIds(protocolMappingId);
             await formService.DeleteAllFormsForMappingId(protocolMappingId);
             await dictionaryService.DeleteAllDictionariesForMappingId(protocolMappingId);
         }
