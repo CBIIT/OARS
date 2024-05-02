@@ -7,7 +7,7 @@ namespace TheradexPortal.Data.Services
     public class ProtocolSubGroupService: BaseService, IProtocolSubGroupService
     {
         private readonly IErrorLogService _errorLogService;
-        public ProtocolSubGroupService(IDbContextFactory<ThorDBContext> context, IErrorLogService errorLogService) : base(context)
+        public ProtocolSubGroupService(IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService) : base(databaseConnectionService)
         {
             _errorLogService = errorLogService;
         }

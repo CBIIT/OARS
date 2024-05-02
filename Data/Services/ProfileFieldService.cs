@@ -10,7 +10,7 @@ namespace TheradexPortal.Data.Services
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
 
-        public ProfileFieldService(IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
+        public ProfileFieldService(IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, NavigationManager navigationManager) : base(databaseConnectionService)
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;

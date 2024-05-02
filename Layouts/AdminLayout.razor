@@ -171,7 +171,18 @@
 
     Task OnButtonClicked()
     {
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+        if (httpContextAccessor.HttpContext == null)
+        {
+            Navigation.NavigateTo($"Signout", true);
+            return Task.CompletedTask;
+        }
+        var userIdClaim = httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId);
+        if (userIdClaim == null)
+        {
+            Navigation.NavigateTo($"Signout", true);
+            return Task.CompletedTask;
+        }
+        int userId = Convert.ToInt32(userIdClaim.Value);
         userService.SaveActivityLog(userId, ThorActivityType.Logout);
         Navigation.NavigateTo($"Signout", true);
 
@@ -183,7 +194,7 @@
         bool roleFound = false;
         foreach (string allowedRole in allowedRoles)
         {
-            if (httpContextAccessor.HttpContext.User.HasClaim(c => c.Type == "Admin-" + allowedRole))
+            if (httpContextAccessor.HttpContext != null && httpContextAccessor.HttpContext.User.HasClaim(c => c.Type == "Admin-" + allowedRole))
                 roleFound = true;
         }
         return roleFound;
