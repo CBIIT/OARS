@@ -70,6 +70,7 @@ builder.Services.AddScoped<IProtocolDiseaseService, ProtocolDiseaseService>();
 builder.Services.AddScoped<IProtocolDataCategoryService, ProtocolDataCategoryService>();
 builder.Services.AddScoped<IProtocolFieldMappingService, ProtocolFieldMappingService>();
 builder.Services.AddScoped<IProtocolDictionaryMappingService, ProtocolDictionaryMappingService>();
+builder.Services.AddScoped<IProtocolFormMappingService, ProtocolFormMappingService>();
 builder.Services.AddHttpClient<IOktaService, OktaService>(client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["Okta:Issuer"]);

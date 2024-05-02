@@ -33,7 +33,6 @@ namespace TheradexPortal.Data.Services
                 {
                     category.CreateDate = currentDateTime;
                     category.UpdateDate = currentDateTime;
-                    category.PrimaryFormId = 0;
                     context.Add(category);
                 }
                 else
@@ -45,7 +44,6 @@ namespace TheradexPortal.Data.Services
                     currentCategory.SortOrder = category.SortOrder;
                     currentCategory.IsActive = category.IsActive;
                     currentCategory.UpdateDate = currentDateTime;
-                    currentCategory.PrimaryFormId = category.PrimaryFormId;
                     context.Update(currentCategory);
                 }
 
