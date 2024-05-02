@@ -7,7 +7,7 @@ namespace TheradexPortal.Data.Services
     public class ProtocolAgentService: BaseService, IProtocolAgentService
     {
         private readonly IErrorLogService _errorLogService;
-        public ProtocolAgentService(IDbContextFactory<ThorDBContext> context, IErrorLogService errorLogService) : base(context)
+        public ProtocolAgentService(IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService) : base(databaseConnectionService)
         {
             _errorLogService = errorLogService;
         }

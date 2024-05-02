@@ -73,6 +73,7 @@
 @code {
     private FilePicker UploadField;
     private LoadingIndicator loading;
+    [Inject] private IDatabaseConnectionService databaseConnectionService { get; set; }
     [Inject] private IALSFileImportService alsFileImportService { get; set; }
     [Inject] private IXMLFileImportService xmlFileImportService { get; set; }
     [Inject] private IProtocolEDCFormService formService { get; set; }
@@ -115,13 +116,17 @@
                     await notificationService.Error("Invalid file type. Please upload an .xls.xml file");
                     return;
                 }
+
+                var transaction = databaseConnectionService.GetDbTransaction();
                 try
                 {
                     await alsFileImportService.ParseALSFile(ms, this.protocolMappingId);
                     await notificationService.Success("ALS file uploaded successfully");
                     navigation.NavigateTo(navigation.Uri, true);
+                    transaction.Commit();
                 } catch (Exception ex)
                 {
+                    transaction.Rollback();
                     await RollbackUpload(this.protocolMappingId);
                     await notificationService.Error(ex.Message);
                 }
@@ -133,12 +138,15 @@
                     await notificationService.Error("Invalid file type. Please upload an .xml file");
                     return;
                 }
+                var transaction = databaseConnectionService.GetDbTransaction();
                 try
                 {
                     await xmlFileImportService.ParseXMLFile(ms, this.protocolMappingId);
                     await notificationService.Success("XML file uploaded successfully");
                     navigation.NavigateTo(navigation.Uri, true);
+                    transaction.Commit();
                 } catch(Exception ex){
+                    transaction.Rollback();
                     await RollbackUpload(this.protocolMappingId);
                     await notificationService.Error(ex.Message);
                 }
@@ -164,6 +172,7 @@
         // Delete all dictionaries, forms that are related to the protocolMappingId
         await notificationService.Info("Clearing uploads");
         var formIds = await formService.GetFormIdsForMappingId(this.protocolMappingId);
+        var transaction = databaseConnectionService.GetDbTransaction();
         try
         {
             if (formIds != null && formIds.Count > 0)
@@ -189,9 +198,11 @@
                 await notificationService.Error("Error deleting dictionaries");
                 return;
             }
+            transaction.Commit();
             await notificationService.Success("Uploads cleared");
         } catch (Exception ex)
         {
+            transaction.Rollback();
             await notificationService.Error(ex.Message);
             return;
         } finally

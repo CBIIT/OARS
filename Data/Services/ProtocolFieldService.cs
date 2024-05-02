@@ -11,7 +11,7 @@ namespace TheradexPortal.Data.Services
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
         private readonly IProtocolMappingService _protocolMappingService;
-        public ProtocolFieldService(IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager, IProtocolMappingService protocolMappingService) : base(dbFactory)
+        public ProtocolFieldService(IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, NavigationManager navigationManager, IProtocolMappingService protocolMappingService) : base(databaseConnectionService)
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;

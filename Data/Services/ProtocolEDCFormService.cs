@@ -9,7 +9,7 @@ namespace TheradexPortal.Data.Services
     {
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
-        public ProtocolEDCFormService(IDbContextFactory<ThorDBContext> context, IErrorLogService errorLogService, NavigationManager navigationManager) : base(context)
+        public ProtocolEDCFormService(IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, NavigationManager navigationManager) : base(databaseConnectionService)
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;

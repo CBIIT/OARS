@@ -12,7 +12,7 @@ namespace TheradexPortal.Data.Services
     {
         private readonly IErrorLogService _errorLogService;
         private readonly IConfiguration _configuration;
-        public ProtocolEDCDictionaryService(IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService, IConfiguration configuration) : base(dbFactory)
+        public ProtocolEDCDictionaryService(IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, IConfiguration configuration) : base(databaseConnectionService)
         {
             _errorLogService = errorLogService;
             _configuration = configuration;
