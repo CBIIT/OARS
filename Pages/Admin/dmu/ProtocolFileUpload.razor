@@ -117,16 +117,13 @@
                     return;
                 }
 
-                var transaction = databaseConnectionService.GetDbTransaction();
                 try
                 {
                     await alsFileImportService.ParseALSFile(ms, this.protocolMappingId);
                     await notificationService.Success("ALS file uploaded successfully");
                     navigation.NavigateTo(navigation.Uri, true);
-                    transaction.Commit();
                 } catch (Exception ex)
                 {
-                    transaction.Rollback();
                     await RollbackUpload(this.protocolMappingId);
                     await notificationService.Error(ex.Message);
                 }
@@ -138,15 +135,12 @@
                     await notificationService.Error("Invalid file type. Please upload an .xml file");
                     return;
                 }
-                var transaction = databaseConnectionService.GetDbTransaction();
                 try
                 {
                     await xmlFileImportService.ParseXMLFile(ms, this.protocolMappingId);
                     await notificationService.Success("XML file uploaded successfully");
                     navigation.NavigateTo(navigation.Uri, true);
-                    transaction.Commit();
                 } catch(Exception ex){
-                    transaction.Rollback();
                     await RollbackUpload(this.protocolMappingId);
                     await notificationService.Error(ex.Message);
                 }
@@ -180,6 +174,7 @@
                 var result = await fieldService.DeleteAllFieldsForFormIds(formIds.ToList());
                 if (!result)
                 {
+                    transaction.Rollback();
                     await notificationService.Error("Error deleting fields");
                     return;
                 }
@@ -187,6 +182,7 @@
                 result = await formService.DeleteAllFormsForMappingId(this.protocolMappingId);
                 if (!result)
                 {
+                    transaction.Rollback();
                     await notificationService.Error("Error deleting forms");
                     return;
                 }
@@ -195,6 +191,7 @@
             var dictResult = await dictionaryService.DeleteAllDictionariesForMappingId(this.protocolMappingId);
             if (!dictResult)
             {
+                transaction.Rollback();
                 await notificationService.Error("Error deleting dictionaries");
                 return;
             }
