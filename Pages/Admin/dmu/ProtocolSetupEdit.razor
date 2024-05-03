@@ -232,7 +232,7 @@
         </Column>
     </Row>
 </Div>
- @code {
+@code {
     [Inject] IProfileService profileService { get; set; } = null!;
     [Inject] IProtocolDataSystemService protocolDataSystemService { get; set; } = null!;
     [Inject] IProtocolMappingService protocolMappingService { get; set; } = null!;
@@ -366,23 +366,7 @@
 
     public async void Cancel()
     {
-        if (currentProtocolMap.ProtocolMappingId > 0)
-        {
-            navigation.NavigateTo(navigation.Uri, forceLoad: true);
-        }
-        else
-        {
-            currentProtocolMap = new ProtocolMapping();
-            phase1 = false;
-            phase2 = false;
-            phase3 = false;
-            phase4 = false;
-            phase1IsRandomized = "S";
-            phase2IsRandomized = "S";
-            phase3IsRandomized = "S";
-            phase4IsRandomized = "S";
-            await InitializedAsync();
-        };
+        navigation.NavigateTo(navigation.Uri, forceLoad: true);
     }
 
     private void NavigateToGlobalDMU()
