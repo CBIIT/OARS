@@ -3,7 +3,7 @@
 @inject IHttpContextAccessor httpContextAccessor
 @inject IConfiguration configuration
 @layout AdminLayout
-@page "/admin/dmu/form-field-mapping/{categoryId:int}"
+@page "/admin/dmu/form-field-mapping/{protocolCategoryId:int}"
 <AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })"></AdminRoleCheck>
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Mapping</h2></Div>
 <Row Background="Background.Light" Style="padding-bottom:10px;">
@@ -260,7 +260,7 @@ else{
     [Inject] INotificationService notificationService { get; set; }
     [Inject] private IMessageService messageService { get; set; } = null!;
 
-    [Parameter] public int categoryId { get; set; }
+    [Parameter] public int protocolCategoryId { get; set; }
     [SupplyParameterFromQuery][Parameter] public string protocol { get; set; }
     [SupplyParameterFromQuery][Parameter] public int protocolMappingId { get; set; }
 
@@ -282,7 +282,7 @@ else{
 
     protected override async Task OnInitializedAsync()
     { 
-        this.protocolCategory = await protocolCategoryService.GetCategory(categoryId);
+        this.protocolCategory = await protocolCategoryService.GetCategory(protocolCategoryId);
         this.isComplete = protocolCategory.ProtocolCategoryStatusId == 3;
         this.currCategory = await thorCategoryService.GetCategory(protocolCategory.THORDataCategoryId);
         this.protocolFieldMappingList = await protocolFieldMappingService.GetProtocolFieldMappingsForCategory(currCategory.ThorDataCategoryId);
@@ -293,7 +293,7 @@ else{
 
         this.currCategory = await thorCategoryService.GetCategory(currCategory.ThorDataCategoryId);
 
-        this.multiFormList = await protocolFormMappingService.GetProtocolFormMappingsForCategory(categoryId);
+        this.multiFormList = await protocolFormMappingService.GetProtocolFormMappingsForCategory(protocolCategoryId);
         foreach(var form in multiFormList)
         {
             multiFormRefs.Add(form.ProtocolFormMappingId, new DataGrid<ProtocolFieldMapping>());
@@ -447,7 +447,7 @@ else{
 
     public async void AddForm()
     {
-        ProtocolFormMapping newForm = new ProtocolFormMapping { ProtocolEDCFormId = null, ProtocolCategoryId = categoryId };
+        ProtocolFormMapping newForm = new ProtocolFormMapping { ProtocolEDCFormId = null, ProtocolCategoryId = protocolCategoryId };
         this.protocolFormMappingService.SaveProtocolFormMapping(newForm);
         this.multiFormRefs.Add(newForm.ProtocolFormMappingId, new DataGrid<ProtocolFieldMapping>());
         this.multiFormMappings.Add(newForm.ProtocolFormMappingId, new List<ProtocolFieldMapping>());
