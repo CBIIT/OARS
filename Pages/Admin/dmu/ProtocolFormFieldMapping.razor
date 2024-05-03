@@ -157,7 +157,7 @@
 else{
     foreach(var form in multiFormList){
         <Row>
-            <Column><b>Form @FormIndex(): </b><SelectList TItem="ProtocolEDCForm" Data="@protocolEDCFormList" TValue="int" ValueField="@((item) => item.ProtocolEDCFormId)" TextField="@((item) => item.EDCFormName)" SelectedValue="@(form.ProtocolEDCFormId ?? 0)" SelectedValueChanged="@(v=> { form.ProtocolEDCFormId = v; UpdateFields(v, form.ProtocolFormMappingId); this.protocolFormMappingService.SaveProtocolFormMapping(form);})" DefaultItemText="Select a Form" DefaultItemValue="0"></SelectList></Column>
+            <Column><b>Form @form.ProtocolFormMappingId: </b><SelectList TItem="ProtocolEDCForm" Data="@protocolEDCFormList" TValue="int" ValueField="@((item) => item.ProtocolEDCFormId)" TextField="@((item) => item.EDCFormName)" SelectedValue="@(form.ProtocolEDCFormId ?? 0)" SelectedValueChanged="@(v=> { form.ProtocolEDCFormId = v; UpdateFields(v, form.ProtocolFormMappingId); this.protocolFormMappingService.SaveProtocolFormMapping(form);})" DefaultItemText="Select a Form" DefaultItemValue="0"></SelectList></Column>
             <Column><Switch TValue="bool" Checked="@form.IsPrimaryForm" CheckedChanged="@((v) => {UpdatePrimaryForm(v, form);})">Primary Form</Switch></Column>
         </Row>
 		<DataGrid @ref=multiFormRefs[form.ProtocolFormMappingId]
@@ -294,6 +294,7 @@ else{
         this.currCategory = await thorCategoryService.GetCategory(currCategory.ThorDataCategoryId);
 
         this.multiFormList = await protocolFormMappingService.GetProtocolFormMappingsForCategory(protocolCategoryId);
+        this.multiFormList = this.multiFormList.OrderBy(x => x.ProtocolFormMappingId).ToList();
         foreach(var form in multiFormList)
         {
             multiFormRefs.Add(form.ProtocolFormMappingId, new DataGrid<ProtocolFieldMapping>());
@@ -451,12 +452,13 @@ else{
         this.protocolFormMappingService.SaveProtocolFormMapping(newForm);
         this.multiFormRefs.Add(newForm.ProtocolFormMappingId, new DataGrid<ProtocolFieldMapping>());
         this.multiFormMappings.Add(newForm.ProtocolFormMappingId, new List<ProtocolFieldMapping>());
-
+        this.multiFormList.Add(newForm);
         foreach(var thorField in this.thorFieldList){
             this.multiFormMappings[newForm.ProtocolFormMappingId].Add(new ProtocolFieldMapping { ThorFieldId = thorField.ThorFieldId, ThorField = thorField, ProtocolEDCFieldId = 0, ProtocolEDCFormId = 0 });
         }
 
         this.edcFieldsByForm.Add(newForm.ProtocolFormMappingId, new List<ProtocolEDCField>());
+        this.StateHasChanged();
     }
 
     public async void CompleteMapping()
@@ -482,11 +484,5 @@ else{
                 return;
             }
         }
-    }
-
-    public int FormIndex()
-    {
-        this.formIndex += 1;
-        return this.formIndex;
     }
 }
