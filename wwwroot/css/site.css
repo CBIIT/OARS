@@ -361,5 +361,5 @@
 }
 
 ul.steps > li.step {
-    cursor: default;
+    cursor: pointer;
 }
