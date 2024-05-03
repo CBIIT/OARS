@@ -368,9 +368,7 @@
     {
         if (currentProtocolMap.ProtocolMappingId > 0)
         {
-            this.currentProtocolMap = await protocolMappingService.GetProtocolMapping(protocolMappingId);
-            this.phasesSet = await protocolPhaseService.GetProtocolMappingPhases(protocolMappingId);
-            applyPhases();
+            navigation.NavigateTo(navigation.Uri, forceLoad: true);
         }
         else
         {
@@ -383,9 +381,8 @@
             phase2IsRandomized = "S";
             phase3IsRandomized = "S";
             phase4IsRandomized = "S";
+            await InitializedAsync();
         };
-
-        await InitializedAsync();
     }
 
     private void NavigateToGlobalDMU()
