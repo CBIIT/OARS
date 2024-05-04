@@ -1,5 +1,10 @@
-﻿using MimeKit;
+﻿using CsvHelper;
+using CsvHelper.Configuration;
+using CsvHelper.Configuration.Attributes;
+using MimeKit;
+using Okta.Sdk.Model;
 using System.Data;
+using System.Globalization;
 using System.IO;
 using System.Reflection.PortableExecutable;
 using System.Text;
@@ -20,6 +25,58 @@ public class CSVFileImportService : ICSVFileImportService
         _dictionaryService = dictionaryService;
 	}
 
+    public class CSVForm
+    {
+        [Name("Study Revision")]
+        public int studyRevision { get; set; }
+
+        [Name("Visit Id")]
+        public int VisitId { get; set; }
+
+        [Name("Visit Name")]
+        public string visitName { get; set; }
+
+        [Name("Visit Abbreviation")]
+        public string visitAbbr { get; set; }
+
+        [Name("Visit Add When")]
+        public string visitAddWhen { get; set; }
+
+        [Name("Visit Repeats")]
+        public string visitRepeats { get; set; }
+
+        [Name("Visit Max Repeats")]
+        public string visitMaxRepeats { get; set; }
+
+        [Name("Visit Object Name")]
+        public string visitObjectName { get; set; }
+
+        [Name("Order of Visit in Revision Visit Schedule")]
+        public int visitOrderRevision { get; set; }
+
+        [Name("Page Id")]
+        public int pageId { get; set; }
+
+        [Name("Page Name")]
+        public string pageName { get; set; }
+
+        [Name("Page Repeats")]
+        public string pageRepeats { get; set; }
+
+        [Name("Page Max Repeats")]
+        public string pageMaxRepeats { get; set; }
+
+        [Name("Page Object Name")]
+        public string pageObjectName { get; set; }
+
+        [Name("Page Added By Rule")]
+        public string pageAddedByRule { get; set; }
+
+        [Name("Order of Page in Visit Definition")]
+        public int OrderPageVisitDef { get; set; }
+
+    }
+
     public async Task ParseCSVField(MemoryStream inputFileStream, int protocolMappingId)
     {
         var forms = await _formService.GetProtocolEDCFormsByProtocolMappingId(protocolMappingId);
@@ -27,6 +84,7 @@ public class CSVFileImportService : ICSVFileImportService
         if (forms.Count > 0)
         {
             DataTable fields = SetUpFieldTable();
+
             using var reader = new StreamReader(inputFileStream, Encoding.UTF8);
 
             string content = Encoding.UTF8.GetString(inputFileStream.ToArray());
@@ -72,7 +130,37 @@ public class CSVFileImportService : ICSVFileImportService
     {
         List<ProtocolEDCForm> forms = new List<ProtocolEDCForm>();
 
-        using var reader = new StreamReader(inputFileStream, Encoding.UTF8);
+        var reader = new StreamReader(inputFileStream, Encoding.UTF8);
+
+        var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+        {
+            HasHeaderRecord = true,
+        };
+
+        using (var csv = new CsvReader(reader, config))
+        {
+            using (var dr = new CsvDataReader(csv))
+            {
+                var dt = new DataTable();
+                dt.Load(dr);
+            }
+
+            var records = csv.GetRecords<CSVForm>();
+            //var records = new List<CSVForm>();
+            csv.Read();
+            csv.ReadHeader();
+            while (csv.Read())
+            {
+                var record = new CSVForm
+                {
+                    pageObjectName = csv.GetField("Page Object Name"),
+                    pageName = csv.GetField("Page Name")
+                };
+                //records.Add(record);
+            }
+        }
+
+        //using var reader = new StreamReader(inputFileStream, Encoding.UTF8);
 
         string content = Encoding.UTF8.GetString(inputFileStream.ToArray());
         string[] lines = content.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
