@@ -77,6 +77,80 @@ public class CSVFileImportService : ICSVFileImportService
 
     }
 
+    public class CSVField
+    {
+        [Name("Page Object Id")]
+        public int pageObjectId { get; set; }
+
+        [Name("Page Name")]
+        public string pageName { get; set; }
+
+        [Name("Display Order on Page")]
+        public int displayOrderOnPage { get; set; }
+
+        [Name("Control Id")]
+        public string controlId { get; set; }
+
+        [Name("Control Type")]
+        public string controlType { get; set; }
+
+        [Name("Question Text")]
+        public string questionText { get; set; }
+
+        [Name("Codelist Name")]
+        public string codelistName { get; set; }
+
+        [Name("Digits Before Decimal")]
+        public string digitsBeforeDecimal { get; set; }
+
+        [Name("Digits After Decimal")]
+        public string digitsAfterDecimal { get; set; }
+
+        [Name("Maximum Text Length")]
+        public string maxTextLength { get; set; }
+
+        [Name("SDV")]
+        public string sdv { get; set; }
+
+        [Name("Export Table")]
+        public string exportTable { get; set; }
+
+        [Name("Export Column")]
+        public string exportColumn { get; set; }
+
+        [Name("Field Requires Medical Coding")]
+        public string fieldRequiresMedicalCoding { get; set; }
+
+        [Name("Medical Coding Dictionary Name")]
+        public string medicalCodingDictionaryName { get; set; }
+
+        [Name("Field Supports Empty State")]
+        public string fieldSupportsEmptyState { get; set; }
+
+    }
+
+    public class CSVDictionary
+    {
+        [Name("Codelist name")]
+        public string codeListName { get; set; }
+
+        [Name("Codelist description")]
+        public string codelistDescription { get; set; }
+
+        [Name("Coded value")]
+        public string codedValue { get; set; }
+
+        [Name("Displayed value")]
+        public string displayedValue { get; set; }
+
+        [Name("Indicates that a value is hidden")]
+        public string indicatesValueHidden { get; set; }
+
+        [Name("Display order within codelist")]
+        public string displayOrder { get; set; }
+
+    }
+
     public async Task ParseCSVField(MemoryStream inputFileStream, int protocolMappingId)
     {
         var forms = await _formService.GetProtocolEDCFormsByProtocolMappingId(protocolMappingId);
@@ -85,33 +159,33 @@ public class CSVFileImportService : ICSVFileImportService
         {
             DataTable fields = SetUpFieldTable();
 
-            using var reader = new StreamReader(inputFileStream, Encoding.UTF8);
+            var reader = new StreamReader(inputFileStream, Encoding.UTF8);
 
-            string content = Encoding.UTF8.GetString(inputFileStream.ToArray());
-            string[] lines = content.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
-
-            // Process each line (skip the header row)
-            for (int i = 1; i < lines.Length; i++)
+            inputFileStream.Seek(0, SeekOrigin.Begin);
+            var config = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
-                string[] values = lines[i].Split(',');
-                string formID = values[1];
-                string fieldID = values[12];
-                string dictionaryName = values[6];
-                string fieldLabel = values[5];
-                string order = values[2];
+                HasHeaderRecord = true,
+            };
 
-                var EDCForm = forms.Where(f => f.EDCFormIdentifier == formID).FirstOrDefault();
-                if ((!string.IsNullOrEmpty(formID) || !string.IsNullOrEmpty(fieldID)) && EDCForm != null)
+            using (var csv = new CsvReader(reader, config))
+            {
+                var records = csv.GetRecords<CSVField>().ToArray();
+
+                foreach (var record in records)
                 {
-                    DataRow field = fields.NewRow();
-                    field["Update_Date"] = DateTime.Now;
-                    field["Create_Date"] = DateTime.Now;
-                    field["Protocol_EDC_Form_Id"] = EDCForm.ProtocolEDCFormId;
-                    field["EDC_Field_Identifier"] = fieldID;
-                    field["EDC_Field_Name"] = fieldLabel;
-                    field["EDC_Dictionary_Name"] = dictionaryName;
+                    var EDCForm = forms.Where(f => f.EDCFormIdentifier == record.pageName).FirstOrDefault();
+                    if ((!string.IsNullOrEmpty(record.pageName) || !string.IsNullOrEmpty(record.exportColumn)) && EDCForm != null)
+                    {
+                        DataRow field = fields.NewRow();
+                        field["Update_Date"] = DateTime.Now;
+                        field["Create_Date"] = DateTime.Now;
+                        field["Protocol_EDC_Form_Id"] = EDCForm.ProtocolEDCFormId;
+                        field["EDC_Field_Identifier"] = record.pageName;
+                        field["EDC_Field_Name"] = record.questionText;
+                        field["EDC_Dictionary_Name"] = record.codelistName;
 
-                    fields.Rows.Add(field);
+                        fields.Rows.Add(field);
+                    }
                 }
             }
 
@@ -132,6 +206,7 @@ public class CSVFileImportService : ICSVFileImportService
 
         var reader = new StreamReader(inputFileStream, Encoding.UTF8);
 
+        inputFileStream.Seek(0, SeekOrigin.Begin);
         var config = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
             HasHeaderRecord = true,
@@ -139,49 +214,28 @@ public class CSVFileImportService : ICSVFileImportService
 
         using (var csv = new CsvReader(reader, config))
         {
-            using (var dr = new CsvDataReader(csv))
-            {
-                var dt = new DataTable();
-                dt.Load(dr);
-            }
-
-            var records = csv.GetRecords<CSVForm>();
-            //var records = new List<CSVForm>();
-            csv.Read();
-            csv.ReadHeader();
-            while (csv.Read())
-            {
-                var record = new CSVForm
+            var records = csv.GetRecords<CSVForm>().ToArray();
+            
+            foreach (var record in records)
                 {
-                    pageObjectName = csv.GetField("Page Object Name"),
-                    pageName = csv.GetField("Page Name")
-                };
-                //records.Add(record);
-            }
+                ProtocolEDCForm form = new ProtocolEDCForm
+                    {
+                        ProtocolMappingId = protocolMappingId,
+                        EDCFormIdentifier = record.pageObjectName,
+                        EDCFormName = record.pageName,
+                        CreateDate = DateTime.Now,
+                        UpdatedDate = DateTime.Now
+                    };
+            
+                forms.Add(form);
+                }
         }
 
-        //using var reader = new StreamReader(inputFileStream, Encoding.UTF8);
-
-        string content = Encoding.UTF8.GetString(inputFileStream.ToArray());
-        string[] lines = content.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
-
-        // Process each line (skip the header row)
-        for (int i = 1; i < lines.Length; i++)
+        if (forms.Count == 0)
         {
-            string[] values = lines[i].Split(',');
-
-            ProtocolEDCForm form = new ProtocolEDCForm
-            {
-                ProtocolMappingId = protocolMappingId,
-                EDCFormIdentifier = values[13],
-                EDCFormName = values[10],
-                CreateDate = DateTime.Now,
-                UpdatedDate = DateTime.Now
-            };
-
-            forms.Add(form);
+            throw new Exception("No forms found in the file.");
         }
-
+        
         bool saveFormResult = await _formService.BulkSaveForms(forms);
         if (!saveFormResult)
         {
@@ -192,37 +246,43 @@ public class CSVFileImportService : ICSVFileImportService
     public async Task ParseCSVFileMeta(MemoryStream inputFileStream, int protocolMappingId)
     {
         DataTable dictionaries = SetUpDictionaryTable();
-        using var reader = new StreamReader(inputFileStream, Encoding.UTF8);
 
-        string content = Encoding.UTF8.GetString(inputFileStream.ToArray());
-        string[] lines = content.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+        var reader = new StreamReader(inputFileStream, Encoding.UTF8);
 
-        // Process each line (skip the header row)
-        for (int i = 1; i < lines.Length; i++)
+        inputFileStream.Seek(0, SeekOrigin.Begin);
+        var config = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
-            string[] values = lines[i].Split(',');
-            string DictionaryName = values[0];
-            string DictionaryShortValue = values[2];
-            string DictionaryLongValue = values[3];
+            HasHeaderRecord = true,
+        };
 
-            if (!string.IsNullOrEmpty(DictionaryName))
+        using (var csv = new CsvReader(reader, config))
+        {
+            var records = csv.GetRecords<CSVDictionary>().ToArray();
+
+            foreach (var record in records)
             {
-                DataRow dictionary = dictionaries.NewRow();
-                dictionary["Updated_Date"] = DateTime.Now;
-                dictionary["Create_Date"] = DateTime.Now;
-                dictionary["Protocol_Mapping_Id"] = protocolMappingId;
-                dictionary["EDC_Item_Id"] = DictionaryShortValue;
-                dictionary["EDC_Item_Name"] = DictionaryLongValue;
-                dictionary["EDC_Dictionary_Name"] = DictionaryName;
+                if (!string.IsNullOrEmpty(record.codeListName))
+                {
+                    DataRow dictionary = dictionaries.NewRow();
+                    dictionary["Updated_Date"] = DateTime.Now;
+                    dictionary["Create_Date"] = DateTime.Now;
+                    dictionary["Protocol_Mapping_Id"] = protocolMappingId;
+                    dictionary["EDC_Item_Id"] = record.codedValue;
+                    dictionary["EDC_Item_Name"] = record.displayedValue;
+                    dictionary["EDC_Dictionary_Name"] = record.codeListName;
 
-                dictionaries.Rows.Add(dictionary);
+                    dictionaries.Rows.Add(dictionary);
+                }
             }
         }
 
-        bool saveDictResult = await _dictionaryService.BulkSaveDictionaries(dictionaries);
-        if (!saveDictResult)
+        if (dictionaries.Rows.Count > 0)
         {
-            throw new Exception("Error uploading dictionary file, clear uploads and try again.");
+            bool saveDictResult = await _dictionaryService.BulkSaveDictionaries(dictionaries);
+            if (!saveDictResult)
+            {
+                throw new Exception("Error uploading dictionary file, clear uploads and try again.");
+            }
         }
     }
 
