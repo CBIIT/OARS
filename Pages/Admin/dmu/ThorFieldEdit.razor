@@ -16,6 +16,7 @@
           Data="@fieldList"
           Editable
           Responsive
+          Sortable
           Striped
           ShowPager
           ShowPageSizes
@@ -34,7 +35,7 @@
            RowUpdated="@Save"
            RowInserted="@Save">
      <DataGridColumns>
-          <DataGridColumn Width="15%" Field="@nameof(ThorField.ThorDataCategoryId)" Caption="OARS Data Category" Editable Filterable="true" Sortable="true">
+          <DataGridColumn Width="15%" Field="@nameof(ThorField.ThorDataCategoryId)" Caption="OARS Data Category" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
               <DisplayTemplate>
                 @(context.Category.CategoryName + " (" + context.ThorDataCategoryId + ")") 
               </DisplayTemplate>

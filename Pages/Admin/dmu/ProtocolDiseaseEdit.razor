@@ -13,6 +13,7 @@
           Editable
           Responsive
           Striped
+          Sortable
           ShowPager
           ShowPageSizes
           Filterable
@@ -33,7 +34,7 @@
           RowRemoving=@ConfirmDelete
           RowRemoved=@DeleteRow>
      <DataGridColumns>
-        <DataGridColumn Field="@nameof(ProtocolDisease.DiseaseName)" Width="30%" Caption="Disease Name" Editable Filterable="true" Sortable="true">
+        <DataGridColumn Field="@nameof(ProtocolDisease.DiseaseName)" Width="30%" Caption="Disease Name" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending>">
         </DataGridColumn>
         <DataGridColumn Field="@nameof(ProtocolDisease.MeddraCode)" Width="50%" Caption="Reporting Meddra Code" Editable Filterable="true" Sortable="true">
          </DataGridColumn>

@@ -19,6 +19,7 @@
           Responsive
           Striped
           ShowPager
+          Sortable
           ShowPageSizes
           Filterable
           FilterMethod="DataGridFilterMethod.StartsWith"
@@ -43,7 +44,7 @@
                 <SelectList TItem="ThorCategory" TValue="string" Data="@categoryList" TextField="@((item)=>item.CategoryName)" ValueField="@((item)=>item.ThorDataCategoryId)" SelectedValueChanged="OnSelectedCategoryValueChanged" DefaultItemText="Select the THOR DataCategory"></SelectList>
             </EditTemplate>
         </DataGridColumn>
-        <DataGridColumn Width="35%" Field="THORFieldId" Caption="OARS Field" Editable Filterable="true" Sortable="false">
+        <DataGridColumn Width="35%" Field="THORFieldId" Caption="OARS Field" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
             <DisplayTemplate>
                 @context?.THORFieldId - @context?.ThorField?.FieldLabel
             </DisplayTemplate>
