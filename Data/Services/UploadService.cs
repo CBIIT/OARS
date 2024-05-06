@@ -52,8 +52,6 @@ namespace TheradexPortal.Data.Services
 
             uploadConfiguration.CRFs = GetCRFs();
 
-            uploadConfiguration.WebReportingETCTNDataUploadURL = _uploadSettings.WebReportingETCTNDataUploadURL;
-
             return uploadConfiguration;
         }
 
