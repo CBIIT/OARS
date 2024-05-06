@@ -36,6 +36,7 @@ namespace TheradexPortal.Data.Services
 
                 if (currentField == null || field.CreateDate == null)
                 {
+                    field.IsActive = true;
                     field.CreateDate = currentDateTime;
                     field.UpdateDate = currentDateTime;
                     context.Add(field);

@@ -28,6 +28,7 @@ namespace TheradexPortal.Data.Services
 
                 if (currentCategory == null || category.CreateDate == null)
                 {
+                    category.IsActive = true;
                     category.CreateDate = currentDateTime;
                     category.UpdateDate = currentDateTime;
                     context.Add(category);

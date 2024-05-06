@@ -29,6 +29,7 @@ namespace TheradexPortal.Data.Services
 
                 if (currentThorDictionary == null || dictionary.CreateDate == null)
                 {
+                    dictionary.IsActive = true;
                     dictionary.CreateDate = currentDateTime;
                     context.Add(dictionary);
                 }

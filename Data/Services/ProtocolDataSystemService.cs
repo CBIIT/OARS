@@ -2,6 +2,7 @@
 using TheradexPortal.Data.Services.Abstract;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Protocols.WsTrust;
 namespace TheradexPortal.Data.Services
 {
     public class ProtocolDataSystemService : BaseService, IProtocolDataSystemService
@@ -30,6 +31,7 @@ namespace TheradexPortal.Data.Services
                 if (currentProtocolDataSystem == null || protocolDataSystem.CreateDate == null)
                 {
                     protocolDataSystem.CreateDate = currentDateTime;
+                    protocolDataSystem.IsActive = true;
                     context.Add(protocolDataSystem);
                 }
                 else
