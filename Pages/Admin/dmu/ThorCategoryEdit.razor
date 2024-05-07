@@ -16,6 +16,7 @@
             Data="@categoryList"
             Editable
             Responsive
+            Sortable
             Striped
             ShowPager
             ShowPageSizes
@@ -35,7 +36,7 @@
             RowInserted="@Save"
             NewItemDefaultSetter="@SetActive">
         <DataGridColumns>
-         <DataGridColumn Width="35%" Field="@nameof(ThorCategory.CategoryName)" Caption="OARS Data Category" Editable Filterable="true" Sortable="true">
+         <DataGridColumn Width="35%" Field="@nameof(ThorCategory.CategoryName)" Caption="OARS Data Category" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
             </DataGridColumn>
          <DataGridColumn Field="@nameof(ThorCategory.ThorDataCategoryId)" Width="35%" Caption="OARS Data Category ID" Editable Filterable="true" Sortable="true">
             </DataGridColumn>

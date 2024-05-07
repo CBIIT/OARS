@@ -12,6 +12,7 @@
           Editable
           Responsive
           Striped
+          Sortable
           ShowPager
           ShowPageSizes
           Filterable
@@ -31,7 +32,7 @@
           RowInserted="@Save"
           HeaderRowStyling="@(new DataGridRowStyling() { Style="color=rgba(250, 141, 40, 1);" })">
     <DataGridColumns>
-        <DataGridColumn Width="35%" Field="@nameof(ThorDictionary.DictionaryName)" Caption="OARS Dictionary Name" Editable Filterable="true" Sortable="true">
+        <DataGridColumn Width="35%" Field="@nameof(ThorDictionary.DictionaryName)" Caption="OARS Dictionary Name" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
         </DataGridColumn>
         <DataGridColumn Field="@nameof(ThorDictionary.DictionaryOption)" Width="35%" Caption="OARS Dictionary Option" Editable Filterable="true" Sortable="true">
         </DataGridColumn>

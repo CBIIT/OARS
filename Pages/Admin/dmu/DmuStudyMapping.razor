@@ -14,6 +14,7 @@
           Class="admindatagrid"
           Data="@studyList"
           Responsive
+          Sortable
           Striped
           ShowPager
           ShowPageSizes
@@ -34,7 +35,7 @@
          <DataGridMultiSelectColumn Width="30px"></DataGridMultiSelectColumn>
         <DataGridColumn Width="10%" Caption="Version" Field="@nameof(ProtocolMapping.MappingVersion)" Editable Filterable="false" Sortable="false">
         </DataGridColumn>
-        <DataGridColumn Width="20%" Field="Protocol.StudyId" Sortable="false" Filterable="true" Caption="Study ID">
+        <DataGridColumn Width="20%" Field="Protocol.StudyId" Sortable="true" Filterable="true" Caption="Study ID" SortDirection="SortDirection.Ascending">
         </DataGridColumn>
         <DataGridColumn Width="50%" Field="Protocol.ProtocolTitle" Sortable="false" Filterable="true" Caption="Title">
         </DataGridColumn>

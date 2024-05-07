@@ -18,6 +18,7 @@
           Striped
           ShowPager
           ShowPageSizes
+          Sortable
           Filterable
            FilterMethod="DataGridFilterMethod.StartsWith"
            MaxPaginationLinks="5"
@@ -45,7 +46,7 @@
 				}
             </DisplayTemplate>
         </DataGridColumn>
-        <DataGridColumn Width="20%" Field="Protocol.StudyId" Sortable="false" Filterable="true" Caption="Study ID">
+        <DataGridColumn Width="20%" Field="Protocol.StudyId" Sortable="true" Filterable="true" Caption="Study ID" SortDirection="SortDirection.Ascending">
         </DataGridColumn>
         <DataGridColumn Width="50%" Field="Protocol.ProtocolTitle" Sortable="false" Filterable="true" Caption="Title">
         </DataGridColumn>
