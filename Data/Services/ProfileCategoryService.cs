@@ -48,5 +48,20 @@ namespace TheradexPortal.Data.Services
                 return false;
             }
         }
+
+        public async Task<bool> DeleteCategory(ProfileDataCategory category)
+        {
+            try
+            {
+                context.Remove(category);
+                await context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await _errorLogService.SaveErrorLogAsync(0, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+                return false;
+            }
+        }
     }
 }

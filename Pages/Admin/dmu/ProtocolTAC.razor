@@ -13,6 +13,7 @@
           Editable
           Responsive
           Striped
+          Sortable
           ShowPager
           ShowPageSizes
           Filterable
@@ -33,7 +34,7 @@
           RowRemoving=@ConfirmDelete
           RowRemoved=@DeleteRow>
      <DataGridColumns>
-        <DataGridColumn Field="@nameof(ProtocolTac.TacCode)" Width="30%" Caption="TAC Code" Editable Filterable="true" Sortable="true">
+        <DataGridColumn Field="@nameof(ProtocolTac.TacCode)" Width="30%" Caption="TAC Code" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
         </DataGridColumn>
         <DataGridColumn Field="@nameof(ProtocolTac.TacDescription)" Width="50%" Caption="TAC Description" Editable Filterable="true" Sortable="true">
          </DataGridColumn>

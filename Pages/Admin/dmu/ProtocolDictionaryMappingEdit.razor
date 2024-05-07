@@ -24,6 +24,7 @@
           Editable
           Responsive
           Striped
+          Sortable
           ShowPager
           ShowPageSizes
           MaxPaginationLinks="5"
@@ -39,7 +40,7 @@
           RowUpdated="@Save"
           RowInserted="@Save">
     <DataGridColumns>
-        <DataGridColumn Field="@nameof(ProtocolDictionaryMapping.ProtocolEDCDictionaryId)" Width="50%" Caption="For each EDC Dictionary Value" Editable Filterable="true" Sortable="true">
+        <DataGridColumn Field="@nameof(ProtocolDictionaryMapping.ProtocolEDCDictionaryId)" Width="50%" Caption="For each EDC Dictionary Value" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
             <DisplayTemplate>
                 @context.ProtocolEDCDictionaryName
             </DisplayTemplate>

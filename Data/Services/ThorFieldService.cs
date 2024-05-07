@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics.Contracts;
+using Blazorise.Extensions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using TheradexPortal.Data.Models;
@@ -34,6 +34,10 @@ namespace TheradexPortal.Data.Services
 
         public async Task<bool> SaveField(ThorField field)
         {
+            if(field.ThorDataCategoryId.IsNullOrEmpty())
+            {
+                return false;
+            }
             try
             {
                 DateTime currentDateTime = DateTime.UtcNow;
