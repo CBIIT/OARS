@@ -21,11 +21,11 @@
             <Text><b>Report Category:</b> @currCategory.CategoryName</Text>
         </Column>
         <Column>
-            <Switch TValue="bool" @bind-Checked="@isMultiForm">Multi Form</Switch>
+            <Switch TValue="bool" Checked="@protocolCategory.IsMultiForm" CheckedChanged="@((v) => UpdateCategory(v))">Multi Form</Switch>
         </Column>
     </Row>
 </Row>
-@if (!isMultiForm)
+@if (!protocolCategory.IsMultiForm)
 {
     <DataGrid @ref=dataGridRef
               TItem="ProtocolFieldMapping"
@@ -133,7 +133,7 @@
             </DataGridColumn>
             <DataGridColumn Field="@nameof(ProtocolFieldMapping.ThorFieldId)" Caption="Multi Form Field">
                 <DisplayTemplate>
-                    @if(context.ThorField != null && context.ThorField.IsMultiForm)
+                    @if(currCategory.IsMultiForm || (context.ThorField != null && context.ThorField.IsMultiForm))
 					{
 						<Button Color="Color.Primary" Clicked="@(() => AddMultiFormField(context))">Add Form</Button>
 					}
@@ -460,6 +460,22 @@ else{
         this.edcFieldsByForm.Add(newForm.ProtocolFormMappingId, new List<ProtocolEDCField>());
         this.StateHasChanged();
     }
+
+    public async void UpdateCategory(bool isMultiForm)
+	{
+        this.protocolCategory.IsMultiForm = isMultiForm;
+        bool saved = await protocolCategoryService.SaveCategory(this.protocolCategory, this.protocolMappingId);
+		if (saved)
+		{
+			await notificationService.Success("Category successfully updated");
+			return;
+		}
+		else
+		{
+			await notificationService.Error("Error updating category");
+			return;
+		}
+	}
 
     public async void CompleteMapping()
     {

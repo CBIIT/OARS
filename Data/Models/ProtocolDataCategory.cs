@@ -18,6 +18,8 @@ namespace TheradexPortal.Data.Models
         public DateTime CreateDate { get; set; }
         [Column("Updated_Date")]
         public DateTime UpdateDate { get; set; }
+        [Column("Is_Multi_Form")]
+        public bool IsMultiForm { get; set; }
         [ForeignKey(nameof(ProtocolMappingId))]
         public virtual ProtocolMapping ProtocolMapping { get; set; }
         [ForeignKey(nameof(THORDataCategoryId))]
