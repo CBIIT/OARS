@@ -33,7 +33,8 @@
             FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
             EditMode="DataGridEditMode.Inline"
             RowUpdated="@Save"
-            RowInserted="@Save">
+            RowInserted="@Save"
+            RowInserting="@Verify">
         <DataGridColumns>
          <DataGridColumn Width="35%" Field="@nameof(ThorCategory.CategoryName)" Caption="OARS Data Category" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
             </DataGridColumn>
@@ -83,7 +84,7 @@
     </DataGrid>
 
 
- @code {
+@code {
     [Inject] IThorCategoryService categoryService { get; set; } = null!;
     [Inject] private NavigationManager navigation { get; set; } = null!;
     [Inject] INotificationService notificationService { get; set; }
@@ -98,15 +99,36 @@
         this.categoryList = await categoryService.GetCategories();
     }
 
+    public async Task<CancellableRowChange<ThorCategory>> Verify(CancellableRowChange<ThorCategory, Dictionary<string,object>> e)
+    {
+        e.Values.TryGetValue("CategoryName", out var categoryName);
+        e.Values.TryGetValue("ThorDataCategoryId", out var categoryId);
+        e.Values.TryGetValue("SortOrder", out var sortOrder);
+        if (categoryName == null || categoryId == null || sortOrder == null)
+        {
+            List<string> missingFields = new List<string>();
+            if (categoryName == null)
+            {
+                missingFields.Add("Category Name");
+            }
+            if (categoryId == null)
+            {
+                missingFields.Add("Category ID");
+            }
+            if (sortOrder == null)
+			{
+				missingFields.Add("Sort Order");
+			}
+            await notificationService.Error($"Please fix all errors to save. Missing fields: {string.Join(", ", missingFields)}");
+            e.Cancel = true;
+		}
+
+		return e;
+	}
+
     public async void Save(SavedRowItem<ThorCategory,Dictionary<string,object>> e)
     {
         var toSave = e.Item;
-
-        if (toSave.CategoryName == "" || toSave.ThorDataCategoryId == "" || !toSave.SortOrder.HasValue)
-        {
-            await notificationService.Error("Please fix all errors to save.");
-            return;
-        }
 
         bool saved = await categoryService.SaveCategory(toSave);
 

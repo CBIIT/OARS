@@ -33,6 +33,7 @@
            FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
            EditMode="DataGridEditMode.Inline"
            RowUpdated="@Save"
+           RowInserting="@Verify"
            RowInserted="@Save">
      <DataGridColumns>
           <DataGridColumn Width="15%" Field="@nameof(ThorField.ThorDataCategoryId)" Caption="OARS Data Category" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
@@ -65,7 +66,7 @@
                  }
             </DisplayTemplate>
              <EditTemplate>
-                 <SelectList TItem="ThorFieldType" TValue="int?" Data="@fieldTypes" TextField="@((item)=>item.FieldTypeName)" ValueField="@((item)=>item.ThorFieldTypeId)" SelectedValue="@((int?)context.CellValue)" SelectedValueChanged="@( v => {context.CellValue = v;  context.UpdateCell(nameof( ThorField.ThorDictionaryId), null);})"/>
+                 <SelectList TItem="ThorFieldType" TValue="int?" Data="@fieldTypes" TextField="@((item)=>item.FieldTypeName)" ValueField="@((item)=>item.ThorFieldTypeId)" SelectedValue="@((int?)context.CellValue)" SelectedValueChanged="@( v => {context.CellValue = v;  context.UpdateCell(nameof( ThorField.ThorDictionaryId), null);})" DefaultItemText="Select A Type" DefaultItemValue="0"/>
              </EditTemplate>
          </DataGridColumn>
          <DataGridColumn Field="@nameof(ThorField.Derivable)" Width="5%" Caption="Derivable" Editable Filterable="true" Sortable="true">
@@ -158,7 +159,7 @@
  </DataGrid>
 
 
- @code {
+@code {
     [Inject] IThorCategoryService categoryService { get; set; } = null!; 
     [Inject] IThorFieldService fieldService { get; set; } = null!;
     [Inject] IThorDictionaryService dictionaryService { get; set; } = null!;
@@ -181,15 +182,47 @@
         this.dictionaryList = await dictionaryService.GetDictionaries();
     }
 
+    public async Task<CancellableRowChange<ThorField>> Verify(CancellableRowChange<ThorField, Dictionary<string, object>> e)
+    {
+        e.Values.TryGetValue("ThorFieldId", out var id);
+        e.Values.TryGetValue("ThorDataCategoryId", out var catId);
+        e.Values.TryGetValue("SortOrder", out var order);
+        e.Values.TryGetValue("FieldLabel", out var label);
+        e.Values.TryGetValue("ThorFieldTypeId", out var fieldTypeId);
+
+        if (id == null || catId == null || order == null || label == null || fieldTypeId == null)
+        {
+            List<string> missingFields = new List<string>();
+
+            if(id == null)
+            {
+                missingFields.Add("Field ID");
+            }
+            if(catId == null)
+			{
+				missingFields.Add("Category ID");
+			}
+            if(order == null){
+				missingFields.Add("Sort Order");
+			}
+            if(label == null)
+            {
+                missingFields.Add("Field Label");
+			}
+            if(fieldTypeId == null)
+			{
+				missingFields.Add("Field Type");
+			}
+            await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
+            e.Cancel = true;
+        }
+
+        return e;
+    }
+
     public async void Save(SavedRowItem<ThorField, Dictionary<string, object>> e)
     {
         var toSave = e.Item;
-
-        if (toSave.ThorFieldId == "" || toSave.ThorDataCategoryId == "" || !toSave.SortOrder.HasValue || toSave.FieldLabel == "")
-        {
-            await notificationService.Error("Please fix all errors to save.");
-            return;
-        }
 
         bool saved = await fieldService.SaveField(toSave);
 
