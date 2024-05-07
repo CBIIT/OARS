@@ -29,6 +29,7 @@
           EditMode="DataGridEditMode.Inline"
           RowUpdated="@Save"
           RowInserted="@Save"
+          RowInserting="@Verify"
           HeaderRowStyling="@(new DataGridRowStyling() { Style="color=rgba(250, 141, 40, 1);" })">
     <DataGridColumns>
         <DataGridColumn Width="100%" Field="@nameof(ProtocolDataSystem.DataSystemName)" Caption="Protocol Data System Name" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
@@ -82,15 +83,22 @@
         this.protocolDataSystemList = await protocolDataSystemService.GetProtocolDataSystems();
     }
 
+    public async Task<CancellableRowChange<ProtocolDataSystem>> Verify(CancellableRowChange<ProtocolDataSystem, Dictionary<string, object>> e)
+    {
+        e.Values.TryGetValue("DataSystemName", out var dataSystemName);
+        e.Values.TryGetValue("SortOrder", out var sortOrder);
+
+        if (dataSystemName == null || sortOrder == null)
+        {
+            await notificationService.Error("Please fix all errors to save.");
+            e.Cancel = true;
+        }
+        return e;
+	}
+
     public async void Save(SavedRowItem<ProtocolDataSystem, Dictionary<string, object>> e)
     {
         var newItem = e.Item;
-
-        if (newItem.DataSystemName == "" || !newItem.SortOrder.HasValue)
-        {
-            await notificationService.Error("Please fix all errors to save.");
-            return;
-        }
 
         bool saved = await protocolDataSystemService.SaveProtocolDataSystem(newItem);
 
