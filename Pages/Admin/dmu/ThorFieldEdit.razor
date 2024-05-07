@@ -192,7 +192,28 @@
 
         if (id == null || catId == null || order == null || label == null || fieldTypeId == null)
         {
-            await notificationService.Error("Please fix all errors to save.");
+            List<string> missingFields = new List<string>();
+
+            if(id == null)
+            {
+                missingFields.Add("Field ID");
+            }
+            if(catId == null)
+			{
+				missingFields.Add("Category ID");
+			}
+            if(order == null){
+				missingFields.Add("Sort Order");
+			}
+            if(label == null)
+            {
+                missingFields.Add("Field Label");
+			}
+            if(fieldTypeId == null)
+			{
+				missingFields.Add("Field Type");
+			}
+            await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
             e.Cancel = true;
         }
 

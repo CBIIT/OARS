@@ -92,7 +92,16 @@
         e.Values.TryGetValue("SortOrder", out var order);
         if (dictName == null || order == null)
         {
-            await notificationService.Error("Please fix all errors to save.");
+            List<string> missingFields = new List<string>();
+            if (dictName == null)
+			{
+				missingFields.Add("Dictionary Name");
+			}
+            if (order == null)
+            {
+                missingFields.Add("Order");
+			}
+            await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
             e.Cancel = true;
 		}
 		return e;

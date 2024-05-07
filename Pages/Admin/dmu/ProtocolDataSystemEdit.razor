@@ -90,7 +90,16 @@
 
         if (dataSystemName == null || sortOrder == null)
         {
-            await notificationService.Error("Please fix all errors to save.");
+            List<string> missingFields = new List<string>();
+            if (dataSystemName == null)
+            {
+                missingFields.Add("Data System Name");
+            }
+            if (sortOrder == null)
+            {
+                missingFields.Add("Sort Order");
+            }
+            await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
             e.Cancel = true;
         }
         return e;
