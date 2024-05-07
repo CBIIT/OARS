@@ -57,5 +57,20 @@ namespace TheradexPortal.Data.Services
         {
             return await context.THORField.Where(c => c.ThorDataCategoryId.Equals(thorDataCategoryId)).ToListAsync();
         }
+
+        public async Task<bool> DeleteProfileField(ProfileField field)
+        {
+            try
+            {
+                    context.Remove(field);
+                    await context.SaveChangesAsync();
+                    return true;
+            }
+            catch (Exception ex)
+            {
+                await _errorLogService.SaveErrorLogAsync(0, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+                return false;
+            }
+        }
     }
 }

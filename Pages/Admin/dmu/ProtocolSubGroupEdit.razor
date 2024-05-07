@@ -11,6 +11,7 @@
           Editable
           Responsive
           Striped
+          Sortable
           ShowPager
           ShowPageSizes
           Filterable
@@ -30,7 +31,7 @@
            RowRemoved="@Delete"
            RowRemoving="@ConfirmDelete">
      <DataGridColumns>
-         <DataGridColumn Width="50%" Caption="Sub Group Code" Field="@nameof(ProtocolSubGroup.SubGroupCode)" Filterable="true" Sortable="false" Editable>
+         <DataGridColumn Width="50%" Caption="Sub Group Code" Field="@nameof(ProtocolSubGroup.SubGroupCode)" Filterable="true" Sortable="true" Editable SortDirection="SortDirection.Ascending">
         </DataGridColumn>
         <DataGridColumn Field="@nameof(ProtocolSubGroup.Description)" Width="50%" Caption="Description" Filterable="true" Sortable="false" Editable>
         </DataGridColumn>

@@ -11,6 +11,7 @@
           Editable
           Responsive
           Striped
+          Sortable
           ShowPager
           ShowPageSizes
           Filterable
@@ -30,7 +31,7 @@
            RowRemoved="@Delete"
            RowRemoving="@ConfirmDelete">
      <DataGridColumns>
-        <DataGridColumn Field="@nameof(ProtocolEDCDictionary.EDCDictionaryName)" Width="15%" Caption="EDC Dictionary Name" Filterable="true" Sortable="false" Editable>
+        <DataGridColumn Field="@nameof(ProtocolEDCDictionary.EDCDictionaryName)" Width="15%" Caption="EDC Dictionary Name" Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending" Editable>
          </DataGridColumn>
         <DataGridColumn Field="@nameof(ProtocolEDCDictionary.EDCItemName)" Caption="EDC Dictionary Options" Width="15%" Filterable="true" Editable></DataGridColumn>
          <DataGridColumn Field="@nameof(ProtocolEDCDictionary.EDCItemId)" Caption="EDC Dictionary Value" Width="15%" Filterable="true" Editable></DataGridColumn>

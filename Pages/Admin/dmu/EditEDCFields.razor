@@ -11,6 +11,7 @@
           Editable
           Responsive
           Striped
+          Sortable
           ShowPager
           ShowPageSizes
           Filterable
@@ -30,7 +31,7 @@
            RowRemoving="@ConfirmDelete"
            RowRemoved="@Delete">
      <DataGridColumns>
-         <DataGridColumn Width="15%" Caption="EDC Form ID" Filterable="true" Sortable="false" Editable>
+         <DataGridColumn Width="15%" Caption="EDC Form ID" Filterable="true" Sortable="true" Editable SortDirection="SortDirection.Ascending">
              <DisplayTemplate>
                  @{
                     if (context.ProtocolEDCForm != null)
