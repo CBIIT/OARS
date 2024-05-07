@@ -16,6 +16,7 @@
           ShowPageSizes
           Filterable
           FilterMethod="DataGridFilterMethod.StartsWith"
+          NewItemDefaultSetter="@SetActive"
           MaxPaginationLinks="5"
           PagerPosition="DataGridPagerPosition.Bottom"
           PagerOptions="new(){ButtonSize=Size.Default,
@@ -84,6 +85,11 @@
     {
         this.dictionaryList = await dictionaryService.GetDictionaries();
     }
+
+    public void SetActive(ThorDictionary item)
+	{
+		item.IsActive = true;
+	}
 
     public async void Save(SavedRowItem<ThorDictionary, Dictionary<string, object>> e)
     {

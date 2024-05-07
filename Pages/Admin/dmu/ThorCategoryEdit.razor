@@ -32,7 +32,8 @@
             FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
             EditMode="DataGridEditMode.Inline"
             RowUpdated="@Save"
-            RowInserted="@Save">
+            RowInserted="@Save"
+            NewItemDefaultSetter="@SetActive">
         <DataGridColumns>
          <DataGridColumn Width="35%" Field="@nameof(ThorCategory.CategoryName)" Caption="OARS Data Category" Editable Filterable="true" Sortable="true">
             </DataGridColumn>
@@ -120,4 +121,9 @@
             return;
         }
     }
+
+    public void SetActive(ThorCategory item)
+	{
+		item.IsActive = true;
+	}
 }
