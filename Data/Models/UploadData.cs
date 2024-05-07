@@ -120,6 +120,8 @@ namespace TheradexPortal.Data.Models
         public List<CRFRule> CRFRules { get; set; }
 
         public List<CRFModel> CRFs { get; set; }
+
+        public string MedidataEnvironment { get; set; }
     }
 
     public class FileMetadata

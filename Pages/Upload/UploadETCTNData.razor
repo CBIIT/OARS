@@ -341,8 +341,17 @@
                 {
                     await NotificationService.Error("There's an error loading the studies. Please try again later.");
                 }
+                else if (string.IsNullOrWhiteSpace(uploadConfiguration.MedidataEnvironment))
+                {
+                    await NotificationService.Error("Medidata Environment is not set. Please try again later.");
+                }
+                else if (uploadConfiguration.MedidataEnvironment.IndexOf("prod", StringComparison.InvariantCultureIgnoreCase) >= 0
+                                && currentEnvironment.IndexOf("prod", StringComparison.InvariantCultureIgnoreCase) < 0)
+                {
+                    await NotificationService.Error($"Medidata Environment {uploadConfiguration.MedidataEnvironment} is invalid in this environment. Please try again later.");
+                }
                 else
-                    protocols = protocolData.Select(t => t.Protocol + "(FUNCTEST)").ToList();
+                    protocols = protocolData.Select(t => $"{t.Protocol}({uploadConfiguration.MedidataEnvironment})").ToList();
 
                 await OnReset();
             }

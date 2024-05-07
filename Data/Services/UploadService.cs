@@ -52,6 +52,8 @@ namespace TheradexPortal.Data.Services
 
             uploadConfiguration.CRFs = GetCRFs();
 
+            uploadConfiguration.MedidataEnvironment = _uploadSettings.MedidataEnvironment;
+
             return uploadConfiguration;
         }
 

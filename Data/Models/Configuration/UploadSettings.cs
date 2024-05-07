@@ -12,6 +12,6 @@
 
         public string CRFRulesPath { get; set; }
 
-        public string WebReportingETCTNDataUploadURL { get; set; }
+        public string MedidataEnvironment { get; set; }
     }
 }
