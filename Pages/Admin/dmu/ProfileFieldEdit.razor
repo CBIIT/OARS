@@ -34,6 +34,7 @@
           FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
           EditMode="DataGridEditMode.Inline"
           RowUpdated="@Save"
+          NewItemDefaultSetter="@CheckCategories"
           RowInserted="@Save"
           RowRemoving="@ConfirmDelete"
           RowRemoved="@Delete">
@@ -43,7 +44,7 @@
                 @context?.ThorField?.Category?.ThorDataCategoryId
             </DisplayTemplate>
             <EditTemplate>
-                <SelectList TItem="ThorCategory" TValue="string" Data="@categoryList" TextField="@((item)=>item.CategoryName)" ValueField="@((item)=>item.ThorDataCategoryId)" SelectedValueChanged="OnSelectedCategoryValueChanged" DefaultItemText="Select the THOR DataCategory"></SelectList>
+                <SelectList TItem="ThorCategory" TValue="string" Data="@categoryList" TextField="@((item)=>item.CategoryName)" ValueField="@((item)=>item.ThorDataCategoryId)" SelectedValueChanged="OnSelectedCategoryValueChanged" DefaultItemText="Select the OARS DataCategory"></SelectList>
             </EditTemplate>
         </DataGridColumn>
         <DataGridColumn Width="35%" Field="THORFieldId" Caption="OARS Field" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
@@ -116,6 +117,8 @@
         this.profileCategories = await profileCategoryService.GetCategories(profile);
         this.selectedProfile = await profileService.GetProfile(profile);
         this.categoryList = await categoryService.GetCategories();
+
+        this.categoryList = this.categoryList.Where(x=> profileCategories.Any(y=> y.ThorDataCategoryId == x.ThorDataCategoryId)).ToList();
     }
 
     public async void Save(SavedRowItem<ProfileField, Dictionary<string, object>> savedRowItem)
@@ -148,6 +151,14 @@
                 selectedCategoryList.Add(thorField.ThorDataCategoryId);
             }
         }
+    }
+
+    public async void CheckCategories(ProfileField item)
+    {
+        var updatedCategories = await profileCategoryService.GetCategories(profile);
+        this.categoryList = await categoryService.GetCategories();
+        this.categoryList = this.categoryList.Where(x => updatedCategories.Any(y => y.ThorDataCategoryId == x.ThorDataCategoryId)).ToList();
+        updatedCategories = new List<ProfileDataCategory>();
     }
 
     async Task OnSelectedCategoryValueChanged(string categoryId)
