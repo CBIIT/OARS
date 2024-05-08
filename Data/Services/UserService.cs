@@ -671,5 +671,17 @@ namespace TheradexPortal.Data.Services
             }
             return false ;
         }
+
+        public List<string> GetProtocolAccessForUser(int userId)
+        {
+            List<string> protocolIds = new List<string>();
+
+            var userProtocols = context.User_Protocols.Where(up => (up.UserId == userId && (up.ExpirationDate == null || up.ExpirationDate > DateTime.Now))).ToList();
+            var groupProtocols = context.Group_Protocols.Where(gp => (gp.GroupId == context.User_Groups.Where(ug => ug.UserId == userId).Select(ug => ug.GroupId).FirstOrDefault()) && gp.IsActive).ToList();
+            protocolIds.AddRange(userProtocols.Select(up => up.StudyId));
+            protocolIds.AddRange(groupProtocols.Select(gp => gp.StudyId));
+
+            return protocolIds;
+        }
     }
 }
