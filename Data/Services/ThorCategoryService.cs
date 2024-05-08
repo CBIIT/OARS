@@ -17,7 +17,10 @@ namespace TheradexPortal.Data.Services
         public async Task<IList<ThorCategory>> GetCategories() {
             return await context.THORDataCategory.OrderBy(c => c.SortOrder).ToListAsync();
         }
-
+        public async Task<ThorCategory> GetCategory(string id)
+        {
+            return await context.THORDataCategory.FirstOrDefaultAsync(x => x.ThorDataCategoryId == id);
+        }
         public async Task<bool> SaveCategory(ThorCategory category)
         {
             try

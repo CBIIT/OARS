@@ -78,9 +78,13 @@
         }
     }
 
-    public void EditCategory(ProtocolDataCategory category)
+    public async void EditCategory(ProtocolDataCategory category)
     {
-        navigation.NavigateTo($"/admin/dmu/mapping/{category.ProtocolCategoryId}");
+        if(category.ProtocolCategoryId == 0)
+        {
+            await protocolDataCategoryService.SaveCategory(category, this.protocolMappingId);
+        }
+        navigation.NavigateTo($"/admin/dmu/form-field-mapping/{category.ProtocolCategoryId}?protocol={protocolMapping.ProtocolTitle}&protocolMappingId={protocolMappingId}");
     }
 
     public string MappingStatus()
