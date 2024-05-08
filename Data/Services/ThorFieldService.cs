@@ -42,6 +42,7 @@ namespace TheradexPortal.Data.Services
                 if (currentField == null || field.CreateDate == null)
                 {
                     field.IsActive = true;
+                    field.SortOrder = field.SortOrder ?? 0;
                     field.CreateDate = currentDateTime;
                     field.UpdateDate = currentDateTime;
                     context.Add(field);
@@ -56,7 +57,7 @@ namespace TheradexPortal.Data.Services
                     currentField.Derivable = field.Derivable;
                     currentField.ThorDictionaryId = field.ThorDictionaryId;
                     currentField.IsMultiForm = field.IsMultiForm;
-                    currentField.SortOrder = field.SortOrder;
+                    currentField.SortOrder = field.SortOrder ?? 0;
                     currentField.IsActive = field.IsActive;
                     currentField.UpdateDate = currentDateTime;
                     context.Update(currentField);

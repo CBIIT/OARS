@@ -29,6 +29,7 @@ namespace TheradexPortal.Data.Services
                 if (currentCategory == null || category.CreateDate == null)
                 {
                     category.IsActive = true;
+                    category.SortOrder = category.SortOrder ?? 0;
                     category.CreateDate = currentDateTime;
                     category.UpdateDate = currentDateTime;
                     context.Add(category);
@@ -39,7 +40,7 @@ namespace TheradexPortal.Data.Services
                     currentCategory.CategoryName = category.CategoryName;
                     currentCategory.ThorDataCategoryId = category.ThorDataCategoryId;
                     currentCategory.IsMultiForm = category.IsMultiForm;
-                    currentCategory.SortOrder = category.SortOrder;
+                    currentCategory.SortOrder = category.SortOrder ?? 0;
                     currentCategory.IsActive = category.IsActive;
                     currentCategory.UpdateDate = currentDateTime;
                     context.Update(currentCategory);
