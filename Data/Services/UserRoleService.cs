@@ -49,7 +49,7 @@ namespace TheradexPortal.Data.Services
 
         public bool CheckRoleName(string roleName, int roleId)
         {
-            Role foundRole = context.Roles.FirstOrDefault(r => r.RoleName == roleName && r.RoleId != roleId);
+            Role foundRole = context.Roles.FirstOrDefault(r => r.RoleName.ToUpper() == roleName.ToUpper() && r.RoleId != roleId);
             return foundRole == null;
         }
 

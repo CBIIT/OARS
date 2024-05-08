@@ -39,7 +39,7 @@ namespace TheradexPortal.Data.Services
         }
         public bool CheckEmailAddress(string emailAddress, int userId)
         {
-            User foundUser = context.Users.FirstOrDefault(u=>u.EmailAddress == emailAddress && u.UserId != userId);
+            User foundUser = context.Users.FirstOrDefault(u=>u.EmailAddress.ToUpper() == emailAddress.ToUpper() && u.UserId != userId);
             return foundUser == null;
         }
         public bool SaveUser(User user, int loggedInUserId)
