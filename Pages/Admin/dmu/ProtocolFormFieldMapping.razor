@@ -4,7 +4,7 @@
 @inject IConfiguration configuration
 @layout AdminLayout
 @page "/admin/dmu/form-field-mapping/{protocolCategoryId:int}"
-<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })"></AdminRoleCheck>
+<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })" AllowedTHORRoles="@(new List<string> { "DMU Study Mapping", "DMU Study Admin", "DMU Global Admin" })"></AdminRoleCheck>
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Mapping</h2></Div>
 <Row Background="Background.Light" Style="padding-bottom:10px;">
     <Row>

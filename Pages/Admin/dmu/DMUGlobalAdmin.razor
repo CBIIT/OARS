@@ -6,11 +6,7 @@
 @layout AdminLayout
 
 @page "/admin/dmu/global-admin"
-@*
-    TODO: Add ThorRoleCheck check for DMU roles when they are created
-
-<ThorRoleCheck AllowedRoles="@(new List<string> { "??" })"></ThorRoleCheck>
-*@
+<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })" AllowedTHORRoles="@(new List<string> { "DMU Global Admin" })"></AdminRoleCheck>
 <div class="dmu-admin-step-container">
     <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Global Administration</h2></Div>
     <Row Class="dmu-admin-step-container">

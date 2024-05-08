@@ -1,10 +1,12 @@
 ﻿@using System.Security.Claims;
 @using Microsoft.AspNetCore.Authentication;
 @using Microsoft.AspNetCore.Authentication.Cookies;
+@using TheradexPortal.Data.Identity
 @inject IHttpContextAccessor httpContextAccessor
 
 @code {
     [Parameter] public List<string> AllowedRoles { get; set; } = null;
+    [Parameter] public List<string> AllowedTHORRoles { get; set; } = null;
     [Inject] private NavigationManager navigation { get; set; } = null!;
 
     protected override Task OnParametersSetAsync()
@@ -14,14 +16,23 @@
     protected override async Task OnInitializedAsync()
     {
         // Check if user has any roles in the AllowedRoles array
-        bool hasPermissions = false;
-        foreach (string allowedRole in AllowedRoles)
+        if (httpContextAccessor?.HttpContext?.User == null)
         {
-            if (httpContextAccessor.HttpContext.User.HasClaim(c=>c.Type == "Admin-" + allowedRole))
-                hasPermissions = true;
+            navigation.NavigateTo("/admin");
+            return;
+        }
+        bool hasPermissions = false;
+        if (AllowedRoles != null)
+        {
+            hasPermissions = httpContextAccessor.HttpContext.User.HasAnyAdminRole(AllowedRoles.ToArray());
+        }
+        bool hasThorPermissions = false;
+        if (AllowedTHORRoles != null)
+        {
+            hasThorPermissions = httpContextAccessor.HttpContext.User.HasAnyTHORRole(AllowedTHORRoles.ToArray());
         }
 
-        if (!hasPermissions)
+        if (!hasPermissions && !hasThorPermissions)
             navigation.NavigateTo("/admin");
 
         await base.OnInitializedAsync();

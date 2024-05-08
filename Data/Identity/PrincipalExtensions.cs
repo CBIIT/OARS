@@ -33,6 +33,37 @@ namespace TheradexPortal.Data.Identity
             return principal.HasClaim(ThorClaimType.Role, role);
         }
 
+        public  static bool HasAnyTHORRole(this ClaimsPrincipal principal, params string[] roles)
+        {
+            foreach (var role in roles)
+            {
+                if (principal.HasTHORRole(role))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static bool HasAdminRole(this ClaimsPrincipal principal, string adminRole)
+        {
+            return principal.HasClaim(c => c.Type == "Admin-" + adminRole);
+        }
+
+        public static bool HasAnyAdminRole(this ClaimsPrincipal principal, params string[] adminRoles)
+        {
+            foreach (var adminRole in adminRoles)
+            {
+                if (principal.HasAdminRole(adminRole))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public static bool IsAdmin(this ClaimsPrincipal principal)
         {
             return principal.HasClaim(ThorClaimType.IsAdmin, true.ToString());
