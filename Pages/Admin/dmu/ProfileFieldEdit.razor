@@ -34,6 +34,7 @@
           FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
           EditMode="DataGridEditMode.Inline"
           RowUpdated="@Save"
+          NewItemDefaultSetter="@CheckCategories"
           RowInserted="@Save"
           RowRemoving="@ConfirmDelete"
           RowRemoved="@Delete">
@@ -150,6 +151,14 @@
                 selectedCategoryList.Add(thorField.ThorDataCategoryId);
             }
         }
+    }
+
+    public async void CheckCategories(ProfileField item)
+    {
+        var updatedCategories = await profileCategoryService.GetCategories(profile);
+        this.categoryList = await categoryService.GetCategories();
+        this.categoryList = this.categoryList.Where(x => updatedCategories.Any(y => y.ThorDataCategoryId == x.ThorDataCategoryId)).ToList();
+        updatedCategories = new List<ProfileDataCategory>();
     }
 
     async Task OnSelectedCategoryValueChanged(string categoryId)
