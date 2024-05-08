@@ -31,6 +31,7 @@ namespace TheradexPortal.Data.Services
 
                 if (currentCategory == null || category.CreateDate == null)
                 {
+                    category.IsActive = true;
                     category.SortOrder = category.SortOrder ?? 0;
                     category.CreateDate = currentDateTime;
                     category.UpdateDate = currentDateTime;

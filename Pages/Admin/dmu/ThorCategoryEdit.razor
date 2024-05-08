@@ -34,6 +34,7 @@
             EditMode="DataGridEditMode.Inline"
             RowUpdated="@Save"
             RowInserted="@Save"
+            NewItemDefaultSetter="@SetActive"
             RowInserting="@Verify">
         <DataGridColumns>
          <DataGridColumn Width="35%" Field="@nameof(ThorCategory.CategoryName)" Caption="OARS Data Category" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
@@ -143,4 +144,9 @@
             return;
         }
     }
+
+    public void SetActive(ThorCategory item)
+	{
+		item.IsActive = true;
+	}
 }

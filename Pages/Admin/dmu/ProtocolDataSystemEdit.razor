@@ -15,6 +15,7 @@
           Sortable
           ShowPager
           ShowPageSizes
+          NewItemDefaultSetter="@SetActive"
           Filterable
           FilterMethod="DataGridFilterMethod.StartsWith"
           MaxPaginationLinks="5"
@@ -83,6 +84,11 @@
         this.protocolDataSystemList = await protocolDataSystemService.GetProtocolDataSystems();
     }
 
+    public void SetActive(ProtocolDataSystem item)
+	{
+		item.IsActive = true;
+    }
+
     public async Task<CancellableRowChange<ProtocolDataSystem>> Verify(CancellableRowChange<ProtocolDataSystem, Dictionary<string, object>> e)
     {
         e.Values.TryGetValue("DataSystemName", out var dataSystemName);
@@ -103,6 +109,7 @@
             e.Cancel = true;
         }
         return e;
+
 	}
 
     public async void Save(SavedRowItem<ProtocolDataSystem, Dictionary<string, object>> e)

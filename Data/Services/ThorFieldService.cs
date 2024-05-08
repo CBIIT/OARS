@@ -46,6 +46,7 @@ namespace TheradexPortal.Data.Services
 
                 if (currentField == null || field.CreateDate == null)
                 {
+                    field.IsActive = true;
                     field.SortOrder = field.SortOrder ?? 0;
                     field.CreateDate = currentDateTime;
                     field.UpdateDate = currentDateTime;

@@ -20,6 +20,7 @@
           Striped
           ShowPager
           ShowPageSizes
+          NewItemDefaultSetter="@SetActive"
           Filterable
            FilterMethod="DataGridFilterMethod.StartsWith"
            MaxPaginationLinks="5"
@@ -181,6 +182,11 @@
         this.fieldTypes = await fieldService.GetFieldTypes();
         this.dictionaryList = await dictionaryService.GetDictionaries();
     }
+
+    public void SetActive(ThorField item)
+	{
+		item.IsActive = true;
+	}
 
     public async Task<CancellableRowChange<ThorField>> Verify(CancellableRowChange<ThorField, Dictionary<string, object>> e)
     {
