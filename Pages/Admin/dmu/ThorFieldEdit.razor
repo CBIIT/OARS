@@ -20,7 +20,7 @@
           Striped
           ShowPager
           ShowPageSizes
-          NewItemDefaultSetter="@SetActive"
+          NewItemDefaultSetter="@NewItemAction"
           Filterable
            FilterMethod="DataGridFilterMethod.StartsWith"
            MaxPaginationLinks="5"
@@ -183,10 +183,13 @@
         this.dictionaryList = await dictionaryService.GetDictionaries();
     }
 
-    public void SetActive(ThorField item)
-	{
-		item.IsActive = true;
-	}
+    public async void NewItemAction(ThorField item)
+    {
+        item.IsActive = true;
+        var updatedCategories = await categoryService.GetCategories();
+        this.categoryList = updatedCategories;
+    }
+
 
     public async Task<CancellableRowChange<ThorField>> Verify(CancellableRowChange<ThorField, Dictionary<string, object>> e)
     {
