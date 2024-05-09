@@ -1,5 +1,6 @@
 ﻿@using TheradexPortal.Data.Models;
 @using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Identity;
 @inject IHttpContextAccessor httpContextAccessor
 @inject IConfiguration configuration
 @layout AdminLayout
@@ -8,7 +9,10 @@
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Mapping</h2></Div>
 <Row Background="Background.Light" Style="padding-bottom:10px;">
     <Row>
-        <Text><b>Protocol:</b> @protocolMapping.ProtocolTitle</Text>
+        <Column><Text><b>Protocol:</b> @protocolMapping.ProtocolTitle</Text></Column>
+        <LoadingIndicator @ref="loadingIndicator" >
+        <Column><Text><b>Copy Mappings From:</b></Text> <SelectList TItem="ProtocolMapping" TValue="int?" Data="@copyFromList" TextField="@((item) => item.ProtocolTitle)" ValueField="@((item) => item.ProtocolMappingId)" SelectedValue="@protocolMapping.SourceProtocolMappingId" SelectedValueChanged="@((v) => {protocolMapping.SourceProtocolMappingId = v; CopyMapping(v);})" Disabled="@(MappingStatus() != "Not Started")" DefaultItemText="Select a Protocol" DefaultItemValue="0"></SelectList></Column>
+        </LoadingIndicator>
     </Row>
     <Row>
         <Column><Text><b>Data Mapping Status:</b> @MappingStatus()</Text></Column>
@@ -63,12 +67,15 @@
     [Inject] private NavigationManager navigation { get; set; } = null!;
     [Inject] INotificationService notificationService { get; set; }
     [Inject] private IMessageService messageService { get; set; } = null!;
+    [Inject] IUserService userService { get; set; } = null!;
 
     [Parameter] public int protocolMappingId { get; set; }
 
     private DataGrid<ProtocolDataCategory> dataGridRef;
     private IList<ProtocolDataCategory> protocolDataCategoryList;
     private ProtocolMapping protocolMapping;
+    private IList<ProtocolMapping> copyFromList;
+    private LoadingIndicator loadingIndicator;
 
     protected override async Task OnInitializedAsync()
     {
@@ -76,6 +83,23 @@
             this.protocolDataCategoryList = await protocolDataCategoryService.GetCategoriesByMappingProfile(protocolMappingId);
             this.protocolMapping = await protocolMappingService.GetProtocolMapping(protocolMappingId);
         }
+
+        List<string> allowed = new List<string> { "DMU Study Admin", "DMU Global Admin" };
+        List<string> adminRole = new List<string> { "IT" };
+        if (httpContextAccessor?.HttpContext?.User.HasAnyTHORRole(allowed.ToArray()) == false && httpContextAccessor?.HttpContext?.User.HasAnyAdminRole(adminRole.ToArray()) == false)
+        {
+            var studyIds = userService.GetProtocolAccessForUser(httpContextAccessor.HttpContext.User.GetUserId());
+            copyFromList = await protocolMappingService.GetProtocolMappings(studyIds, false);
+        }
+        else
+        {
+            copyFromList = await protocolMappingService.GetProtocolMappings(false);
+        }
+
+        copyFromList = copyFromList
+            .GroupBy(obj => obj.THORStudyId)
+            .Select(group => group.OrderByDescending(obj => obj.MappingVersion).First())
+            .ToList();
     }
 
     public async void EditCategory(ProtocolDataCategory category)
@@ -90,9 +114,8 @@
     public string MappingStatus()
     {
         // Determine the overall mapping status of the categories
-        // If any are incomplete, return "Incomplete"
-        // otherwise it's either "Not Started" or "Complete"
         int notStarted = 0;
+        int completed = 0;
         foreach (var category in protocolDataCategoryList)
         {
             if (category.ProtocolCategoryStatusId == 1)
@@ -103,15 +126,45 @@
             {
                 return "Incomplete";
             }
+            else if(category.ProtocolCategoryStatusId == 3)
+            {
+                completed++;
+            }
         }
 
         if(notStarted == protocolDataCategoryList.Count)
         {
             return "Not Started";
         }
+        else if(notStarted > 0 && completed > 0)
+        {
+            return "Incomplete";
+        }
 
         return "Complete";
     }
+
+    public async void CopyMapping(int? mappingId)
+    {
+        if (mappingId != null)
+        {
+            await loadingIndicator.Show();
+            if(await messageService.Confirm("Are you sure you want to copy the selected mapping?", "Confirm Source Mapping Copy"))
+            {
+                var copyResult = await protocolMappingService.CopyMapping(mappingId.Value, protocolMappingId);
+
+                if(copyResult)
+                {
+                    await notificationService.Success("Mapping copied successfully");
+                }
+                else
+                {
+                    await notificationService.Error("Error copying mapping");
+                }
+            }
+            await loadingIndicator.Hide();
+        }
+	}
 
     public void GenerateMapping()
     {
