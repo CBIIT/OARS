@@ -7,6 +7,7 @@
 
 
 @page "/admin/dmu/profile-categories/{profile:int}"
+<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })" AllowedTHORRoles="@(new List<string> { "DMU Global Admin" })"></AdminRoleCheck>
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Global Administration</h2></Div>
 <Row Background="Background.Light">
     <Row Background="Background.Light" Style="padding-bottom:10px;">
@@ -16,8 +17,8 @@
     </Row>
     <Steps @ref="stepsRef" SelectedStep="@selectedStep" NavigationAllowed="NavigationAllowed">
         <Items>
-            <Step Name="profilecategory">THOR Data Category</Step>
-            <Step Name="profilefield">THOR Field</Step>
+            <Step Name="profilecategory">OARS Data Category</Step>
+            <Step Name="profilefield">OARS Field</Step>
         </Items>
         <Content>
             <StepPanel Name="profilecategory"><ProfileCategoryEdit Profile="@profile"></ProfileCategoryEdit></StepPanel>

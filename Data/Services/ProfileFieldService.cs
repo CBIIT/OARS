@@ -10,7 +10,7 @@ namespace TheradexPortal.Data.Services
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
 
-        public ProfileFieldService(IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
+        public ProfileFieldService(IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, NavigationManager navigationManager) : base(databaseConnectionService)
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;
@@ -56,6 +56,21 @@ namespace TheradexPortal.Data.Services
         public async Task<IList<ThorField>> GetProfileFieldsFromDataCategory(string thorDataCategoryId)
         {
             return await context.THORField.Where(c => c.ThorDataCategoryId.Equals(thorDataCategoryId)).ToListAsync();
+        }
+
+        public async Task<bool> DeleteProfileField(ProfileField field)
+        {
+            try
+            {
+                    context.Remove(field);
+                    await context.SaveChangesAsync();
+                    return true;
+            }
+            catch (Exception ex)
+            {
+                await _errorLogService.SaveErrorLogAsync(0, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+                return false;
+            }
         }
     }
 }

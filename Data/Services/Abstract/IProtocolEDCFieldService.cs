@@ -9,6 +9,6 @@ namespace TheradexPortal.Data.Services.Abstract
         public Task<bool> SaveField(ProtocolEDCField field);
         public Task<bool> DeleteField(ProtocolEDCField field);
         public Task<bool> BulkSaveFields(DataTable fields);
-        public Task<bool> DeleteAllFieldsForFormIds(List<int> formIds);
+        public Task<bool> DeleteAllFieldsForFormIds(int protocolMappingId);
     }
 }

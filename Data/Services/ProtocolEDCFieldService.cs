@@ -11,7 +11,7 @@ namespace TheradexPortal.Data.Services
     {
         private readonly IErrorLogService _errorLogService;
         private readonly IConfiguration _configuration;
-        public ProtocolEDCFieldService(IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService, IConfiguration configuration) : base(dbFactory)
+        public ProtocolEDCFieldService(IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, IConfiguration configuration) : base(databaseConnectionService)
         {
             _errorLogService = errorLogService;
             _configuration = configuration;
@@ -64,19 +64,14 @@ namespace TheradexPortal.Data.Services
             // EF doesn't natively support bulk inserts, so the closest we can get is doing an AddRange and then SaveChanges
             // this isn't very performant, so do it the oracle way here
             DateTime curDateTime = DateTime.UtcNow;
-            string connString = _configuration.GetConnectionString("DefaultConnection");
             try
             {
-                using (var connection = new OracleConnection(connString))
+                using (var bulkCopy = new OracleBulkCopy(oracleConnection))
                 {
-                    connection.Open();
-                    using (var bulkCopy = new OracleBulkCopy(connection))
-                    {
-                        bulkCopy.DestinationSchemaName = "DMU";
-                        bulkCopy.DestinationTableName = "\"ProtocolEDCField\"";
-                        bulkCopy.BatchSize = fields.Rows.Count;
-                        bulkCopy.WriteToServer(fields);
-                    }
+                    bulkCopy.DestinationSchemaName = "DMU";
+                    bulkCopy.DestinationTableName = "\"ProtocolEDCField\"";
+                    bulkCopy.BatchSize = fields.Rows.Count;
+                    bulkCopy.WriteToServer(fields);
                 }
                 return true;
             }
@@ -105,30 +100,26 @@ namespace TheradexPortal.Data.Services
             }
         }
 
-        public async Task<bool> DeleteAllFieldsForFormIds(List<int> formIds)
+        public async Task<bool> DeleteAllFieldsForFormIds(int protocolMappingId)
         {
             try
             {
-                if (formIds.Count > 999)
-                {
-                    // Oracle has a limit of 1000 items in an IN clause, so we have to split it up
-                    List<int> formIdsCopy = new List<int>(formIds);
-                    while (formIdsCopy.Count > 0)
-                    {
-                        List<int> formIdsBatch = formIdsCopy.Take(999).ToList();
-                        formIdsCopy.RemoveRange(0, formIdsBatch.Count);
-                        string command = "DELETE FROM DMU.\"ProtocolEDCField\" WHERE \"Protocol_EDC_Form_Id\" IN (" + String.Join(",", formIdsBatch) + ")";
-                        context.Database.ExecuteSqlRaw(command);
-                    }
-                    return true;
-                }
-                else
-                {
-                    // Similar to above, this version of EF doesn't support bulk deletes and RemoveRange is too slow, so we have to do it this way
-                    string command = "DELETE FROM DMU.\"ProtocolEDCField\" WHERE \"Protocol_EDC_Form_Id\" IN (" + String.Join(",", formIds) + ")";
-                    context.Database.ExecuteSqlRaw(command);
-                    return true;
-                }
+                // Similar to above, this version of EF doesn't support bulk deletes and RemoveRange is too slow, so we have to do it this way
+                string command = $@"
+                    DELETE from 
+                      (
+                        SELECT 
+                            fld.*
+                        FROM 
+                            DMU.""ProtocolEDCField"" fld
+                            INNER JOIN DMU.""ProtocolEDCForm"" frm 
+                                ON frm.""Protocol_EDC_Form_Id"" = fld.""Protocol_EDC_Form_Id""
+                        WHERE 
+                            frm.""Protocol_Mapping_Id"" = {protocolMappingId}
+                      );";  
+
+                context.Database.ExecuteSqlRaw(command);
+                return true;
             }
             catch (Exception ex)
             {

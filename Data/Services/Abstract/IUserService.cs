@@ -26,5 +26,6 @@ namespace TheradexPortal.Data.Services.Abstract
         public bool RemoveFavorite(int userId,int favoriteId);
         public string GetUserFavoriteNamesByID(int userFavoriteId);
         public bool HasUserFavorite(int userId, bool isAdmin);
+        List<string> GetProtocolAccessForUser(int userId)
     }
 }

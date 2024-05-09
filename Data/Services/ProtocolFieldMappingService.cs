@@ -10,7 +10,7 @@ namespace TheradexPortal.Data.Services
     {
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
-        public ProtocolFieldMappingService(IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
+        public ProtocolFieldMappingService(IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, NavigationManager navigationManager) : base(databaseConnectionService)
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;
@@ -20,7 +20,7 @@ namespace TheradexPortal.Data.Services
         {
             return await context.ProtocolFieldMappings.ToListAsync();
         }
-        
+
         public async Task<IList<ProtocolFieldMapping>> GetProtocolFieldMappings(string fieldId)
         {
             return await context.ProtocolFieldMappings.Where(x => x.ThorFieldId == fieldId).Include(x => x.ProtocolEDCField).Include(p => p.ProtocolEDCField.ProtocolEDCForm).ToListAsync();
@@ -31,17 +31,10 @@ namespace TheradexPortal.Data.Services
             var thorFields = await context.THORField.Where(x => x.ThorDataCategoryId == categoryId).ToListAsync();
             var fieldIds = thorFields.Select(x => x.ThorFieldId).ToList();
             var mappings = await context.ProtocolFieldMappings.Where(x => fieldIds.Contains(x.ThorFieldId)).Include(x => x.ProtocolEDCField).Include(p => p.ProtocolEDCField.ProtocolEDCForm).ToListAsync();
-
-            foreach (string fieldId in fieldIds)
+            foreach(var mapping in mappings)
             {
-                if (!mappings.Any(x => x.ThorFieldId == fieldId))
-                {
-                    ProtocolFieldMapping mapping = new ProtocolFieldMapping();
-                    mapping.ThorFieldId = fieldId;
-                    mappings.Add(mapping);
-                }
+                mapping.ProtocolEDCFormId = mapping.ProtocolEDCField.ProtocolEDCFormId;
             }
-
             return mappings;
         }
 
@@ -60,6 +53,7 @@ namespace TheradexPortal.Data.Services
                 ProtocolFieldMapping currentMapping = context.ProtocolFieldMappings.FirstOrDefault(x => x.ProtocolFieldMappingId == protocolFieldMapping.ProtocolFieldMappingId);
                 if (currentMapping == null)
                 {
+                    protocolFieldMapping.ThorField = null;
                     protocolFieldMapping.CreateDate = currentDateTime;
                     protocolFieldMapping.UpdateDate = currentDateTime;
                     context.Add(protocolFieldMapping);
@@ -69,6 +63,7 @@ namespace TheradexPortal.Data.Services
                     currentMapping.ThorFieldId = protocolFieldMapping.ThorFieldId;
                     currentMapping.ProtocolEDCFieldId = protocolFieldMapping.ProtocolEDCFieldId;
                     currentMapping.UpdateDate = currentDateTime;
+                    context.Update(currentMapping);
                 }
 
                 await context.SaveChangesAsync();
@@ -93,7 +88,7 @@ namespace TheradexPortal.Data.Services
             {
                 await _errorLogService.SaveErrorLogAsync(0, "", ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
                 return false;
-            }   
+            }
         }
     }
 }

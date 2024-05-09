@@ -6,5 +6,6 @@ namespace TheradexPortal.Data.Services.Abstract
     {
         public Task<IList<ProfileDataCategory>> GetCategories(int profileId);
         public Task<bool> SaveCategory(int profileId, ProfileDataCategory category);
+        public Task<bool> DeleteCategory(ProfileDataCategory category);
     }
 }

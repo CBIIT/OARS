@@ -2,6 +2,7 @@
 using TheradexPortal.Data.Services.Abstract;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Protocols.WsTrust;
 namespace TheradexPortal.Data.Services
 {
     public class ProtocolDataSystemService : BaseService, IProtocolDataSystemService
@@ -9,7 +10,7 @@ namespace TheradexPortal.Data.Services
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
 
-        public ProtocolDataSystemService(IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
+        public ProtocolDataSystemService(IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, NavigationManager navigationManager) : base(databaseConnectionService)
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;
@@ -30,6 +31,7 @@ namespace TheradexPortal.Data.Services
                 if (currentProtocolDataSystem == null || protocolDataSystem.CreateDate == null)
                 {
                     protocolDataSystem.CreateDate = currentDateTime;
+                    protocolDataSystem.IsActive = true;
                     context.Add(protocolDataSystem);
                 }
                 else

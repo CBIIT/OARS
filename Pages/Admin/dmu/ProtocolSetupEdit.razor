@@ -366,17 +366,7 @@
 
     public async void Cancel()
     {
-        currentProtocolMap = new ProtocolMapping();
-        phase1 = false;
-        phase2 = false;
-        phase3 = false;
-        phase4 = false;
-        phase1IsRandomized = "S";
-        phase2IsRandomized = "S";
-        phase3IsRandomized = "S";
-        phase4IsRandomized = "S";
-
-        await InitializedAsync();
+        navigation.NavigateTo(navigation.Uri, forceLoad: true);
     }
 
     private void NavigateToGlobalDMU()

@@ -5,7 +5,7 @@
 @layout AdminLayout
 
 @page "/admin/dmu/select-profile"
-<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })"></AdminRoleCheck>
+<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })" AllowedTHORRoles="@(new List<string> { "DMU Global Admin" })"></AdminRoleCheck>
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Global Administration</h2></Div>
 <Div Padding="Padding.Is4" Margin="Margin.Is3.FromBottom" Class="dmu-admin-subpanel">
     <Row>
@@ -51,7 +51,7 @@
             </Div>
             <Div>
                 <Image Source="img/alert-icon.png" height="20px" Class="nci-alert-icon" />
-                <Text Class="dmu-admin-warning-text" TextColor="TextColor.Danger">Warning - Any update to the Global DMU table will potentially impact the DMI Processor and Reports in NCI-THOR. Any change could negatively impact existing mapped studies. Proceed with Caution.</Text>
+                <Text Class="dmu-admin-warning-text" TextColor="TextColor.Danger">Warning - Any update to the Global DMU table will potentially impact the DMI Processor and Reports in NCI-OARS. Any change could negatively impact existing mapped studies. Proceed with Caution.</Text>
             </Div>
         </Column>
     </Row>

@@ -19,6 +19,7 @@
           Responsive
           Striped
           ShowPager
+          Sortable
           ShowPageSizes
           Filterable
           FilterMethod="DataGridFilterMethod.StartsWith"
@@ -33,17 +34,20 @@
           FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
           EditMode="DataGridEditMode.Inline"
           RowUpdated="@Save"
-          RowInserted="@Save">
+          NewItemDefaultSetter="@CheckCategories"
+          RowInserted="@Save"
+          RowRemoving="@ConfirmDelete"
+          RowRemoved="@Delete">
     <DataGridColumns>
-        <DataGridColumn Width="35%" Caption="THOR Data Category" Editable Filterable="true" Sortable="false">
+        <DataGridColumn Width="35%" Caption="OARS Data Category" Editable Filterable="true" Sortable="false">
             <DisplayTemplate>
                 @context?.ThorField?.Category?.ThorDataCategoryId
             </DisplayTemplate>
             <EditTemplate>
-                <SelectList TItem="ThorCategory" TValue="string" Data="@categoryList" TextField="@((item)=>item.CategoryName)" ValueField="@((item)=>item.ThorDataCategoryId)" SelectedValueChanged="OnSelectedCategoryValueChanged" DefaultItemText="Select the THOR DataCategory"></SelectList>
+                <SelectList TItem="ThorCategory" TValue="string" Data="@categoryList" TextField="@((item)=>item.CategoryName)" ValueField="@((item)=>item.ThorDataCategoryId)" SelectedValueChanged="OnSelectedCategoryValueChanged" DefaultItemText="Select the OARS DataCategory"></SelectList>
             </EditTemplate>
         </DataGridColumn>
-        <DataGridColumn Width="35%" Field="THORFieldId" Caption="THOR Field" Editable Filterable="true" Sortable="false">
+        <DataGridColumn Width="35%" Field="THORFieldId" Caption="OARS Field" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
             <DisplayTemplate>
                 @context?.THORFieldId - @context?.ThorField?.FieldLabel
             </DisplayTemplate>
@@ -53,11 +57,11 @@
                             SelectedValueChanged="@(e =>
                         {
                             context.CellValue = Convert.ToString(e);
-                        } )" DefaultItemText="Select the THOR Field">
+                        } )" DefaultItemText="Select the OARS Field">
                 </SelectList>
             </EditTemplate>
         </DataGridColumn>
-        <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
+        <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="true">
             <EditCommandTemplate>
                 <Button><Icon Name="IconName.Edit" Clicked="@context.Clicked" /></Button>
             </EditCommandTemplate>
@@ -70,6 +74,9 @@
             <ClearFilterCommandTemplate>
                 <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
             </ClearFilterCommandTemplate>
+            <DeleteCommandTemplate>
+				<Button><Icon Name="IconName.Delete" Clicked="@context.Clicked" /></Button>
+            </DeleteCommandTemplate>
         </DataGridCommandColumn>
     </DataGridColumns>
     <ButtonRowTemplate>
@@ -90,6 +97,7 @@
     [Inject] IProfileFieldService profileFieldService { get; set; } = null!;
     [Inject] private NavigationManager navigation { get; set; } = null!;
     [Inject] INotificationService notificationService { get; set; } = null!;
+    [Inject] private IMessageService messageService { get; set; } = null!;
 
     [Parameter] public int profile { get; set; }
 
@@ -109,6 +117,8 @@
         this.profileCategories = await profileCategoryService.GetCategories(profile);
         this.selectedProfile = await profileService.GetProfile(profile);
         this.categoryList = await categoryService.GetCategories();
+
+        this.categoryList = this.categoryList.Where(x=> profileCategories.Any(y=> y.ThorDataCategoryId == x.ThorDataCategoryId)).ToList();
     }
 
     public async void Save(SavedRowItem<ProfileField, Dictionary<string, object>> savedRowItem)
@@ -143,9 +153,40 @@
         }
     }
 
+    public async void CheckCategories(ProfileField item)
+    {
+        var updatedCategories = await profileCategoryService.GetCategories(profile);
+        this.categoryList = await categoryService.GetCategories();
+        this.categoryList = this.categoryList.Where(x => updatedCategories.Any(y => y.ThorDataCategoryId == x.ThorDataCategoryId)).ToList();
+        updatedCategories = new List<ProfileDataCategory>();
+    }
+
     async Task OnSelectedCategoryValueChanged(string categoryId)
     {
         this.fieldList = await thorFieldService.GetFields();
         this.fieldList = fieldList.Where(f => f.ThorDataCategoryId.Equals(categoryId)).ToList();
+    }
+
+    public async Task<CancellableRowChange<ProfileField>> ConfirmDelete(CancellableRowChange<ProfileField> item)
+    {
+        var confirm = await messageService.Confirm("Are you sure you want to delete this field?");
+        if (!confirm)
+        {
+            item.Cancel = true;
+        }
+        return item;
+    }
+
+    public async void Delete(ProfileField field)
+    {
+        bool deleted = await profileFieldService.DeleteProfileField(field);
+		if (deleted)
+		{
+			await notificationService.Success("Field successfully deleted");
+		}
+		else
+		{
+			await notificationService.Error("Error deleting field");
+		}
     }
 }

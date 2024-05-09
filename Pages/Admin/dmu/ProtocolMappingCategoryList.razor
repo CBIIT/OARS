@@ -4,7 +4,7 @@
 @inject IConfiguration configuration
 @layout AdminLayout
 @page "/admin/dmu/category-list-map/{protocolMappingId:int}"
-<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })"></AdminRoleCheck>
+<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })" AllowedTHORRoles="@(new List<string> { "DMU Study Mapping", "DMU Study Admin", "DMU Global Admin" })"></AdminRoleCheck>
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Mapping</h2></Div>
 <Row Background="Background.Light" Style="padding-bottom:10px;">
     <Row>
@@ -78,9 +78,13 @@
         }
     }
 
-    public void EditCategory(ProtocolDataCategory category)
+    public async void EditCategory(ProtocolDataCategory category)
     {
-        navigation.NavigateTo($"/admin/dmu/mapping/{category.ProtocolCategoryId}");
+        if(category.ProtocolCategoryId == 0)
+        {
+            await protocolDataCategoryService.SaveCategory(category, this.protocolMappingId);
+        }
+        navigation.NavigateTo($"/admin/dmu/form-field-mapping/{category.ProtocolCategoryId}?protocol={protocolMapping.ProtocolTitle}&protocolMappingId={protocolMappingId}");
     }
 
     public string MappingStatus()

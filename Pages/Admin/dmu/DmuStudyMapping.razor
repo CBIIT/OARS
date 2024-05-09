@@ -4,16 +4,14 @@
 @inject IHttpContextAccessor httpContextAccessor
 @layout AdminLayout
 @page "/admin/dmu/study-mapping"
-@*
-    TODO: Add ThorRoleCheck check for DMU roles when they are created
-<ThorRoleCheck AllowedRoles="@(new List<string> { "??" })"></ThorRoleCheck>
-*@
+<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })" AllowedTHORRoles="@(new List<string> { "DMU Study Mapping", "DMU Study Admin", "DMU Global Admin" })"></AdminRoleCheck>
 
 <DataGrid @ref=dataGridRef
           TItem="ProtocolMapping"
           Class="admindatagrid"
           Data="@studyList"
           Responsive
+          Sortable
           Striped
           ShowPager
           ShowPageSizes
@@ -32,9 +30,9 @@
            @bind-SelectedRows="selectedProtocols">
      <DataGridColumns>
          <DataGridMultiSelectColumn Width="30px"></DataGridMultiSelectColumn>
-        <DataGridColumn Width="10%" Caption="Hx" Field="Protocol.RecentOrder" Editable Filterable="false" Sortable="false">
+        <DataGridColumn Width="10%" Caption="Version" Field="@nameof(ProtocolMapping.MappingVersion)" Editable Filterable="false" Sortable="false">
         </DataGridColumn>
-        <DataGridColumn Width="20%" Field="Protocol.StudyId" Sortable="false" Filterable="true" Caption="Study ID">
+        <DataGridColumn Width="20%" Field="Protocol.StudyId" Sortable="true" Filterable="true" Caption="Study ID" SortDirection="SortDirection.Ascending">
         </DataGridColumn>
         <DataGridColumn Width="50%" Field="Protocol.ProtocolTitle" Sortable="false" Filterable="true" Caption="Title">
         </DataGridColumn>
@@ -67,7 +65,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        studyList = await protocolMappingService.GetProtocolMappings(false);
+        studyList = await protocolMappingService.GetExistingProtocolMappings();
     }
 
     private async Task EditMapping(ProtocolMapping mapping)

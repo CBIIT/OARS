@@ -9,7 +9,7 @@ namespace TheradexPortal.Data.Services
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
 
-        public ThorDictionaryService(IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
+        public ThorDictionaryService(IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, NavigationManager navigationManager) : base(databaseConnectionService)
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;
@@ -29,6 +29,8 @@ namespace TheradexPortal.Data.Services
 
                 if (currentThorDictionary == null || dictionary.CreateDate == null)
                 {
+                    dictionary.IsActive = true;
+                    dictionary.SortOrder = dictionary.SortOrder ?? 0;
                     dictionary.CreateDate = currentDateTime;
                     context.Add(dictionary);
                 }
@@ -37,7 +39,7 @@ namespace TheradexPortal.Data.Services
                     currentThorDictionary.DictionaryName = dictionary.DictionaryName;
                     currentThorDictionary.DictionaryOption = dictionary.DictionaryOption;
                     currentThorDictionary.DictionaryValue = dictionary.DictionaryValue;
-                    currentThorDictionary.SortOrder = dictionary.SortOrder;
+                    currentThorDictionary.SortOrder = dictionary.SortOrder ?? 0;
                     currentThorDictionary.IsActive = dictionary.IsActive;
                     currentThorDictionary.UpdateDate = currentDateTime;
                     context.Update(currentThorDictionary);

@@ -4,7 +4,7 @@
 @inject IConfiguration configuration
 @layout AdminLayout
 @page "/admin/dmu/dictionary-list-map/{fieldId:int}"
-<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })"></AdminRoleCheck>
+<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })" AllowedTHORRoles="@(new List<string> { "DMU Study Mapping", "DMU Study Admin", "DMU Global Admin" })"></AdminRoleCheck>
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Mapping</h2></Div>
 <Row Background="Background.Light" Style="padding-bottom:10px;">
     <Row>
@@ -24,6 +24,7 @@
           Editable
           Responsive
           Striped
+          Sortable
           ShowPager
           ShowPageSizes
           MaxPaginationLinks="5"
@@ -39,7 +40,7 @@
           RowUpdated="@Save"
           RowInserted="@Save">
     <DataGridColumns>
-        <DataGridColumn Field="@nameof(ProtocolDictionaryMapping.ProtocolEDCDictionaryId)" Width="50%" Caption="For each EDC Dictionary Value" Editable Filterable="true" Sortable="true">
+        <DataGridColumn Field="@nameof(ProtocolDictionaryMapping.ProtocolEDCDictionaryId)" Width="50%" Caption="For each EDC Dictionary Value" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
             <DisplayTemplate>
                 @context.ProtocolEDCDictionaryName
             </DisplayTemplate>
@@ -47,7 +48,7 @@
                 @context.Item.ProtocolEDCDictionaryName
             </EditTemplate>
         </DataGridColumn>
-        <DataGridColumn Field="@nameof(ProtocolDictionaryMapping.THORDictionaryId)" Width="50%" Caption="Select THOR Dictionary Value" Editable Filterable="true" Sortable="true">
+        <DataGridColumn Field="@nameof(ProtocolDictionaryMapping.THORDictionaryId)" Width="50%" Caption="Select OARS Dictionary Value" Editable Filterable="true" Sortable="true">
             <DisplayTemplate>
                 @thorDictionaries.Where(d => d.ThorDictionaryId == context.THORDictionaryId).Select(d => d.DictionaryName).FirstOrDefault()
             </DisplayTemplate>
@@ -57,7 +58,7 @@
                               TextField="@((item) => item.DictionaryName)"
                               ValueField="@((item) => item.ThorDictionaryId)"
                               Data="@thorDictionaries"
-                              Placeholder="Search for a THOR Dictionary Value"
+                              Placeholder="Search for an OARS Dictionary Value"
                               SelectedValue="context.Item.THORDictionaryId"
                               SelectedValueChanged="v=>context.CellValue=v"
                               Virtualize>

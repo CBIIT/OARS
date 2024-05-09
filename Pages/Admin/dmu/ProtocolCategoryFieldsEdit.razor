@@ -15,6 +15,7 @@
           ShowPager
           ShowPageSizes
           Filterable
+          Sortable
            FilterMethod="DataGridFilterMethod.StartsWith"
            MaxPaginationLinks="5"
            PagerPosition="DataGridPagerPosition.Bottom"
@@ -31,7 +32,7 @@
            RowRemoved="@Delete"
            RowRemoving="@ConfirmDelete">
      <DataGridColumns>
-         <DataGridColumn Caption="Data Category" Width="15%" Editable>
+         <DataGridColumn Caption="Data Category" Width="15%" Editable Sortable="true" SortDirection="SortDirection.Ascending">
             <DisplayTemplate>
                 @context?.ThorDataCategoryId
             </DisplayTemplate>
@@ -40,7 +41,7 @@
                                     {
                                         context.Item.ThorDataCategoryId = Convert.ToString(e);
                                         OnSelectedCategoryValueChanged(context.Item.ThorDataCategoryId);
-                                    })" SelectedValue="@(context.Item.ThorDataCategoryId)" DefaultItemText="Select the THOR DataCategory"></SelectList>
+                                    })" SelectedValue="@(context.Item.ThorDataCategoryId)" DefaultItemText="Select the OARS DataCategory"></SelectList>
             </EditTemplate>
          </DataGridColumn>
          <DataGridColumn Caption="Field" Width="15%" Filterable="true" Editable>

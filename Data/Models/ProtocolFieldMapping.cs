@@ -19,8 +19,10 @@ namespace TheradexPortal.Data.Models
         [ForeignKey("ProtocolEDCFieldId")]
         public ProtocolEDCField ProtocolEDCField { get; set; }
         [ForeignKey("ThorFieldId")]
-        public ThorField ThorField { get; set; }
+        public ThorField? ThorField { get; set; }
         [NotMapped]
         public int ProtocolEDCFormId { get; set; }
+        [NotMapped]
+        public int ThorDictionaryId { get; set; }
     }
 }

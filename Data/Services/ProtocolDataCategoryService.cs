@@ -9,7 +9,7 @@ namespace TheradexPortal.Data.Services
     {
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
-        public ProtocolDataCategoryService(IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
+        public ProtocolDataCategoryService(IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, NavigationManager navigationManager) : base(databaseConnectionService)
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;
@@ -53,6 +53,7 @@ namespace TheradexPortal.Data.Services
                             THORDataCategory = profileCategory.ThorCategory,
                             ProtocolCategoryStatus = await context.ProtocolCategoryStatus.FirstOrDefaultAsync(x => x.ProtocolCategoryStatusId == 1),
                             ProtocolCategoryStatusId = 1,
+                            IsMultiForm = false,
                             CreateDate = DateTime.Now,
                             UpdateDate = DateTime.Now
                         };
@@ -94,6 +95,7 @@ namespace TheradexPortal.Data.Services
 
                     existingCategory.THORDataCategoryId = category.THORDataCategoryId;
                     existingCategory.ProtocolCategoryStatusId = category.ProtocolCategoryStatusId;
+                    existingCategory.IsMultiForm = category.IsMultiForm;
                     existingCategory.UpdateDate = DateTime.Now;
                 }
 

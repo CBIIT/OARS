@@ -6,23 +6,19 @@
 @layout AdminLayout
 
 @page "/admin/dmu/study-admin/{protocolMappingId:int}"
-@*
-    TODO: Add ThorRoleCheck check for DMU roles when they are created
-
-<ThorRoleCheck AllowedRoles="@(new List<string> { "??" })"></ThorRoleCheck>
-*@
+<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })" AllowedTHORRoles="@(new List<string> { "DMU Study Admin", "DMU Global Admin" })"></AdminRoleCheck>
 <div class="dmu-admin-step-container">
     <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Protocol Setup</h2>@this.protocolNum - @this.mappingName</Div>
     <Row Class="dmu-admin-step-container">
         <Steps @ref="stepsRef" SelectedStep="@selectedStep" NavigationAllowed="NavigationAllowed">
             <Items>
-                <Step Name="protocolsetup">Protocol Setup</Step>
+                <Step Name="protocolsetup" Class="dmu-admin-step-item">Protocol Setup</Step>
                 <Step Name="protocolconfig">Config Options</Step>
                 <Step Name="protocolfileupload">File Upload</Step>
                 <Step Name="edcformsedit">Edit EDC Forms</Step>
                 <Step Name="protocolfieldedit">Edit EDC Fields</Step>
                 <Step Name="protocoldictionary">EDC Dictionary</Step>
-                <Step Name="protocolcategoryfieldedit">THOR Category - Field</Step>
+                <Step Name="protocolcategoryfieldedit">OARS Category - Field</Step>
                 <Step Name="protocoltac">Protocol TAC</Step>
                 <Step Name="protocoldisease">Protocol Disease</Step>
                 <Step Name="protocolagentedit">Protocol Agent</Step>

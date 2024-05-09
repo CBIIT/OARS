@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.Authentication;
 @using Microsoft.AspNetCore.Authentication.Cookies;
 @using TheradexPortal.Data.Static;
+@using TheradexPortal.Data.Identity
 @inject IHttpContextAccessor httpContextAccessor
 
 @code {
@@ -15,12 +16,13 @@
     protected override async Task OnInitializedAsync()
     {
         // Check if user has any roles in the AllowedRoles array
-        bool hasPermissions = false;
-        foreach (string allowedRole in AllowedRoles)
+        if (httpContextAccessor?.HttpContext?.User == null)
         {
-            if (httpContextAccessor.HttpContext.User.HasClaim(c => c.Type == ThorClaimType.Role && c.Value == allowedRole ))
-                hasPermissions = true;
+            navigation.NavigateTo("/");
+            return;
         }
+
+        bool hasPermissions = httpContextAccessor.HttpContext.User.HasAnyTHORRole(AllowedRoles.ToArray());
 
         if (!hasPermissions)
             navigation.NavigateTo("/");

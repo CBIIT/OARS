@@ -96,27 +96,33 @@
                                             </BarLink>
                                         </BarItem>
                                         }
-                                        @*
-                                            TODO: Add HasTHORRole() check for DMU roles when they are created
-                                        *@
+                                        @if (CheckRole(new List<string> { "IT" }) || context.User.HasTHORRole("DMU Global Admin"))
+                                        {
                                         <BarItem>
                                             <BarLink To="/admin/dmu/select-profile">
                                                 <BarIcon IconName="IconName.Wrench" />
                                                 DMU Global Admin
                                             </BarLink>
                                         </BarItem>
+                                        }
+                                            @if (CheckRole(new List<string> { "IT" }) || context.User.HasAnyTHORRole("DMU Study Admin", "DMU Global Admin"))
+                                            {
                                         <BarItem>
                                             <BarLink To="/admin/dmu/select-study">
                                                 <BarIcon IconName="IconName.Book" />
                                                 DMU Study Admin
                                             </BarLink>
                                         </BarItem>
+                                        }
+                                            @if (CheckRole(new List<string> { "IT" }) || context.User.HasAnyTHORRole("DMU Study Mapping", "DMU Study Admin", "DMU Global Admin"))
+                                            {
                                         <BarItem>
                                             <BarLink To="/admin/dmu/study-mapping">
                                                 <BarIcon IconName="IconName.Pen" />
                                                 DMU Study Mapping
                                             </BarLink>
                                         </BarItem>
+                                        }
                                     </BarStart>
                                 </BarMenu>
                             </Bar>
@@ -171,7 +177,18 @@
 
     Task OnButtonClicked()
     {
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+        if (httpContextAccessor.HttpContext == null)
+        {
+            Navigation.NavigateTo($"Signout", true);
+            return Task.CompletedTask;
+        }
+        var userIdClaim = httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId);
+        if (userIdClaim == null)
+        {
+            Navigation.NavigateTo($"Signout", true);
+            return Task.CompletedTask;
+        }
+        int userId = Convert.ToInt32(userIdClaim.Value);
         userService.SaveActivityLog(userId, ThorActivityType.Logout);
         Navigation.NavigateTo($"Signout", true);
 
@@ -180,13 +197,11 @@
 
     private bool CheckRole(List<string> allowedRoles)
     {
-        bool roleFound = false;
-        foreach (string allowedRole in allowedRoles)
+        if (httpContextAccessor?.HttpContext?.User == null)
         {
-            if (httpContextAccessor.HttpContext.User.HasClaim(c => c.Type == "Admin-" + allowedRole))
-                roleFound = true;
+            return false;
         }
-        return roleFound;
+        return httpContextAccessor.HttpContext.User.HasAnyAdminRole(allowedRoles.ToArray());
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
