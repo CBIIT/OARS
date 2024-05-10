@@ -13,6 +13,7 @@
 <Div Padding="Padding.Is4" Margin="Margin.Is3.FromBottom">
     @if (!allowEdit)
     {
+        <LoadingIndicator @ref="loading">
         <Row Padding="Padding.Is2">
             <Column ColumnSize="ColumnSize.Is2" Style="text-align:right;">
                 <Text>File Type:</Text>
@@ -51,7 +52,6 @@
                 }
             </Column>
         </Row>
-        <LoadingIndicator @ref="loading">
             <Row Padding="Padding.Is2">
                 @if (selectedFileType == "ALS" || selectedFileType == "XML")
                 {
