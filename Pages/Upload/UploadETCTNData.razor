@@ -395,7 +395,7 @@
     {
         return Visibility.Visible;
 
-        // if (ETCTNUploadRequestModel.CRF != null && (ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS" || ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP"))
+        // if (ETCTNUploadRequestModel.CRF != null && (ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS" || ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP_ASSAY"))
         //     return Visibility.Visible;
         // else
         //     return Visibility.Invisible;
@@ -403,7 +403,7 @@
 
     private Blazorise.Visibility CheckExternalLinkVisibility()
     {
-        if (ETCTNUploadRequestModel.CRF != null && !(ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS" || ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP"))
+        if (ETCTNUploadRequestModel.CRF != null && !(ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS" || ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP_ASSAY"))
             return Visibility.Visible;
         else
             return Visibility.Invisible;
@@ -411,14 +411,14 @@
 
     private bool IsFileUploadDisabled()
     {
-        if (ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS" || ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP")
+        if (ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS" || ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP_ASSAY")
             return false;
         else
             return true;
 
         // if (SelectedCRF == null)
         //     return true;
-        // else if (ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS" || ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP")
+        // else if (ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS" || ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP_ASSAY")
         //     return false;
         // else
         //     return true;

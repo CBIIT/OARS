@@ -105,7 +105,7 @@ namespace TheradexPortal.Data.Services
         {
             return new List<CRFModel>
             {
-                new CRFModel{FormName = "Biospecimen Roadmap", FormOID = "BIOSPECIMEN_ROADMAP" },
+                new CRFModel{FormName = "Biospecimen Roadmap", FormOID = "BIOSPECIMEN_ROADMAP_ASSAY" },
                 new CRFModel{FormName = "Receiving Status", FormOID = "RECEIVING_STATUS" },
                 new CRFModel{FormName = "Shipping Status", FormOID = "SHIPPING_STATUS" },
                 new CRFModel{FormName = "IFA", FormOID = "IFA_RESULT_SUMMARY" },
@@ -298,7 +298,7 @@ namespace TheradexPortal.Data.Services
 
             if (ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS")
                 prefix = "RS";
-            else if (ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP")
+            else if (ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP_ASSAY")
                 prefix = "BR";
             else if (ETCTNUploadRequestModel.CRF == "LIBRARY_QC")
                 prefix = "LQ";
