@@ -187,8 +187,12 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var watch = System.Diagnostics.Stopwatch.StartNew();
         this.categoryList = await categoryService.GetCategories();
         this.protocolFields = await protocolFieldService.GetAllProtocolFieldsByMappingId(protocolMappingId);
+        watch.Stop();
+        var elapsedMs = watch.ElapsedMilliseconds;
+        System.Console.WriteLine($"Protocol Category Field Elapsed time: {elapsedMs} ms");
     }
 
     public async void Save(SavedRowItem<ProtocolField, Dictionary<string, object>> savedRowItem)

@@ -119,9 +119,13 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var watch = System.Diagnostics.Stopwatch.StartNew();
         this.protocolForms = await protocolEDCFormService.GetFormsForMappingId(this.protocolMappingId);
         var formIds = this.protocolForms.Select(x => x.ProtocolEDCFormId).ToList();
         this.protocolFields = await protocolFieldService.GetFieldsByFormIds(formIds);
+        watch.Stop();
+        var elapsedMs = watch.ElapsedMilliseconds;
+        System.Console.WriteLine($"EDC Fields Elapsed time: {elapsedMs} ms");
     }
 
 
