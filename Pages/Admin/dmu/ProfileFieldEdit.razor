@@ -40,7 +40,7 @@
                 @context?.ThorField?.Category?.ThorDataCategoryId
             </DisplayTemplate>
             <EditTemplate>
-                <SelectList TItem="ThorCategory" TValue="string" Data="@categoryList" TextField="@((item)=>item.CategoryName)" ValueField="@((item)=>item.ThorDataCategoryId)" SelectedValueChanged="OnSelectedCategoryValueChanged" DefaultItemText="Select the THOR DataCategory"></SelectList>
+                <SelectList TItem="ThorCategory" TValue="string" Data="@categoryList" TextField="@((item)=>item.CategoryName)" ValueField="@((item)=>item.ThorDataCategoryId)" SelectedValueChanged="OnSelectedCategoryValueChanged" DefaultItemValue="@(context.Item?.ThorField?.ThorDataCategoryId)" DefaultItemText="@(context.Item?.ThorField?.ThorDataCategoryId ?? "Select the THOR DataCategory")"></SelectList>
             </EditTemplate>
         </DataGridColumn>
         <DataGridColumn Width="35%" Field="THORFieldId" Caption="OARS Field" Editable Filterable="true" Sortable="false">
@@ -53,7 +53,7 @@
                             SelectedValueChanged="@(e =>
                         {
                             context.CellValue = Convert.ToString(e);
-                        } )" DefaultItemText="Select the OARS Field">
+                        } )" DefaultItemValue="@(context.Item?.THORFieldId)" DefaultItemText="@(context.Item?.THORFieldId ?? "Select the THOR Field")">
                 </SelectList>
             </EditTemplate>
         </DataGridColumn>
@@ -119,16 +119,13 @@
         if (saved)
         {
             await notificationService.Success("Field successfully saved");
-            return;
         }
         else
         {
             await notificationService.Error("Error saving field");
-            return;
         }
         this.profileFields = await profileFieldService.GetProfileFields(profile);
-
-        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+        await dataGridRef.Refresh();
     }
 
     private void setCategories(IList<ProfileField> loadedProfileFields)
