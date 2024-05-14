@@ -210,13 +210,13 @@ namespace TheradexPortal.Data.Services
                     var bodyBuilder = new BodyBuilder();
                     using (var s3Client = new AmazonS3Client(RegionEndpoint.USEast1))
                     {
-                        GetObjectResponse response = await s3Client.GetObjectAsync(emailSettings.Value.AWSBucketName, string.Format("{0}/theradex-logo.png", emailSettings.Value.EmailTemplate));
+                        GetObjectResponse response = await s3Client.GetObjectAsync(emailSettings.Value.AWSBucketName, string.Format("{0}/OarsLogo.svg", emailSettings.Value.EmailTemplate));
                         using (Stream responseStream = response.ResponseStream)
                         {
                             MemoryStream templateStream = new MemoryStream();
                             responseStream.CopyTo(templateStream);
                             var imageBytes = templateStream.ToArray();
-                            var image = bodyBuilder.LinkedResources.Add("theradex-logo.png", imageBytes);
+                            var image = bodyBuilder.LinkedResources.Add("OarsLogo.svg", imageBytes);
                             image.ContentId = MimeUtils.GenerateMessageId();
                             bodyBuilder.HtmlBody = htmlBody.Replace("[[LogoContentId]]", image.ContentId);
                         }                        
