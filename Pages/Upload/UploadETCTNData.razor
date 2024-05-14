@@ -53,28 +53,9 @@
                                                     <SelectItem TValue="string" Value="@item">@item</SelectItem>
                                                 }
                                             </ChildContent>
-                                            <Feedback>
+                                            @* <Feedback>
                                                 <ValidationError>Protocol is required</ValidationError>
-                                            </Feedback>
-                                        </Select>
-                                    </FieldBody>
-                                </Field>
-                            </Validation>
-                            <Validation>
-                                <Field ColumnSize="ColumnSize.IsThird">
-                                    <FieldLabel>Receiving Site</FieldLabel>
-                                    <FieldBody>
-                                        <Select @bind-SelectedValue="@ETCTNUploadRequestModel.ReceivingSite">
-                                            <ChildContent>
-                                                <SelectItem TValue="string"></SelectItem>
-                                                @foreach (var item in trackingDestinations)
-                                                {
-                                                    <SelectItem TValue="string" Value="@item.UserData">@item.UserData</SelectItem>
-                                                }
-                                            </ChildContent>
-                                            <Feedback>
-                                                <ValidationError>ReceivingSite is required</ValidationError>
-                                            </Feedback>
+                                            </Feedback> *@
                                         </Select>
                                     </FieldBody>
                                 </Field>
@@ -91,9 +72,28 @@
                                                     <SelectItem TValue="string" Value="@item.UserData">@item.UserData</SelectItem>
                                                 }
                                             </ChildContent>
-                                            <Feedback>
+                                           @*  <Feedback>
                                                 <ValidationError>SourceSite is required</ValidationError>
-                                            </Feedback>
+                                            </Feedback> *@
+                                        </Select>
+                                    </FieldBody>
+                                </Field>
+                            </Validation>
+                            <Validation>
+                                <Field ColumnSize="ColumnSize.IsThird" Visibility="CheckReceivingSiteVisibility()">
+                                    <FieldLabel>Receiving Site</FieldLabel>
+                                    <FieldBody>
+                                        <Select @bind-SelectedValue="@ETCTNUploadRequestModel.ReceivingSite">
+                                            <ChildContent>
+                                                <SelectItem TValue="string"></SelectItem>
+                                                @foreach (var item in trackingDestinations)
+                                                {
+                                                    <SelectItem TValue="string" Value="@item.UserData">@item.UserData</SelectItem>
+                                                }
+                                            </ChildContent>
+                                            @* <Feedback>
+                                                <ValidationError>ReceivingSite is required</ValidationError>
+                                            </Feedback> *@
                                         </Select>
                                     </FieldBody>
                                 </Field>
@@ -113,9 +113,9 @@
                                                     <br>
                                                 }
                                             </ChildContent>
-                                            <Feedback>
+                                            @* <Feedback>
                                                 <ValidationError>CRF is required</ValidationError>
-                                            </Feedback>
+                                            </Feedback> *@
                                         </RadioGroup>
                                         <Div>
                                             <Icon Name="IconName.Download" IconSize="@IconSize.ExtraSmall" />&nbsp;
@@ -138,7 +138,7 @@
                                 </Field>
                             </Validation>
                             <Validation>
-                                <Field ColumnSize="ColumnSize.IsThird">
+                                <Field ColumnSize="ColumnSize.IsThird" Visibility="CheckAssayVisibility()">
                                     <FieldLabel>Assay</FieldLabel>
                                     <FieldBody>
                                         <Select @bind-SelectedValue="@ETCTNUploadRequestModel.Assay">
@@ -149,9 +149,9 @@
                                                     <SelectItem TValue="string" Value="@item.CodedData">@item.UserData</SelectItem>
                                                 }
                                             </ChildContent>
-                                            <Feedback>
+                                            @* <Feedback>
                                                 <ValidationError>Assay is required</ValidationError>
-                                            </Feedback>
+                                            </Feedback> *@
                                         </Select>
                                     </FieldBody>
                                 </Field>
@@ -302,6 +302,8 @@
                     webReportingETCTNDataUploadURL = wsURL + "RAIUpload.aspx";
                 else
                     webReportingETCTNDataUploadURL = wsURL + "ETCTNDataUpload.aspx";
+
+                ValidationsRef.ValidateAll();
             }
 
             clearFile();
@@ -369,13 +371,24 @@
     void OnProtocolChanged()
     {
         if (string.IsNullOrEmpty(ETCTNUploadRequestModel.Protocol))
+        {
+            trackingDestinations = new List<MedidataDictionaryModel>();
+            assays = new List<MedidataDictionaryModel>();
             return;
+        }
 
         var data = protocolData.First(t => ETCTNUploadRequestModel.Protocol.StartsWith(t.Protocol));
 
         trackingDestinations = data.Sites;
 
         assays = data.Assays;
+
+        ETCTNUploadRequestModel.ReceivingSite = null;
+        ETCTNUploadRequestModel.SourceSite = null;
+        ETCTNUploadRequestModel.Assay = null;
+
+        ValidationsRef.ValidateAll();
+
     }
 
     async Task OnCRFChanged()
@@ -391,19 +404,25 @@
         return Task.CompletedTask;
     }
 
-    private Blazorise.Visibility CheckInstructionsVisibility()
-    {
-        return Visibility.Visible;
-
-        // if (ETCTNUploadRequestModel.CRF != null && (ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS" || ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP_ASSAY"))
-        //     return Visibility.Visible;
-        // else
-        //     return Visibility.Invisible;
-    }
-
     private Blazorise.Visibility CheckExternalLinkVisibility()
     {
         if (ETCTNUploadRequestModel.CRF != null && !(ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS" || ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP_ASSAY"))
+            return Visibility.Visible;
+        else
+            return Visibility.Invisible;
+    }
+
+    private Blazorise.Visibility CheckAssayVisibility()
+    {
+        if (ETCTNUploadRequestModel.CRF != null && ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP_ASSAY")
+            return Visibility.Visible;
+        else
+            return Visibility.Invisible;
+    }
+
+    private Blazorise.Visibility CheckReceivingSiteVisibility()
+    {
+        if (ETCTNUploadRequestModel.CRF != null && ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS")
             return Visibility.Visible;
         else
             return Visibility.Invisible;
@@ -415,13 +434,6 @@
             return false;
         else
             return true;
-
-        // if (SelectedCRF == null)
-        //     return true;
-        // else if (ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS" || ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP_ASSAY")
-        //     return false;
-        // else
-        //     return true;
     }
 
     async Task OnDownloadTemplate()

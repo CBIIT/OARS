@@ -33,7 +33,7 @@
          <DataGridColumn Width="100px" Field="RowData.SubmissionIsAdequate" Caption="Submission is Adequate" />
          <DataGridColumn Width="100px" Field="RowData.ExplanatoryReason" Caption="Explanatory Reason" />
          <DataGridColumn Width="100px" Field="RowData.OtherReason" Caption="Other Reason" />
-         <DataGridColumn Width="100px" Caption="Internal Status" Editable="false" Displayable="@IsAdminDisplay">
+         <DataGridColumn Width="100px" Caption="Internal Status" Editable="false" Displayable="@IsAdminDisplay" Filterable="false">
              <DisplayTemplate>
                  <Badge Color="@GetStatusColor((context as ReceivingStatusFileData).ClientStatus)" Pill>
                     <Tooltip Text="@((context as ReceivingStatusFileData).Error)">
@@ -47,7 +47,7 @@
                 </Badge>
             </DisplayTemplate>
         </DataGridColumn>
-        <DataGridColumn Width="100px" Caption="Status" Editable="false">
+        <DataGridColumn Width="100px" Caption="Status" Editable="false" Filterable="false">
             <DisplayTemplate>
                 <Badge Color="@GetStatusColor((context as ReceivingStatusFileData).ClientStatus)" Pill>
                     <Tooltip Text="@((context as ReceivingStatusFileData).ClientError)">

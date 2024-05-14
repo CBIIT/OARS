@@ -17,7 +17,8 @@ namespace TheradexPortal.Data.Models
         [Required(ErrorMessage = "Protocol is required")]
         public string Protocol { get; set; }
 
-        [Required(ErrorMessage = "Receiving Site is required")]
+        //[Required(ErrorMessage = "Receiving Site is required")]
+        [RequiredIf(nameof(CRF), "RECEIVING_STATUS")]
         public string ReceivingSite { get; set; }
 
         [Required(ErrorMessage = "Source Site is required")]
@@ -26,7 +27,7 @@ namespace TheradexPortal.Data.Models
         [Required(ErrorMessage = "CRF is required")]
         public string CRF { get; set; }
 
-        //[RequiredIf(nameof(CRF), "RECEIVING_STATUS")]
+        [RequiredIf(nameof(CRF), "BIOSPECIMEN_ROADMAP_ASSAY")]
         public string Assay { get; set; }
     }
 
@@ -41,11 +42,11 @@ namespace TheradexPortal.Data.Models
             _isValue = isValue;
         }
 
-        public override string FormatErrorMessage(string name)
-        {
-            var errorMessage = $"{name} is required when {_propertyName} is {_isValue}";
-            return ErrorMessage ?? errorMessage;
-        }
+        //public override string FormatErrorMessage(string name)
+        //{
+        //    var errorMessage = $"{name} is required when {_propertyName} is {_isValue}";
+        //    return ErrorMessage ?? errorMessage;
+        //}
 
         protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
         {
@@ -67,7 +68,8 @@ namespace TheradexPortal.Data.Models
             if (requiredIfTypeActualValue == null || requiredIfTypeActualValue.Equals(_isValue))
             {
                 return value == null
-                    ? new ValidationResult(FormatErrorMessage(validationContext.DisplayName))
+                    //? new ValidationResult(FormatErrorMessage(validationContext.DisplayName))
+                    ? new ValidationResult(null)
                     : ValidationResult.Success;
             }
 

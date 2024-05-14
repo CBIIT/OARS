@@ -299,7 +299,7 @@ namespace TheradexPortal.Data.Services
             if (ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS")
                 prefix = "RS";
             else if (ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP_ASSAY")
-                prefix = "BR";
+                prefix = "BA";
             else if (ETCTNUploadRequestModel.CRF == "LIBRARY_QC")
                 prefix = "LQ";
             else if (ETCTNUploadRequestModel.CRF == "SEQUENCING_QC")

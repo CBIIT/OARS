@@ -45,7 +45,7 @@
                  <DataGridColumn Width="100px" Field="Metadata.Assay" Caption="Assay" />
                  <DataGridColumn Width="100px" Field="Metadata.OriginalFileName" Caption="File Name" />
                  <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.CreatedDate)" Caption="Uploaded Date" />
-                 <DataGridColumn Width="100px" Caption="Internal Status" Editable="false" Displayable="@IsAdminDisplay">
+                 <DataGridColumn Width="100px" Caption="Internal Status" Editable="false" Displayable="@IsAdminDisplay" Filterable="false">
                      <DisplayTemplate>
                          <Badge Color="@GetStatusColor((context as FileIngestRequest).ClientStatus)" Pill>
                             <Tooltip Text="@((context as FileIngestRequest).Error)">
@@ -54,7 +54,7 @@
                         </Badge>
                     </DisplayTemplate>
                 </DataGridColumn>
-                <DataGridColumn Width="100px" Caption="Status" Editable="false">
+                <DataGridColumn Width="100px" Caption="Status" Editable="false" Filterable="false">
                     <DisplayTemplate>
                         <Badge Color="@GetStatusColor((context as FileIngestRequest).ClientStatus)" Pill>
                             <Tooltip Text="@((context as FileIngestRequest).ClientError)">

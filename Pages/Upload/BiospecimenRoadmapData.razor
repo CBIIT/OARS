@@ -31,7 +31,7 @@
          <DataGridColumn Width="100px" Field="RowData.Date" Caption="Date" />
          <DataGridColumn Width="100px" Field="RowData.AssayVersion" Caption="AssayVersion" />
          <DataGridColumn Width="100px" Field="RowData.Active" Caption="Active" />
-         <DataGridColumn Width="100px" Caption="Internal Status" Editable="false" Displayable="@IsAdminDisplay">
+         <DataGridColumn Width="100px" Caption="Internal Status" Editable="false" Displayable="@IsAdminDisplay" Filterable="false">
              <DisplayTemplate>
                  <Badge Color="@GetStatusColor((context as BiospecimenRoadmapFileData).ClientStatus)" Pill>
                     <Tooltip Text="@((context as BiospecimenRoadmapFileData).Error)">
@@ -45,7 +45,7 @@
                 </Badge>
             </DisplayTemplate>
         </DataGridColumn>
-        <DataGridColumn Width="100px" Caption="Status" Editable="false">
+        <DataGridColumn Width="100px" Caption="Status" Editable="false" Filterable="false">
             <DisplayTemplate>
                 <Badge Color="@GetStatusColor((context as BiospecimenRoadmapFileData).ClientStatus)" Pill>
                     <Tooltip Text="@((context as BiospecimenRoadmapFileData).ClientError)">
