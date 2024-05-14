@@ -1,0 +1,385 @@
+﻿@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+@inject IHttpContextAccessor httpContextAccessor
+@inject IConfiguration configuration
+@layout AdminLayout
+
+<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })"></AdminRoleCheck>
+<Alert Color="Color.Danger" @bind-Visible="@visibleValidationError">
+    <AlertDescription>The required fields must have a valid value before saving. Please check!</AlertDescription>
+    <AlertMessage>Save Validation Error!</AlertMessage>
+    <CloseButton />
+</Alert>
+<Alert Color="Color.Success" @bind-Visible="@visibleSaveFormSuccess">
+    <AlertDescription>The protocol mapping was saved!</AlertDescription>
+    <AlertMessage>Save Validation Process!</AlertMessage>
+    <CloseButton />
+</Alert>
+<Alert Color="Color.Danger" @bind-Visible="@visibleSaveFormError">
+    <AlertDescription>Error, The protocol mapping was not saved!</AlertDescription>
+    <AlertMessage>Save Validation Process!</AlertMessage>
+    <CloseButton />
+</Alert>
+<Div Padding="Padding.Is4" Margin="Margin.Is3.FromBottom">
+    <Row Padding="Padding.Is2" Class="dmu-admin-subpanel dmu-header-white">
+        <Column ColumnSize="ColumnSize.Is2">
+            <Text>Protocol Info</Text>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is4">
+            <Text>Protocol Info</Text>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is2">
+            <Text>Phase</Text>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is4">
+            <Text>Randomized?</Text>
+        </Column>
+    </Row>
+    <Row Padding="Padding.Is2" Class="dmu-row-alt">
+        <Column ColumnSize="ColumnSize.Is2" Class="dmu-admin-label-field-container">
+            <Text>* Protocol:</Text>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is4">
+            <TextEdit MaxLength="50" Disabled="@allowEdit" @bind-Text="@currentProtocolMap.THORStudyId"></TextEdit>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is2" Class="dmu-column-border-left">
+            <Check TValue="bool" @bind-Checked="@phase1" Disabled="@allowEdit">Phase 1</Check>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is4">
+            <Select TValue="string" @bind-SelectedValue="@phase1IsRandomized" Disabled="@allowEdit">
+                <SelectItem Value="@YesNoSelect.S">Select</SelectItem>
+                <SelectItem Value="@YesNoSelect.Y">Randomized</SelectItem>
+                <SelectItem Value="@YesNoSelect.N">Non-Randomized</SelectItem>
+            </Select>
+        </Column>
+    </Row>
+    <Row Padding="Padding.Is2" Class="dmu-row-white">
+        <Column ColumnSize="ColumnSize.Is2" Class="dmu-admin-label-field-container">
+            <Text>Status:</Text>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is4">
+            <Select @bind-SelectedValue="@currentProtocolMap.ProtocolMappingStatusId" Disabled="@allowEdit">
+                <SelectItem Value="0" Hidden>Select</SelectItem>
+                <SelectItem Value="1">Active</SelectItem>
+                <SelectItem Value="2">Testing</SelectItem>
+                <SelectItem Value="3">Deactivated</SelectItem>
+            </Select>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is2" Class="dmu-column-border-left">
+            <Check TValue="bool" @bind-Checked="@phase2" Disabled="@allowEdit">Phase 2</Check>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is4">
+            <Select TValue="string" @bind-SelectedValue="@phase2IsRandomized" Disabled="@allowEdit">
+                <SelectItem Value="@YesNoSelect.S">Select</SelectItem>
+                <SelectItem Value="@YesNoSelect.Y">Randomized</SelectItem>
+                <SelectItem Value="@YesNoSelect.N">Non-Randomized</SelectItem>
+            </Select>
+        </Column>
+    </Row>
+    <Row Padding="Padding.Is2" Class="dmu-row-alt">
+        <Column ColumnSize="ColumnSize.Is2" Class="dmu-admin-label-field-container">
+            <Text>Billing Code:</Text>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is4">
+            <TextEdit MaxLength="50" @bind-Text="@currentProtocolMap.BillingCode" Disabled="@allowEdit"></TextEdit>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is2" Class="dmu-column-border-left">
+            <Check TValue="bool" @bind-Checked="@phase3" Disabled="@allowEdit">Phase 3</Check>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is4">
+            <Select TValue="string" @bind-SelectedValue="@phase3IsRandomized" Disabled="@allowEdit">
+                <SelectItem Value="@YesNoSelect.S">Select</SelectItem>
+                <SelectItem Value="@YesNoSelect.Y">Randomized</SelectItem>
+                <SelectItem Value="@YesNoSelect.N">Non-Randomized</SelectItem>
+            </Select>
+        </Column>
+    </Row>
+    <Row Padding="Padding.Is2" Class="dmu-row-white">
+        <Column ColumnSize="ColumnSize.Is2" Class="dmu-admin-label-field-container">
+            <Text>Title:</Text>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is4">
+            <TextEdit MaxLength="50" @bind-Text="@currentProtocolMap.ProtocolTitle" Disabled="@allowEdit"></TextEdit>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is2" Class="dmu-column-border-left">
+            <Check TValue="bool" @bind-Checked="@phase4" Disabled="@allowEdit">Phase 4</Check>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is4">
+            <Select TValue="string" @bind-SelectedValue="@phase4IsRandomized" Disabled="@allowEdit">
+                <SelectItem Value="@YesNoSelect.S">Select</SelectItem>
+                <SelectItem Value="@YesNoSelect.Y">Randomized</SelectItem>
+                <SelectItem Value="@YesNoSelect.N">Non-Randomized</SelectItem>
+            </Select>
+        </Column>
+    </Row>
+    <Row Padding="Padding.Is2" Class="dmu-row-alt">
+        <Column ColumnSize="ColumnSize.Is2" Class="dmu-admin-label-field-container">
+            <Text>Sponsor:</Text>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is4">
+            <TextEdit MaxLength="50" @bind-Text="@currentProtocolMap.Sponsor" Disabled="@allowEdit"></TextEdit>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is2" Class="dmu-column-border-left">
+
+        </Column>
+        <Column ColumnSize="ColumnSize.Is4">
+
+        </Column>
+    </Row>
+    <Row Padding="Padding.Is2" Class="dmu-row-white">
+        <Column ColumnSize="ColumnSize.Is2" Class="dmu-admin-label-field-container">
+            <Text>*EDC System:</Text>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is4">
+            <Select TValue="int?" @bind-SelectedValue="@currentProtocolMap.ProtocolDataSystemId" Disabled="@allowEdit">
+                <SelectItem Value="@invalidId">Select the EDC System</SelectItem>
+                @foreach (var edcSystem in edcSystemList)
+                {
+                    <SelectItem Value="@edcSystem.ProtocolDataSystemId">@edcSystem.DataSystemName</SelectItem>
+                }
+            </Select>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is2" Class="dmu-column-border-left">
+
+        </Column>
+        <Column ColumnSize="ColumnSize.Is4">
+
+        </Column>
+    </Row>
+    <Row Padding="Padding.Is2" Class="dmu-row-alt">
+        <Column ColumnSize="ColumnSize.Is2" Class="dmu-admin-label-field-container">
+            <Text>*Monitoring Method:</Text>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is4">
+            <Select TValue="int?" @bind-SelectedValue="@currentProtocolMap.ProfileId" Disabled="@allowEdit">
+                <SelectItem Value="@invalidId">Select Monitoring Method</SelectItem>
+                @foreach (var profile in profileList)
+                {
+                    <SelectItem Value="@profile.ProfileId">@profile.ProfileName</SelectItem>
+                }
+            </Select>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is2" Class="dmu-column-border-left">
+
+        </Column>
+        <Column ColumnSize="ColumnSize.Is4">
+
+        </Column>
+    </Row>
+    <Row Padding="Padding.Is2" Class="dmu-row-white">
+        <Column ColumnSize="ColumnSize.Is2" Class="dmu-admin-label-field-container">
+            <Text>Copy Mappings From:</Text>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is4">
+            <Select TValue="int?" @bind-SelectedValue="@currentProtocolMap.SourceProtocolMappingId" Disabled="@allowEdit">
+                <SelectItem Value="@invalidId">Select Protocol to copy from</SelectItem>
+                @foreach (var protocolMapping in protocolMappings)
+                {
+                    if (currentProtocolMap?.ProfileId != null && protocolMapping.ProfileId == currentProtocolMap.ProfileId)
+                    {
+                        <SelectItem Value="@protocolMapping.ProtocolMappingId">@protocolMapping.ProtocolTitle</SelectItem>
+                    }
+                }
+            </Select>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is2" Class="dmu-column-border-left">
+
+        </Column>
+        <Column ColumnSize="ColumnSize.Is4">
+
+        </Column>
+    </Row>
+    <Row Padding="Padding.Is2" Class="dmu-row-alt">
+        <Column ColumnSize="ColumnSize.Is2" Class="dmu-admin-label-field-container">
+            <Text>*Date Format:</Text>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is4">
+            <TextEdit Placeholder="ddMMMyyyy:HH:mm:ss.ff" MaxLength="50" @bind-Text="@currentProtocolMap.DateFormat" Disabled="@allowEdit"></TextEdit>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is2" Class="dmu-column-border-left">
+
+        </Column>
+        <Column ColumnSize="ColumnSize.Is4">
+
+        </Column>
+    </Row>
+    <Row Padding="Padding.Is2" Class="dmu-row-white">
+        <Column ColumnSize="ColumnSize.Is2" Class="dmu-admin-label-field-container">
+            <Text>*Data File Folder:</Text>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is4">
+            <TextEdit MaxLength="50" @bind-Text="@currentProtocolMap.DataFileFolder" Disabled="@allowEdit"></TextEdit>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is2" Class="dmu-column-border-left">
+        </Column>
+        <Column ColumnSize="ColumnSize.Is4">
+        </Column>
+    </Row>
+    <Row Padding="Padding.Is2" Class="dmu-row-alt">
+        <Column ColumnSize="ColumnSize.Is2" Class="dmu-admin-label-field-container">
+        </Column>
+        <Column ColumnSize="ColumnSize.Is4">
+        </Column>
+        <Column ColumnSize="ColumnSize.Is2">
+        </Column>
+        <Column ColumnSize="ColumnSize.Is4">
+            <Field Flex="Flex.JustifyContent.Center">
+                <Div>
+                    <Button Color="Color.Light" Disabled="@allowEdit" Clicked="@Cancel">Cancel</Button>
+                    <Button Class="dmu-admin-button-orange" Type="ButtonType.Submit" PreventDefaultOnSubmit Clicked="@SaveNewProtocolMapping" Disabled="@allowEdit">Save</Button>
+                </Div>
+            </Field>
+        </Column>
+    </Row>
+</Div>
+@code {
+    [Inject] IProfileService profileService { get; set; } = null!;
+    [Inject] IProtocolDataSystemService protocolDataSystemService { get; set; } = null!;
+    [Inject] IProtocolMappingService protocolMappingService { get; set; } = null!;
+    [Inject] IProtocolPhaseService protocolPhaseService { get; set; } = null!;
+    [Inject] private NavigationManager navigation { get; set; } = null!;
+    [Inject] IUserService userService { get; set; } = null!;
+
+    [Parameter] public int protocolMappingId { get; set; }
+    [Parameter] public bool allowEdit {get; set;}
+
+    private IList<Profile> profileList = new List<Profile>();
+    private int selectedMappingProfileId = 0;
+    private string? newMappingProfile = "";
+    private static int invalidId = 0;
+    private ProtocolMapping currentProtocolMap = new ProtocolMapping();
+    private IList<ProtocolDataSystem> edcSystemList = new List<ProtocolDataSystem>();
+    private IList<ProtocolMapping> protocolMappings = new List<ProtocolMapping>();
+
+    private bool phase1 = false;
+    private bool phase2 = false;
+    private bool phase3 = false;
+    private bool phase4 = false;
+
+    private string phase1IsRandomized = "S";
+    private string phase2IsRandomized = "S";
+    private string phase3IsRandomized = "S";
+    private string phase4IsRandomized = "S";
+
+    private bool visibleValidationError = false;
+    private bool visibleSaveFormSuccess = false;
+    private bool visibleSaveFormError = false;
+
+    private IList<ProtocolPhase> phasesSet = new List<ProtocolPhase>();
+
+    private enum YesNoSelect
+    {
+        S,
+        Y,
+        N
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+        this.currentProtocolMap = await protocolMappingService.GetProtocolMapping(protocolMappingId);
+        this.phasesSet = await protocolPhaseService.GetProtocolMappingPhases(protocolMappingId);
+        applyPhases();
+        await InitializedAsync();
+        await base.OnInitializedAsync();
+        watch.Stop();
+        var elapsedMs = watch.ElapsedMilliseconds;
+        System.Console.WriteLine($"Protocol Setup Elapsed time: {elapsedMs} ms");
+    }
+
+    protected void applyPhases()
+    {
+        if (phasesSet.Count > 0)
+        {
+            phase1 = phasesSet[0].IsEnabled == 'Y';
+            phase1IsRandomized = phasesSet[0].IsRandomized == null ? "S" : phasesSet[0].IsRandomized == 'Y' ? "Y" : "N";
+
+            phase2 = phasesSet[1].IsEnabled == 'Y';
+            phase2IsRandomized = phasesSet[1].IsRandomized == null ? "S" : phasesSet[1].IsRandomized == 'Y' ? "Y" : "N";
+
+            phase3 = phasesSet[2].IsEnabled == 'Y';
+            phase3IsRandomized = phasesSet[2].IsRandomized == null ? "S" : phasesSet[2].IsRandomized == 'Y' ? "Y" : "N";
+
+            phase4 = phasesSet[3].IsEnabled == 'Y';
+            phase4IsRandomized = phasesSet[3].IsRandomized == null ? "S" : phasesSet[3].IsRandomized == 'Y' ? "Y" : "N";
+        }
+        else
+        {
+            for (int i = 0; i < 4; i++) phasesSet.Add(new ProtocolPhase { IsEnabled = 'N', IsRandomized = 'S' });
+        }
+    }
+
+    protected async Task InitializedAsync()
+    {
+        this.profileList = await profileService.GetProfiles();
+        this.edcSystemList = await protocolDataSystemService.GetProtocolDataSystems();
+        this.protocolMappings = await protocolMappingService.GetAllProtocolMappingsFromProfileType(0);
+    }
+
+    public async void SaveNewProtocolMapping()
+    {
+        bool formValid = true;
+
+        if (currentProtocolMap?.THORStudyId?.Trim() == String.Empty) formValid = false;
+        if (currentProtocolMap?.ProtocolDataSystemId == null) formValid = false;
+        if (currentProtocolMap?.ProfileId == null ) formValid = false;
+        if (currentProtocolMap?.DateFormat?.Trim() == String.Empty) formValid = false;
+        if (currentProtocolMap?.DataFileFolder?.Trim() == String.Empty) formValid = false;
+
+        if (formValid)
+        {
+            if (phasesSet[0] != null)
+            {
+                phasesSet[0].IsEnabled = phase1 ? 'Y' : 'N';
+                phasesSet[0].IsRandomized = phase1IsRandomized == "Y" ? 'Y' : phase1IsRandomized == "N" ? 'N' : null;
+            }
+
+            if (phasesSet[1] != null)
+            {
+                phasesSet[1].IsEnabled = phase2 ? 'Y' : 'N';
+                phasesSet[1].IsRandomized = phase2IsRandomized == "Y" ? 'Y' : phase2IsRandomized == "N" ? 'N' : null;
+            }
+
+            if (phasesSet[2] != null)
+            {
+                phasesSet[2].IsEnabled = phase3 ? 'Y' : 'N';
+                phasesSet[2].IsRandomized = phase3IsRandomized == "Y" ? 'Y' : phase3IsRandomized == "N" ? 'N' : null;
+            }
+
+            if (phasesSet[3] != null)
+            {
+                phasesSet[3].IsEnabled = phase4 ? 'Y' : 'N';
+                phasesSet[3].IsRandomized = phase4IsRandomized == "Y" ? 'Y' : phase4IsRandomized == "N" ? 'N' : null;
+            }
+
+            bool saveResult = await protocolMappingService.SaveProtocolMapping(currentProtocolMap, phasesSet);
+            if (saveResult)
+            {
+                visibleSaveFormSuccess = true;
+            }
+            else
+            {
+                visibleSaveFormError = true;
+            }
+        }
+        else
+        {
+            visibleValidationError = true;
+        }
+    }
+
+    public async void Cancel()
+    {
+        navigation.NavigateTo(navigation.Uri, forceLoad: true);
+    }
+
+    private void NavigateToGlobalDMU()
+    {
+        navigation.NavigateTo("/admin/dmu/global-admin");
+    }
+
+    private void NavigateToProfileNew(int profileId)
+    {
+        navigation.NavigateTo($"/admin/dmu/profile-categories/{profileId}");
+    }
+}

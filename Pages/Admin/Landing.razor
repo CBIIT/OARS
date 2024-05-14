@@ -1,4 +1,5 @@
-﻿@using TheradexPortal.Data.Static;
+﻿@using TheradexPortal.Data.Identity
+@using TheradexPortal.Data.Static;
 
 @layout AdminLayout
 @page "/admin"
@@ -53,22 +54,21 @@
 </ListGroup>
 </Div>
 
-@code {
+    @code {
     public bool isContentAdmin { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         isContentAdmin = httpContextAccessor.HttpContext.User.HasClaim(ThorClaimType.IsContentAdmin, "True");
     }
-   
+
     private bool CheckRole(List<string> allowedRoles)
     {
-        bool roleFound = false;
-        foreach (string allowedRole in allowedRoles)
+        if (httpContextAccessor?.HttpContext?.User == null)
         {
-            if (httpContextAccessor.HttpContext.User.HasClaim(c => c.Type == "Admin-" + allowedRole))
-                roleFound = true;
+            return false;
         }
-        return roleFound;
+
+        return httpContextAccessor.HttpContext.User.HasAnyAdminRole(allowedRoles.ToArray());
     }
 }

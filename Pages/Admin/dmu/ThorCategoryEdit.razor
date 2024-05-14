@@ -1,0 +1,152 @@
+﻿@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@inject IHttpContextAccessor httpContextAccessor
+@layout AdminLayout
+
+@*
+    TODO: Add ThorRoleCheck check for DMU roles when they are created
+
+<ThorRoleCheck AllowedRoles="@(new List<string> { "??" })"></ThorRoleCheck>
+*@
+
+<DataGrid @ref=dataGridRef
+            TItem="ThorCategory"
+            Class="admindatagrid"
+            Data="@categoryList"
+            Editable
+            Responsive
+            Sortable
+            Striped
+            ShowPager
+            ShowPageSizes
+            Filterable
+            FilterMethod="DataGridFilterMethod.StartsWith"
+            MaxPaginationLinks="5"
+            PagerPosition="DataGridPagerPosition.Bottom"
+            PagerOptions="new(){ButtonSize=Size.Default,
+                                PaginationPosition=PagerElementPosition.Default,
+                                TotalItemsPosition=PagerElementPosition.End,
+                                }"
+            FixedHeader
+            FixedHeaderDataGridHeight="calc(100vh - 240px)"
+            FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
+            EditMode="DataGridEditMode.Inline"
+            RowUpdated="@Save"
+            RowInserted="@Save"
+            NewItemDefaultSetter="@SetActive"
+            RowInserting="@Verify">
+        <DataGridColumns>
+         <DataGridColumn Width="35%" Field="@nameof(ThorCategory.CategoryName)" Caption="OARS Data Category" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
+            </DataGridColumn>
+         <DataGridColumn Field="@nameof(ThorCategory.ThorDataCategoryId)" Width="35%" Caption="OARS Data Category ID" Editable Filterable="true" Sortable="true">
+            </DataGridColumn>
+         <DataGridColumn Field="@nameof(ThorCategory.IsMultiForm)" Width="10%" Caption="Multi Form" Editable Filterable="true" Sortable="true" >
+                <DisplayTemplate>
+                    @((bool)context.IsMultiForm ? "Yes" : "No")
+                </DisplayTemplate>
+             <EditTemplate>
+                 <Select TValue="bool" SelectedValueChanged="@( v => {context.CellValue = v;})" SelectedValue="@((bool)context.CellValue)">
+                     <SelectItem Value="false">No</SelectItem>
+                     <SelectItem Value="true">Yes</SelectItem>
+                 </Select>
+             </EditTemplate>
+            </DataGridColumn>
+         <DataGridColumn Field="@nameof(ThorCategory.SortOrder)" Caption="Order" Editable Filterable="true" Sortable="true" Width="8%">
+            </DataGridColumn>
+         <DataGridCheckColumn Field="@nameof(ThorCategory.IsActive)" Caption="Active" Editable Width="7%">
+                 <DisplayTemplate>
+                     <Check TValue="bool" Checked="context.IsActive" Disabled="true" ReadOnly="true"/>
+                 </DisplayTemplate>
+             </DataGridCheckColumn>
+        <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
+            <EditCommandTemplate>
+                <Button><Icon Name="IconName.Edit" Clicked="@context.Clicked"/></Button>
+            </EditCommandTemplate>
+            <SaveCommandTemplate>
+                <Button><Icon Name="IconName.Save" Clicked="@context.Clicked"/></Button>
+            </SaveCommandTemplate>
+            <CancelCommandTemplate>
+                <Button><Icon Name="IconName.Times" Clicked="@context.Clicked"/></Button>
+            </CancelCommandTemplate>
+            <ClearFilterCommandTemplate>
+                <Button><Icon Name="IconName.Times" Clicked="@context.Clicked"/></Button>
+            </ClearFilterCommandTemplate>
+        </DataGridCommandColumn>
+        </DataGridColumns>
+        <ButtonRowTemplate>
+            <Button Color="Color.Primary" Clicked="context.NewCommand.Clicked">Add</Button>
+        </ButtonRowTemplate>
+        <EmptyTemplate>
+            <div class="box">
+                No categories were found.
+            </div>
+        </EmptyTemplate>
+    </DataGrid>
+
+
+@code {
+    [Inject] IThorCategoryService categoryService { get; set; } = null!;
+    [Inject] private NavigationManager navigation { get; set; } = null!;
+    [Inject] INotificationService notificationService { get; set; }
+
+    private DataGrid<ThorCategory> dataGridRef;
+    private IList<ThorCategory> categoryList;
+
+    private ThorCategory? selectedCategory;
+
+    protected override async Task OnInitializedAsync()
+    {
+        this.categoryList = await categoryService.GetCategories();
+    }
+
+    public async Task<CancellableRowChange<ThorCategory>> Verify(CancellableRowChange<ThorCategory, Dictionary<string,object>> e)
+    {
+        e.Values.TryGetValue("CategoryName", out var categoryName);
+        e.Values.TryGetValue("ThorDataCategoryId", out var categoryId);
+        e.Values.TryGetValue("SortOrder", out var sortOrder);
+        if (categoryName == null || categoryId == null || sortOrder == null)
+        {
+            List<string> missingFields = new List<string>();
+            if (categoryName == null)
+            {
+                missingFields.Add("Category Name");
+            }
+            if (categoryId == null)
+            {
+                missingFields.Add("Category ID");
+            }
+            if (sortOrder == null)
+			{
+				missingFields.Add("Sort Order");
+			}
+            await notificationService.Error($"Please fix all errors to save. Missing fields: {string.Join(", ", missingFields)}");
+            e.Cancel = true;
+		}
+
+		return e;
+	}
+
+    public async void Save(SavedRowItem<ThorCategory,Dictionary<string,object>> e)
+    {
+        var toSave = e.Item;
+
+        bool saved = await categoryService.SaveCategory(toSave);
+
+        if (saved)
+        {
+            await notificationService.Success("Category successfully saved");
+            return;
+        }
+        else
+        {
+            await notificationService.Error("Error saving category");
+            return;
+        }
+    }
+
+    public void SetActive(ThorCategory item)
+	{
+		item.IsActive = true;
+	}
+}
