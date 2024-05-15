@@ -22,36 +22,35 @@
                 </BarLink>
             </BarItem>
             @if (Actions.Count > 0)
-                {
-                    <Divider Class="my-0" />
-                }
-                @foreach (var action in Actions)
-                {
-                    @if (action.ShowAction)
-                    {
-                        <BarItem Background="Background.White">
-                            @if (action.To != null)
-                            {
-                                <BarLink To="@action.To">
-                                    <BarIcon IconName="action.IconName" />
-                                    @action.Label
-                                </BarLink>
-                            }
-                            else
-                            {
-                                <BarLink @onclick="() => HandleActionClick(action)">
-                                    <BarIcon IconName="action.IconName" />
-                                    @action.Label
-                                </BarLink>
-                            }
-                        </BarItem>
-                    }
-                }
-
-
-                @if (FavoriteItems.Count > 0)
             {
                 <Divider Class="my-0" />
+            }
+            @foreach (var action in Actions)
+            {
+                @if (action.ShowAction)
+                {
+                    <BarItem Class="nci-secondary-nav-special">
+                        @if (action.To != null)
+                        {
+                            <BarLink To="@action.To">
+                                <BarIcon IconName="action.IconName" />
+                                @action.Label
+                            </BarLink>
+                        }
+                        else
+                        {
+                            <BarLink @onclick="() => HandleActionClick(action)">
+                                <BarIcon IconName="action.IconName" />
+                                @action.Label
+                            </BarLink>
+                        }
+                    </BarItem>
+                }
+            }
+            @if (FavoriteItems.Count > 0)
+            {
+                <Divider Class="my-0" />
+                <Divider DividerType="DividerType.Solid" />
             }
 
             @foreach (FavoriteReportItem curFavorite in FavoriteItems)

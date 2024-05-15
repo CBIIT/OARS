@@ -1,4 +1,4 @@
-﻿@using TheradexPortal.Data.Identity;
+@using TheradexPortal.Data.Identity;
 @using TheradexPortal.Data.Services.Abstract;
 @using TheradexPortal.Data.Static;
 @using System.Security.Claims;
@@ -15,7 +15,7 @@
             <LayoutHeader>
                 <Bar Breakpoint="Breakpoint.Desktop" NavigationBreakpoint="Breakpoint.Desktop" Style="@GetHeaderColor()" Class="nci-navbar px-4">
                     <BarBrand>
-                            <Image Source="img/theradex-logo.png" AlternateText="Theradex Oncology" /><span class="navbar-sitename">@environment</span>
+                            <Image Source="img/OarsLogo.svg" AlternateText="NCI-OARS" /><span class="navbar-sitename">@environment</span>
                     </BarBrand>
                     <BarToggler />
                     <BarMenu>
@@ -57,7 +57,7 @@
                                 </BarBrand>
                                 <BarMenu>
                                     <BarStart>
-                                        @if (CheckRole( new List<string> { "IT", "Content" }))
+                                        @if (CheckRole( new List<string> { "IT", "Biz", "Content" }))
                                         {
                                             <BarItem>
                                                 <BarLink To="/admin/alerts">
@@ -161,12 +161,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-
-        environment = configuration.GetValue<string>("System:Environment");
-        if (environment != "Prod")
-            environment = "NCI Theradex Oncology Reporting-" + environment;
-        else
-            environment = "NCI Theradex Oncology Reporting";
+        environment = configuration.GetValue<string>("System:Environment") == "Prod" ? "" : configuration.GetValue<string>("System:Environment");
     }
 
     private string GetHeaderColor()

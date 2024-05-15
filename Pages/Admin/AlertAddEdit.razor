@@ -7,7 +7,7 @@
 @layout AdminLayout
 
 @page "/admin/alert/{alertid:int?}"
-<AdminRoleCheck AllowedRoles="@(new List<string> { "IT", "Content" })"></AdminRoleCheck>
+<AdminRoleCheck AllowedRoles="@(new List<string> { "IT", "Biz", "Content" })"></AdminRoleCheck>
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1 mb-3"><h2>@AddOrEdit</h2></Div>
 <h4>Alert Info</h4>
 <Divider />

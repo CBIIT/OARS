@@ -24,7 +24,7 @@
         <LayoutHeader>
             <Bar Breakpoint="Breakpoint.Desktop" NavigationBreakpoint="Breakpoint.Desktop" Style="@GetHeaderColor()" Class="nci-navbar px-4">
                 <BarBrand >
-                    <Image Source="img/theradex-logo.png" AlternateText="Theradex Oncology" /><span class="navbar-sitename">@environment</span>
+                    <Image Source="img/OarsLogo.svg" AlternateText="NCI-OARS" /><span class="navbar-sitename">@environment</span>
                 </BarBrand>
                 <BarToggler />
                 <BarMenu>
@@ -34,13 +34,13 @@
                     <BarEnd>
                         <BarItem>
                             <Tooltip Text="@systemAlertsTooltip">
-                                <BarDropdown RightAligned @ref="@alertBarDropDown" Visible="@systemAlertsDropdownVisible">
-                                    <BarDropdownToggle Class="nci-bar-dropdown" onclick="@ToggleSystemAlertsDropdown">
+                                <BarDropdown RightAligned AutoPostBack="false" @ref="@alertBarDropDown" Visible="@systemAlertsDropdownVisible">
+                                    <BarDropdownToggle AutoPostBack="false" Class="nci-bar-dropdown" onclick="@ToggleSystemAlertsDropdown">
                                         <Badge Class="nci-alert-badge" Pill Position="Position.Absolute.Top.Is50.Start.Is100.Translate.Middle">@systemAlertsCount</Badge>
                                         <Image Source="img/alert-icon.png" height="@iconHeight" Class="nci-alert-icon" />
                                     </BarDropdownToggle>
                                     <BarDropdownMenu Class="nci-alert-dropdown">
-                                        <AlertBar @ref="@systemAlerts" Alert System NoAlertsMessage Toggleable AlertsCountChanged=SystemAlertsCountChanged AlertBarToggled=ToggleSystemAlertsDropdownFromAlertBar CSS="nci-alert-component" />
+                                        <AlertBar @ref="@systemAlerts" Alert System NoAlertsMessage Toggleable AlertsCountChanged=SystemAlertsCountChanged AlertBarToggled=ToggleSystemAlertsDropdown CSS="nci-alert-component" />
                                     </BarDropdownMenu>
                                 </BarDropdown>
                             </Tooltip>
@@ -48,12 +48,12 @@
                         <BarItem>
                             <Tooltip Text="@systemNotesTooltip">
                                  <BarDropdown RightAligned @ref="@noteBarDropDown" Visible="@systemNotesDropdownVisible">
-                                    <BarDropdownToggle Class="nci-bar-dropdown">
+                                    <BarDropdownToggle Class="nci-bar-dropdown" onclick="@ToggleSystemNotesDropdown">
                                         <Badge Class="nci-note-badge" Pill Position="Position.Absolute.Top.Is50.Start.Is100.Translate.Middle">@systemNotesCount</Badge>
                                         <Image Source="img/notification-icon.png" height="@iconHeight" Class="nci-alert-icon" />
                                     </BarDropdownToggle>
                                     <BarDropdownMenu Class="nci-alert-dropdown">
-                                         <AlertBar @ref="@systemNotes" Note System NoAlertsMessage Toggleable AlertsCountChanged=SystemNotesCountChanged AlertBarToggled=ToggleSystemNotesDropdownFromAlertBar CSS="nci-alert-component" />
+                                         <AlertBar @ref="@systemNotes" Note System NoAlertsMessage Toggleable AlertsCountChanged=SystemNotesCountChanged AlertBarToggled=ToggleSystemNotesDropdown CSS="nci-alert-component" />
                                     </BarDropdownMenu>
                                 </BarDropdown>
                             </Tooltip>
@@ -90,7 +90,9 @@
                     <PrimaryNav @ref="@primaryNav" RenderButtons />
                 </BarStart>
             </Bar>
-            <AlertBar @ref="@dashboardAlerts" Alert Dashboard Dismissable CSS="nci-alert-component" />
+            <Div Class="nci-alert-overlap">
+                <AlertBar @ref="@dashboardAlerts" Alert Dashboard Dismissable CSS="nci-alert-component" />
+            </Div>
             <Divider Class="mt-1 mb-0"/>
         </LayoutHeader>
         <LayoutContent>
@@ -187,7 +189,7 @@
     </ModalContent>
 </Modal>
 
-@code {
+    @code {
     private string environment = "";
     private PrimaryNav? primaryNav;
     private AlertBar? systemAlerts;
@@ -253,12 +255,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        environment = configuration.GetValue<string>("System:Environment");
-        if (environment != "Prod")
-            environment = "NCI Theradex Oncology Reporting-" + environment;
-        else
-            environment = "NCI Theradex Oncology Reporting";
-
+        environment = configuration.GetValue<string>("System:Environment") == "Prod" ? "" : configuration.GetValue<string>("System:Environment");
+ 
         // Display or Hide Admin button
         bool isAdmin = Convert.ToBoolean(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.IsAdmin).Value);
         if (isAdmin)
@@ -303,19 +301,24 @@
         this.dashboardAlerts?.UpdateDashboard(dashboard);
     }
 
+    public async Task ClearDashboardAlerts()
+    {
+        this.dashboardAlerts?.Clear();
+    }
+
     public async Task UpdateFavoriteMenu()
     {
         primaryNav.RefreshMenu();
     }
-    
+
     protected async Task SystemAlertsCountChanged(int count)
     {
         this.systemAlertsCount = count;
 
         if (this.systemAlertsCount < 1)
         {
-            this.systemAlertsTooltip = this.noSystemAlertsMessage;
             await this.alertBarDropDown!.Hide();
+            this.systemAlertsTooltip = this.noSystemAlertsMessage;
         }
         else
         {
@@ -350,33 +353,35 @@
     {
         if (this.systemAlertsDropdownVisible)
         {
-            await this.alertBarDropDown!.Hide();
-            await SessionData.SetAsync("systemAlertsDropdownDismissed", dismissed);
-            this.systemAlertsDropdownVisible = false;
+            await this.HideSystemAlertsDropdown();
         }
         else
         {
-            await this.alertBarDropDown!.Show();
-            await SessionData.SetAsync("systemAlertsDropdownVisible", visible);
-            this.systemAlertsDropdownVisible = true;
+            if (this.systemNotesDropdownVisible)
+            {
+                await this.HideSystemNotesDropdown();
+            }
+
+            await this.ShowSystemAlertsDropdown();
         }
     }
 
-    // protected async Task ToggleSystemNotesDropdown()
-    // {
-    //     if (this.systemNotesDropdownVisible)
-    //     {
-    //         await this.noteBarDropDown!.Hide();
-    //         this.systemNotesDropdownVisible = false;
-    //         await SessionData.SetAsync("systemNotesDropdownVisible", 0);
-    //     }
-    //     else
-    //     {
-    //         await this.noteBarDropDown!.Show();
-    //         this.systemNotesDropdownVisible = true;
-    //         await SessionData.SetAsync("systemNotesDropdownVisible", 1);
-    //     }
-    // }
+    protected async Task ToggleSystemNotesDropdown()
+    {
+        if (this.systemNotesDropdownVisible)
+        {
+            await this.HideSystemNotesDropdown();
+        }
+        else
+        {
+            if (this.systemAlertsDropdownVisible)
+            {
+                await this.HideSystemAlertsDropdown();
+            }
+
+            await this.ShowSystemNotesDropdown();
+        }
+    }
 
     protected async Task ToggleSystemAlertsDropdownFromAlertBar()
     {
@@ -385,7 +390,35 @@
 
     protected async Task ToggleSystemNotesDropdownFromAlertBar()
     {
-        //await this.ToggleSystemNotesDropdown();
+        await this.ToggleSystemNotesDropdown();
+    }
+
+    protected async Task ShowSystemAlertsDropdown()
+    {
+        this.systemAlertsDropdownVisible = true;
+        await SessionData.SetAsync("systemAlertsDropdownVisible", visible);
+        await this.alertBarDropDown!.Show();
+    }
+
+    protected async Task HideSystemAlertsDropdown()
+    {
+        this.systemAlertsDropdownVisible = false;
+        await SessionData.SetAsync("systemAlertsDropdownDismissed", dismissed);
+        await this.alertBarDropDown!.Hide();
+    }
+
+    protected async Task ShowSystemNotesDropdown()
+    {
+        this.systemNotesDropdownVisible = true;
+        await SessionData.SetAsync("systemNotesDropdownVisible", visible);
+        await this.noteBarDropDown!.Show();
+    }
+
+    protected async Task HideSystemNotesDropdown()
+    {
+        this.systemNotesDropdownVisible = false;
+        await SessionData.SetAsync("systemNotesDropdownVisible", dismissed);
+        await this.noteBarDropDown!.Hide();
     }
 
     private Task OnModalClosing(ModalClosingEventArgs e)
