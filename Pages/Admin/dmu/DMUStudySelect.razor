@@ -1,6 +1,7 @@
 ﻿@using TheradexPortal.Data.Models;
 @using TheradexPortal.Data.Services.Abstract;
 @using TheradexPortal.Data.Static;
+@using TheradexPortal.Data.Identity
 @inject IHttpContextAccessor httpContextAccessor
 @layout AdminLayout
 @page "/admin/dmu/select-study"
@@ -85,6 +86,7 @@
     [Inject] INotificationService notificationService { get; set; }
     [Inject] IProtocolMappingService protocolMappingService { get; set; }
     [Inject] IStudyService studyService { get; set; }
+    [Inject] IUserService userService { get; set; }
 
     private DataGrid<ProtocolMapping> dataGridRef;
     private IList<ProtocolMapping> studyList;
@@ -94,7 +96,17 @@
 
     protected override async Task OnInitializedAsync()
     {
-        studyList = await protocolMappingService.GetProtocolMappings(includeArchived);
+        List<string> allowed = new List<string> { "DMU Study Admin", "DMU Global Admin" };
+        List<string> adminRole = new List<string> { "IT" };
+        if (httpContextAccessor?.HttpContext?.User.HasAnyTHORRole(allowed.ToArray()) == false && httpContextAccessor?.HttpContext?.User.HasAnyAdminRole(adminRole.ToArray()) == false)
+        {
+            var studyIds = userService.GetProtocolAccessForUser(httpContextAccessor.HttpContext.User.GetUserId());
+            studyList = await protocolMappingService.GetProtocolMappings(studyIds, includeArchived);
+        }
+        else
+        {
+            studyList = await protocolMappingService.GetProtocolMappings(includeArchived);
+        }
     }
 
     private async Task EditMapping(ProtocolMapping mapping)

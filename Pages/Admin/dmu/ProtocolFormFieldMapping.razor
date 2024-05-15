@@ -370,6 +370,11 @@ else{
 
     public string GetThorFieldLabel(ProtocolFieldMapping item)
     {
+        if (item.ThorFieldId == null || item.ThorFieldId == "")
+        {
+            return "<Not Mapped>";
+        }
+
         if (item.ThorFieldId != null && item.ThorFieldId != "")
         {
             return thorFieldList.First(x => x.ThorFieldId == item.ThorFieldId).FieldLabel;
