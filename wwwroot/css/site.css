@@ -259,6 +259,10 @@
     padding-left: 0;
 }
 
+.upload-Modal-Body {
+    overflow-x: scroll;
+}
+
 .overview-Modal-Cell {
     min-width: 20vw;
     max-width: 70vw;
@@ -324,6 +328,18 @@
 .tertiary-bar-link {
     margin-left: 0px;
     padding-left: 0px;
+}
+
+.operationSuccess {
+    color: #0f880f !important;
+}
+
+.operationInProgress {
+    color: #0755d4 !important;
+}
+
+.operationFailed {
+    color: red !important;
 }
 
 .dmu-grid-header {

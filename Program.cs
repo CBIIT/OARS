@@ -17,6 +17,11 @@ using TheradexPortal.Data.PowerBI.Abstract;
 using ITfoxtec.Identity.Saml2;
 using ITfoxtec.Identity.Saml2.Schemas.Metadata;
 using ITfoxtec.Identity.Saml2.MvcCore.Configuration;
+using Microsoft.Extensions.Logging;
+using Amazon.DynamoDBv2;
+using Microsoft.Extensions.DependencyInjection;
+using Amazon.DynamoDBv2.DataModel;
+using Amazon.S3;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,6 +40,7 @@ builder.Services.AddScoped<IAlertService, AlertService>();
 builder.Services.AddScoped<IContactUsService, ContactUsService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IErrorLogService, ErrorLogService>();
+builder.Services.AddScoped<IUploadService, UploadService>();
 builder.Services.AddScoped<IThorCategoryService, ThorCategoryService>();
 builder.Services.AddScoped<IThorFieldService, ThorFieldService>();
 builder.Services.AddScoped<IThorDictionaryService, ThorDictionaryService>();
@@ -59,6 +65,7 @@ builder.Services.AddScoped<IProtocolDataCategoryService, ProtocolDataCategorySer
 builder.Services.AddScoped<IProtocolFieldMappingService, ProtocolFieldMappingService>();
 builder.Services.AddScoped<IProtocolDictionaryMappingService, ProtocolDictionaryMappingService>();
 builder.Services.AddScoped<IProtocolFormMappingService, ProtocolFormMappingService>();
+
 builder.Services.AddHttpClient<IOktaService, OktaService>(client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["Okta:Issuer"]);
@@ -67,6 +74,7 @@ builder.Services.AddHttpClient<IOktaService, OktaService>(client =>
 });
 
 builder.Services.AddScoped<TimeZoneService>();
+
 
 builder.Host.ConfigureLogging((context, logging) =>
 {
@@ -90,6 +98,9 @@ builder.Services
 // Load email settings
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
+// Load upload settings
+builder.Services.Configure<UploadSettings>(builder.Configuration.GetSection("UploadSettings"));
+
 // Loading appsettings.json in C# Model classes
 builder.Services.Configure<PowerBI>(builder.Configuration.GetSection("PowerBI"));
 builder.Services.Configure<AzureAd>(builder.Configuration.GetSection("PowerBICredentials"));
@@ -97,6 +108,15 @@ builder.Services.Configure<AzureAd>(builder.Configuration.GetSection("PowerBICre
 // Load DB context
 builder.Services.AddDbContextFactory<ThorDBContext>(opt =>
     opt.UseOracle(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Load DynamodB context
+builder.Services.AddAWSService<IAmazonDynamoDB>();
+builder.Services.AddSingleton<IDynamoDBContext, DynamoDBContext>(p => new DynamoDBContext(new AmazonDynamoDBClient()));
+builder.Services.AddTransient<IDynamoDbService, DynamoDbService>();
+
+// Load S3
+builder.Services.AddAWSService<IAmazonS3>();
+builder.Services.AddTransient<IAWSS3Service, AWSS3Service>();
 
 var onTokenValidated = async (TokenValidatedContext context) =>
 {
