@@ -110,7 +110,7 @@
         </ModalFooter>
     </ModalContent>
 </Modal>
-@code {
+    @code {
     [Inject] private NavigationManager navigation {get; set; } = null!;
     [Inject] IUserService userService { get; set; } = null!;
     [Inject] INotificationService NotificationService { get; set; }
@@ -192,8 +192,16 @@
         bool emailSuccess = true;
         bool oktaSuccess = true;
 
-        string initialSite = "NCI Theradex Oncology Reporting-" + configuration.GetValue<string>("System:Environment");
-        string siteAcronym = "NCI <SPAN style='color:orange;'>Th</SPAN>eradex <SPAN style='color:orange;'>O</SPAN>ncology <SPAN style='color:orange'>R</SPAN>eporting-" + configuration.GetValue<string>("System:Environment");
+        bool isProd = configuration.GetValue<string>("System:Environment").StartsWith("Prod");
+
+        string initialSite = "NCI Oncology Automated Reporting System";
+        string siteAcronym = "NCI Oncology Automated Reporting System";
+
+        if (!isProd)
+        {
+            initialSite = initialSite + "-" + configuration.GetValue<string>("System:Environment");
+            siteAcronym = siteAcronym + "-" + configuration.GetValue<string>("System:Environment");
+        }
 
         Tuple<bool, string> oktaResults = await oktaService.GetUserStatus(u.EmailAddress);
         if (oktaResults.Item1)
@@ -203,7 +211,7 @@
                 emailSuccess = await emailService.SendNewSystemEmail(
                     initialSite,
                     siteAcronym,
-                    "NCI-THOR",
+                    "NCI-OARS",
                     navigation.BaseUri,
                     configuration.GetValue<string>("System:SystemColor"),
                     u);
@@ -223,7 +231,7 @@
                 emailSuccess = await emailService.SendNewUserEmail(
                     initialSite,
                     siteAcronym,
-                    "NCI-THOR",
+                    "NCI-OARS",
                     navigation.BaseUri, 
                     configuration.GetValue<string>("System:SystemColor"), 
                     u, 
@@ -244,7 +252,7 @@
                 emailSuccess = await emailService.SendNewUserEmail(
                     initialSite,
                     siteAcronym,
-                    "NCI-THOR",
+                    "NCI-OARS",
                     navigation.BaseUri, 
                     configuration.GetValue<string>("System:SystemColor"), 
                     u, 

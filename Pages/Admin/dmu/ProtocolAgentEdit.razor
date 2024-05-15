@@ -76,7 +76,11 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var watch = System.Diagnostics.Stopwatch.StartNew();
         this.protocolAgents = await protocolAgentService.GetAgentsByMappingId(protocolMappingId);
+        watch.Stop();
+        var elapsedMs = watch.ElapsedMilliseconds;
+        System.Console.WriteLine($"Protocol Agent Elapsed time: {elapsedMs} ms");
     }
 
 

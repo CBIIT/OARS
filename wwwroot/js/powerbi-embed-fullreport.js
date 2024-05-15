@@ -110,10 +110,6 @@ function embedFullReport(reportContainer, accessToken, filterTargets, embedUrl, 
 
             await callDotNetSaveStudyMethod(newStudies, operator);
         }
-
-        clearTimeout(initial);
-        //console.log("Render: " + timeoutMS);
-        initializeInactivityTimer();
     });
 
     window.fullReport = report;

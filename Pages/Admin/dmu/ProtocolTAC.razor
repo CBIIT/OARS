@@ -83,7 +83,11 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var watch = System.Diagnostics.Stopwatch.StartNew();
         if (protocolMappingId != null) this.protocolTacList = await ProtocolTacService.GetProtocolTACByProtocolMappingId(protocolMappingId);
+        watch.Stop();
+        var elapsedMs = watch.ElapsedMilliseconds;
+        System.Console.WriteLine($"Protocol TAC Elapsed time: {elapsedMs} ms");
     }
 
     public async void Save(SavedRowItem<ProtocolTac, Dictionary<string, object>> e)

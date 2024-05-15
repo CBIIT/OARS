@@ -26,7 +26,11 @@
 
 	protected override async Task OnInitializedAsync()
 	{
+		var watch = System.Diagnostics.Stopwatch.StartNew();
 		this.mapping = await protocolMappingService.GetProtocolMapping(protocolMappingId);
+		watch.Stop();
+		var elapsedMs = watch.ElapsedMilliseconds;
+		System.Console.WriteLine($"Protocol Publish Elapsed time: {elapsedMs} ms");
 	}
 
 	public async void PublishProtocol()

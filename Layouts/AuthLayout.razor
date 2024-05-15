@@ -2,9 +2,11 @@
 @using Microsoft.JSInterop;
 @using TheradexPortal.Data.Static;
 @using TheradexPortal.Data.Services.Abstract;
+@using System.Timers
 @inherits LayoutComponentBase
 @inject IConfiguration configuration
 @inject IHttpContextAccessor httpContextAccessor
+@inject IJSRuntime JSRuntime
 
 <CascadingAuthenticationState>
     <AuthorizeView>
@@ -23,7 +25,7 @@
                                     Unable to complete login process
                                 </CardTitle>
                                 <CardText>
-                                    <p>We apoligize, but you do not have access to the NCI Theradex Oncology Reporting system at this time.<BR>
+                                    <p>We apoligize, but you do not have access to the NCI-Oncology Automated Reporting System at this time.<BR>
                                         If you need assistance, please contact us at <a href="mailto:@supportEmail">@supportEmail</a>.</p>
                                 </CardText>
                                 <Button Color="Color.Primary" Margin="Margin.Is5.FromTop" Clicked="@OnHomeClicked">
@@ -44,24 +46,16 @@
 
 @code {
     [Inject] public NavigationManager Navigation { get; set; }
-    [Inject] IJSRuntime jsRuntime { get; set; }
     [Inject] private IUserService userService { get; set; } = null!;
     private string supportEmail = "";
-    private static Func<Task> TimeoutUserAsync;
+    [CascadingParameter]
+    private Task<AuthenticationState> stateAuthenticate { get; set; }
+    private Timer timerObj;
 
     protected override async Task OnInitializedAsync()
     { 
         supportEmail = configuration.GetValue<string>("EmailSettings:SupportEmail");
-        TimeoutUserAsync = LocalTimeoutUserAsync;
         await base.OnInitializedAsync();
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await jsRuntime.InvokeVoidAsync("initializeInactivityTimer");
-        }
     }
 
     Task OnHomeClicked()
@@ -71,20 +65,39 @@
         return Task.CompletedTask;
     }
 
-    private async Task LocalTimeoutUserAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId) != null)
+        if (firstRender)
         {
-            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
-            userService.SaveActivityLog(userId, ThorActivityType.Logout, "Timeout");
-            Navigation.NavigateTo($"Timeout", true);
+            // Set the Timer delay.  5000 milliseconds, you can change it to 10 mins.
+            var timeoutMS = configuration.GetValue<int>("System:TimeoutMS");
+            timerObj = new Timer(timeoutMS);
+            timerObj.Elapsed += UpdateTimer;
+            timerObj.AutoReset = false;
+            timerObj.Start();
+            // Identify whether the user is active or inactive using onmousemove and onkeypress in JS function.
+            await JSRuntime.InvokeVoidAsync("timeOutCall", DotNetObjectReference.Create(this));
         }
     }
-
     [JSInvokable]
-    public static async Task Timeout()
+    public void TimerInterval()
     {
-        if (TimeoutUserAsync != null)
-            await TimeoutUserAsync.Invoke();
+        // Resetting the Timer if the user in active state.
+        timerObj.Stop();
+        // Call the TimeInterval to logout when the user is inactive.
+        timerObj.Start();
+    }
+
+    private void UpdateTimer(Object source, ElapsedEventArgs e)
+    {
+        InvokeAsync(async () =>
+        {
+            // Log out when the user is inactive.
+            var authstate = await stateAuthenticate;
+            if (authstate.User.Identity.IsAuthenticated)
+            {
+                Navigation.NavigateTo($"Timeout", true);
+            }
+        });
     }
 }

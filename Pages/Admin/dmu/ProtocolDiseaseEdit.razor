@@ -82,7 +82,11 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var watch = System.Diagnostics.Stopwatch.StartNew();
         if (protocolMappingId != null) this.protocolDiseaseList = await ProtocolDiseaseService.GetProtocolDiseaseByProtocolMappingId(protocolMappingId);
+        watch.Stop();
+        var elapsedMs = watch.ElapsedMilliseconds;
+        System.Console.WriteLine($"Protocol Disease Elapsed time: {elapsedMs} ms");
     }
 
     public async void Save(SavedRowItem<ProtocolDisease, Dictionary<string, object>> e)

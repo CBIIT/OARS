@@ -276,11 +276,15 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var watch = System.Diagnostics.Stopwatch.StartNew();
         this.currentProtocolMap = await protocolMappingService.GetProtocolMapping(protocolMappingId);
         this.phasesSet = await protocolPhaseService.GetProtocolMappingPhases(protocolMappingId);
         applyPhases();
         await InitializedAsync();
         await base.OnInitializedAsync();
+        watch.Stop();
+        var elapsedMs = watch.ElapsedMilliseconds;
+        System.Console.WriteLine($"Protocol Setup Elapsed time: {elapsedMs} ms");
     }
 
     protected void applyPhases()
