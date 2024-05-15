@@ -11,7 +11,5 @@
         public string ProtocolDataPath { get; set; }
 
         public string CRFRulesPath { get; set; }
-
-        public string MedidataEnvironment { get; set; }
     }
 }

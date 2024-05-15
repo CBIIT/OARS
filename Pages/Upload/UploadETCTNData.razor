@@ -54,7 +54,7 @@
                                                 }
                                             </ChildContent>
                                             @* <Feedback>
-                                                <ValidationError>Protocol is required</ValidationError>
+                                            <ValidationError>Protocol is required</ValidationError>
                                             </Feedback> *@
                                         </Select>
                                     </FieldBody>
@@ -72,8 +72,8 @@
                                                     <SelectItem TValue="string" Value="@item.UserData">@item.UserData</SelectItem>
                                                 }
                                             </ChildContent>
-                                           @*  <Feedback>
-                                                <ValidationError>SourceSite is required</ValidationError>
+                                            @*  <Feedback>
+                                            <ValidationError>SourceSite is required</ValidationError>
                                             </Feedback> *@
                                         </Select>
                                     </FieldBody>
@@ -92,7 +92,7 @@
                                                 }
                                             </ChildContent>
                                             @* <Feedback>
-                                                <ValidationError>ReceivingSite is required</ValidationError>
+                                            <ValidationError>ReceivingSite is required</ValidationError>
                                             </Feedback> *@
                                         </Select>
                                     </FieldBody>
@@ -114,7 +114,7 @@
                                                 }
                                             </ChildContent>
                                             @* <Feedback>
-                                                <ValidationError>CRF is required</ValidationError>
+                                            <ValidationError>CRF is required</ValidationError>
                                             </Feedback> *@
                                         </RadioGroup>
                                         <Div>
@@ -150,7 +150,7 @@
                                                 }
                                             </ChildContent>
                                             @* <Feedback>
-                                                <ValidationError>Assay is required</ValidationError>
+                                            <ValidationError>Assay is required</ValidationError>
                                             </Feedback> *@
                                         </Select>
                                     </FieldBody>
@@ -343,17 +343,13 @@
                 {
                     await NotificationService.Error("There's an error loading the studies. Please try again later.");
                 }
-                else if (string.IsNullOrWhiteSpace(uploadConfiguration.MedidataEnvironment))
+                else if (currentEnvironment.IndexOf("prod", StringComparison.InvariantCultureIgnoreCase) < 0 &&
+                                 protocolData.Any(t => !string.IsNullOrWhiteSpace(t.Environment) && t.Environment.IndexOf("prod", StringComparison.InvariantCultureIgnoreCase) >= 0))
                 {
-                    await NotificationService.Error("Medidata Environment is not set. Please try again later.");
-                }
-                else if (uploadConfiguration.MedidataEnvironment.IndexOf("prod", StringComparison.InvariantCultureIgnoreCase) >= 0
-                                && currentEnvironment.IndexOf("prod", StringComparison.InvariantCultureIgnoreCase) < 0)
-                {
-                    await NotificationService.Error($"Medidata Environment {uploadConfiguration.MedidataEnvironment} is invalid in this environment. Please try again later.");
+                    await NotificationService.Error($"Medidata Environment is invalid in this environment. Please try again later.");
                 }
                 else
-                    protocols = protocolData.Select(t => $"{t.Protocol}({uploadConfiguration.MedidataEnvironment})").ToList();
+                    protocols = protocolData.Where(t => !string.IsNullOrWhiteSpace(t.Environment)).Select(t => $"{t.Protocol}({t.Environment})").ToList();
 
                 await OnReset();
             }

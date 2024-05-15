@@ -92,6 +92,8 @@ namespace TheradexPortal.Data.Models
     public class ProtocolData
     {
         public string Protocol { get; set; }
+
+        public string Environment { get; set; }
         public List<MedidataDictionaryModel> Sites { get; set; }
         public List<MedidataDictionaryModel> Assays { get; set; }
     }
@@ -122,8 +124,6 @@ namespace TheradexPortal.Data.Models
         public List<CRFRule> CRFRules { get; set; }
 
         public List<CRFModel> CRFs { get; set; }
-
-        public string MedidataEnvironment { get; set; }
     }
 
     public class FileMetadata
