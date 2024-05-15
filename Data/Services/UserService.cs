@@ -19,7 +19,7 @@ namespace TheradexPortal.Data.Services
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
 
-        public UserService(IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
+        public UserService(IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, NavigationManager navigationManager) : base(databaseConnectionService)
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;
@@ -39,7 +39,7 @@ namespace TheradexPortal.Data.Services
         }
         public bool CheckEmailAddress(string emailAddress, int userId)
         {
-            User foundUser = context.Users.FirstOrDefault(u=>u.EmailAddress == emailAddress && u.UserId != userId);
+            User foundUser = context.Users.FirstOrDefault(u=>u.EmailAddress.ToUpper() == emailAddress.ToUpper() && u.UserId != userId);
             return foundUser == null;
         }
         public bool SaveUser(User user, int loggedInUserId)
@@ -396,6 +396,19 @@ namespace TheradexPortal.Data.Services
                 return false;
             }
         }
+        public bool CheckActivityLogForTimeout(int userId, int timespanMS)
+        {
+            // Get the lost recent non-Timeout-check record from Activity log based on the timespan
+            var mostRecentActivity = ( from ua in context.User_ActivityLog
+                                       where ua.UserId == userId && ua.Data1 != "Timeout-Check"
+                                       orderby ua.ActivityDate descending
+                                       select ua).FirstOrDefault();
+
+            DateTime curDateTime = DateTime.UtcNow;
+
+            // Return true to force timeout
+            return mostRecentActivity.ActivityDate.Value.AddMilliseconds(timespanMS) < curDateTime;
+        }
         public Tuple<bool, string> SaveFavorite(int userId, int dashboardId, int reportId, string reportName)
         {
             try
@@ -670,6 +683,18 @@ namespace TheradexPortal.Data.Services
                 return true;
             }
             return false ;
+        }
+
+        public List<string> GetProtocolAccessForUser(int userId)
+        {
+            List<string> protocolIds = new List<string>();
+
+            var userProtocols = context.User_Protocols.Where(up => (up.UserId == userId && (up.ExpirationDate == null || up.ExpirationDate > DateTime.Now))).ToList();
+            var groupProtocols = context.Group_Protocols.Where(gp => (gp.GroupId == context.User_Groups.Where(ug => ug.UserId == userId).Select(ug => ug.GroupId).FirstOrDefault()) && gp.IsActive).ToList();
+            protocolIds.AddRange(userProtocols.Select(up => up.StudyId));
+            protocolIds.AddRange(groupProtocols.Select(gp => gp.StudyId));
+
+            return protocolIds;
         }
     }
 }

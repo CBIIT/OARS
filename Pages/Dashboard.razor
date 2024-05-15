@@ -11,6 +11,8 @@
 @using TheradexPortal.Data.Services.Abstract;
 @using TheradexPortal.Data.ViewModels;
 @using TheradexPortal.Data.Static;
+@using System.Timers
+@inject IJSRuntime JSRuntime
 
 @if(notFound)
 {
@@ -30,9 +32,16 @@ else
         <Container Fluid Class="mt-2">
             @if(report != null && report.IsFullPage)
             {
-                <PowerBiFullReport Dashboard="dashboard" Report="report" @ref="fullReportRef" />
+                if (report.CustomPagePath != null)
+                {
+                    <DynamicComponent Type="@(Type.GetType($"TheradexPortal.Shared.{report.CustomPagePath!}") ?? typeof(NotFound))" />
+                }
+                else
+                {
+                    <PowerBiFullReport Dashboard="dashboard" Report="report" @ref="fullReportRef" />
+                }
             }
-            else if(report != null)
+            else if(report != null) /* Unused as IsFullPage will always be set */
             {
                 <PowerBiCustomLayout Dashboard="dashboard" Report="report" @ref="customReportRef" />
             }
@@ -60,6 +69,10 @@ else
     private PowerBiCustomLayout? customReportRef;
     private PowerBiFullReport? fullReportRef;
 
+    //[CascadingParameter]
+    //private Task<AuthenticationState> stateAuthenticate { get; set; }
+    //private Timer timerObj;
+    //[Inject] public NavigationManager Navigation { get; set; }
     private TheradexPortal.Data.Models.Dashboard? dashboard;
     private IList<Report> allReports = new List<Report>();
     private Report? report;
@@ -91,7 +104,7 @@ else
             To = this.getHelpUrl(),
             ShowAction = this.helpFileFound
         },
-          new SecondaryNavAction
+        new SecondaryNavAction
         {
             IconName = IconName.Star,
             Label = "Add to Favorites",
@@ -205,7 +218,41 @@ else
                 await PrimaryNavLayout.UpdateDashboard(dashboard);
             }
         }
+        // else
+        // {
+        //     // Set the Timer delay.  5000 milliseconds, you can change it to 10 mins.
+        //     timerObj = new Timer(20000);
+        //     timerObj.Elapsed += UpdateTimer;
+        //     timerObj.AutoReset = false;
+        //     timerObj.Start();
+        //     // Identify whether the user is active or inactive using onmousemove and onkeypress in JS function.
+        //     //DotNet.invokeMethodAsync("TheradexPortal", "Timeout")
+        //     await JSRuntime.InvokeVoidAsync("timeOutCall", DotNetObjectReference.Create(this));
+        // }
     }
+
+    // [JSInvokable]
+    // public void TimerInterval()
+    // {
+    //     // Resetting the Timer if the user in active state.
+    //     timerObj.Stop();
+    //     // Call the TimeInterval to logout when the user is inactive.
+    //     timerObj.Start();
+    // }
+
+    // private void UpdateTimer(Object source, ElapsedEventArgs e)
+    // {
+    //     InvokeAsync(async () =>
+    //     {
+    //         // Log out when the user is inactive.
+    //         var authstate = await stateAuthenticate;
+    //         if (authstate.User.Identity.IsAuthenticated)
+    //         {
+    //             Navigation.NavigateTo($"Timeout", true);
+    //             //UriHelper.NavigateTo("/timedout", true);
+    //         }
+    //     });
+    // }
 
     //// Re-render report components and hide modal
     //private async void HideFilters(List<Protocol>? selectedStudies)

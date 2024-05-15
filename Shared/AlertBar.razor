@@ -70,6 +70,7 @@ else
     private bool notesHidden;
     private bool defaultAlertVisible;
     private bool alertsSessionLoaded;
+    private bool pageLoaded;
     [Inject] private IAlertService alertService { get; set; } = null!;
     private BarItem? alertsItem;
     private BarItem? notesItem;
@@ -83,6 +84,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        this.pageLoaded = false;
+        this.alertsSessionLoaded = false;
         await this.getSystemAlerts();
         await this.getLoginAlerts();
         await this.getDashboardAlerts();
@@ -91,7 +94,6 @@ else
         this.infoColor = await alertService.InfoColor();
         this.currentColor = this.noteColor;
         this.setCurrentColor();
-        this.alertsSessionLoaded = true;
         await base.OnInitializedAsync();
     }
 
@@ -99,16 +101,20 @@ else
     {
         if (firstRender)
         {
-            //await LoadSessionAlerts();
-            await this.updateAlertsCount(this.getActiveAlertsCount());
-            //StateHasChanged();
+            await LoadSessionAlerts();
+            if (this.System)
+            {
+                await this.updateAlertsCount(this.getActiveAlertsCount());
+            }
+            this.pageLoaded = true;
+            StateHasChanged();
         }
     }
 
-    public void UpdateDashboard(Dashboard dashboard)
+    public async void UpdateDashboard(Dashboard dashboard)
     {
         this.selectedDashboard = dashboard;
-        this.getDashboardAlerts();
+        await this.getDashboardAlerts();
         StateHasChanged();
     }
 
@@ -198,6 +204,11 @@ else
 
     private async Task dismissAlert(ThorAlert alert)
     {
+        if (!this.pageLoaded)
+        {
+            return;
+        }
+
         var alertId = alert.AlertId.ToString();
 
         if (alert != null && !this.dismissedAlerts!.Contains(alertId))
@@ -208,20 +219,17 @@ else
             }
             this.dismissedAlerts += alertId;
             await this.saveSessionAlerts(this.dismissedAlerts);
-
-            var alertsCount = this.getActiveAlertsCount();
-
-            if (alertsCount.Equals(0))
-            {
-                this.defaultAlertVisible = true;
-            }
-
-            await this.updateAlertsCount(alertsCount);
+            await this.countSystemAlerts();
         }
     }
 
     private async Task toggleAlert(ThorAlert alert)
     {
+        if (!this.pageLoaded)
+        {
+            return;
+        }
+
         await this.AlertBarToggled.InvokeAsync();
     }
 
@@ -229,6 +237,7 @@ else
     {
         var sessionDismissedAlerts = await SessionData.GetAsync<string>("dismissedAlerts");
         this.dismissedAlerts = sessionDismissedAlerts.Success ? sessionDismissedAlerts.Value : "";
+        this.alertsSessionLoaded = true;
     }
 
     private async Task saveSessionAlerts(string newData)
@@ -239,5 +248,18 @@ else
     private async Task updateAlertsCount(int alertsCount)
     {
         await this.AlertsCountChanged.InvokeAsync(alertsCount);
+    }
+
+    private async Task countSystemAlerts()
+    {
+        if (this.System)
+        {
+            var alertsCount = this.getActiveAlertsCount();
+            if (alertsCount.Equals(0))
+            {
+                this.defaultAlertVisible = true;
+            }
+            await this.updateAlertsCount(alertsCount);
+        }
     }
 }

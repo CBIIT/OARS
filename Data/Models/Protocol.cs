@@ -1,14 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TheradexPortal.Data.Models
 {
     [Table("PROTOCOL", Schema = "THORDB")]
-    [Keyless]
     public class Protocol
     {
         //unique index
-        [Column("Study_Id")]
+        [Key, Column("Study_Id")]
         public string? StudyId { get; set; } 
 
         public string? Institution { get; set; }
@@ -154,6 +154,24 @@ namespace TheradexPortal.Data.Models
 
         [Column("Phase_Activation_Date")]
         public DateTime? PhaseActivationDate { get; set; }
+
+        [Column("RecordActive")]
+        public string? RecordActive { get; set; }
+
+        [Column("Created_On")]
+        public DateTime? CreatedOn { get; set; }
+
+        [Column("Created_By")]
+        public string? CreatedBy { get; set; }
+
+        //[Column("Primary_Agent")]
+        //public string? PrimaryAgent { get; set; }
+
+        //[Column("Other_Agents")]
+        //public string? OtherAgents { get; set; }
+
+        //[Column("SRC_Record_Id")]
+        //public string? SrcRecordId { get; set; }
 
         [NotMapped]
         public int RecentOrder { get; set; }

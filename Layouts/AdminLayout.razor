@@ -1,4 +1,4 @@
-﻿@using TheradexPortal.Data.Identity;
+@using TheradexPortal.Data.Identity;
 @using TheradexPortal.Data.Services.Abstract;
 @using TheradexPortal.Data.Static;
 @using System.Security.Claims;
@@ -15,7 +15,7 @@
             <LayoutHeader>
                 <Bar Breakpoint="Breakpoint.Desktop" NavigationBreakpoint="Breakpoint.Desktop" Style="@GetHeaderColor()" Class="nci-navbar px-4">
                     <BarBrand>
-                            <Image Source="img/theradex-logo.png" AlternateText="Theradex Oncology" /><span class="navbar-sitename">@environment</span>
+                            <Image Source="img/OarsLogo.svg" AlternateText="NCI-OARS" /><span class="navbar-sitename">@environment</span>
                     </BarBrand>
                     <BarToggler />
                     <BarMenu>
@@ -57,7 +57,7 @@
                                 </BarBrand>
                                 <BarMenu>
                                     <BarStart>
-                                        @if (CheckRole( new List<string> { "IT", "Content" }))
+                                        @if (CheckRole( new List<string> { "IT", "Biz", "Content" }))
                                         {
                                             <BarItem>
                                                 <BarLink To="/admin/alerts">
@@ -77,24 +77,51 @@
                                         }
                                         @if (CheckRole(new List<string> { "IT" }))
                                         {
-                                            <BarItem>
-                                                <BarLink To="/admin/roles">
-                                                    <BarIcon IconName="IconName.Coffee" />
-                                                    Roles
-                                                </BarLink>
-                                            </BarItem>
-                                            <BarItem>
-                                                <BarLink To="/admin/groups">
-                                                    <BarIcon IconName="IconName.PuzzlePiece" />
-                                                    Groups
-                                                </BarLink>
-                                            </BarItem>
-                                            <BarItem>
-                                                <BarLink To="/admin/dashboards">
-                                                    <BarIcon IconName="IconName.ChartPie" />
-                                                    Dashboards
-                                                </BarLink>
-                                            </BarItem>
+                                        <BarItem>
+                                            <BarLink To="/admin/roles">
+                                                <BarIcon IconName="IconName.Coffee" />
+                                                Roles
+                                            </BarLink>
+                                        </BarItem>
+                                        <BarItem>
+                                            <BarLink To="/admin/groups">
+                                                <BarIcon IconName="IconName.PuzzlePiece" />
+                                                Groups
+                                            </BarLink>
+                                        </BarItem>
+                                        <BarItem>
+                                            <BarLink To="/admin/dashboards">
+                                                <BarIcon IconName="IconName.ChartPie" />
+                                                Dashboards
+                                            </BarLink>
+                                        </BarItem>
+                                        }
+                                        @if (CheckRole(new List<string> { "IT" }) || context.User.HasTHORRole("DMU Global Admin"))
+                                        {
+                                        <BarItem>
+                                            <BarLink To="/admin/dmu/select-profile">
+                                                <BarIcon IconName="IconName.Wrench" />
+                                                DMU Global Admin
+                                            </BarLink>
+                                        </BarItem>
+                                        }
+                                            @if (CheckRole(new List<string> { "IT" }) || context.User.HasAnyTHORRole("DMU Study Admin", "DMU Global Admin"))
+                                            {
+                                        <BarItem>
+                                            <BarLink To="/admin/dmu/select-study">
+                                                <BarIcon IconName="IconName.Book" />
+                                                DMU Study Admin
+                                            </BarLink>
+                                        </BarItem>
+                                        }
+                                            @if (CheckRole(new List<string> { "IT" }) || context.User.HasAnyTHORRole("DMU Study Mapping", "DMU Study Admin", "DMU Global Admin"))
+                                            {
+                                        <BarItem>
+                                            <BarLink To="/admin/dmu/study-mapping">
+                                                <BarIcon IconName="IconName.Pen" />
+                                                DMU Study Mapping
+                                            </BarLink>
+                                        </BarItem>
                                         }
                                     </BarStart>
                                 </BarMenu>
@@ -117,8 +144,8 @@
     <NotAuthorized>
         <NotFound />
     </NotAuthorized>
-
 </AuthorizeView>
+<MessageProvider />
 
 @code {
     [Inject] public NavigationManager Navigation { get; set; }
@@ -134,12 +161,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-
-        environment = configuration.GetValue<string>("System:Environment");
-        if (environment != "Prod")
-            environment = "NCI Theradex Oncology Reporting-" + environment;
-        else
-            environment = "NCI Theradex Oncology Reporting";
+        environment = configuration.GetValue<string>("System:Environment") == "Prod" ? "" : configuration.GetValue<string>("System:Environment");
     }
 
     private string GetHeaderColor()
@@ -150,7 +172,18 @@
 
     Task OnButtonClicked()
     {
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+        if (httpContextAccessor.HttpContext == null)
+        {
+            Navigation.NavigateTo($"Signout", true);
+            return Task.CompletedTask;
+        }
+        var userIdClaim = httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId);
+        if (userIdClaim == null)
+        {
+            Navigation.NavigateTo($"Signout", true);
+            return Task.CompletedTask;
+        }
+        int userId = Convert.ToInt32(userIdClaim.Value);
         userService.SaveActivityLog(userId, ThorActivityType.Logout);
         Navigation.NavigateTo($"Signout", true);
 
@@ -159,18 +192,21 @@
 
     private bool CheckRole(List<string> allowedRoles)
     {
-        bool roleFound = false;
-        foreach (string allowedRole in allowedRoles)
+        if (httpContextAccessor?.HttpContext?.User == null)
         {
-            if (httpContextAccessor.HttpContext.User.HasClaim(c => c.Type == "Admin-" + allowedRole))
-                roleFound = true;
+            return false;
         }
-        return roleFound;
+        return httpContextAccessor.HttpContext.User.HasAnyAdminRole(allowedRoles.ToArray());
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+        var userClaim = httpContextAccessor.HttpContext?.User.FindFirst(ThorClaimType.UserId);
+        if (userClaim == null)
+        {
+            return;
+        }
+        int userId = Convert.ToInt32(userClaim.Value);
         string pageUri = Navigation.ToBaseRelativePath(Navigation.Uri);
         string pageName = "admin", data1;
 

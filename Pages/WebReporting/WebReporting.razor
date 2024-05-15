@@ -101,6 +101,7 @@ else
                     successDiv = Display.Block;
                     connectDiv = Display.None;
                     StateHasChanged();
+                    //JSRuntime.InvokeAsync<string>("open", wrSite + "ThorSSO.aspx?id=" + ssoToken + "&dash=NCI%20Standard%20Dashboards%5CETCTN%20Data%20uploads", "_blank");
                     JSRuntime.InvokeAsync<string>("open", wrSite + "ThorSSO.aspx?id=" + ssoToken, "_blank");
                 }
                 else

@@ -1,0 +1,75 @@
+﻿@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@inject IHttpContextAccessor httpContextAccessor
+@layout AdminLayout
+@page "/admin/dmu/study-mapping"
+<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })" AllowedTHORRoles="@(new List<string> { "DMU Study Mapping", "DMU Study Admin", "DMU Global Admin" })"></AdminRoleCheck>
+
+<DataGrid @ref=dataGridRef
+          TItem="ProtocolMapping"
+          Class="admindatagrid"
+          Data="@studyList"
+          Responsive
+          Sortable
+          Striped
+          ShowPager
+          ShowPageSizes
+          Filterable
+           FilterMethod="DataGridFilterMethod.Contains"
+           MaxPaginationLinks="5"
+           PagerPosition="DataGridPagerPosition.Bottom"
+           PagerOptions="new(){ButtonSize=Size.Default,
+                                PaginationPosition=PagerElementPosition.Default,
+                                TotalItemsPosition=PagerElementPosition.End,
+                                }"
+          FixedHeader
+           FixedHeaderDataGridHeight="calc(100vh - 240px)"
+           FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
+           SelectionMode="DataGridSelectionMode.Single"
+           @bind-SelectedRows="selectedProtocols">
+     <DataGridColumns>
+         <DataGridMultiSelectColumn Width="30px"></DataGridMultiSelectColumn>
+        <DataGridColumn Width="10%" Caption="Version" Field="@nameof(ProtocolMapping.MappingVersion)" Editable Filterable="false" Sortable="false">
+        </DataGridColumn>
+        <DataGridColumn Width="20%" Field="Protocol.StudyId" Sortable="true" Filterable="true" Caption="Study ID" SortDirection="SortDirection.Ascending">
+        </DataGridColumn>
+        <DataGridColumn Width="50%" Field="Protocol.ProtocolTitle" Sortable="false" Filterable="true" Caption="Title">
+        </DataGridColumn>
+        <DataGridColumn Width="10%" Field="Status.StatusName" Sortable="false" Caption="Status">
+        </DataGridColumn>
+         <DataGridColumn Sortable="false" Filterable="false" Width="140px">
+             <DisplayTemplate>
+                 <Button><Icon Name="IconName.Edit" Clicked="@(()=>EditMapping(context as ProtocolMapping))" /></Button>
+             </DisplayTemplate>
+         </DataGridColumn>
+    </DataGridColumns>
+    <EmptyTemplate>
+        <div class="box">
+            No studies were found.
+        </div>
+    </EmptyTemplate>
+</DataGrid>
+
+ @code {
+    [Inject] private NavigationManager navigation { get; set; } = null!;
+    [Inject] INotificationService notificationService { get; set; }
+    [Inject] IProtocolMappingService protocolMappingService { get; set; }
+    [Inject] IStudyService studyService { get; set; }
+    [Inject] private IMessageService messageService { get; set; } = null!;
+
+    private DataGrid<ProtocolMapping> dataGridRef;
+    private IList<ProtocolMapping> studyList;
+
+    private List<ProtocolMapping> selectedProtocols;
+
+    protected override async Task OnInitializedAsync()
+    {
+        studyList = await protocolMappingService.GetExistingProtocolMappings();
+    }
+
+    private async Task EditMapping(ProtocolMapping mapping)
+    {
+        navigation.NavigateTo($"/admin/dmu/category-list-map/{mapping.ProtocolMappingId}");
+    }
+}

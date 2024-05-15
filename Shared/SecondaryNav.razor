@@ -29,21 +29,21 @@
                     {
                         @if (!IsReportFavorite())
                         {
-                         <BarItem Background="Background.White">
-                            <BarLink @onclick="() => HandleActionClick(action)">
-                                <BarIcon IconName="action.IconName" />
-                                @action.Label
-                            </BarLink>
-                        </BarItem>
+                            <BarItem Class="nci-secondary-nav-special">
+                                <BarLink @onclick="() => HandleActionClick(action)">
+                                    <BarIcon IconName="action.IconName" />
+                                    @action.Label
+                                </BarLink>
+                            </BarItem>
                         }
                     }
                     else
                     {
                         @if (action.ShowAction)
                         {
-                            <BarItem Background="Background.White">
+                            <BarItem Class="nci-secondary-nav-special">
                             @if(action.To != null){
-                                <BarLink To="@action.To">
+                                <BarLink To="@action.To" Class="action-link">
                                     <BarIcon IconName="action.IconName" />
                                     @action.Label
                                 </BarLink>
@@ -62,8 +62,8 @@
             @if(Reports.Count > 0)
             {
                 <Divider Class="my-0" />
+                <Divider DividerType="DividerType.Solid" />
             }
-
             @for (int x = 0; x < Reports.Count(); x=x)
             {
                 var curReport = Reports[x];
@@ -89,15 +89,15 @@
                     <BarItem>
                         <BarDropdown>
                             <BarDropdownToggle>
-                                    @if (IsReportFavorite(curReport))
-                                    {
-                                        <BarIcon IconName=IconName.Star />
-                                    }
+                                @if (IsReportFavorite(curReport))
+                                {
+                                    <BarIcon IconName=IconName.Star />
+                                }
                                 <BarIcon IconName=@GetReportIcon(curReport) />
                                 @curReport.Name
                             </BarDropdownToggle>
                             <BarDropdownMenu Style="margin-left: -35px;">
-                                    <TertiaryNav DashboardId="@curReport.DashboardId" Level2Name="@curReport.Name"></TertiaryNav>
+                                <TertiaryNav DashboardId="@curReport.DashboardId" Level2Name="@curReport.Name"></TertiaryNav>
                             </BarDropdownMenu>
                         </BarDropdown>
                     </BarItem>
@@ -133,15 +133,15 @@
 
     protected string GetReportLink(Report report)
     {
-        if(report.CustomPagePath != null)
-        {
-            return $"{report.CustomPagePath}/{report.DashboardId}/{report.ReportId}";
-            //return report.CustomPagePath;
-        }
-        else
-        {
-            return $"{ThorConstants.DASHBOARD_PAGE_PATH}/{report.DashboardId}/{report.ReportId}";
-        }
+        // if(report.CustomPagePath != null)
+        // {
+        //     return $"{report.CustomPagePath}/{report.DashboardId}/{report.ReportId}";
+        //     //return report.CustomPagePath;
+        // }
+        // else
+        // {
+             return $"{ThorConstants.DASHBOARD_PAGE_PATH}/{report.DashboardId}/{report.ReportId}";
+        // }
     }
 
     protected string GetReportIcon(Report report)
@@ -151,14 +151,25 @@
 
     protected bool IsReportFavorite(Report report)
     {
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
-        return userService.IsReportFavorite(userId, report.ReportId);
+        if (httpContextAccessor != null && httpContextAccessor.HttpContext != null && httpContextAccessor.HttpContext.User != null && httpContextAccessor.HttpContext.User.Claims.Count() > 0)
+        {
+            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+            return userService.IsReportFavorite(userId, report.ReportId);
+        }
+        else
+            return false;
+
     }
 
     protected bool IsReportFavorite()
     {
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
-        return userService.IsReportFavorite(userId, ReportId);
+        if (httpContextAccessor != null && httpContextAccessor.HttpContext != null && httpContextAccessor.HttpContext.User != null && httpContextAccessor.HttpContext.User.Claims.Count() > 0)
+        {
+            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+            return userService.IsReportFavorite(userId, ReportId);
+        }
+        else
+            return false;
     }
 
     protected Target GetReportTarget(Report report)
