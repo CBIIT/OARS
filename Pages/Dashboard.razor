@@ -34,7 +34,7 @@ else
             {
                 if (report.CustomPagePath != null)
                 {
-                    <DynamicComponent Type="@(Type.GetType($"TheradexPortal.Shared.{report.CustomPagePath!}") ?? typeof(NotFound))" />
+                    <DynamicComponent Type="@(Type.GetType($"TheradexPortal.{report.CustomPagePath!}") ?? typeof(NotFound))" />
                 }
                 else
                 {
