@@ -12,5 +12,6 @@ namespace TheradexPortal.Data.Services.Abstract
         Task<IList<ProtocolMapping>> GetAllProtocolMappingsFromProfileType(int profileType);
         Task<bool> PublishProtocolMapping(int id);
         Task<bool> CopyMapping(int sourceId, int targetId);
+        Task<IList<CrossoverOption>> GetCrossoverOptions();
     }
 }

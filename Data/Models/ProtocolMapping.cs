@@ -37,6 +37,9 @@ namespace TheradexPortal.Data.Models
         public DateTime? CreateDate { get; set; }
         [Column("Is_Published")]
         public bool IsPublished { get; set; }
+        [Column("Protocol_Crossover_Option_Id")]
+        public int? ProtocolCrossoverOptionId { get; set; }
+
         [ForeignKey(nameof(ProtocolMappingStatusId))]
         public ProtocolMappingStatus? Status { get; set; }
 
