@@ -27,12 +27,12 @@ namespace TheradexPortal.Data.Services
         private readonly IStudyService _studyService;
 
         public UploadService(IOptions<UploadSettings> uploadSettings,
-            IDbContextFactory<ThorDBContext> dbFactory,
+            IDatabaseConnectionService databaseConnectionService,
             IErrorLogService errorLogService,
             NavigationManager navigationManager,
             IDynamoDbService dynamoDbService,
             IStudyService studyService,
-            IAWSS3Service awsS3Service) : base(dbFactory)
+            IAWSS3Service awsS3Service) : base(databaseConnectionService)
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;
