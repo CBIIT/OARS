@@ -209,8 +209,7 @@
     vertical-align: middle;
 }
 .admindatagrid thead tr th {
-    /*color: black;
-    background-color:aquamarine;*/
+    background-color: #FA8D28
 }
 
 .admindataeditgrid tr td {
@@ -320,12 +319,81 @@
 .categorySelectGroup {   
     font-style: normal;
     font-weight: normal;
-
-.tertiary-bar-icon {
-    
 }
 
 .tertiary-bar-link {
     margin-left: 0px;
     padding-left: 0px;
+}
+
+.dmu-grid-header {
+    background-color: #FA8D28
+}
+
+.dmu-admin-step-container {
+    background-color: #F6E0CE;
+    margin-left: 0.7em;
+}
+
+.dmu-admin-subpanel {
+    background-color: #FA8D28
+}
+
+.dmu-admin-button-danger {
+    color: #000 !important;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 1rem;
+}
+
+.dmu-admin-warning-text {
+    font-size: 0.8rem !important;
+}
+
+.dmu-admin-button {
+    width: 13rem !important;
+    line-height: 1.3rem;
+    background-color: #4D93CA !important;
+    color: white;
+}
+
+.dmu-admin-button-orange {
+    line-height: 1.3rem;
+    background-color: #FA8D28 !important;
+    color: black;
+}
+
+.dmu-admin-label-field-container {
+    text-align: right;
+    line-height: 2.3rem;
+}
+
+.dmu-admin-dropdown-field {
+    background-color: white;
+    width: 100%;
+    text-align: left;
+}
+
+.dmu-header-white {
+    color: white;
+}
+
+.dmu-row-white {
+    background-color: white;
+}
+
+.dmu-row-alt {
+    background-color: #F6E0D0;
+}
+
+.dmu-admin-header-grey {
+    background-color: #BDBDBD;
+}
+
+.dmu-column-border-left {
+    border-left: 1px solid black;
+}
+
+ul.steps > li.step {
+    cursor: pointer;
 }

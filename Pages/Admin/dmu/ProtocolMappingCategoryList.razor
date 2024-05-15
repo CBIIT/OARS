@@ -1,0 +1,120 @@
+﻿@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+@inject IHttpContextAccessor httpContextAccessor
+@inject IConfiguration configuration
+@layout AdminLayout
+@page "/admin/dmu/category-list-map/{protocolMappingId:int}"
+<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })" AllowedTHORRoles="@(new List<string> { "DMU Study Mapping", "DMU Study Admin", "DMU Global Admin" })"></AdminRoleCheck>
+<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Mapping</h2></Div>
+<Row Background="Background.Light" Style="padding-bottom:10px;">
+    <Row>
+        <Text><b>Protocol:</b> @protocolMapping.ProtocolTitle</Text>
+    </Row>
+    <Row>
+        <Column><Text><b>Data Mapping Status:</b> @MappingStatus()</Text></Column>
+        <Column><Text><b>Data Mapping Version:</b> @protocolMapping.Profile.ProfileName</Text></Column>
+        <Column><Text><b>Lead Protocol Organization:</b> @protocolMapping.Sponsor</Text></Column>
+        <Column><Button Color="Color.Primary" Clicked="@GenerateMapping">Generate Mapping Document</Button></Column>
+
+    </Row>
+</Row>
+<DataGrid @ref=dataGridRef
+          TItem="ProtocolDataCategory"
+          Class="admindatagrid"
+          Data="@protocolDataCategoryList"
+          Editable
+          Responsive
+          Striped
+          ShowPager
+          ShowPageSizes
+          MaxPaginationLinks="5"
+          PagerPosition="DataGridPagerPosition.Bottom"
+          PagerOptions="new(){ButtonSize=Size.Default,
+                                PaginationPosition=PagerElementPosition.Default,
+                                TotalItemsPosition=PagerElementPosition.End,
+                                }"
+          FixedHeader
+          FixedHeaderDataGridHeight="calc(100vh - 240px)"
+          FixedHeaderDataGridMaxHeight="calc(100vh - 240px)">
+    <DataGridColumns>
+        <DataGridColumn Field="THORDataCategory.CategoryName" Width="50%" Caption="Data Category" Filterable="true">
+        </DataGridColumn>
+        <DataGridColumn Field="ProtocolCategoryStatus.CategoryStatusName" Width="30%" Caption="Data Mapping Status">
+        </DataGridColumn>
+        <DataGridColumn Field="@nameof(ProtocolDataCategory.UpdateDate)" Width="30%" Caption="Last Updated">
+        </DataGridColumn>
+        <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
+            <EditCommandTemplate>
+                <Button><Icon Name="IconName.Edit" Clicked="@(() => EditCategory(context.Item))" /></Button>
+            </EditCommandTemplate>
+        </DataGridCommandColumn>
+    </DataGridColumns>
+    <EmptyTemplate>
+        <div class="box">
+            No data categories found.
+        </div>
+    </EmptyTemplate>
+</DataGrid>
+
+
+@code {
+    [Inject] IProtocolDataCategoryService protocolDataCategoryService { get; set; } = null!;
+    [Inject] IProtocolMappingService protocolMappingService { get; set; } = null!;
+    [Inject] private NavigationManager navigation { get; set; } = null!;
+    [Inject] INotificationService notificationService { get; set; }
+    [Inject] private IMessageService messageService { get; set; } = null!;
+
+    [Parameter] public int protocolMappingId { get; set; }
+
+    private DataGrid<ProtocolDataCategory> dataGridRef;
+    private IList<ProtocolDataCategory> protocolDataCategoryList;
+    private ProtocolMapping protocolMapping;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (protocolMappingId != null){
+            this.protocolDataCategoryList = await protocolDataCategoryService.GetCategoriesByMappingProfile(protocolMappingId);
+            this.protocolMapping = await protocolMappingService.GetProtocolMapping(protocolMappingId);
+        }
+    }
+
+    public async void EditCategory(ProtocolDataCategory category)
+    {
+        if(category.ProtocolCategoryId == 0)
+        {
+            await protocolDataCategoryService.SaveCategory(category, this.protocolMappingId);
+        }
+        navigation.NavigateTo($"/admin/dmu/form-field-mapping/{category.ProtocolCategoryId}?protocol={protocolMapping.ProtocolTitle}&protocolMappingId={protocolMappingId}");
+    }
+
+    public string MappingStatus()
+    {
+        // Determine the overall mapping status of the categories
+        // If any are incomplete, return "Incomplete"
+        // otherwise it's either "Not Started" or "Complete"
+        int notStarted = 0;
+        foreach (var category in protocolDataCategoryList)
+        {
+            if (category.ProtocolCategoryStatusId == 1)
+            {
+                notStarted++;
+            }
+            else if (category.ProtocolCategoryStatusId == 2)
+            {
+                return "Incomplete";
+            }
+        }
+
+        if(notStarted == protocolDataCategoryList.Count)
+        {
+            return "Not Started";
+        }
+
+        return "Complete";
+    }
+
+    public void GenerateMapping()
+    {
+        // placeholder for generating the mapping document
+    }
+}

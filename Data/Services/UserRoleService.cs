@@ -10,7 +10,7 @@ namespace TheradexPortal.Data.Services
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
 
-        public UserRoleService(IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
+        public UserRoleService(IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, NavigationManager navigationManager) : base(databaseConnectionService)
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;
@@ -49,7 +49,7 @@ namespace TheradexPortal.Data.Services
 
         public bool CheckRoleName(string roleName, int roleId)
         {
-            Role foundRole = context.Roles.FirstOrDefault(r => r.RoleName == roleName && r.RoleId != roleId);
+            Role foundRole = context.Roles.FirstOrDefault(r => r.RoleName.ToUpper() == roleName.ToUpper() && r.RoleId != roleId);
             return foundRole == null;
         }
 
