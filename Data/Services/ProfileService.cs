@@ -8,7 +8,7 @@
 	    {
 	        private readonly IErrorLogService _errorLogService;
 	        private readonly NavigationManager _navManager;
-	        public ProfileService(IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
+	        public ProfileService(IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, NavigationManager navigationManager) : base(databaseConnectionService)
 	        {
 	            _errorLogService = errorLogService;
 	            _navManager = navigationManager;

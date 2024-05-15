@@ -1,13 +1,11 @@
 ﻿@using TheradexPortal.Data.Models;
 @using TheradexPortal.Data.Services.Abstract;
 @using TheradexPortal.Data.Static;
+@using TheradexPortal.Data.Identity
 @inject IHttpContextAccessor httpContextAccessor
 @layout AdminLayout
 @page "/admin/dmu/select-study"
-@*
-    TODO: Add ThorRoleCheck check for DMU roles when they are created
-<ThorRoleCheck AllowedRoles="@(new List<string> { "??" })"></ThorRoleCheck>
-*@
+<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })" AllowedTHORRoles="@(new List<string> { "DMU Study Admin", "DMU Global Admin" })"></AdminRoleCheck>
 
 <DataGrid @ref=dataGridRef
           TItem="ProtocolMapping"
@@ -18,6 +16,7 @@
           Striped
           ShowPager
           ShowPageSizes
+          Sortable
           Filterable
            FilterMethod="DataGridFilterMethod.StartsWith"
            MaxPaginationLinks="5"
@@ -34,8 +33,18 @@
      <DataGridColumns>
          <DataGridMultiSelectColumn Width="30px"></DataGridMultiSelectColumn>
         <DataGridColumn Width="10%" Caption="Version" Field="@nameof(ProtocolMapping.MappingVersion)" Editable Filterable="false" Sortable="false">
+            <DisplayTemplate>
+                @if(context.ProtocolMappingId == 0)
+				{
+					<Text>N/A</Text>
+				}
+				else
+				{
+					<Text>@context.MappingVersion</Text>
+				}
+            </DisplayTemplate>
         </DataGridColumn>
-        <DataGridColumn Width="20%" Field="Protocol.StudyId" Sortable="false" Filterable="true" Caption="Study ID">
+        <DataGridColumn Width="20%" Field="Protocol.StudyId" Sortable="true" Filterable="true" Caption="Study ID" SortDirection="SortDirection.Ascending">
         </DataGridColumn>
         <DataGridColumn Width="50%" Field="Protocol.ProtocolTitle" Sortable="false" Filterable="true" Caption="Title">
         </DataGridColumn>
@@ -43,11 +52,15 @@
         </DataGridColumn>
         <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
             <EditCommandTemplate>
-                 @if(context.Item.Status.StatusName != "Active")
+                 @if(context.Item.Status.StatusName != "Active" && context.Item.ProtocolMappingId != 0)
 				 {
-					 <Button><Icon Name="IconName.InfoCircle" Clicked="@(()=>EditMapping(context.Item))" /></Button>
-				 }
-				 else
+                    <Button><Icon Name="IconName.InfoCircle" Clicked="@(()=>EditMapping(context.Item))" /></Button>
+                }
+                else if(context.Item.ProtocolMappingId == 0)
+                {
+                    <Button><Icon Name="IconName.Add" Clicked="@(()=>EditMapping(context.Item))"/></Button>
+                }
+                else
 				 {
 					 <Button><Icon Name="IconName.Edit" Clicked="@(()=>EditMapping(context.Item))" /></Button>
 				 }
@@ -73,6 +86,7 @@
     [Inject] INotificationService notificationService { get; set; }
     [Inject] IProtocolMappingService protocolMappingService { get; set; }
     [Inject] IStudyService studyService { get; set; }
+    [Inject] IUserService userService { get; set; }
 
     private DataGrid<ProtocolMapping> dataGridRef;
     private IList<ProtocolMapping> studyList;
@@ -82,7 +96,17 @@
 
     protected override async Task OnInitializedAsync()
     {
-        studyList = await protocolMappingService.GetProtocolMappings(includeArchived);
+        List<string> allowed = new List<string> { "DMU Study Admin", "DMU Global Admin" };
+        List<string> adminRole = new List<string> { "IT" };
+        if (httpContextAccessor?.HttpContext?.User.HasAnyTHORRole(allowed.ToArray()) == false && httpContextAccessor?.HttpContext?.User.HasAnyAdminRole(adminRole.ToArray()) == false)
+        {
+            var studyIds = userService.GetProtocolAccessForUser(httpContextAccessor.HttpContext.User.GetUserId());
+            studyList = await protocolMappingService.GetProtocolMappings(studyIds, includeArchived);
+        }
+        else
+        {
+            studyList = await protocolMappingService.GetProtocolMappings(includeArchived);
+        }
     }
 
     private async Task EditMapping(ProtocolMapping mapping)

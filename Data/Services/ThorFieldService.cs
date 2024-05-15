@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Blazorise.Extensions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using TheradexPortal.Data.Models;
@@ -10,7 +11,7 @@ namespace TheradexPortal.Data.Services
     {
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
-        public ThorFieldService(IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
+        public ThorFieldService(IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, NavigationManager navigationManager) : base(databaseConnectionService)
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;
@@ -25,9 +26,18 @@ namespace TheradexPortal.Data.Services
         {
             return await context.THORField.Include(f => f.Category).OrderBy(c => c.SortOrder).ToListAsync();
         }
-        
+
+        public async Task<IList<ThorField>> GetFields(string categoryId)
+        {
+            return await context.THORField.Where(f => f.ThorDataCategoryId == categoryId).OrderBy(c => c.SortOrder).ToListAsync();
+        }
+
         public async Task<bool> SaveField(ThorField field)
         {
+            if(field.ThorDataCategoryId.IsNullOrEmpty())
+            {
+                return false;
+            }
             try
             {
                 DateTime currentDateTime = DateTime.UtcNow;
@@ -36,6 +46,8 @@ namespace TheradexPortal.Data.Services
 
                 if (currentField == null || field.CreateDate == null)
                 {
+                    field.IsActive = true;
+                    field.SortOrder = field.SortOrder ?? 0;
                     field.CreateDate = currentDateTime;
                     field.UpdateDate = currentDateTime;
                     context.Add(field);
@@ -50,7 +62,7 @@ namespace TheradexPortal.Data.Services
                     currentField.Derivable = field.Derivable;
                     currentField.ThorDictionaryId = field.ThorDictionaryId;
                     currentField.IsMultiForm = field.IsMultiForm;
-                    currentField.SortOrder = field.SortOrder;
+                    currentField.SortOrder = field.SortOrder ?? 0;
                     currentField.IsActive = field.IsActive;
                     currentField.UpdateDate = currentDateTime;
                     context.Update(currentField);

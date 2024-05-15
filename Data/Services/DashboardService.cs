@@ -13,7 +13,7 @@ namespace TheradexPortal.Data.Services
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
 
-        public DashboardService(IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
+        public DashboardService(IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, NavigationManager navigationManager) : base(databaseConnectionService)
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;
@@ -187,7 +187,7 @@ namespace TheradexPortal.Data.Services
         }
         public bool CheckDashboardName(string dashboardName, int dashboardId)
         {
-            Dashboard foundDashboard = context.Dashboards.FirstOrDefault(d => d.Name == dashboardName && d.DashboardId != dashboardId);
+            Dashboard foundDashboard = context.Dashboards.FirstOrDefault(d => d.Name.ToUpper() == dashboardName.ToUpper() && d.DashboardId != dashboardId);
             return foundDashboard == null;
         }
 

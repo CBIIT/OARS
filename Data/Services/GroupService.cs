@@ -12,7 +12,7 @@ namespace TheradexPortal.Data.Services
     {
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
-        public GroupService(IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
+        public GroupService(IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, NavigationManager navigationManager) : base(databaseConnectionService)
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;
@@ -37,7 +37,7 @@ namespace TheradexPortal.Data.Services
 
         public bool CheckGroupName(string groupName, int groupId)
         {
-            Group foundGroup = context.Groups.FirstOrDefault(g => g.GroupName == groupName && g.GroupId != groupId);
+            Group foundGroup = context.Groups.FirstOrDefault(g => g.GroupName.ToUpper() == groupName.ToUpper() && g.GroupId != groupId);
             return foundGroup == null;
         }
 

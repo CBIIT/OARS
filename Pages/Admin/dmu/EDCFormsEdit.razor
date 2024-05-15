@@ -13,6 +13,7 @@
           Editable
           Responsive
           Striped
+          Sortable
           ShowPager
           ShowPageSizes
           Filterable
@@ -33,7 +34,7 @@
           RowRemoving=@ConfirmDelete
           RowRemoved=@DeleteRow>
      <DataGridColumns>
-        <DataGridColumn Field="@nameof(ProtocolEDCForm.EDCFormIdentifier)" Width="30%" Caption="EDC Form ID" Editable Filterable="true" Sortable="true">
+        <DataGridColumn Field="@nameof(ProtocolEDCForm.EDCFormIdentifier)" Width="30%" Caption="EDC Form ID" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
         </DataGridColumn>
         <DataGridColumn Field="@nameof(ProtocolEDCForm.EDCFormName)" Width="50%" Caption="EDC Form Name" Editable Filterable="true" Sortable="true">
          </DataGridColumn>
@@ -83,7 +84,11 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var watch = System.Diagnostics.Stopwatch.StartNew();
         if (protocolMappingId != null) this.edcFormList = await protocolEDCFormService.GetFormsForMappingId(protocolMappingId);
+        watch.Stop();
+        var elapsedMs = watch.ElapsedMilliseconds;
+        System.Console.WriteLine($"EDC Forms Elapsed time: {elapsedMs} ms");
     }
 
     public async void Save(SavedRowItem<ProtocolEDCForm, Dictionary<string, object>> e)

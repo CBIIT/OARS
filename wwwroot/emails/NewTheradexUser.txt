@@ -32,7 +32,7 @@
                 </tr>  
                 <tr>
                     <td style="padding-top: 10px;">
-                        <strong>Click the following link to activate your Theradex account:</strong>
+                        <strong>Click the following link to activate your NCI-OARS account:</strong>
                     </td>
                 </tr>
                 <tr>

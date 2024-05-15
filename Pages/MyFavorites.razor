@@ -173,7 +173,7 @@ else
         {
             return;
         }
-        await PrimaryNavLayout.UpdateDashboard(new Data.Models.Dashboard() { DashboardId = 0 });
+        await PrimaryNavLayout.ClearDashboardAlerts();
         PrimaryNavLayout.DashboardName = dashboard.Name;
         if (dashboard == null && !isAdmin)
         {

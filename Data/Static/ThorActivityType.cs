@@ -6,5 +6,6 @@
         static public String Study = "Study";
         static public String Login = "Login";
         static public String Logout = "Logout";
+        static public String Debug = "Debug";
     }
 }

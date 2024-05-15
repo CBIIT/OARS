@@ -9,7 +9,7 @@ namespace TheradexPortal.Data.Services
     {
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
-        public ThorCategoryService(IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
+        public ThorCategoryService(IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, NavigationManager navigationManager) : base(databaseConnectionService)
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;
@@ -17,7 +17,10 @@ namespace TheradexPortal.Data.Services
         public async Task<IList<ThorCategory>> GetCategories() {
             return await context.THORDataCategory.OrderBy(c => c.SortOrder).ToListAsync();
         }
-
+        public async Task<ThorCategory> GetCategory(string id)
+        {
+            return await context.THORDataCategory.FirstOrDefaultAsync(x => x.ThorDataCategoryId == id);
+        }
         public async Task<bool> SaveCategory(ThorCategory category)
         {
             try
@@ -28,6 +31,8 @@ namespace TheradexPortal.Data.Services
 
                 if (currentCategory == null || category.CreateDate == null)
                 {
+                    category.IsActive = true;
+                    category.SortOrder = category.SortOrder ?? 0;
                     category.CreateDate = currentDateTime;
                     category.UpdateDate = currentDateTime;
                     context.Add(category);
@@ -38,7 +43,7 @@ namespace TheradexPortal.Data.Services
                     currentCategory.CategoryName = category.CategoryName;
                     currentCategory.ThorDataCategoryId = category.ThorDataCategoryId;
                     currentCategory.IsMultiForm = category.IsMultiForm;
-                    currentCategory.SortOrder = category.SortOrder;
+                    currentCategory.SortOrder = category.SortOrder ?? 0;
                     currentCategory.IsActive = category.IsActive;
                     currentCategory.UpdateDate = currentDateTime;
                     context.Update(currentCategory);

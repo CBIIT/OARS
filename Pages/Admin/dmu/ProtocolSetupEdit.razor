@@ -276,11 +276,15 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var watch = System.Diagnostics.Stopwatch.StartNew();
         this.currentProtocolMap = await protocolMappingService.GetProtocolMapping(protocolMappingId);
         this.phasesSet = await protocolPhaseService.GetProtocolMappingPhases(protocolMappingId);
         applyPhases();
         await InitializedAsync();
         await base.OnInitializedAsync();
+        watch.Stop();
+        var elapsedMs = watch.ElapsedMilliseconds;
+        System.Console.WriteLine($"Protocol Setup Elapsed time: {elapsedMs} ms");
     }
 
     protected void applyPhases()
@@ -366,17 +370,7 @@
 
     public async void Cancel()
     {
-        currentProtocolMap = new ProtocolMapping();
-        phase1 = false;
-        phase2 = false;
-        phase3 = false;
-        phase4 = false;
-        phase1IsRandomized = "S";
-        phase2IsRandomized = "S";
-        phase3IsRandomized = "S";
-        phase4IsRandomized = "S";
-
-        await InitializedAsync();
+        navigation.NavigateTo(navigation.Uri, forceLoad: true);
     }
 
     private void NavigateToGlobalDMU()

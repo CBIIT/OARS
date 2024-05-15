@@ -12,6 +12,7 @@
           Editable
           Responsive
           Striped
+          Sortable
           ShowPager
           ShowPageSizes
           Filterable
@@ -29,7 +30,7 @@
            RowUpdated="@Save"
            RowInserted="@Save">
      <DataGridColumns>
-         <DataGridColumn Width="35%" Field="ThorField.FieldLabel" Caption="OARS Field" Filterable="true" Sortable="false">
+         <DataGridColumn Width="35%" Field="ThorField.FieldLabel" Caption="OARS Field" Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
          </DataGridColumn>
          <DataGridColumn Field="@nameof(ProtocolField.Format)" Width="65%" Caption="Format" Editable Filterable="true" Sortable="false">
          </DataGridColumn>
@@ -65,7 +66,11 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var watch = System.Diagnostics.Stopwatch.StartNew();
         this.protocolFields = await protocolFieldService.GetProtocolFieldsByMappingId(this.protocolMappingId);
+        watch.Stop();
+        var elapsedMs = watch.ElapsedMilliseconds;
+        System.Console.WriteLine($"THOR Field Format Elapsed time: {elapsedMs} ms");
     }
 
     public async void Save(SavedRowItem<ProtocolField, Dictionary<string, object>> savedRowItem)

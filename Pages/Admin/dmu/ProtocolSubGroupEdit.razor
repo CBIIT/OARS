@@ -11,6 +11,7 @@
           Editable
           Responsive
           Striped
+          Sortable
           ShowPager
           ShowPageSizes
           Filterable
@@ -30,7 +31,7 @@
            RowRemoved="@Delete"
            RowRemoving="@ConfirmDelete">
      <DataGridColumns>
-         <DataGridColumn Width="50%" Caption="Sub Group Code" Field="@nameof(ProtocolSubGroup.SubGroupCode)" Filterable="true" Sortable="false" Editable>
+         <DataGridColumn Width="50%" Caption="Sub Group Code" Field="@nameof(ProtocolSubGroup.SubGroupCode)" Filterable="true" Sortable="true" Editable SortDirection="SortDirection.Ascending">
         </DataGridColumn>
         <DataGridColumn Field="@nameof(ProtocolSubGroup.Description)" Width="50%" Caption="Description" Filterable="true" Sortable="false" Editable>
         </DataGridColumn>
@@ -75,7 +76,11 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var watch = System.Diagnostics.Stopwatch.StartNew();
         this.protocolSubGroups = await protocolSubGroupService.GetSubGroupsByMappingId(protocolMappingId);
+        watch.Stop();
+        var elapsedMs = watch.ElapsedMilliseconds;
+        System.Console.WriteLine($"Protocol Sub Group Elapsed time: {elapsedMs} ms");
     }
 
 

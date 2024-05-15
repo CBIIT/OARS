@@ -13,6 +13,7 @@
           Editable
           Responsive
           Striped
+          Sortable
           ShowPager
           ShowPageSizes
           Filterable
@@ -33,7 +34,7 @@
           RowRemoving=@ConfirmDelete
           RowRemoved=@DeleteRow>
      <DataGridColumns>
-        <DataGridColumn Field="@nameof(ProtocolDisease.DiseaseName)" Width="30%" Caption="Disease Name" Editable Filterable="true" Sortable="true">
+        <DataGridColumn Field="@nameof(ProtocolDisease.DiseaseName)" Width="30%" Caption="Disease Name" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
         </DataGridColumn>
         <DataGridColumn Field="@nameof(ProtocolDisease.MeddraCode)" Width="50%" Caption="Reporting Meddra Code" Editable Filterable="true" Sortable="true">
          </DataGridColumn>
@@ -81,7 +82,11 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var watch = System.Diagnostics.Stopwatch.StartNew();
         if (protocolMappingId != null) this.protocolDiseaseList = await ProtocolDiseaseService.GetProtocolDiseaseByProtocolMappingId(protocolMappingId);
+        watch.Stop();
+        var elapsedMs = watch.ElapsedMilliseconds;
+        System.Console.WriteLine($"Protocol Disease Elapsed time: {elapsedMs} ms");
     }
 
     public async void Save(SavedRowItem<ProtocolDisease, Dictionary<string, object>> e)

@@ -9,7 +9,7 @@ namespace TheradexPortal.Data.Services
     {
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
-        public ProfileCategoryService(IDbContextFactory<ThorDBContext> dbFactory, IErrorLogService errorLogService, NavigationManager navigationManager) : base(dbFactory)
+        public ProfileCategoryService(IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, NavigationManager navigationManager) : base(databaseConnectionService)
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;
@@ -41,6 +41,21 @@ namespace TheradexPortal.Data.Services
                 await context.SaveChangesAsync();
                 return true;
 
+            }
+            catch (Exception ex)
+            {
+                await _errorLogService.SaveErrorLogAsync(0, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+                return false;
+            }
+        }
+
+        public async Task<bool> DeleteCategory(ProfileDataCategory category)
+        {
+            try
+            {
+                context.Remove(category);
+                await context.SaveChangesAsync();
+                return true;
             }
             catch (Exception ex)
             {

@@ -13,6 +13,7 @@
           Editable
           Responsive
           Striped
+          Sortable
           ShowPager
           ShowPageSizes
           Filterable
@@ -33,7 +34,7 @@
           RowRemoving=@ConfirmDelete
           RowRemoved=@DeleteRow>
      <DataGridColumns>
-        <DataGridColumn Field="@nameof(ProtocolTac.TacCode)" Width="30%" Caption="TAC Code" Editable Filterable="true" Sortable="true">
+        <DataGridColumn Field="@nameof(ProtocolTac.TacCode)" Width="30%" Caption="TAC Code" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
         </DataGridColumn>
         <DataGridColumn Field="@nameof(ProtocolTac.TacDescription)" Width="50%" Caption="TAC Description" Editable Filterable="true" Sortable="true">
          </DataGridColumn>
@@ -82,7 +83,11 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var watch = System.Diagnostics.Stopwatch.StartNew();
         if (protocolMappingId != null) this.protocolTacList = await ProtocolTacService.GetProtocolTACByProtocolMappingId(protocolMappingId);
+        watch.Stop();
+        var elapsedMs = watch.ElapsedMilliseconds;
+        System.Console.WriteLine($"Protocol TAC Elapsed time: {elapsedMs} ms");
     }
 
     public async void Save(SavedRowItem<ProtocolTac, Dictionary<string, object>> e)

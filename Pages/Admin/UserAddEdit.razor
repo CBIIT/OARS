@@ -123,7 +123,7 @@
                 </Div>
                 <Div Padding="Padding.Is2" Style="@flexItemStyleSecRole2" Display="@showSecondaryRoles">
                     <Field>
-                        <FieldLabel TextWeight="TextWeight.Bold">Assigned Seconday Roles</FieldLabel>
+                        <FieldLabel TextWeight="TextWeight.Bold">Assigned Secondary Roles</FieldLabel>
                         <FieldBody>
                             <DataGrid TItem="UserRole"
                                         Class="admindataeditgrid"
@@ -421,7 +421,13 @@
                                     </Span>
                                 </TableRowCell>
                             </TableRow>
-                            @if (selectedUserRoleList.Count == 0) {
+                            @if (isAdmin) {
+                                <TableRow>
+                                    <TableRowHeader Style="width:200px">Secondary Roles</TableRowHeader>
+                                    <TableRowCell>N/A</TableRowCell>
+                                </TableRow>   
+                            }
+                            else if (selectedUserRoleList.Count == 0) {
                             <TableRow>
                                 <TableRowHeader Style="width:200px">Secondary Roles</TableRowHeader>
                                 <TableRowCell>None selected</TableRowCell>
@@ -462,7 +468,7 @@
                     <h5>Study Assignments</h5>
                     <Table Narrow>              
                         <TableBody>
-                            @if (studySelectionType == 2) {
+                            @if (studySelectionType == 2 || isAdmin) {
                                 <TableRow>
                                     <TableRowCell>All studies assigned</TableRowCell>
                                 </TableRow>
@@ -503,7 +509,7 @@
                     <h5>Group Assignments</h5>
                     <Table Narrow>              
                         <TableBody>
-                            @if (studySelectionType == 2) {
+                            @if (studySelectionType == 2 || isAdmin) {
                                 <TableRow>
                                     <TableRowCell>N/A</TableRowCell>
                                 </TableRow>
@@ -1049,16 +1055,23 @@
         {
             if (UserId == null)
             {
-                string baseURL = navigation.BaseUri;
-                string initialSite = "NCI Theradex Oncology Reporting-" + configuration.GetValue<string>("System:Environment");
-                string siteAcronym = "NCI <SPAN style='color:orange;'>Th</SPAN>eradex <SPAN style='color:orange;'>O</SPAN>ncology <SPAN style='color:orange'>R</SPAN>eporting-" + configuration.GetValue<string>("System:Environment");
-                bool isProd = !initialSite.Contains('-');
+                bool isProd = !(configuration.GetValue<string>("System:Environment").StartsWith("Prod"));
 
-                // Determine if user exists in OKTA (OKTA is for multi-applications (I.e.  THOR, IWRS, etc) & environments (i.e.  DEV, UAT, etc)
+                string baseURL = navigation.BaseUri;
+                string initialSite = "NCI Oncology Automated Reporting System";
+                string siteAcronym = "NCI Oncology Automated Reporting System";
+
+                if (!isProd)
+                {
+                    initialSite = initialSite + "-" + configuration.GetValue<string>("System:Environment");
+                    siteAcronym = siteAcronym + "-" + configuration.GetValue<string>("System:Environment");
+                }
+
+                // Determine if user exists in OKTA (OKTA is for multi-applications (I.e.  OARS, IWRS, etc) & environments (i.e.  DEV, UAT, etc)
                 Tuple<bool, string> oktaResults = await oktaService.FindUser(email);
 
                 // If user doesn't exist, create user and send welcome email
-                // If user exists, add them to proper group and send user configured for THOR email
+                // If user exists, add them to proper group and send user configured for OARS email
                 // Error finding the user in OKTA
                 if (oktaResults.Item1)
                 {
@@ -1068,7 +1081,7 @@
                     if (oktaSuccess)
                     {
                         if (isActive)
-                            emailSuccess = await emailService.SendNewSystemEmail(initialSite, siteAcronym, "NCI-THOR", navigation.BaseUri, configuration.GetValue<string>("System:SystemColor"), saveUser);
+                            emailSuccess = await emailService.SendNewSystemEmail(initialSite, siteAcronym, "NCI-OARS", navigation.BaseUri, configuration.GetValue<string>("System:SystemColor"), saveUser);
                     }
                 }
                 else if (!oktaResults.Item1 && oktaResults.Item2 == "")
@@ -1092,7 +1105,7 @@
                         {
                             string activationLink = oktaResults.Item2;
 
-                            emailSuccess = await emailService.SendNewUserEmail(initialSite, siteAcronym, "NCI-THOR", navigation.BaseUri, configuration.GetValue<string>("System:SystemColor"), saveUser, activationLink);
+                            emailSuccess = await emailService.SendNewUserEmail(initialSite, siteAcronym, "NCI-OARS", navigation.BaseUri, configuration.GetValue<string>("System:SystemColor"), saveUser, activationLink);
                         }
                      }
                 }

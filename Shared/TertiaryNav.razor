@@ -66,7 +66,18 @@
 
     protected bool IsReportFavorite(Report report)
     {
-        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
-        return userService.IsReportFavorite(userId, report.ReportId);
+        if (httpContextAccessor != null && httpContextAccessor.HttpContext != null && httpContextAccessor.HttpContext.User != null && httpContextAccessor.HttpContext.User.Claims.Count() > 0)
+        {
+            //System.Security.Claims.Claim? myClaim = 
+            //bool is1 = httpContextAccessor.HttpContext.User.HasClaim(ThorClaimType.UserId, "1");  //.FindFirst(ThorClaimType.UserId);
+            //if (myClaim != null)
+            //    userId = myClaim.Value;
+
+            //int userId1 = httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId) == null ? 0 : Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+            return userService.IsReportFavorite(userId, report.ReportId);
+        }
+        else
+            return false;
     }
 }
