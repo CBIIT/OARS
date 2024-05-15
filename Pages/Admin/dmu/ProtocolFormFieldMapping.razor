@@ -259,6 +259,7 @@ else{
     [Inject] private NavigationManager navigation { get; set; } = null!;
     [Inject] INotificationService notificationService { get; set; }
     [Inject] private IMessageService messageService { get; set; } = null!;
+    [Inject] IProtocolMappingService protocolMappingService { get; set; } = null!;
 
     [Parameter] public int protocolCategoryId { get; set; }
     [SupplyParameterFromQuery][Parameter] public string protocol { get; set; }
@@ -342,6 +343,13 @@ else{
         var toSave = savedRowItem.Item;
 
         bool saved = await protocolFieldMappingService.SaveProtocolFieldMapping(toSave);
+
+        if(this.protocolCategory.ProtocolCategoryStatusId != 2)
+        {
+            // when we save a mapping, we want to make sure the status is Incomplete
+            this.protocolCategory.ProtocolCategoryStatusId = 2;
+			await protocolCategoryService.SaveCategory(this.protocolCategory, this.protocolMappingId);
+        }
 
         if (saved)
         {
@@ -469,6 +477,7 @@ else{
     public async void UpdateCategory(bool isMultiForm)
 	{
         this.protocolCategory.IsMultiForm = isMultiForm;
+        this.protocolCategory.ProtocolCategoryStatusId = 2; // set to incomplete
         bool saved = await protocolCategoryService.SaveCategory(this.protocolCategory, this.protocolMappingId);
 		if (saved)
 		{

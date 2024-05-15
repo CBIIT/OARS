@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
+using Oracle.ManagedDataAccess.Client;
 using Polly;
 using System.ComponentModel.Design;
+using System.Data;
 using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Services.Abstract;
 
@@ -246,6 +248,155 @@ namespace TheradexPortal.Data.Services
             var protocolMappings = await context.ProtocolMapping.Where(p=> p.ProtocolMappingId == profileType).ToListAsync();
 
             return protocolMappings;
+        }
+
+        public async Task<bool> CopyMapping(int sourceId, int targetId)
+        {
+            ProtocolMapping target = await context.ProtocolMapping.Where(p => p.ProtocolMappingId == targetId).FirstOrDefaultAsync();
+            target.SourceProtocolMappingId = sourceId;
+            context.Update(target);
+
+            // Get all of the forms and form mappings for the source
+            var sourceForms = await context.ProtocolEDCForms.Where(p => p.ProtocolMappingId == sourceId).ToListAsync();
+            var sourceFormIds = sourceForms.Select(p => p.ProtocolEDCFormId).ToList();
+            var sourceFormMappings = await context.ProtocolFormMappings.Where(p => sourceFormIds.Contains((int)p.ProtocolEDCFormId)).ToListAsync();
+
+            List<ProtocolEDCForm> targetForms = new List<ProtocolEDCForm>();
+            if(sourceFormMappings.Count != 0)
+            {
+                targetForms = await context.ProtocolEDCForms.Where(p => p.ProtocolMappingId == targetId).ToListAsync();
+            }
+
+            DataTable formMappings = new DataTable();
+            formMappings.Columns.Add("Protocol_Form_Mapping_Id", typeof(int));
+            formMappings.Columns.Add("Protocol_EDC_Form_Id", typeof(int));
+            formMappings.Columns.Add("Is_Primary_Form", typeof(bool));
+            formMappings.Columns.Add("Create_Date", typeof(DateTime));
+            formMappings.Columns.Add("Update_Date", typeof(DateTime));
+            formMappings.Columns.Add("Protocol_Category_Id", typeof(int));
+
+            foreach (var targetForm in targetForms)
+            {
+                var matchingSourceForm = sourceForms.FirstOrDefault(sf => sf.EDCFormIdentifier == targetForm.EDCFormIdentifier);
+                if (matchingSourceForm != null)
+                {
+                    var toCopy = sourceFormMappings.Where(sf => sf.ProtocolEDCFormId == matchingSourceForm.ProtocolEDCFormId).FirstOrDefault();
+                    if (toCopy != null)
+                    {
+                        DataRow targetFormMapping = formMappings.NewRow();
+                        targetFormMapping["Protocol_EDC_Form_Id"] = targetForm.ProtocolEDCFormId;
+                        targetFormMapping["Is_Primary_Form"] = toCopy.IsPrimaryForm;
+                        targetFormMapping["Create_Date"] = DateTime.Now;
+                        targetFormMapping["Update_Date"] = DateTime.Now;
+                        targetFormMapping["Protocol_Category_Id"] = toCopy.ProtocolCategoryId;
+                        formMappings.Rows.Add(targetFormMapping);
+                    }
+                }
+            }
+
+            // Get all of the fields and field mappings for the source
+            var sourceFields = await context.ProtocolEDCField.Where(p => sourceFormIds.Contains(p.ProtocolEDCFormId)).ToListAsync();
+            var sourceFieldIds = sourceFields.Select(p => p.ProtocolEDCFieldId).ToList();
+            var sourceFieldMappings = await context.ProtocolFieldMappings.Where(p => sourceFieldIds.Contains(p.ProtocolEDCFieldId)).ToListAsync();
+
+            List<ProtocolEDCField> targetFields = new List<ProtocolEDCField>();
+            if (sourceFieldMappings.Count != 0)
+            {
+                targetFields = await context.ProtocolEDCField.Where(p => p.ProtocolEDCFormId == targetId).ToListAsync();
+            }
+
+            Dictionary<int, int> sourceTargetMatches = new Dictionary<int, int>();
+
+            DataTable fieldMappings = new DataTable();
+            fieldMappings.Columns.Add("Protocol_Field_Mapping_Id", typeof(int));
+            fieldMappings.Columns.Add("THOR_Field_Id", typeof(string));
+            fieldMappings.Columns.Add("Protocol_EDC_Field_Id", typeof(int));
+            fieldMappings.Columns.Add("Create_Date", typeof(DateTime));
+            fieldMappings.Columns.Add("Update_Date", typeof(DateTime));
+
+            foreach(var targetField in targetFields)
+            {
+                var matchingSourceField = sourceFields.FirstOrDefault(sf => sf.EDCFieldIdentifier == targetField.EDCFieldIdentifier);
+                if(matchingSourceField != null)
+                {
+                    sourceTargetMatches.Add(matchingSourceField.ProtocolEDCFieldId, targetField.ProtocolEDCFieldId);
+                    var toCopy = sourceFieldMappings.Where(sf => sf.ProtocolEDCFieldId == matchingSourceField.ProtocolEDCFieldId).FirstOrDefault();
+                    if (toCopy != null)
+                    {
+                        DataRow targetFieldMapping = fieldMappings.NewRow();
+                        targetFieldMapping["THOR_Field_Id"] = toCopy.ThorFieldId;
+                        targetFieldMapping["Protocol_EDC_Field_Id"] = targetField.ProtocolEDCFieldId;
+                        targetFieldMapping["Create_Date"] = DateTime.Now;
+                        targetFieldMapping["Update_Date"] = DateTime.Now;
+                        fieldMappings.Rows.Add(targetFieldMapping);
+                    }
+                }
+            }
+
+            // Get all of the dictionaries for the source
+            var sourceDictionaries = await context.ProtocolEDCDictionary.Where(p => p.ProtocolMappingId == sourceId).ToListAsync();
+            var sourceDictionaryIds = sourceDictionaries.Select(p => p.ProtocolEDCDictionaryId).ToList();
+            var sourceDictionaryMappings = await context.ProtocolDictionaryMapping.Where(p => sourceDictionaryIds.Contains(p.ProtocolEDCDictionaryId)).ToListAsync();
+
+            List<ProtocolEDCDictionary> targetDictionaries = new List<ProtocolEDCDictionary>();
+            if(sourceDictionaryMappings.Count != 0)
+            {
+                targetDictionaries = await context.ProtocolEDCDictionary.Where(p => p.ProtocolMappingId == targetId).ToListAsync();
+            }
+
+            DataTable dictionaryMappings = new DataTable();
+            dictionaryMappings.Columns.Add("Protocol_Dictionary_Mapping_Id", typeof(int));
+            dictionaryMappings.Columns.Add("Protocol_Field_Mapping_Id", typeof(int));
+            dictionaryMappings.Columns.Add("Protocol_EDC_Dictionary_Id", typeof(int));
+            dictionaryMappings.Columns.Add("THOR_Dictionary_Id", typeof(int));
+            dictionaryMappings.Columns.Add("Create_Date", typeof(DateTime));
+            dictionaryMappings.Columns.Add("Update_Date", typeof(DateTime));
+
+            foreach(var targetDictionary in targetDictionaries)
+            {
+                var matchingSourceDictionary = sourceDictionaries.FirstOrDefault(sd => sd.EDCDictionaryName == targetDictionary.EDCDictionaryName);
+                if(matchingSourceDictionary != null)
+                {
+                    var toCopy = sourceDictionaryMappings.Where(sd => sd.ProtocolEDCDictionaryId == matchingSourceDictionary.ProtocolEDCDictionaryId).FirstOrDefault();
+                    if (toCopy != null)
+                    {
+                        DataRow targetDictionaryMapping = dictionaryMappings.NewRow();
+                        targetDictionaryMapping["Protocol_EDC_Dictionary_Id"] = targetDictionary.ProtocolEDCDictionaryId;
+                        targetDictionaryMapping["Protocol_Field_Mapping_Id"] = sourceTargetMatches[toCopy.ProtocolFieldMappingId];
+                        targetDictionaryMapping["THOR_Dictionary_Id"] = toCopy.THORDictionaryId;
+                        targetDictionaryMapping["Create_Date"] = DateTime.Now;
+                        targetDictionaryMapping["Update_Date"] = DateTime.Now;
+
+                        dictionaryMappings.Rows.Add(targetDictionaryMapping);
+                    }
+                }
+            }
+
+            try
+            {
+                using (var bulkCopy = new OracleBulkCopy(oracleConnection, OracleBulkCopyOptions.UseInternalTransaction))
+                {
+                    bulkCopy.DestinationSchemaName = "DMU";
+                    bulkCopy.DestinationTableName = "\"ProtocolFormMapping\"";
+                    bulkCopy.BatchSize = formMappings.Rows.Count;
+                    bulkCopy.WriteToServer(formMappings);
+
+                    bulkCopy.DestinationTableName = "\"ProtocolFieldMapping\"";
+                    bulkCopy.BatchSize = fieldMappings.Rows.Count;
+                    bulkCopy.WriteToServer(fieldMappings);
+
+                    bulkCopy.DestinationTableName = "\"ProtocolDictionaryMapping\"";
+                    bulkCopy.BatchSize = dictionaryMappings.Rows.Count;
+                    bulkCopy.WriteToServer(dictionaryMappings);
+                }
+
+                await context.SaveChangesAsync();
+                return true;
+
+            } catch (Exception ex)
+            {
+                return false;
+            }
         }
     }
 }
