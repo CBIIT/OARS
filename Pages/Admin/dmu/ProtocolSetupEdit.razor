@@ -280,7 +280,7 @@
         var watch = System.Diagnostics.Stopwatch.StartNew();
         this.currentProtocolMap = await protocolMappingService.GetProtocolMapping(protocolMappingId);
         this.phasesSet = await protocolPhaseService.GetProtocolMappingPhases(protocolMappingId);
-       // this.crossoverOptions = await protocolMappingService.GetCrossoverOptions();
+        this.crossoverOptions = await protocolMappingService.GetCrossoverOptions();
         applyPhases();
         await InitializedAsync();
         await base.OnInitializedAsync();
