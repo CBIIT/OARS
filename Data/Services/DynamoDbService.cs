@@ -21,7 +21,7 @@ namespace TheradexPortal.Data.Services
             _dynamoDbContext = dynamoDbContext;
         }
 
-        public async Task<List<FileIngestRequest>?> GetAllRequestsOfUser(int userId)
+        public async Task<List<FileIngestRequest>?> GetAllRequestsOfUser(int userId, bool isAdminDisplay, string environment)
         {
             //var conditions = new List<ScanCondition>
             //    {

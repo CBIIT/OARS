@@ -179,9 +179,9 @@ namespace TheradexPortal.Data.Services
             return $"{_uploadSettings.MetadataUploadPath}/{ETCTNUploadRequestModel.CRF}/{dateKey}/{ETCTNUploadRequestModel.RequestId}.json";
         }
 
-        public async Task<List<FileIngestRequest>?> GetAllRequestsOfUser(int userId)
+        public async Task<List<FileIngestRequest>?> GetAllRequestsOfUser(int userId, bool isAdminDisplay, string environment)
         {
-            var requests = await _dynamoDbService.GetAllRequestsOfUser(userId);
+            var requests = await _dynamoDbService.GetAllRequestsOfUser(userId, isAdminDisplay, environment);
 
             if (requests != null)
             {

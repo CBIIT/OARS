@@ -5,7 +5,7 @@ namespace TheradexPortal.Data.Services.Abstract
 {
     public interface IDynamoDbService
     {
-        Task<List<FileIngestRequest>?> GetAllRequestsOfUser(int userId);
+        Task<List<FileIngestRequest>?> GetAllRequestsOfUser(int userId, bool isAdminDisplay, string environment);
 
         Task<List<ReceivingStatusFileData>?> GetAllReceivingStatusData(string requestId);
 

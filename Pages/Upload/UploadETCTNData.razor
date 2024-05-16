@@ -180,7 +180,7 @@
     </Div>
 </LoadingIndicator>
 
-<Modal @ref="UploadInstructionsModal" Closing="@OnModalClosing">
+<Modal @ref="UploadInstructionsModal" Closing="@OnUploadInstructionsModalClosing">
     <ModalContent Centered Size="ModalSize.Large">
          <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
              <ModalTitle>@ETCTNUploadRequestModel.CRF</ModalTitle>
@@ -212,6 +212,23 @@
             </ListGroup>
         </ModalBody>
         <ModalFooter>
+            <Button Color="Color.Primary" Clicked="@HideUploadInstructionsModal">Close</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+<Modal @ref="SubmitConfirmationModal" Closing="@OnSubmitConfirmationModalClosing">
+    <ModalContent>
+        <ModalHeader Background="Background.Success" TextColor="TextColor.Light">
+            <ModalTitle>Confirmation</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            You've successfully submitted the upload request. <br />
+            Reference# @lastSubmittedRequestId
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Primary" Clicked="@HideSubmitConfirmationModal">Ok</Button>
         </ModalFooter>
     </ModalContent>
 </Modal>
@@ -221,6 +238,7 @@
     @inject IJSRuntime JS
     @inject IConfiguration configuration
 
+    private Modal SubmitConfirmationModal;
     private Modal UploadInstructionsModal;
     private bool cancelClose;
 
@@ -246,6 +264,8 @@
     int? userId = null;
     bool IsAdmin = false;
     string currentEnvironment = null;
+
+    string lastSubmittedRequestId = string.Empty;
 
     FileEdit fileEditRef;
 
@@ -377,12 +397,30 @@
         await clearFile();
     }
 
-    private Task OnModalClosing(ModalClosingEventArgs e)
+    private Task OnUploadInstructionsModalClosing(ModalClosingEventArgs e)
     {
         e.Cancel = cancelClose
             || e.CloseReason != CloseReason.UserClosing;
 
         return Task.CompletedTask;
+    }
+
+    private Task OnSubmitConfirmationModalClosing(ModalClosingEventArgs e)
+    {
+        e.Cancel = cancelClose
+            || e.CloseReason != CloseReason.UserClosing;
+
+        return Task.CompletedTask;
+    }
+
+    private Task HideUploadInstructionsModal()
+    {
+        return UploadInstructionsModal.Hide();
+    }
+
+    private Task HideSubmitConfirmationModal()
+    {
+        return SubmitConfirmationModal.Hide();
     }
 
     private Blazorise.Visibility CheckExternalLinkVisibility()
@@ -441,8 +479,6 @@
 
         ETCTNUploadRequestModel = new ETCTNUploadRequest();
 
-        ETCTNUploadRequestModel.RequestId = Guid.NewGuid().ToString();
-
         SelectedProtocol = null;
 
         SelectedCRF = null;
@@ -489,7 +525,9 @@
 
             if (isSuccess)
             {
-                await NotificationService.Success("Your Csv File was submitted successfully.");
+                lastSubmittedRequestId = ETCTNUploadRequestModel.RequestId;
+
+                await SubmitConfirmationModal.Show();
             }
             else
             {

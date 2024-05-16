@@ -103,10 +103,12 @@
     [Inject] INotificationService NotificationService { get; set; }
 
     @inject IJSRuntime JS
+    @inject IConfiguration configuration
 
     private IList<FileIngestRequest> fileIngestRequests = new List<FileIngestRequest>();
     private int? userId = null;
     private bool IsAdminDisplay = false;
+    private string currentEnvironment = string.Empty;
 
     private Modal ETCTNFileDataModal;
 
@@ -118,7 +120,9 @@
 
         IsAdminDisplay = Convert.ToBoolean(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.IsAdmin).Value);
 
-        await OnRefresh();
+        currentEnvironment = configuration.GetValue<string>("System:Environment");
+
+        //await OnRefresh();
 
         await base.OnInitializedAsync();
     }
@@ -127,6 +131,9 @@
     {
         if (firstRender)
         {
+            await OnRefresh();
+
+            StateHasChanged();
         }
     }
 
@@ -146,7 +153,7 @@
 
     private async Task OnRefresh()
     {
-        this.fileIngestRequests = await uploadService.GetAllRequestsOfUser(userId.Value);
+        this.fileIngestRequests = await uploadService.GetAllRequestsOfUser(userId.Value, IsAdminDisplay, currentEnvironment);
     }
 
     private void OnRowStyling(FileIngestRequest request, DataGridRowStyling styling)
