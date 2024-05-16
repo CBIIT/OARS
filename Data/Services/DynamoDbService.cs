@@ -40,6 +40,12 @@ namespace TheradexPortal.Data.Services
                     nameof(FileIngestRequest.UserId),
                     ScanOperator.Equal,
                     userId.ToString()
+                  ),
+                new ScanCondition
+                  (
+                    nameof(FileIngestRequest.Environment),
+                    ScanOperator.Equal,
+                    environment.ToString()
                   )
               }
             );

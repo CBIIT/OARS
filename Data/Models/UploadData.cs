@@ -171,6 +171,9 @@ namespace TheradexPortal.Data.Models
         public string UserId { get; set; }
 
         [DynamoDBProperty]
+        public string Environment { get; set; }
+
+        [DynamoDBProperty]
         public string Protocol { get; set; }
 
         [DynamoDBProperty]
