@@ -78,13 +78,11 @@
                         <Text>Select Form Name Location:</Text>
                     </Column>
                     <Column ColumnSize="ColumnSize.Is3">
-                        <LoadingIndicator @ref="loading">
                             <Field>
                                 <FieldBody Margin="Margin.IsAuto">
                                     <FilePicker Upload="@OnFileUploadForm" ShowMode="FilePickerShowMode.List" />
                                 </FieldBody>
                             </Field>
-                        </LoadingIndicator>
                     </Column>
                     <Column ColumnSize="ColumnSize.Is2">
                         <Button Color="Color.Danger" onclick="@ClearUploads">Clear Uploads</Button>
@@ -98,14 +96,11 @@
                     <Text>Select Field Metadata File Location:</Text>
                 </Column>
                 <Column ColumnSize="ColumnSize.Is3">
-                    <LoadingIndicator @ref="loading">
                         <Field>
                             <FieldBody Margin="Margin.IsAuto">
                                 <FilePicker Upload="@OnFileUpload" ShowMode="FilePickerShowMode.List" />
                             </FieldBody>
                         </Field>
-                    </LoadingIndicator>
-
                 </Column>
                 <Column ColumnSize="ColumnSize.Is2">
 
@@ -119,14 +114,11 @@
                     <Text>Select Pick List File Location:</Text>
                 </Column>
                 <Column ColumnSize="ColumnSize.Is3">
-                    <LoadingIndicator @ref="loading">
                         <Field>
                             <FieldBody Margin="Margin.IsAuto">
                                 <FilePicker Upload="@OnFileUploadMeta" ShowMode="FilePickerShowMode.List" />
                             </FieldBody>
                         </Field>
-                    </LoadingIndicator>
-
                 </Column>
                 <Column ColumnSize="ColumnSize.Is2">
                 </Column>
