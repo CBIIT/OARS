@@ -34,7 +34,7 @@ namespace TheradexPortal.Data.Services
 
         public async Task<bool> SaveField(ThorField field)
         {
-            if(field.ThorDataCategoryId.IsNullOrEmpty())
+            if(field.ThorDataCategoryId.IsNullOrEmpty() || field.FieldType == null)
             {
                 return false;
             }
