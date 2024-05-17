@@ -196,5 +196,6 @@ namespace TheradexPortal.Data
         public DbSet<ProtocolFieldMapping> ProtocolFieldMappings { get; set; }
 
         public DbSet<ProtocolFormMapping> ProtocolFormMappings { get; set; }
+        public DbSet<CrossoverOption> CrossoverOptions { get; set; }
     }
 }

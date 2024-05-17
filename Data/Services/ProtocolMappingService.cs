@@ -126,6 +126,7 @@ namespace TheradexPortal.Data.Services
                     currentMapping.ProtocolDataSystemId = mapping.ProtocolDataSystemId;
                     currentMapping.DateFormat = mapping.DateFormat;
                     currentMapping.DataFileFolder = mapping.DataFileFolder;
+                    currentMapping.ProtocolCrossoverOptionId = mapping.ProtocolCrossoverOptionId;
                     context.Update(currentMapping);
 
                     if (phasesSet != null && phasesSet.Count > 0)
@@ -397,6 +398,11 @@ namespace TheradexPortal.Data.Services
             {
                 return false;
             }
+        }
+
+        public async Task<IList<CrossoverOption>> GetCrossoverOptions()
+        {
+            return context.CrossoverOptions.ToList();
         }
     }
 }

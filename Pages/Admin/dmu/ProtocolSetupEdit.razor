@@ -120,10 +120,10 @@
             <TextEdit MaxLength="50" @bind-Text="@currentProtocolMap.Sponsor" Disabled="@allowEdit"></TextEdit>
         </Column>
         <Column ColumnSize="ColumnSize.Is2" Class="dmu-column-border-left">
-
+            Crossover:
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-
+            <SelectList Data=@crossoverOptions TItem="CrossoverOption" TValue="int?" TextField="@((item) => item.CrossoverOptionName)" ValueField="@((item) => item.CrossoverOptionId)" SelectedValue="@currentProtocolMap.ProtocolCrossoverOptionId" SelectedValueChanged="@((v) => {currentProtocolMap.ProtocolCrossoverOptionId = v; })" DefaultItemValue="0" DefaultItemText="Select"/>
         </Column>
     </Row>
     <Row Padding="Padding.Is2" Class="dmu-row-white">
@@ -250,6 +250,7 @@
     private ProtocolMapping currentProtocolMap = new ProtocolMapping();
     private IList<ProtocolDataSystem> edcSystemList = new List<ProtocolDataSystem>();
     private IList<ProtocolMapping> protocolMappings = new List<ProtocolMapping>();
+    private IList<CrossoverOption> crossoverOptions = new List<CrossoverOption>();
 
     private bool phase1 = false;
     private bool phase2 = false;
@@ -279,6 +280,7 @@
         var watch = System.Diagnostics.Stopwatch.StartNew();
         this.currentProtocolMap = await protocolMappingService.GetProtocolMapping(protocolMappingId);
         this.phasesSet = await protocolPhaseService.GetProtocolMappingPhases(protocolMappingId);
+        this.crossoverOptions = await protocolMappingService.GetCrossoverOptions();
         applyPhases();
         await InitializedAsync();
         await base.OnInitializedAsync();
