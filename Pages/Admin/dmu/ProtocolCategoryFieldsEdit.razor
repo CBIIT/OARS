@@ -46,7 +46,7 @@
          </DataGridColumn>
          <DataGridColumn Caption="Field" Width="15%" Filterable="true" Editable>
             <DisplayTemplate>
-                @context?.ThorFieldId
+                @(context?.ThorFieldId + " - " + context?.ThorField?.FieldLabel)
             </DisplayTemplate>
             <EditTemplate>
                 @{
@@ -55,7 +55,7 @@
                         OnSelectedCategoryValueChanged(context.Item?.ThorField?.ThorDataCategoryId);
                     }
 
-                    <SelectList TItem="ThorField" TValue="string" Data="@fieldList" TextField="@((item)=>item.ThorFieldId)" ValueField="@((item)=>item.ThorFieldId)"
+                    <SelectList TItem="ThorField" TValue="string" Data="@fieldList" TextField="@((item)=>item.ThorFieldId + " - " + item.FieldLabel)" ValueField="@((item)=>item.ThorFieldId)"
                                 SelectedValue="@((string?)context.CellValue ?? context.Item.ThorFieldId)"
                                 SelectedValueChanged="@(e =>
                                     {

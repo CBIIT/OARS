@@ -72,6 +72,7 @@
     <None Include="SQL Scripts\DMU schema - update 2024-03-05.sql" />
     <None Include="sql scripts\DMU schema - update 2024-04-09.sql" />
     <None Include="sql scripts\DMU schema - update 2024-04-25.sql" />
+    <None Include="sql scripts\DMU schema - update 2025-05-15.sql" />
     <None Include="SQL Scripts\THORDictionary - Data.sql" />
   </ItemGroup>
 
