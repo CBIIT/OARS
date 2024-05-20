@@ -117,7 +117,7 @@
                                             <ValidationError>CRF is required</ValidationError>
                                             </Feedback> *@
                                         </RadioGroup>
-                                        <Div>
+                                        <Div Visibility="@CheckDownloadAndInstructionsVisibility()">
                                             <Icon Name="IconName.Download" IconSize="@IconSize.ExtraSmall" />&nbsp;
                                             <Link Clicked="OnDownloadTemplate" To="#">
                                             Download
@@ -446,6 +446,15 @@
         else
             return Visibility.Invisible;
     }
+
+    private Blazorise.Visibility CheckDownloadAndInstructionsVisibility()
+    {
+        if (!string.IsNullOrWhiteSpace(ETCTNUploadRequestModel.CRF))
+            return Visibility.Visible;
+        else
+            return Visibility.Invisible;
+    }
+    
 
     private bool IsFileUploadDisabled()
     {
