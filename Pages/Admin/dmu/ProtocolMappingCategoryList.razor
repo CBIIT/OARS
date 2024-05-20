@@ -8,10 +8,7 @@
 <AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })" AllowedTHORRoles="@(new List<string> { "DMU Study Mapping", "DMU Study Admin", "DMU Global Admin" })"></AdminRoleCheck>
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Mapping</h2></Div>
 <Row Background="Background.Light" Style="padding-bottom:10px;">
-    <Row Style="padding-top:10px">
-        <Column ColumnSize="ColumnSize.Is1">
-            <Button Clicked="@Back" Color="Color.Primary"><Icon Name="IconName.ArrowLeft" /> Back</Button>
-        </Column>
+    <Row>
         <Column><Text><b>Protocol:</b> @protocolMapping.ProtocolTitle</Text></Column>
         <LoadingIndicator @ref="loadingIndicator" >
         <Column><Text><b>Copy Mappings From:</b></Text> <SelectList TItem="ProtocolMapping" TValue="int?" Data="@copyFromList" TextField="@((item) => item.ProtocolTitle)" ValueField="@((item) => item.ProtocolMappingId)" SelectedValue="@protocolMapping.SourceProtocolMappingId" SelectedValueChanged="@((v) => {protocolMapping.SourceProtocolMappingId = v; CopyMapping(v);})" Disabled="@(MappingStatus() != "Not Started")" DefaultItemText="Select a Protocol" DefaultItemValue="0"></SelectList></Column>
@@ -172,10 +169,5 @@
     public void GenerateMapping()
     {
         // placeholder for generating the mapping document
-    }
-
-    private void Back()
-    {
-        navigation.NavigateTo("/admin/dmu/study-mapping");
     }
 }

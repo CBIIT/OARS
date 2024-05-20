@@ -7,10 +7,7 @@
 <AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })" AllowedTHORRoles="@(new List<string> { "DMU Study Mapping", "DMU Study Admin", "DMU Global Admin" })"></AdminRoleCheck>
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Mapping</h2></Div>
 <Row Background="Background.Light" Style="padding-bottom:10px;">
-    <Row style="padding-top:10px">
-        <Column ColumnSize="ColumnSize.Is1">
-            <Button Clicked="@Back" Color="Color.Primary"><Icon Name="IconName.ArrowLeft" /> Back</Button>
-        </Column>
+    <Row>
         <Column>
             <Text><b>Protocol:</b> @protocol</Text>
         </Column>
@@ -20,7 +17,6 @@
 
     </Row>
     <Row>
-        <Column ColumnSize="ColumnSize.Is1"></Column>
         <Column>
             <Text><b>Report Category:</b> @currCategory.CategoryName</Text>
         </Column>
@@ -519,9 +515,4 @@ else{
             }
         }
     }
-
-    private void Back()
-	{
-		navigation.NavigateTo($"/admin/dmu/category-list-map/{protocolMappingId}");
-	}
 }
