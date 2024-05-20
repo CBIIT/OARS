@@ -285,7 +285,8 @@
         if (currentProtocolMap?.ProfileId == null ) formValid = false;
         if (currentProtocolMap?.DateFormat?.Trim() == String.Empty) formValid = false;
         if (currentProtocolMap?.DataFileFolder?.Trim() == String.Empty) formValid = false;
-
+        if(currentProtocolMap?.ProtocolDataSystemId == invalidId) formValid = false;
+        if(currentProtocolMap?.ProfileId == invalidId) formValid = false;
         if (formValid)
         {
             if (phasesSet[0] != null)
