@@ -44,9 +44,9 @@
 				}
             </DisplayTemplate>
         </DataGridColumn>
-        <DataGridColumn Width="20%" Field="Protocol.StudyId" Sortable="true" Filterable="true" Caption="Study ID" SortDirection="SortDirection.Ascending">
+        <DataGridColumn Width="20%" Field="@nameof(ProtocolMapping.THORStudyId)" Sortable="true" Filterable="true" Caption="Study ID" SortDirection="SortDirection.Ascending">
         </DataGridColumn>
-        <DataGridColumn Width="50%" Field="Protocol.ProtocolTitle" Sortable="false" Filterable="true" Caption="Title">
+        <DataGridColumn Width="50%" Field="@nameof(ProtocolMapping.ProtocolTitle)" Sortable="false" Filterable="true" Caption="Title">
         </DataGridColumn>
         <DataGridColumn Width="10%" Field="Status.StatusName" Sortable="false" Caption="Status">
         </DataGridColumn>
@@ -55,10 +55,6 @@
                  @if(context.Item.Status.StatusName != "Active" && context.Item.ProtocolMappingId != 0)
 				 {
                     <Button><Icon Name="IconName.InfoCircle" Clicked="@(()=>EditMapping(context.Item))" /></Button>
-                }
-                else if(context.Item.ProtocolMappingId == 0)
-                {
-                    <Button><Icon Name="IconName.Add" Clicked="@(()=>EditMapping(context.Item))"/></Button>
                 }
                 else
 				 {
@@ -71,6 +67,7 @@
         </DataGridCommandColumn>
     </DataGridColumns>
     <ButtonRowTemplate>
+        <Button Color="Color.Primary" Clicked="@(() => EditMapping(new ProtocolMapping()))">Create Study</Button>
         <Button Color="Color.Danger" Clicked="@ProcessSelectedStudies">Process Selected Studies</Button>
         <Button Color="Color.Secondary" Clicked="@ShowHideArchived">@(includeArchived ? "Hide Archived" : "Show Archived")</Button>
     </ButtonRowTemplate>
@@ -118,14 +115,10 @@
         else
         {
             List<ProtocolPhase> phases = new List<ProtocolPhase>();
+            mapping.ProtocolMappingStatusId = 1;
             await protocolMappingService.SaveProtocolMapping(mapping, phases);
-            navigation.NavigateTo($"/admin/dmu/study-admin/{mapping.ProtocolMappingId}");
+            navigation.NavigateTo($"/admin/dmu/study-admin/{mapping.ProtocolMappingId}?published=Active");
         }
-    }
-
-    private void AddStudy()
-    {
-        navigation.NavigateTo("/admin/dmu/study-setup");
     }
 
     private async void ShowHideArchived()
