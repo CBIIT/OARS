@@ -10,9 +10,14 @@
 <AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })" AllowedTHORRoles="@(new List<string> { "DMU Global Admin" })"></AdminRoleCheck>
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Global Administration</h2></Div>
 <Row Background="Background.Light">
-    <Row Background="Background.Light" Style="padding-bottom:10px;">
+    <Row Background="Background.Light" Style="padding-bottom:10px; padding-top:10px;">
         <Row>
-            <Text><b>Profile:</b> @selectedProfile.ProfileName</Text>
+            <Column ColumnSize="ColumnSize.Is1">
+               <Button Clicked="@Back" Color="Color.Primary"><Icon Name="IconName.ArrowLeft" /> Back</Button>
+            </Column>
+            <Column>
+                <Text><b>Profile:</b> @selectedProfile.ProfileName</Text>
+            </Column>
         </Row>
     </Row>
     <Steps @ref="stepsRef" SelectedStep="@selectedStep" NavigationAllowed="NavigationAllowed">
@@ -31,6 +36,7 @@
     [AllowNull] private Steps stepsRef;
     [Parameter] public int profile { get; set; }
     [Inject] IProfileService profileService { get; set; } = null!;
+    [Inject] NavigationManager navigation { get; set; } = null!;
     private Profile selectedProfile;
 
     private bool NavigationAllowed(StepNavigationContext context)
@@ -44,4 +50,9 @@
     {
         this.selectedProfile = await profileService.GetProfile(profile);
     }
+
+    private void Back()
+	{
+		navigation.NavigateTo("/admin/dmu/select-profile");
+	}
 }

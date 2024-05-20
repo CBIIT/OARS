@@ -9,6 +9,7 @@
 <AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })" AllowedTHORRoles="@(new List<string> { "DMU Global Admin" })"></AdminRoleCheck>
 <div class="dmu-admin-step-container">
     <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Global Administration</h2></Div>
+    <Span Style="float:left; padding:10px; position:absolute; display:flex;"><Button Clicked="@Back" Color="Color.Primary"><Icon Name="IconName.ArrowLeft"/> Back</Button></Span>
     <Row Class="dmu-admin-step-container">
         <Steps @ref="stepsRef" SelectedStep="@selectedStep" NavigationAllowed="NavigationAllowed">
             <Items>
@@ -25,13 +26,20 @@
             </Content>
         </Steps>
     </Row>
+
 </div>
 @code {
     string selectedStep = "thordatacategory";
     [AllowNull] private Steps stepsRef;
+    [Inject] private NavigationManager navigation { get; set; } = null!;
 
     private bool NavigationAllowed(StepNavigationContext context)
     {
         return true;
     }
+
+    private void Back()
+	{
+        navigation.NavigateTo("/admin/dmu/select-profile");
+	}
 }
