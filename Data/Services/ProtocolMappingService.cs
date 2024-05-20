@@ -25,41 +25,10 @@ namespace TheradexPortal.Data.Services
             IList<ProtocolMapping> protocolMappings = new List<ProtocolMapping>();
             if (includeArchived)
             {
-                protocolMappings = await context.ProtocolMapping.Include(p => p.Protocol).Include(p => p.Status).ToListAsync();
+                protocolMappings = await context.ProtocolMapping.Include(p => p.Status).ToListAsync();
             } else
             {
-                protocolMappings = await context.ProtocolMapping.Include(p => p.Protocol).Include(p => p.Status).Where(p => p.Status.StatusName != "Archived").ToListAsync();
-            }
-            
-            var protocols = await context.Protocols.ToListAsync();
-
-            var pmStudyIds = new HashSet<string>(protocolMappings.Select(pm => pm.THORStudyId));
-
-            foreach (var protocol in protocols)
-            {
-                if (protocol.StudyId is null)
-                {
-                    continue;
-                }
-                if (!pmStudyIds.Contains(protocol.StudyId))
-                {
-                    var pm = new ProtocolMapping
-                    {
-                        THORStudyId = protocol.StudyId,
-                        Protocol = protocol,
-                        ProtocolTitle = protocol.ProtocolTitle,
-                        Sponsor = protocol.LeadOrganization,
-                        ProtocolDataSystemId = 1,
-                        DateFormat = "MM/dd/yyyy",
-                        DataFileFolder = "C:\\DataFiles",
-                        CreateDate = DateTime.Now,
-                        Status = context.ProtocolMappingStatus.FirstOrDefault(s => s.ProtocolMappingStatusId == 1),
-                        ProfileId = 1,
-                        MappingVersion = 1,
-
-                    };
-                    protocolMappings.Add(pm);
-                }
+                protocolMappings = await context.ProtocolMapping.Include(p => p.Status).Where(p => p.Status.StatusName != "Archived").ToListAsync();
             }
 
             return protocolMappings;
@@ -73,9 +42,6 @@ namespace TheradexPortal.Data.Services
 
         public async Task<IList<ProtocolMapping>> GetExistingProtocolMappings()
         {
-            // Get only the existing protocol mappings
-            // as opposed to the method above which also creates objects for protocols that don't have a mapping yet
-
             var mappings = await context.ProtocolMapping.Include(p => p.Protocol).Include(p => p.Status).Where(p => p.Status.StatusName != "Archived").ToListAsync();
             return mappings;
         }

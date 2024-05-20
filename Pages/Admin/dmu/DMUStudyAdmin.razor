@@ -60,7 +60,7 @@
     {
         var protocolMapping = await protocolMappingService.GetProtocolMapping(protocolMappingId);
         this.mappingName = protocolMapping.ProtocolTitle;
-        this.protocolNum = protocolMapping.Protocol.LocalProtocolNumber;
+        this.protocolNum = protocolMapping.THORStudyId;
     }
 
     private bool NavigationAllowed(StepNavigationContext context)
