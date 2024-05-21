@@ -80,7 +80,7 @@
                     <Column ColumnSize="ColumnSize.Is3">
                             <Field>
                                 <FieldBody Margin="Margin.IsAuto">
-                                    <FilePicker Upload="@OnFileUploadForm" ShowMode="FilePickerShowMode.List" />
+                                    <FilePicker @ref="@pickerForm" Upload="@OnFileUploadForm" ShowMode="FilePickerShowMode.List" />
                                 </FieldBody>
                             </Field>
                     </Column>
@@ -98,7 +98,7 @@
                 <Column ColumnSize="ColumnSize.Is3">
                         <Field>
                             <FieldBody Margin="Margin.IsAuto">
-                                <FilePicker Upload="@OnFileUpload" ShowMode="FilePickerShowMode.List" />
+                                <FilePicker @ref="@pickerFile" Upload="@OnFileUpload" ShowMode="FilePickerShowMode.List" />
                             </FieldBody>
                         </Field>
                 </Column>
@@ -116,13 +116,23 @@
                 <Column ColumnSize="ColumnSize.Is3">
                         <Field>
                             <FieldBody Margin="Margin.IsAuto">
-                                <FilePicker Upload="@OnFileUploadMeta" ShowMode="FilePickerShowMode.List" />
+                                <FilePicker @ref="@pickerMeta" Upload="@OnFileUploadMeta" ShowMode="FilePickerShowMode.List" />
                             </FieldBody>
                         </Field>
                 </Column>
                 <Column ColumnSize="ColumnSize.Is2">
                 </Column>
             }
+        </Row>
+        <Row Padding="Padding.Is2">
+            <Column ColumnSize="ColumnSize.Is4">
+            </Column>
+            <Column ColumnSize="ColumnSize.Is2" Style="text-align:right;">
+                @if (selectedFileType == "CSV")
+                {
+                    <Button class="btn dmu-admin-button-orange" onclick="@ProcessCSVUploads" Disabled="@disableProcessCSV" >Process</Button>
+                }
+            </Column>
         </Row>
         </LoadingIndicator>
     }
@@ -150,6 +160,19 @@
     private string selectedFileType = String.Empty;
     private string allowedType;
 
+    private MemoryStream ms;
+    private MemoryStream msForm;
+    private MemoryStream msMeta;
+
+    private bool enabledUploadFile = false;
+    private bool enabledUploadForm = false;
+    private bool enabledUploadMeta = false;
+    private bool disableProcessCSV = true;
+
+    private FilePicker pickerFile;
+    private FilePicker pickerForm;
+    private FilePicker pickerMeta;
+
     private enum FileTypeSelect
     {
         XML,
@@ -166,9 +189,9 @@
     {
         await loading.Show();
         var hideLoading = true;
-        MemoryStream ms = new MemoryStream();
         try
         {
+            ms = new MemoryStream();
             var name = e.File.Name.ToLower().Split('.');
             int last = name.Length - 1;
             await e.File.OpenReadStream(25000000).CopyToAsync(ms);
@@ -212,21 +235,21 @@
             }
             else if (selectedFileType == "CSV")
             {
-                try
+                enabledUploadFile = true;
+                if (enabledUploadForm && enabledUploadMeta)
                 {
-                    await csvFileImportService.ParseCSVField(ms, this.protocolMappingId);
-                    await notificationService.Success("CSV file uploaded successfully. Refreshing mapping...");
-                    hideLoading = false;
-                }
-                catch (Exception ex)
-                {
-                    await RollbackUpload(this.protocolMappingId);
-                    await notificationService.Error(ex.Message);
+                    disableProcessCSV = false;
+                    StateHasChanged();
                 }
             }
         }
         catch (Exception ex)
         {
+            if (selectedFileType == "CSV")
+            {
+                await notificationService.Error(ex.Message);
+                enabledUploadFile = false;
+            }
             Console.WriteLine(ex.Message);
         }
         finally
@@ -237,61 +260,43 @@
 
     public async void OnFileUploadForm(FileUploadEventArgs e)
     {
-        await loading.Show();
-        var hideLoading = true;
-        MemoryStream ms = new MemoryStream();
         try
         {
-            await e.File.OpenReadStream(25000000).CopyToAsync(ms);            
-            try
+            msForm = new MemoryStream();
+            await e.File.OpenReadStream(25000000).CopyToAsync(msForm);
+            enabledUploadForm = true;
+            if (enabledUploadFile && enabledUploadMeta)
             {
-                await csvFileImportService.ParseCSVFileForm(ms, this.protocolMappingId);
-                hideLoading = false;
-            }
-            catch (Exception ex)
-            {
-                await RollbackUpload(this.protocolMappingId);
-                await notificationService.Error(ex.Message);
+                disableProcessCSV = false;
+                StateHasChanged();
             }
         }
         catch (Exception ex)
         {
+            enabledUploadForm = false;
+            await notificationService.Error(ex.Message);
             Console.WriteLine(ex.Message);
-        }
-        finally
-        {
-            await loading.Hide();
         }
     }
 
     public async void OnFileUploadMeta(FileUploadEventArgs e)
     {
-        await loading.Show();
-        var hideLoading = true;
-        MemoryStream ms = new MemoryStream();
         try
         {
-            await e.File.OpenReadStream(25000000).CopyToAsync(ms);
-
-            try
+            msMeta = new MemoryStream();
+            await e.File.OpenReadStream(25000000).CopyToAsync(msMeta);
+            enabledUploadMeta = true;
+            if (enabledUploadFile && enabledUploadForm)
             {
-                await csvFileImportService.ParseCSVFileMeta(ms, this.protocolMappingId);
-                hideLoading = false;
-            }
-            catch (Exception ex)
-            {
-                await RollbackUpload(this.protocolMappingId);
-                await notificationService.Error(ex.Message);
+                disableProcessCSV = false;
+                StateHasChanged();
             }
         }
         catch (Exception ex)
         {
+            enabledUploadMeta = false;
+            await notificationService.Error(ex.Message);
             Console.WriteLine(ex.Message);
-        }
-        finally
-        {
-            if (hideLoading)
-                await loading.Hide();
         }
     }
 
@@ -359,17 +364,58 @@
     {
         selectedFileType = value;
         if (value == FileTypeSelect.ALS.ToString())
-		{
-			allowedType = ".xls.xml";
-		}
-		else if (value == FileTypeSelect.XML.ToString())
-		{
-			allowedType = ".xml";
-		}
-		else if (value == FileTypeSelect.CSV.ToString())
-		{
-			allowedType = ".csv";
-		}
+        {
+            allowedType = ".xls.xml";
+        }
+        else if (value == FileTypeSelect.XML.ToString())
+        {
+            allowedType = ".xml";
+        }
+        else if (value == FileTypeSelect.CSV.ToString())
+        {
+            allowedType = ".csv";
+        }
         return Task.CompletedTask;
+    }
+
+    public async void ProcessCSVUploads()
+    {
+        if (!await messageService.Confirm("Are you sure you want to start processing all of the uploads for this mapping?", "Confirmation"))
+        {
+            return;
+        }
+
+        await loading.Show();
+        try
+        {
+            await csvFileImportService.ParseCSVField(ms, this.protocolMappingId);
+
+            await csvFileImportService.ParseCSVFileForm(msForm, this.protocolMappingId);
+
+            await csvFileImportService.ParseCSVFileMeta(msMeta, this.protocolMappingId);
+
+            await notificationService.Success("CSV files uploaded successfully!");
+
+            await pickerFile.FileEdit.Reset().AsTask();
+            await pickerForm.FileEdit.Reset().AsTask();
+            await pickerMeta.FileEdit.Reset().AsTask();
+
+            enabledUploadFile = false;
+            enabledUploadForm = false;
+            enabledUploadMeta = false;
+        }
+        catch (Exception ex)
+        {
+            enabledUploadFile = false;
+            enabledUploadForm = false;
+            enabledUploadMeta = false;
+            await RollbackUpload(this.protocolMappingId);
+            await notificationService.Error(ex.Message);
+        }
+        finally
+        {
+            StateHasChanged();
+            await loading.Hide();
+        }
     }
 }
