@@ -51,8 +51,17 @@ namespace TheradexPortal.Data.Services
 
         public async Task<IList<ProtocolField>> GetAllProtocolFieldsByMappingId(int mappingId)
         {
+            var mapping = await _protocolMappingService.GetProtocolMapping(mappingId);
+            var profileFields = await context.ProfileFields.Include(x => x.ThorField).Where(pf => pf.ProfileId == mapping.ProfileId).ToListAsync();
+            var pfIds = profileFields.Select(pf => pf.THORFieldId).ToList();
+            var protocolFields = await context.ProtocolField
+                .Include(x => x.ThorField)
+                .ThenInclude(y => y.Category)
+                .Where(pf => pf.ProtocolMappingId == mappingId)
+                .ToListAsync();
 
-            var protocolFields = await context.ProtocolField.Include(x => x.ThorField).ThenInclude(y => y.Category).Where(pf => pf.ProtocolMappingId == mappingId).ToListAsync();
+            protocolFields = protocolFields.Where(p => pfIds.Contains(p.ThorFieldId)).ToList();
+
             foreach (var protocolField in protocolFields)
             {
                 protocolField.ThorDataCategoryId = protocolField.ThorField.Category.ThorDataCategoryId;
