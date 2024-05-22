@@ -38,6 +38,24 @@ namespace TheradexPortal.Data.Services
                     currCategory.CreateDate = category.CreateDate;
                     context.Update(currCategory);
                 }
+
+                if (currCategory == null || currCategory.ThorDataCategoryId != category.ThorDataCategoryId)
+                {
+                    //Get all the fields for the category and add them to the profile
+                    var thorFields = await context.THORField.Where(tf => tf.ThorDataCategoryId == category.ThorDataCategoryId).Where(tf => tf.IsActive).ToListAsync();
+                    foreach (var thorField in thorFields)
+                    {
+                        ProfileField newField = new ProfileField
+                        {
+                            THORFieldId = thorField.ThorFieldId,
+                            ProfileId = category.ProfileId,
+                            CreateDate = curDateTime
+                        };
+
+                        context.Add(newField);
+                    }
+                }
+                
                 await context.SaveChangesAsync();
                 return true;
 
@@ -53,6 +71,11 @@ namespace TheradexPortal.Data.Services
         {
             try
             {
+                var profileFields = await context.ProfileFields.Where(pf => pf.ProfileId == category.ProfileId).ToListAsync();
+                var thorFields = await context.THORField.Where(tf => tf.ThorDataCategoryId == category.ThorDataCategoryId).ToListAsync();
+                var thorFieldIds = thorFields.Select(tf => tf.ThorFieldId).ToList();
+                var fieldsToDelete = profileFields.Where(pf => thorFieldIds.Contains(pf.THORFieldId)).ToList();
+                context.RemoveRange(fieldsToDelete);
                 context.Remove(category);
                 await context.SaveChangesAsync();
                 return true;
