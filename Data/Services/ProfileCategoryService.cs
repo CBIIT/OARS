@@ -24,23 +24,19 @@ namespace TheradexPortal.Data.Services
             try
             {
                 DateTime curDateTime = DateTime.UtcNow;
-                ProfileDataCategory currCategory = context.ProfileDataCategory.Where(p => p.ProfileDataCategoryId == category.ProfileDataCategoryId).FirstOrDefault();
-                if(currCategory == null)
-                {
-                    category.ProfileId = profileId;
-                    category.CreateDate = curDateTime;
-                    context.Add(category);
-                }
-                else
-                {
-                    currCategory.ProfileId = category.ProfileId;
-                    currCategory.ThorDataCategoryId = category.ThorDataCategoryId; 
-                    currCategory.CreateDate = category.CreateDate;
-                    context.Update(currCategory);
-                }
+                ProfileDataCategory currCategory = context.ProfileDataCategory.Where(p => (p.ProfileDataCategoryId == category.ProfileDataCategoryId)).FirstOrDefault();
 
-                if (currCategory == null || currCategory.ThorDataCategoryId != category.ThorDataCategoryId)
-                {
+                if (currCategory == null || currCategory.ThorCategory.ThorDataCategoryId != category.ThorDataCategoryId)
+                {   // Get all the current fields for the category and remove them
+                    if (currCategory.ThorCategory.ThorDataCategoryId != category.ThorDataCategoryId)
+                    {
+                        var currFields = await context.ProfileFields.Where(pf => pf.ProfileId == category.ProfileId).ToListAsync();
+                        var toRemove = await context.THORField.Where(tf => tf.ThorDataCategoryId == currCategory.ThorCategory.ThorDataCategoryId).ToListAsync();
+                        var idsToRemove = toRemove.Select(tf => tf.ThorFieldId).ToList();
+
+                        currFields = currFields.Where(pf => idsToRemove.Contains(pf.THORFieldId)).ToList();
+                        context.RemoveRange(currFields);
+                    }
                     //Get all the fields for the category and add them to the profile
                     var thorFields = await context.THORField.Where(tf => tf.ThorDataCategoryId == category.ThorDataCategoryId).Where(tf => tf.IsActive).ToListAsync();
                     foreach (var thorField in thorFields)
@@ -55,7 +51,21 @@ namespace TheradexPortal.Data.Services
                         context.Add(newField);
                     }
                 }
-                
+
+                if (currCategory == null)
+                {
+                    category.ProfileId = profileId;
+                    category.CreateDate = curDateTime;
+                    context.Add(category);
+                }
+                else
+                {
+                    currCategory.ProfileId = category.ProfileId;
+                    currCategory.ThorDataCategoryId = category.ThorDataCategoryId; 
+                    currCategory.CreateDate = category.CreateDate;
+                    context.Update(currCategory);
+                }
+
                 await context.SaveChangesAsync();
                 return true;
 
