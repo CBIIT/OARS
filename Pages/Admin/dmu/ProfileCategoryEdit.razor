@@ -102,6 +102,7 @@
     {
         this.profileCategories = await profileCategoryService.GetCategories(profile);
         this.categoryList = await categoryService.GetCategories();
+        this.categoryList = this.categoryList.Where(x => x.IsActive).ToList();
 
     }
 
