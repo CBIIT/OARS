@@ -329,6 +329,7 @@
     private FileEdit helpFileEditRef;
     private string reportToDelete;
     private string helpFileName;
+    private readonly string noFileFound = "No file found";
     private string currentHelpFileName = "No file found";
     private int reportToDeleteId;
     IFileEntry helpFileEntry;
@@ -438,6 +439,11 @@
         pageName = curDashboard.CustomPagePath;
         this.helpFileName = curDashboard.HelpFileName;
         this.currentHelpFileName = curDashboard.HelpFileName;
+
+        if (this.currentHelpFileName == null || this.currentHelpFileName.Equals(string.Empty))
+        {
+            this.currentHelpFileName = this.noFileFound;
+        }
     }
 
     private Task OnSelectedStepChanged( string name )
@@ -631,7 +637,6 @@
             saveDashboard.Name = dashboardName;
             saveDashboard.Description = description;
             saveDashboard.CustomPagePath = pageName;
-            saveDashboard.HelpFileName = this.currentHelpFileName;
 
             if (String.IsNullOrEmpty(pageName))
             {
@@ -646,8 +651,9 @@
                 }
             }
 
-            if (this.helpFileEntry != null)
+            if (this.helpFileEntry != null && (this.currentHelpFileName != null && !this.currentHelpFileName.Equals(noFileFound)))
             {
+                saveDashboard.HelpFileName = this.currentHelpFileName;
                 helpFileUploaded = (await this.UploadFileToS3());
                 if (helpFileUploaded)
                 {
@@ -890,6 +896,7 @@
     private async void OnHelpFileChanged(FileChangedEventArgs e)
     {
         this.helpFileEntry = e.Files.FirstOrDefault();
+        this.currentHelpFileName = this.helpFileEntry.Name;
     }
 
     private async Task<bool> UploadFileToS3()
@@ -915,7 +922,7 @@
             }
             catch (Exception ex)
             {
-                //errorLogService.SaveErrorLogAsync(userId, Navigation.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+                await NotificationService.Success($"Failed to upload to S3. {ex.Message}");
             }
         }
 
@@ -924,7 +931,7 @@
 
     private async void OpenCurrentHelpFile()
     {
-        if (this.helpFileName != null && !this.helpFileName.Equals(string.Empty))
+        if (this.helpFileName != null && !this.helpFileName.Equals(string.Empty) && !this.helpFileName.Equals(noFileFound))
         {
             var helpFileUrl = configuration.GetValue<string>("System:DashboardHelpURL");
             helpFileUrl += this.currentHelpFileName;

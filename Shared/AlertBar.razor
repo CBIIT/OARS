@@ -70,6 +70,7 @@ else
     private bool notesHidden;
     private bool defaultAlertVisible;
     private bool alertsSessionLoaded;
+    private bool pageLoaded;
     [Inject] private IAlertService alertService { get; set; } = null!;
     private BarItem? alertsItem;
     private BarItem? notesItem;
@@ -83,36 +84,48 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        this.getSystemAlerts();
-        this.getLoginAlerts();
-        this.getDashboardAlerts();
+        this.pageLoaded = false;
+        this.alertsSessionLoaded = false;
+        await this.getSystemAlerts();
+        await this.getLoginAlerts();
+        await this.getDashboardAlerts();
+        this.alertColor = await alertService.AlertColor();
+        this.noteColor = await alertService.NoteColor();
+        this.infoColor = await alertService.InfoColor();
+        this.currentColor = this.noteColor;
+        this.setCurrentColor();
         await base.OnInitializedAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender) // required for performance. could add a timed bool check to refresh system alerts
+        if (firstRender)
         {
             await LoadSessionAlerts();
-            this.alertColor = await alertService.AlertColor();
-            this.noteColor = await alertService.NoteColor();
-            this.infoColor = await alertService.InfoColor();
-            this.currentColor = this.noteColor;
-            this.setCurrentColor();
-            this.alertsSessionLoaded = true;
-            await this.updateAlertsCount(this.getActiveAlertsCount());
+            if (this.System)
+            {
+                await this.updateAlertsCount(this.getActiveAlertsCount());
+            }
+            this.pageLoaded = true;
             StateHasChanged();
         }
     }
 
-    public void UpdateDashboard(Dashboard dashboard)
+    public async void UpdateDashboard(Dashboard dashboard)
     {
         this.selectedDashboard = dashboard;
-        this.getDashboardAlerts();
+        await this.getDashboardAlerts();
         StateHasChanged();
     }
 
-    private async void getSystemAlerts()
+    public void Clear()
+    {
+        this.selectedDashboard = new Data.Models.Dashboard() { DashboardId = 0 };
+        this.activeAlerts = new List<ThorAlert>();
+        StateHasChanged();
+    }
+
+    private async Task getSystemAlerts()
     {
         if (System)
         {
@@ -127,7 +140,7 @@ else
         }
     }
 
-    private async void getLoginAlerts()
+    private async Task getLoginAlerts()
     {
         if (LoginScreen)
         {
@@ -142,7 +155,7 @@ else
         }
     }
 
-    private async void getDashboardAlerts()
+    private async Task getDashboardAlerts()
     {
         if (Dashboard)
         {
@@ -191,6 +204,11 @@ else
 
     private async Task dismissAlert(ThorAlert alert)
     {
+        if (!this.pageLoaded)
+        {
+            return;
+        }
+
         var alertId = alert.AlertId.ToString();
 
         if (alert != null && !this.dismissedAlerts!.Contains(alertId))
@@ -201,20 +219,17 @@ else
             }
             this.dismissedAlerts += alertId;
             await this.saveSessionAlerts(this.dismissedAlerts);
-
-            var alertsCount = this.getActiveAlertsCount();
-
-            if (alertsCount.Equals(0))
-            {
-                this.defaultAlertVisible = true;
-            }
-
-            await this.updateAlertsCount(alertsCount);
+            await this.countSystemAlerts();
         }
     }
 
     private async Task toggleAlert(ThorAlert alert)
     {
+        if (!this.pageLoaded)
+        {
+            return;
+        }
+
         await this.AlertBarToggled.InvokeAsync();
     }
 
@@ -222,6 +237,7 @@ else
     {
         var sessionDismissedAlerts = await SessionData.GetAsync<string>("dismissedAlerts");
         this.dismissedAlerts = sessionDismissedAlerts.Success ? sessionDismissedAlerts.Value : "";
+        this.alertsSessionLoaded = true;
     }
 
     private async Task saveSessionAlerts(string newData)
@@ -232,5 +248,18 @@ else
     private async Task updateAlertsCount(int alertsCount)
     {
         await this.AlertsCountChanged.InvokeAsync(alertsCount);
+    }
+
+    private async Task countSystemAlerts()
+    {
+        if (this.System)
+        {
+            var alertsCount = this.getActiveAlertsCount();
+            if (alertsCount.Equals(0))
+            {
+                this.defaultAlertVisible = true;
+            }
+            await this.updateAlertsCount(alertsCount);
+        }
     }
 }

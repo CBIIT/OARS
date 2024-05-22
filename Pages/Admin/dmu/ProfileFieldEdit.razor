@@ -41,10 +41,10 @@
     <DataGridColumns>
         <DataGridColumn Width="35%" Caption="OARS Data Category" Editable Filterable="true" Sortable="false">
             <DisplayTemplate>
-                @context?.ThorField?.Category?.ThorDataCategoryId
+                @(context?.ThorField?.Category?.CategoryName + " (" + context?.ThorField?.Category?.ThorDataCategoryId + ")")
             </DisplayTemplate>
             <EditTemplate>
-                <SelectList TItem="ThorCategory" TValue="string" Data="@categoryList" TextField="@((item)=>item.CategoryName)" ValueField="@((item)=>item.ThorDataCategoryId)" SelectedValueChanged="OnSelectedCategoryValueChanged" DefaultItemText="Select the OARS DataCategory"></SelectList>
+                <SelectList TItem="ThorCategory" TValue="string" Data="@categoryList" TextField="@((item)=>item.CategoryName + "(" + item.ThorDataCategoryId + ")")" ValueField="@((item)=>item.ThorDataCategoryId)" SelectedValueChanged="OnSelectedCategoryValueChanged" DefaultItemValue="@(context.Item?.ThorField?.ThorDataCategoryId)" DefaultItemText="@(context.Item?.ThorField?.ThorDataCategoryId ?? "Select the THOR DataCategory")"></SelectList>
             </EditTemplate>
         </DataGridColumn>
         <DataGridColumn Width="35%" Field="THORFieldId" Caption="OARS Field" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
@@ -52,12 +52,12 @@
                 @context?.THORFieldId - @context?.ThorField?.FieldLabel
             </DisplayTemplate>
             <EditTemplate>
-                <SelectList TItem="ThorField" TValue="string" Data="@fieldList" TextField="@((item)=>item.ThorFieldId)" ValueField="@((item)=>item.ThorFieldId)"
+                <SelectList TItem="ThorField" TValue="string" Data="@fieldList" TextField="@((item)=>item.ThorFieldId + " - " + item.FieldLabel)" ValueField="@((item)=>item.ThorFieldId)"
                             SelectedValue="@((string)((CellEditContext)context).CellValue)"
                             SelectedValueChanged="@(e =>
                         {
                             context.CellValue = Convert.ToString(e);
-                        } )" DefaultItemText="Select the OARS Field">
+                        } )" DefaultItemValue="@(context.Item?.THORFieldId)" DefaultItemText="@(context.Item?.THORFieldId ?? "Select the THOR Field")">
                 </SelectList>
             </EditTemplate>
         </DataGridColumn>
@@ -118,7 +118,7 @@
         this.selectedProfile = await profileService.GetProfile(profile);
         this.categoryList = await categoryService.GetCategories();
 
-        this.categoryList = this.categoryList.Where(x=> profileCategories.Any(y=> y.ThorDataCategoryId == x.ThorDataCategoryId)).ToList();
+        this.categoryList = this.categoryList.Where(x=> profileCategories.Any(y=> y.ThorDataCategoryId == x.ThorDataCategoryId)).Where(x => x.IsActive).ToList();
     }
 
     public async void Save(SavedRowItem<ProfileField, Dictionary<string, object>> savedRowItem)
@@ -129,16 +129,13 @@
         if (saved)
         {
             await notificationService.Success("Field successfully saved");
-            return;
         }
         else
         {
             await notificationService.Error("Error saving field");
-            return;
         }
         this.profileFields = await profileFieldService.GetProfileFields(profile);
-
-        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+        await dataGridRef.Refresh();
     }
 
     private void setCategories(IList<ProfileField> loadedProfileFields)

@@ -2,21 +2,12 @@
 @inject IConfiguration configuration
 @layout LoginLayout
 
-<Div Flex="Flex.JustifyContent.Between" Margin="Margin.Is3.FromBottom">
-    <Div>
-        <Image Source="img/DNA-Left.jpg"></Image>
+<Div Flex="Flex.JustifyContent.Between" Class="nci-login-banner">
+    <Div Padding="Padding.Is2">
+        <Image Source="img/OarsLogo.svg" Height="Height.Is100"></Image>
     </Div>
-    <Div Margin="Margin.Is5.FromTop">
-        <h2>NCI Theradex Oncology Reporting</h2>
-    </Div>
-    <Div Margin="Margin.Is4.FromTop">
-        <Image Source="img/theradex-logo.png"></Image>
-    </Div>
-    <Div Margin="Margin.Is5.FromTop">
-        <h2>Focused. Connected.  Nimble.</h2>
-    </Div>
-    <Div>
-        <Image Source="img/DNA-Right.jpg"></Image>
+    <Div Padding="Padding.Is2">
+        <Image Source="img/NCIOarsSmallLogo.png" Height="Height.Is100"></Image>
     </Div>
 </Div>
 <div class="loginVideoDiv">
@@ -62,6 +53,14 @@
 
         supportEmail = configuration.GetValue<string>("EmailSettings:SupportEmail");
         await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            
+        }
     }
 
     Task OnButtonClicked()

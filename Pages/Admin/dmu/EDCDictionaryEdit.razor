@@ -75,7 +75,11 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var watch = System.Diagnostics.Stopwatch.StartNew();
         this.protocolDicts = await protocolDictionaryService.GetDictionariesByMappingId(protocolMappingId);
+        watch.Stop();
+        var elapsedMs = watch.ElapsedMilliseconds;
+        System.Console.WriteLine($"EDC Dictionary Elapsed time: {elapsedMs} ms");
     }
 
 

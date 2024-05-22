@@ -1,0 +1,56 @@
+﻿@using System.Diagnostics.CodeAnalysis
+@using Microsoft.Extensions.Options
+@using Newtonsoft.Json
+@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@using TheradexPortal.Data.Models.Configuration;
+@inject IHttpContextAccessor httpContextAccessor
+
+<Modal @ref="ETCTNFileDataModal">
+    <ModalContent Size="ModalSize.ExtraLarge">
+        <ModalHeader Background="Background.Primary">
+            <ModalTitle TextColor="TextColor.White">Overview</ModalTitle>
+            <CloseButton TextColor="TextColor.White" />
+        </ModalHeader>
+        <ModalBody Class="upload-Modal-Body">
+            <Div Display="@receivingStatusVisible">
+                <ReceivingStatusData IsAdminDisplay="@isAdminDisplay" RequestId="@requestIdToFetch"></ReceivingStatusData>
+            </Div>
+            <Div Display="@biospecimenRoadmapVisible">
+                <BiospecimenRoadmapData IsAdminDisplay="@isAdminDisplay" RequestId="@requestIdToFetch"></BiospecimenRoadmapData>
+            </Div>
+        </ModalBody>
+        <ModalFooter>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+@code {
+
+    private Modal ETCTNFileDataModal;
+    private string requestIdToFetch = string.Empty;
+    private bool isAdminDisplay = false;
+    private IFluentDisplay receivingStatusVisible = Display.None;
+    private IFluentDisplay biospecimenRoadmapVisible = Display.None;
+
+    public async Task Show(string requestId, string crf, bool isAdmin)
+    {
+        this.requestIdToFetch = requestId;
+        this.isAdminDisplay = isAdmin;
+        this.receivingStatusVisible = (crf == "RECEIVING_STATUS") ? Display.Block : Display.None;
+        this.biospecimenRoadmapVisible = (crf == "BIOSPECIMEN_ROADMAP_ASSAY") ? Display.Block : Display.None;
+
+        StateHasChanged();
+
+        ETCTNFileDataModal!.Show();
+    }
+
+    // private IFluentDisplay IsCRFInstructions(string crf)
+    // {
+    //     if (ETCTNUploadRequestModel.CRF == crf)
+    //         return Display.Block;
+    //     else
+    //         return Display.None;
+    // }
+}

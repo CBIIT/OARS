@@ -276,7 +276,7 @@
         {
             bool sendSuccess = await emailService.SendEmail(new List<string> { curUser.EmailAddress }, new List<string> { "wwu@theradex.com" }, null, "Subject test", $"<B>Test Test</B>", new List<string> { uploadFileName });
 
-            await emailService.SendNewSystemEmail(initialSite, initialSite, "NCI-THOR", baseURL, primaryColor, curUser);
+            await emailService.SendNewSystemEmail(initialSite, initialSite, "NCI-OARS", baseURL, primaryColor, curUser);
 
              //sendSuccess = await emailService.SendNewUserEmail(initialSite, baseURL, primaryColor, curUser, "Activation Link");
             //await emailService.SendEmail(new List<string> { curUser.EmailAddress }, new List<string> { "wfarbman@theradex.com" }, null, "Subject test", $"<B>Test Test</B>", null);

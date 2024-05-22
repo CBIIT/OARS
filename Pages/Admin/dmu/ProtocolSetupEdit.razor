@@ -55,15 +55,10 @@
     </Row>
     <Row Padding="Padding.Is2" Class="dmu-row-white">
         <Column ColumnSize="ColumnSize.Is2" Class="dmu-admin-label-field-container">
-            <Text>Status:</Text>
+            <Text>Billing Code:</Text>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-            <Select @bind-SelectedValue="@currentProtocolMap.ProtocolMappingStatusId" Disabled="@allowEdit">
-                <SelectItem Value="0" Hidden>Select</SelectItem>
-                <SelectItem Value="1">Active</SelectItem>
-                <SelectItem Value="2">Testing</SelectItem>
-                <SelectItem Value="3">Deactivated</SelectItem>
-            </Select>
+            <TextEdit MaxLength="50" @bind-Text="@currentProtocolMap.BillingCode" Disabled="@allowEdit"></TextEdit>
         </Column>
         <Column ColumnSize="ColumnSize.Is2" Class="dmu-column-border-left">
             <Check TValue="bool" @bind-Checked="@phase2" Disabled="@allowEdit">Phase 2</Check>
@@ -78,10 +73,10 @@
     </Row>
     <Row Padding="Padding.Is2" Class="dmu-row-alt">
         <Column ColumnSize="ColumnSize.Is2" Class="dmu-admin-label-field-container">
-            <Text>Billing Code:</Text>
+            <Text>Title:</Text>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-            <TextEdit MaxLength="50" @bind-Text="@currentProtocolMap.BillingCode" Disabled="@allowEdit"></TextEdit>
+            <TextEdit MaxLength="50" @bind-Text="@currentProtocolMap.ProtocolTitle" Disabled="@allowEdit"></TextEdit>
         </Column>
         <Column ColumnSize="ColumnSize.Is2" Class="dmu-column-border-left">
             <Check TValue="bool" @bind-Checked="@phase3" Disabled="@allowEdit">Phase 3</Check>
@@ -96,10 +91,10 @@
     </Row>
     <Row Padding="Padding.Is2" Class="dmu-row-white">
         <Column ColumnSize="ColumnSize.Is2" Class="dmu-admin-label-field-container">
-            <Text>Title:</Text>
+            <Text>Sponsor:</Text>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-            <TextEdit MaxLength="50" @bind-Text="@currentProtocolMap.ProtocolTitle" Disabled="@allowEdit"></TextEdit>
+            <TextEdit MaxLength="50" @bind-Text="@currentProtocolMap.Sponsor" Disabled="@allowEdit"></TextEdit>
         </Column>
         <Column ColumnSize="ColumnSize.Is2" Class="dmu-column-border-left">
             <Check TValue="bool" @bind-Checked="@phase4" Disabled="@allowEdit">Phase 4</Check>
@@ -114,20 +109,6 @@
     </Row>
     <Row Padding="Padding.Is2" Class="dmu-row-alt">
         <Column ColumnSize="ColumnSize.Is2" Class="dmu-admin-label-field-container">
-            <Text>Sponsor:</Text>
-        </Column>
-        <Column ColumnSize="ColumnSize.Is4">
-            <TextEdit MaxLength="50" @bind-Text="@currentProtocolMap.Sponsor" Disabled="@allowEdit"></TextEdit>
-        </Column>
-        <Column ColumnSize="ColumnSize.Is2" Class="dmu-column-border-left">
-
-        </Column>
-        <Column ColumnSize="ColumnSize.Is4">
-
-        </Column>
-    </Row>
-    <Row Padding="Padding.Is2" Class="dmu-row-white">
-        <Column ColumnSize="ColumnSize.Is2" Class="dmu-admin-label-field-container">
             <Text>*EDC System:</Text>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
@@ -140,13 +121,13 @@
             </Select>
         </Column>
         <Column ColumnSize="ColumnSize.Is2" Class="dmu-column-border-left">
-
+            Crossover:
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-
+            <SelectList Data=@crossoverOptions TItem="CrossoverOption" TValue="int?" TextField="@((item) => item.CrossoverOptionName)" ValueField="@((item) => item.CrossoverOptionId)" SelectedValue="@currentProtocolMap.ProtocolCrossoverOptionId" SelectedValueChanged="@((v) => {currentProtocolMap.ProtocolCrossoverOptionId = v; })" DefaultItemValue="0" DefaultItemText="Select"/>
         </Column>
-    </Row>
-    <Row Padding="Padding.Is2" Class="dmu-row-alt">
+    </Row> 
+    <Row Padding="Padding.Is2" Class="dmu-row-white">
         <Column ColumnSize="ColumnSize.Is2" Class="dmu-admin-label-field-container">
             <Text>*Monitoring Method:</Text>
         </Column>
@@ -156,29 +137,6 @@
                 @foreach (var profile in profileList)
                 {
                     <SelectItem Value="@profile.ProfileId">@profile.ProfileName</SelectItem>
-                }
-            </Select>
-        </Column>
-        <Column ColumnSize="ColumnSize.Is2" Class="dmu-column-border-left">
-
-        </Column>
-        <Column ColumnSize="ColumnSize.Is4">
-
-        </Column>
-    </Row>
-    <Row Padding="Padding.Is2" Class="dmu-row-white">
-        <Column ColumnSize="ColumnSize.Is2" Class="dmu-admin-label-field-container">
-            <Text>Copy Mappings From:</Text>
-        </Column>
-        <Column ColumnSize="ColumnSize.Is4">
-            <Select TValue="int?" @bind-SelectedValue="@currentProtocolMap.SourceProtocolMappingId" Disabled="@allowEdit">
-                <SelectItem Value="@invalidId">Select Protocol to copy from</SelectItem>
-                @foreach (var protocolMapping in protocolMappings)
-                {
-                    if (currentProtocolMap?.ProfileId != null && protocolMapping.ProfileId == currentProtocolMap.ProfileId)
-                    {
-                        <SelectItem Value="@protocolMapping.ProtocolMappingId">@protocolMapping.ProtocolTitle</SelectItem>
-                    }
                 }
             </Select>
         </Column>
@@ -208,7 +166,7 @@
             <Text>*Data File Folder:</Text>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-            <TextEdit MaxLength="50" @bind-Text="@currentProtocolMap.DataFileFolder" Disabled="@allowEdit"></TextEdit>
+            <TextEdit @bind-Text="@currentProtocolMap.DataFileFolder" Disabled="@allowEdit"></TextEdit>
         </Column>
         <Column ColumnSize="ColumnSize.Is2" Class="dmu-column-border-left">
         </Column>
@@ -250,6 +208,7 @@
     private ProtocolMapping currentProtocolMap = new ProtocolMapping();
     private IList<ProtocolDataSystem> edcSystemList = new List<ProtocolDataSystem>();
     private IList<ProtocolMapping> protocolMappings = new List<ProtocolMapping>();
+    private IList<CrossoverOption> crossoverOptions = new List<CrossoverOption>();
 
     private bool phase1 = false;
     private bool phase2 = false;
@@ -276,11 +235,16 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var watch = System.Diagnostics.Stopwatch.StartNew();
         this.currentProtocolMap = await protocolMappingService.GetProtocolMapping(protocolMappingId);
         this.phasesSet = await protocolPhaseService.GetProtocolMappingPhases(protocolMappingId);
+        this.crossoverOptions = await protocolMappingService.GetCrossoverOptions();
         applyPhases();
         await InitializedAsync();
         await base.OnInitializedAsync();
+        watch.Stop();
+        var elapsedMs = watch.ElapsedMilliseconds;
+        System.Console.WriteLine($"Protocol Setup Elapsed time: {elapsedMs} ms");
     }
 
     protected void applyPhases()
@@ -321,7 +285,8 @@
         if (currentProtocolMap?.ProfileId == null ) formValid = false;
         if (currentProtocolMap?.DateFormat?.Trim() == String.Empty) formValid = false;
         if (currentProtocolMap?.DataFileFolder?.Trim() == String.Empty) formValid = false;
-
+        if(currentProtocolMap?.ProtocolDataSystemId == invalidId) formValid = false;
+        if(currentProtocolMap?.ProfileId == invalidId) formValid = false;
         if (formValid)
         {
             if (phasesSet[0] != null)

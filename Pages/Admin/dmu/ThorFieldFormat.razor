@@ -66,7 +66,11 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var watch = System.Diagnostics.Stopwatch.StartNew();
         this.protocolFields = await protocolFieldService.GetProtocolFieldsByMappingId(this.protocolMappingId);
+        watch.Stop();
+        var elapsedMs = watch.ElapsedMilliseconds;
+        System.Console.WriteLine($"THOR Field Format Elapsed time: {elapsedMs} ms");
     }
 
     public async void Save(SavedRowItem<ProtocolField, Dictionary<string, object>> savedRowItem)

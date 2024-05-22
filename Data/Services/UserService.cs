@@ -39,7 +39,7 @@ namespace TheradexPortal.Data.Services
         }
         public bool CheckEmailAddress(string emailAddress, int userId)
         {
-            User foundUser = context.Users.FirstOrDefault(u=>u.EmailAddress == emailAddress && u.UserId != userId);
+            User foundUser = context.Users.FirstOrDefault(u=>u.EmailAddress.ToUpper() == emailAddress.ToUpper() && u.UserId != userId);
             return foundUser == null;
         }
         public bool SaveUser(User user, int loggedInUserId)
@@ -395,6 +395,19 @@ namespace TheradexPortal.Data.Services
                 _errorLogService.SaveErrorLogAsync(userId, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
                 return false;
             }
+        }
+        public bool CheckActivityLogForTimeout(int userId, int timespanMS)
+        {
+            // Get the lost recent non-Timeout-check record from Activity log based on the timespan
+            var mostRecentActivity = ( from ua in context.User_ActivityLog
+                                       where ua.UserId == userId && ua.Data1 != "Timeout-Check"
+                                       orderby ua.ActivityDate descending
+                                       select ua).FirstOrDefault();
+
+            DateTime curDateTime = DateTime.UtcNow;
+
+            // Return true to force timeout
+            return mostRecentActivity.ActivityDate.Value.AddMilliseconds(timespanMS) < curDateTime;
         }
         public Tuple<bool, string> SaveFavorite(int userId, int dashboardId, int reportId, string reportName)
         {

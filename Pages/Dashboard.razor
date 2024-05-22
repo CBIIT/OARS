@@ -11,6 +11,8 @@
 @using TheradexPortal.Data.Services.Abstract;
 @using TheradexPortal.Data.ViewModels;
 @using TheradexPortal.Data.Static;
+@using System.Timers
+@inject IJSRuntime JSRuntime
 
 @if(notFound)
 {
@@ -30,9 +32,16 @@ else
         <Container Fluid Class="mt-2">
             @if(report != null && report.IsFullPage)
             {
-                <PowerBiFullReport Dashboard="dashboard" Report="report" @ref="fullReportRef" />
+                if (report.CustomPagePath != null)
+                {
+                    <DynamicComponent Type="@(Type.GetType($"TheradexPortal.{report.CustomPagePath!}") ?? typeof(NotFound))" />
+                }
+                else
+                {
+                    <PowerBiFullReport Dashboard="dashboard" Report="report" @ref="fullReportRef" />
+                }
             }
-            else if(report != null)
+            else if(report != null) /* Unused as IsFullPage will always be set */
             {
                 <PowerBiCustomLayout Dashboard="dashboard" Report="report" @ref="customReportRef" />
             }
@@ -60,6 +69,10 @@ else
     private PowerBiCustomLayout? customReportRef;
     private PowerBiFullReport? fullReportRef;
 
+    //[CascadingParameter]
+    //private Task<AuthenticationState> stateAuthenticate { get; set; }
+    //private Timer timerObj;
+    //[Inject] public NavigationManager Navigation { get; set; }
     private TheradexPortal.Data.Models.Dashboard? dashboard;
     private IList<Report> allReports = new List<Report>();
     private Report? report;
@@ -91,7 +104,7 @@ else
             To = this.getHelpUrl(),
             ShowAction = this.helpFileFound
         },
-          new SecondaryNavAction
+        new SecondaryNavAction
         {
             IconName = IconName.Star,
             Label = "Add to Favorites",
@@ -99,14 +112,18 @@ else
         }
     };
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        await PrimaryNavLayout.ClearDashboardAlerts();
+
         if (fullReportRef != null)
         {
             _dashboardId = DashboardId;
             _reportId = ReportId;
             _saveHistory = true;
         }
+
+        await base.OnInitializedAsync();
     }
 
     protected override async Task OnParametersSetAsync()
@@ -133,13 +150,14 @@ else
         string userReports = httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.Reports).Value;
 
         dashboard = await dashboardService.GetDashboardByIdAsync(DashboardId, userDashboards, isAdmin);
-        await PrimaryNavLayout.UpdateDashboard(dashboard);
-        PrimaryNavLayout.DashboardName = dashboard.Name;
-        if(dashboard == null && !isAdmin)
+
+        if(dashboard == null)
         {
             notFound = true;
             return;
         }
+
+        PrimaryNavLayout.DashboardName = dashboard.Name;
 
         userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
 
@@ -191,9 +209,50 @@ else
             }
         }
     }
-    //protected override async Task OnAfterRenderAsync(bool firstRender)
-    //{
-    //}
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            if (dashboard.DashboardId != 0)
+            {
+                await PrimaryNavLayout.UpdateDashboard(dashboard);
+            }
+        }
+        // else
+        // {
+        //     // Set the Timer delay.  5000 milliseconds, you can change it to 10 mins.
+        //     timerObj = new Timer(20000);
+        //     timerObj.Elapsed += UpdateTimer;
+        //     timerObj.AutoReset = false;
+        //     timerObj.Start();
+        //     // Identify whether the user is active or inactive using onmousemove and onkeypress in JS function.
+        //     //DotNet.invokeMethodAsync("TheradexPortal", "Timeout")
+        //     await JSRuntime.InvokeVoidAsync("timeOutCall", DotNetObjectReference.Create(this));
+        // }
+    }
+
+    // [JSInvokable]
+    // public void TimerInterval()
+    // {
+    //     // Resetting the Timer if the user in active state.
+    //     timerObj.Stop();
+    //     // Call the TimeInterval to logout when the user is inactive.
+    //     timerObj.Start();
+    // }
+
+    // private void UpdateTimer(Object source, ElapsedEventArgs e)
+    // {
+    //     InvokeAsync(async () =>
+    //     {
+    //         // Log out when the user is inactive.
+    //         var authstate = await stateAuthenticate;
+    //         if (authstate.User.Identity.IsAuthenticated)
+    //         {
+    //             Navigation.NavigateTo($"Timeout", true);
+    //             //UriHelper.NavigateTo("/timedout", true);
+    //         }
+    //     });
+    // }
 
     //// Re-render report components and hide modal
     //private async void HideFilters(List<Protocol>? selectedStudies)

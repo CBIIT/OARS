@@ -46,6 +46,9 @@ else
     [Parameter] public int DashboardId { get; set; }
     [Parameter] public int ReportId { get; set; }
 
+    [CascadingParameter]
+    public PrimaryNavLayout PrimaryNavLayout { get; set; }
+
     private int userId;
     private bool notFound = false;
     private StudyOverview? studyOverview;
@@ -67,6 +70,7 @@ else
         allReports = await dashboardService.GetReportsByDashboardIdForUserAsync(DashboardId, userId, isAdmin);
 
         notFound = false;
+        await PrimaryNavLayout.UpdateDashboard(dashboard);
 
         if (dashboard == null && !isAdmin)
         {
@@ -97,6 +101,7 @@ else
                     successDiv = Display.Block;
                     connectDiv = Display.None;
                     StateHasChanged();
+                    //JSRuntime.InvokeAsync<string>("open", wrSite + "ThorSSO.aspx?id=" + ssoToken + "&dash=NCI%20Standard%20Dashboards%5CETCTN%20Data%20uploads", "_blank");
                     JSRuntime.InvokeAsync<string>("open", wrSite + "ThorSSO.aspx?id=" + ssoToken, "_blank");
                 }
                 else
