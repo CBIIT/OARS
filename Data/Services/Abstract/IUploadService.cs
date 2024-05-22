@@ -6,6 +6,8 @@ namespace TheradexPortal.Data.Services.Abstract
     {
         public Task<UploadConfiguration> GetUploadConfigurationAsync(int userId, bool allStudies);
 
+        public List<CRFModel> GetCRFs();
+
         public Task<bool> UploadCsvFileToS3(string key, int userId, MemoryStream memoryStream);
 
         public Task<bool> UploadMetatdataFileToS3(string key, int userId, string content);

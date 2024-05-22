@@ -50,8 +50,6 @@ namespace TheradexPortal.Data.Services
 
             uploadConfiguration.CRFRules = await GetCRFRules();
 
-            uploadConfiguration.CRFs = GetCRFs();
-
             return uploadConfiguration;
         }
 

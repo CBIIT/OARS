@@ -122,8 +122,6 @@ namespace TheradexPortal.Data.Models
         public List<ProtocolData> ProtocolData { get; set; }
 
         public List<CRFRule> CRFRules { get; set; }
-
-        public List<CRFModel> CRFs { get; set; }
     }
 
     public class FileMetadata

@@ -24,8 +24,8 @@
                             <AlertDescription TextOverflow="TextOverflow.Wrap">
                             </AlertDescription>
                             <AlertMessage>
-                                <b>Welcome to the ETCTN Data Uploads in OARS!</b> Please begin by selecting the Protocol, Receiving Site and Source Site using the dropdown menus.<br />
-                                Next, select the appropriate case report form (CRF) using the radio buttons and use the adjacent dropdown menu to choose an applicable Assay.<br />
+                                <b>Welcome to the ETCTN Data Uploads in OARS!</b> Please begin by selecting the Protocol and Source Site using the dropdown menus.<br />
+                                Next, select the appropriate case report form (CRF) using the radio buttons and use the adjacent dropdown menu to choose an applicable Assay or Receiving Site.<br />
                                 Located below the CRF selectors are links for Downloading blank csv templates and general Instructions.<br />
                                 Finally, click on “Choose file” to search your computer for the csv file of interest and once it’s ready, click on “Submit.”<br />
                                 Also, there is a “Reset” button if it’s necessary to change the selected csv file prior to submitting the file to upload.
@@ -37,7 +37,7 @@
 
             <Row>
                 <Column>
-                    <Validations @ref="@ValidationsRef" Mode="ValidationMode.Manual" Model="@ETCTNUploadRequestModel" ValidateOnLoad="false">
+                    <Validations @ref="@ValidationsRef" Mode="ValidationMode.Auto" Model="@ETCTNUploadRequestModel" ValidateOnLoad="false">
                         <Fields>
                             <Validation Validator="@ValidationRule.IsNotEmpty">
                                 <Field ColumnSize="ColumnSize.IsThird">
@@ -51,9 +51,6 @@
                                                     <SelectItem TValue="string" Value="@item">@item</SelectItem>
                                                 }
                                             </ChildContent>
-                                            @* <Feedback>
-                                            <ValidationError>Protocol is required</ValidationError>
-                                            </Feedback> *@
                                         </Select>
                                     </FieldBody>
                                 </Field>
@@ -64,15 +61,12 @@
                                     <FieldBody>
                                         <Select @bind-SelectedValue="@ETCTNUploadRequestModel.SourceSite">
                                             <ChildContent>
-                                                <SelectItem TValue="string"></SelectItem>
+                                                <SelectItem TValue="string">@(trackingDestinations.Count() == 0 ? "Select a Protocol" : string.Empty)</SelectItem>
                                                 @foreach (var item in trackingDestinations)
                                                 {
                                                     <SelectItem TValue="string" Value="@item.UserData">@item.UserData</SelectItem>
                                                 }
                                             </ChildContent>
-                                            @*  <Feedback>
-                                            <ValidationError>SourceSite is required</ValidationError>
-                                            </Feedback> *@
                                         </Select>
                                     </FieldBody>
                                 </Field>
@@ -83,15 +77,12 @@
                                     <FieldBody>
                                         <Select @bind-SelectedValue="@ETCTNUploadRequestModel.ReceivingSite">
                                             <ChildContent>
-                                                <SelectItem TValue="string"></SelectItem>
+                                                <SelectItem TValue="string">@(trackingDestinations.Count() == 0 ? "Select a Protocol" : string.Empty)</SelectItem>
                                                 @foreach (var item in trackingDestinations)
                                                 {
                                                     <SelectItem TValue="string" Value="@item.UserData">@item.UserData</SelectItem>
                                                 }
                                             </ChildContent>
-                                            @* <Feedback>
-                                            <ValidationError>ReceivingSite is required</ValidationError>
-                                            </Feedback> *@
                                         </Select>
                                     </FieldBody>
                                 </Field>
@@ -111,9 +102,6 @@
                                                     <br>
                                                 }
                                             </ChildContent>
-                                            @* <Feedback>
-                                            <ValidationError>CRF is required</ValidationError>
-                                            </Feedback> *@
                                         </RadioGroup>
                                         <Div Visibility="@CheckDownloadAndInstructionsVisibility()">
                                             <Icon Name="IconName.Download" IconSize="@IconSize.ExtraSmall" />&nbsp;
@@ -141,15 +129,12 @@
                                     <FieldBody>
                                         <Select @bind-SelectedValue="@ETCTNUploadRequestModel.Assay">
                                             <ChildContent>
-                                                <SelectItem TValue="string"></SelectItem>
+                                                <SelectItem TValue="string">@(assays.Count() == 0 ? "Select a Protocol" : string.Empty)</SelectItem>
                                                 @foreach (var item in assays)
                                                 {
                                                     <SelectItem TValue="string" Value="@item.CodedData">@item.UserData</SelectItem>
                                                 }
                                             </ChildContent>
-                                            @* <Feedback>
-                                            <ValidationError>Assay is required</ValidationError>
-                                            </Feedback> *@
                                         </Select>
                                     </FieldBody>
                                 </Field>
@@ -318,52 +303,57 @@
         await base.OnInitializedAsync();
     }
 
+    private async Task LoadUploadConfiguration()
+    {
+        try
+        {
+            await loadingIndicator.Show();
+
+            userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+
+            User curUser = await userService.GetUserAsync(userId.Value);
+
+            currentEnvironment = configuration.GetValue<string>("System:Environment");
+
+            crfs = uploadService.GetCRFs();
+
+            var uploadConfiguration = await uploadService.GetUploadConfigurationAsync(userId.Value, curUser.AllStudies);
+
+            protocolData = uploadConfiguration.ProtocolData;
+
+            crfRules = uploadConfiguration.CRFRules;
+
+            wsURL = configuration.GetValue<string>("WebReporting:WRUrl");
+
+            if (protocolData == null)
+            {
+                await NotificationService.Error("There's an error loading the studies. Please try again later.");
+            }
+            else if (currentEnvironment.IndexOf("prod", StringComparison.InvariantCultureIgnoreCase) < 0 &&
+                             protocolData.Any(t => !string.IsNullOrWhiteSpace(t.Environment) && t.Environment.IndexOf("prod", StringComparison.InvariantCultureIgnoreCase) >= 0))
+            {
+                await NotificationService.Error($"Medidata Environment is invalid in this environment. Please try again later.");
+            }
+            else
+                protocols = protocolData.Where(t => !string.IsNullOrWhiteSpace(t.Environment)).Select(t => $"{t.Protocol}({t.Environment})").ToList();
+
+            await OnReset();
+        }
+        catch (Exception ex)
+        {
+            errorLogService.SaveErrorLogAsync(userId.Value, Navigation.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+        }
+        finally
+        {
+            await loadingIndicator.Hide();
+        }
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            try
-            {
-                await loadingIndicator.Show();
-
-                userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
-
-                User curUser = await userService.GetUserAsync(userId.Value);
-
-                currentEnvironment = configuration.GetValue<string>("System:Environment");
-
-                var uploadConfiguration = await uploadService.GetUploadConfigurationAsync(userId.Value, curUser.AllStudies);
-
-                protocolData = uploadConfiguration.ProtocolData;
-
-                crfRules = uploadConfiguration.CRFRules;
-
-                crfs = uploadConfiguration.CRFs;
-
-                wsURL = configuration.GetValue<string>("WebReporting:WRUrl");
-
-                if (protocolData == null)
-                {
-                    await NotificationService.Error("There's an error loading the studies. Please try again later.");
-                }
-                else if (currentEnvironment.IndexOf("prod", StringComparison.InvariantCultureIgnoreCase) < 0 &&
-                                 protocolData.Any(t => !string.IsNullOrWhiteSpace(t.Environment) && t.Environment.IndexOf("prod", StringComparison.InvariantCultureIgnoreCase) >= 0))
-                {
-                    await NotificationService.Error($"Medidata Environment is invalid in this environment. Please try again later.");
-                }
-                else
-                    protocols = protocolData.Where(t => !string.IsNullOrWhiteSpace(t.Environment)).Select(t => $"{t.Protocol}({t.Environment})").ToList();
-
-                await OnReset();
-            }
-            catch (Exception ex)
-            {
-                errorLogService.SaveErrorLogAsync(userId.Value, Navigation.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
-            }
-            finally
-            {
-                await loadingIndicator.Hide();
-            }
+            await LoadUploadConfiguration();
         }
     }
 
@@ -452,7 +442,7 @@
         else
             return Visibility.Invisible;
     }
-    
+
 
     private bool IsFileUploadDisabled()
     {
