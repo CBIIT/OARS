@@ -141,7 +141,7 @@
         <Text>This mapping has already been published and is in readonly mode.</Text>
     }
 </Div>
-@code {
+    @code {
     private FilePicker UploadField;
     private LoadingIndicator loading;
     [Inject] private IDatabaseConnectionService databaseConnectionService { get; set; }
@@ -160,13 +160,10 @@
     private string selectedFileType = String.Empty;
     private string allowedType;
 
-    private MemoryStream ms;
-    private MemoryStream msForm;
-    private MemoryStream msMeta;
+    private MemoryStream? ms = null;
+    private MemoryStream? msForm = null;
+    private MemoryStream? msMeta = null;
 
-    private bool enabledUploadFile = false;
-    private bool enabledUploadForm = false;
-    private bool enabledUploadMeta = false;
     private bool disableProcessCSV = true;
 
     private FilePicker pickerFile;
@@ -206,11 +203,12 @@
                 try
                 {
                     await alsFileImportService.ParseALSFile(ms, this.protocolMappingId);
-                    await notificationService.Success("ALS file uploaded successfully. Refreshing mapping...");
+                    await notificationService.Success("ALS file uploaded successfully. Reloading mapping...");
                     navigation.NavigateTo(navigation.Uri, true);
                     hideLoading = false; // Leave the loading spinner displayed while the page is reloading.
                 } catch (Exception ex)
-                {
+                {                    
+                    ms = null;
                     await RollbackUpload(this.protocolMappingId);
                     await notificationService.Error(ex.Message);
                 }
@@ -222,39 +220,47 @@
                     await notificationService.Error("Invalid file type. Please upload an .xml file");
                     return;
                 }
+
                 try
                 {
                     await xmlFileImportService.ParseXMLFile(ms, this.protocolMappingId);
-                    await notificationService.Success("XML file uploaded successfully. Refreshing mapping...");
+                    await notificationService.Success("XML file uploaded successfully. Reloading mapping...");
                     navigation.NavigateTo(navigation.Uri, true);
                     hideLoading = false; // Leave the loading spinner displayed while the page is reloading.
                 } catch(Exception ex){
+                    ms = null;
                     await RollbackUpload(this.protocolMappingId);
                     await notificationService.Error(ex.Message);
                 }
             }
             else if (selectedFileType == "CSV")
             {
-                enabledUploadFile = true;
-                if (enabledUploadForm && enabledUploadMeta)
-                {
-                    disableProcessCSV = false;
-                    StateHasChanged();
-                }
+                ManageProcessButtonDisabled();
             }
         }
         catch (Exception ex)
         {
-            if (selectedFileType == "CSV")
-            {
-                await notificationService.Error(ex.Message);
-                enabledUploadFile = false;
-            }
+            ms = null;
             Console.WriteLine(ex.Message);
         }
         finally
         {
-            await loading.Hide();
+            if (hideLoading)
+                await loading.Hide();
+
+            StateHasChanged();
+        }
+    }
+
+    private void ManageProcessButtonDisabled()
+    {
+        if (ms != null || msForm != null || msMeta != null)
+        {
+            disableProcessCSV = false;
+        }
+        else
+        {
+            disableProcessCSV = true;
         }
     }
 
@@ -264,18 +270,17 @@
         {
             msForm = new MemoryStream();
             await e.File.OpenReadStream(25000000).CopyToAsync(msForm);
-            enabledUploadForm = true;
-            if (enabledUploadFile && enabledUploadMeta)
-            {
-                disableProcessCSV = false;
-                StateHasChanged();
-            }
+            ManageProcessButtonDisabled();
         }
         catch (Exception ex)
         {
-            enabledUploadForm = false;
+            msForm = null;
             await notificationService.Error(ex.Message);
             Console.WriteLine(ex.Message);
+        }
+        finally
+        {
+            StateHasChanged();
         }
     }
 
@@ -285,18 +290,17 @@
         {
             msMeta = new MemoryStream();
             await e.File.OpenReadStream(25000000).CopyToAsync(msMeta);
-            enabledUploadMeta = true;
-            if (enabledUploadFile && enabledUploadForm)
-            {
-                disableProcessCSV = false;
-                StateHasChanged();
-            }
+            ManageProcessButtonDisabled();
         }
         catch (Exception ex)
         {
-            enabledUploadMeta = false;
+            msMeta = null;
             await notificationService.Error(ex.Message);
             Console.WriteLine(ex.Message);
+        }
+        finally
+        {
+            StateHasChanged();
         }
     }
 
@@ -306,6 +310,7 @@
         {
             return;
         }
+        var hideLoading = true;
         await loading.Show();
         // Delete all dictionaries, forms that are related to the protocolMappingId
         await notificationService.Info("Clearing uploads");
@@ -336,15 +341,22 @@
                 return;
             }
             transaction.Commit();
-            await notificationService.Success("Uploads cleared. Refreshing mapping...");
-            // Leave the loading spinner displayed while the page is reloading.
+            await notificationService.Success("Uploads cleared. Reloading mapping...");
+
+            hideLoading = false; // Leave the loading spinner displayed while the page is reloading.
             navigation.NavigateTo(navigation.Uri, true);
         } catch (Exception ex)
         {
             transaction.Rollback();
             await notificationService.Error(ex.Message);
             return;
-        } 
+        }
+        finally
+        {
+            if (hideLoading)
+                await loading.Hide();
+            StateHasChanged();
+        }
 
     }
 
@@ -357,6 +369,7 @@
             await fieldService.DeleteAllFieldsForFormIds(protocolMappingId);
             await formService.DeleteAllFormsForMappingId(protocolMappingId);
             await dictionaryService.DeleteAllDictionariesForMappingId(protocolMappingId);
+            StateHasChanged();
         }
     }
 
@@ -384,38 +397,42 @@
         {
             return;
         }
-
+        var hideLoading = true;
         await loading.Show();
         try
         {
-            await csvFileImportService.ParseCSVField(ms, this.protocolMappingId);
+            if (ms != null)
+                await csvFileImportService.ParseCSVField(ms, this.protocolMappingId);
 
-            await csvFileImportService.ParseCSVFileForm(msForm, this.protocolMappingId);
+            if (msForm != null)
+                await csvFileImportService.ParseCSVFileForm(msForm, this.protocolMappingId);
 
-            await csvFileImportService.ParseCSVFileMeta(msMeta, this.protocolMappingId);
+            if (msMeta != null)
+                await csvFileImportService.ParseCSVFileMeta(msMeta, this.protocolMappingId);
 
-            await notificationService.Success("CSV files uploaded successfully!");
+            await notificationService.Success("CSV files uploaded successfully! Reloading mapping...");
 
             await pickerFile.FileEdit.Reset().AsTask();
             await pickerForm.FileEdit.Reset().AsTask();
             await pickerMeta.FileEdit.Reset().AsTask();
 
-            enabledUploadFile = false;
-            enabledUploadForm = false;
-            enabledUploadMeta = false;
+            ms = null;
+            msForm = null;
+            msMeta = null;
+
+            hideLoading = false; // Leave the loading spinner displayed while the page is reloading.
+            navigation.NavigateTo(navigation.Uri, true);
         }
         catch (Exception ex)
         {
-            enabledUploadFile = false;
-            enabledUploadForm = false;
-            enabledUploadMeta = false;
             await RollbackUpload(this.protocolMappingId);
             await notificationService.Error(ex.Message);
         }
         finally
         {
+            if (hideLoading)
+                await loading.Hide();
             StateHasChanged();
-            await loading.Hide();
         }
     }
 }
