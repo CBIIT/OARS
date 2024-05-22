@@ -55,6 +55,7 @@ builder.Services.AddScoped<IProtocolEDCFormService, ProtocolEDCFormService>();
 builder.Services.AddScoped<IProtocolEDCDictionaryService, ProtocolEDCDictionaryService>();
 builder.Services.AddScoped<IALSFileImportService, ALSFileImportService>();
 builder.Services.AddScoped<IXMLFileImportService, XMLFileImportService>();
+builder.Services.AddScoped<ICSVFileImportService, CSVFileImportService>();
 builder.Services.AddScoped<IProtocolPhaseService, ProtocolPhaseService>();
 builder.Services.AddScoped<IProtocolEDCFormService, ProtocolEDCFormService>();
 builder.Services.AddScoped<IProtocolAgentService, ProtocolAgentService>();

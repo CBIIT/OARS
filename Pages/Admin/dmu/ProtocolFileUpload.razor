@@ -13,6 +13,7 @@
 <Div Padding="Padding.Is4" Margin="Margin.Is3.FromBottom">
     @if (!allowEdit)
     {
+        <LoadingIndicator @ref="loading">
         <Row Padding="Padding.Is2">
             <Column ColumnSize="ColumnSize.Is2" Style="text-align:right;">
                 <Text>File Type:</Text>
@@ -38,9 +39,19 @@
                         Additional Data Points outside the @selectedFileType can be added by uploading a CSV file.
                     </p>
                 }
+                else if (selectedFileType == "CSV")
+                {
+                    <Text>You may upload multiple CSV files as long as it's new metadata. if a CSV needs to replace existing metadata, remapping the study might be required.</Text>
+                    <p>
+                        To upload a new CSV and replace previously uploaded metadata,
+                        <ol>
+                            <li>Clear Uploads</li>
+                            <li>Upload new CSV</li>
+                        </ol>
+                    </p>
+                }
             </Column>
         </Row>
-        <LoadingIndicator @ref="loading">
             <Row Padding="Padding.Is2">
                 @if (selectedFileType == "ALS" || selectedFileType == "XML")
                 {
@@ -61,14 +72,74 @@
                         <Button Color="Color.Danger" onclick="@ClearUploads" Disabled="@allowEdit">Clear Uploads</Button>
                     </Column>
                 }
+               else if (selectedFileType == "CSV")
+                {
+                    <Column ColumnSize="ColumnSize.Is2" Style="text-align:right;">
+                        <Text>Select Form Name Location:</Text>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is3">
+                            <Field>
+                                <FieldBody Margin="Margin.IsAuto">
+                                    <FilePicker @ref="@pickerForm" Upload="@OnFileUploadForm" ShowMode="FilePickerShowMode.List" />
+                                </FieldBody>
+                            </Field>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is2">
+                        <Button Color="Color.Danger" onclick="@ClearUploads">Clear Uploads</Button>
+                    </Column>
+                }
             </Row>
+           <Row Padding="Padding.Is2">
+            @if (selectedFileType == "CSV")
+            {
+                <Column ColumnSize="ColumnSize.Is2" Style="text-align:right;">
+                    <Text>Select Field Metadata File Location:</Text>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                        <Field>
+                            <FieldBody Margin="Margin.IsAuto">
+                                <FilePicker @ref="@pickerFile" Upload="@OnFileUpload" ShowMode="FilePickerShowMode.List" />
+                            </FieldBody>
+                        </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is2">
+
+                </Column>
+            }
+        </Row>
+        <Row Padding="Padding.Is2">
+            @if (selectedFileType == "CSV")
+            {
+                <Column ColumnSize="ColumnSize.Is2" Style="text-align:right;">
+                    <Text>Select Pick List File Location:</Text>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                        <Field>
+                            <FieldBody Margin="Margin.IsAuto">
+                                <FilePicker @ref="@pickerMeta" Upload="@OnFileUploadMeta" ShowMode="FilePickerShowMode.List" />
+                            </FieldBody>
+                        </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is2">
+                </Column>
+            }
+        </Row>
+        <Row Padding="Padding.Is2">
+            <Column ColumnSize="ColumnSize.Is4">
+            </Column>
+            <Column ColumnSize="ColumnSize.Is2" Style="text-align:right;">
+                @if (selectedFileType == "CSV")
+                {
+                    <Button class="btn dmu-admin-button-orange" onclick="@ProcessCSVUploads" Disabled="@disableProcessCSV" >Process</Button>
+                }
+            </Column>
+        </Row>
         </LoadingIndicator>
     }
     else
     {
         <Text>This mapping has already been published and is in readonly mode.</Text>
     }
-
 </Div>
 @code {
     private FilePicker UploadField;
@@ -76,6 +147,7 @@
     [Inject] private IDatabaseConnectionService databaseConnectionService { get; set; }
     [Inject] private IALSFileImportService alsFileImportService { get; set; }
     [Inject] private IXMLFileImportService xmlFileImportService { get; set; }
+    [Inject] private ICSVFileImportService csvFileImportService { get; set; }
     [Inject] private IProtocolEDCFormService formService { get; set; }
     [Inject] private IProtocolEDCFieldService fieldService { get; set; }
     [Inject] private IProtocolEDCDictionaryService dictionaryService { get; set; }
@@ -87,6 +159,19 @@
 
     private string selectedFileType = String.Empty;
     private string allowedType;
+
+    private MemoryStream ms;
+    private MemoryStream msForm;
+    private MemoryStream msMeta;
+
+    private bool enabledUploadFile = false;
+    private bool enabledUploadForm = false;
+    private bool enabledUploadMeta = false;
+    private bool disableProcessCSV = true;
+
+    private FilePicker pickerFile;
+    private FilePicker pickerForm;
+    private FilePicker pickerMeta;
 
     private enum FileTypeSelect
     {
@@ -104,9 +189,9 @@
     {
         await loading.Show();
         var hideLoading = true;
-        MemoryStream ms = new MemoryStream();
         try
         {
+            ms = new MemoryStream();
             var name = e.File.Name.ToLower().Split('.');
             int last = name.Length - 1;
             await e.File.OpenReadStream(25000000).CopyToAsync(ms);
@@ -148,15 +233,70 @@
                     await notificationService.Error(ex.Message);
                 }
             }
+            else if (selectedFileType == "CSV")
+            {
+                enabledUploadFile = true;
+                if (enabledUploadForm && enabledUploadMeta)
+                {
+                    disableProcessCSV = false;
+                    StateHasChanged();
+                }
+            }
         }
         catch (Exception ex)
         {
+            if (selectedFileType == "CSV")
+            {
+                await notificationService.Error(ex.Message);
+                enabledUploadFile = false;
+            }
             Console.WriteLine(ex.Message);
         }
         finally
         {
-            if (hideLoading)
-                await loading.Hide();
+            await loading.Hide();
+        }
+    }
+
+    public async void OnFileUploadForm(FileUploadEventArgs e)
+    {
+        try
+        {
+            msForm = new MemoryStream();
+            await e.File.OpenReadStream(25000000).CopyToAsync(msForm);
+            enabledUploadForm = true;
+            if (enabledUploadFile && enabledUploadMeta)
+            {
+                disableProcessCSV = false;
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            enabledUploadForm = false;
+            await notificationService.Error(ex.Message);
+            Console.WriteLine(ex.Message);
+        }
+    }
+
+    public async void OnFileUploadMeta(FileUploadEventArgs e)
+    {
+        try
+        {
+            msMeta = new MemoryStream();
+            await e.File.OpenReadStream(25000000).CopyToAsync(msMeta);
+            enabledUploadMeta = true;
+            if (enabledUploadFile && enabledUploadForm)
+            {
+                disableProcessCSV = false;
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            enabledUploadMeta = false;
+            await notificationService.Error(ex.Message);
+            Console.WriteLine(ex.Message);
         }
     }
 
@@ -169,7 +309,6 @@
         await loading.Show();
         // Delete all dictionaries, forms that are related to the protocolMappingId
         await notificationService.Info("Clearing uploads");
-        // var formIds = await formService.GetFormIdsForMappingId(this.protocolMappingId);
         var transaction = databaseConnectionService.GetDbTransaction();
         try
         {
@@ -225,17 +364,58 @@
     {
         selectedFileType = value;
         if (value == FileTypeSelect.ALS.ToString())
-		{
-			allowedType = ".xls.xml";
-		}
-		else if (value == FileTypeSelect.XML.ToString())
-		{
-			allowedType = ".xml";
-		}
-		else if (value == FileTypeSelect.CSV.ToString())
-		{
-			allowedType = ".csv";
-		}
+        {
+            allowedType = ".xls.xml";
+        }
+        else if (value == FileTypeSelect.XML.ToString())
+        {
+            allowedType = ".xml";
+        }
+        else if (value == FileTypeSelect.CSV.ToString())
+        {
+            allowedType = ".csv";
+        }
         return Task.CompletedTask;
+    }
+
+    public async void ProcessCSVUploads()
+    {
+        if (!await messageService.Confirm("Are you sure you want to start processing all of the uploads for this mapping?", "Confirmation"))
+        {
+            return;
+        }
+
+        await loading.Show();
+        try
+        {
+            await csvFileImportService.ParseCSVField(ms, this.protocolMappingId);
+
+            await csvFileImportService.ParseCSVFileForm(msForm, this.protocolMappingId);
+
+            await csvFileImportService.ParseCSVFileMeta(msMeta, this.protocolMappingId);
+
+            await notificationService.Success("CSV files uploaded successfully!");
+
+            await pickerFile.FileEdit.Reset().AsTask();
+            await pickerForm.FileEdit.Reset().AsTask();
+            await pickerMeta.FileEdit.Reset().AsTask();
+
+            enabledUploadFile = false;
+            enabledUploadForm = false;
+            enabledUploadMeta = false;
+        }
+        catch (Exception ex)
+        {
+            enabledUploadFile = false;
+            enabledUploadForm = false;
+            enabledUploadMeta = false;
+            await RollbackUpload(this.protocolMappingId);
+            await notificationService.Error(ex.Message);
+        }
+        finally
+        {
+            StateHasChanged();
+            await loading.Hide();
+        }
     }
 }
