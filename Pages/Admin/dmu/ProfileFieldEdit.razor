@@ -118,7 +118,7 @@
         this.selectedProfile = await profileService.GetProfile(profile);
         this.categoryList = await categoryService.GetCategories();
 
-        this.categoryList = this.categoryList.Where(x=> profileCategories.Any(y=> y.ThorDataCategoryId == x.ThorDataCategoryId)).ToList();
+        this.categoryList = this.categoryList.Where(x=> profileCategories.Any(y=> y.ThorDataCategoryId == x.ThorDataCategoryId)).Where(x => x.IsActive).ToList();
     }
 
     public async void Save(SavedRowItem<ProfileField, Dictionary<string, object>> savedRowItem)
