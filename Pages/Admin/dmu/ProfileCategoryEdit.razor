@@ -114,6 +114,7 @@
         if (saved)
         {
             await notificationService.Success("Field successfully saved");
+            navigation.NavigateTo($"/admin/dmu/profile-categories/{profile}", true);
             return;
         }
         else
