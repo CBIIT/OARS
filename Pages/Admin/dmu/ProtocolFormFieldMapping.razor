@@ -82,7 +82,7 @@
                     }
                 </DisplayTemplate>
                 <EditTemplate>
-                    <Autocomplete TItem="ProtocolEDCForm" Data="@protocolEDCFormList" TValue="int" TextField="@((item) => {return item.EDCFormIdentifier + " - " + item.EDCFormName;})" ValueField="@((item) => item.ProtocolEDCFormId)" SelectedValueChanged="@(e => {@GetFields(e); context.CellValue=e;})" SelectedValue="@(context.Item.ProtocolEDCFormId)" Placeholder="@(GetPlaceholder(context.Item))" Virtualize></Autocomplete>
+                    <Autocomplete TItem="ProtocolEDCForm" Data="@protocolEDCFormList" TValue="int" TextField="@((item) => {return item.EDCFormIdentifier + " - " + item.EDCFormName;})" ValueField="@((item) => item.ProtocolEDCFormId)" SelectedValueChanged="@(e => {@GetFields(e); context.CellValue=e;})" SelectedValue="@(context.Item.ProtocolEDCFormId)" Placeholder="@(GetPlaceholder(context.Item))" Virtualize MinLength="0"></Autocomplete>
                 </EditTemplate>
             </DataGridColumn>
             <DataGridColumn Field="@nameof(ProtocolFieldMapping.ProtocolEDCFieldId)" Width="25%" Caption="Select EDC Field" Editable="true">
@@ -291,7 +291,7 @@ else{
         this.isComplete = protocolCategory.ProtocolCategoryStatusId == 3;
         this.currCategory = await thorCategoryService.GetCategory(protocolCategory.THORDataCategoryId);
         this.protocolFieldMappingList = await protocolFieldMappingService.GetProtocolFieldMappingsForCategory(currCategory.ThorDataCategoryId);
-        this.protocolEDCFormList = await protocolEDCFormService.GetProtocolEDCForms();
+        this.protocolEDCFormList = await protocolEDCFormService.GetFormsForMappingId(protocolMappingId);
         this.thorFieldList = await thorFieldService.GetFields(currCategory.ThorDataCategoryId);
 
         this.protocolFieldMappingList = AddMissingFields(this.protocolFieldMappingList, 0);
@@ -316,7 +316,10 @@ else{
 
     public async void GetFields(int formId)
     {
-        this.protocolEDCFieldList = await protocolEDCFieldService.GetFieldsByFormIds(new List<int> { formId });
+        if(formId != 0)
+        {
+            this.protocolEDCFieldList = await protocolEDCFieldService.GetFieldsByFormIds(new List<int> { formId });
+        }
     }
 
     public async void UpdateFields(int formId, int mappingId)
