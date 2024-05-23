@@ -6,14 +6,18 @@
 @page "/admin/dmu/dictionary-list-map/{fieldId:int}"
 <AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })" AllowedTHORRoles="@(new List<string> { "DMU Study Mapping", "DMU Study Admin", "DMU Global Admin" })"></AdminRoleCheck>
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Mapping</h2></Div>
-<Row Background="Background.Light" Style="padding-bottom:10px;">
+<Row Background="Background.Light" Style="padding-bottom:10px;padding-top:10px;">
     <Row>
+        <Column ColumnSize="ColumnSize.Is1">
+            <Button Clicked="@Back" Color="Color.Primary"><Icon Name="IconName.ArrowLeft" /> Back</Button>
+        </Column>
         <Column><Text><b>Protocol:</b> @protocolTitle</Text></Column> <Column><Text><b>Form Label:</b> @formLabel</Text></Column>
     </Row>
     <Row>
         <Column><Text><b>Report Category:</b> @categoryName</Text></Column> <Column><b>Field Label:</b> @currMapping.ProtocolEDCField.EDCFieldName</Column>
     </Row>
     <Row>
+        <Column></Column>
         <Column><Text><b>OARS Field:</b> @currMapping.ThorField.FieldLabel</Text></Column>
     </Row>
 </Row>
@@ -86,7 +90,7 @@
 </DataGrid>
 
 
-    @code {
+@code {
     [Inject] IProtocolDictionaryMappingService dictionaryMappingService { get; set; } = null!;
     [Inject] IThorDictionaryService thorDictionaryService { get; set; } = null!;
     [Inject] IProtocolFieldMappingService protocolFieldMappingService { get; set; } = null!;
@@ -99,6 +103,7 @@
     [SupplyParameterFromQuery][Parameter] public string protocolTitle { get; set; }
     [SupplyParameterFromQuery][Parameter] public string categoryName { get; set; }
     [SupplyParameterFromQuery][Parameter] public string formLabel { get; set; }
+    [SupplyParameterFromQuery][Parameter] public int catId { get; set; }
 
     private DataGrid<ProtocolDictionaryMapping> dataGridRef;
     private IList<ProtocolDictionaryMapping> protocolDictionaryList;
@@ -135,5 +140,10 @@
 			await notificationService.Error("Error saving dictionary mapping");
 			return;
         }
+    }
+
+    private void Back()
+    {
+        navigation.NavigateTo($"/admin/dmu/form-field-mapping/{catId}?protocol={protocolTitle}&protocolMappingId={protocolMappingId}");
     }
 }
