@@ -6,7 +6,7 @@
 @using TheradexPortal.Data.Static;
 @using TheradexPortal.Data.Models.Configuration;
 
-@page "/upload"
+@page "/upload/data"
 @inject IHttpContextAccessor httpContextAccessor
 @inject IOptions<UploadSettings> uploadSettings;
 
@@ -17,7 +17,7 @@
 <LoadingIndicator @ref="loadingIndicator">
     <Div Flex="Flex.AlignItems.Start" Margin="Margin.Is3.FromBottom" Background="Background.Light">
         <Div Padding="Padding.Is4" Style="@flexContainerStyle">
-            <Row>
+@*             <Row>
                 <Column>
                     <Div>
                         <Alert Color="Color.Warning" CSS="nci-alert-component" Visible>
@@ -33,7 +33,7 @@
                         </Alert>
                     </Div>
                 </Column>
-            </Row>
+            </Row> *@
 
             <Row>
                 <Column>
@@ -165,11 +165,11 @@
 
 <Modal @ref="UploadInstructionsModal" Closing="@OnUploadInstructionsModalClosing">
     <ModalContent Centered Size="ModalSize.Large">
-         <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
+        <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
              <ModalTitle>@ETCTNUploadRequestModel.CRF</ModalTitle>
                 <CloseButton />
             </ModalHeader>
-            <ModalBody>
+        <ModalBody>
                 <ListGroup Flush Padding="Padding.Is2">
                  @if (crfRule != null)
                 {
