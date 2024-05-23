@@ -158,6 +158,9 @@ namespace TheradexPortal.Data.Models
 
         [JsonProperty("bucket")]
         public string Bucket { get; set; }
+
+        [JsonProperty("crfDescription")]
+        public string CRFDescription { get; set; }
     }
 
     public class FileIngestRequest

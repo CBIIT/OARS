@@ -180,6 +180,7 @@ namespace TheradexPortal.Data.Services
         public async Task<List<FileIngestRequest>?> GetAllRequestsOfUser(int userId, bool isAdminDisplay, string environment)
         {
             var requests = await _dynamoDbService.GetAllRequestsOfUser(userId, isAdminDisplay, environment);
+            var crfs = GetCRFs();
 
             if (requests != null)
             {
@@ -203,6 +204,8 @@ namespace TheradexPortal.Data.Services
                     }
 
                     request.InternalStatus = ((RequestStatusV2)request.Status).ToString();
+
+                    request.Metadata.CRFDescription = crfs.First(t => t.FormOID.Equals(request.Metadata.CRF)).FormName;
                 }
             }
 

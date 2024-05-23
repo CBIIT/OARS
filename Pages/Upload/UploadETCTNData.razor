@@ -17,24 +17,6 @@
 <LoadingIndicator @ref="loadingIndicator">
     <Div Flex="Flex.AlignItems.Start" Margin="Margin.Is3.FromBottom" Background="Background.Light">
         <Div Padding="Padding.Is4" Style="@flexContainerStyle">
-@*             <Row>
-                <Column>
-                    <Div>
-                        <Alert Color="Color.Warning" CSS="nci-alert-component" Visible>
-                            <AlertDescription TextOverflow="TextOverflow.Wrap">
-                            </AlertDescription>
-                            <AlertMessage>
-                                <b>Welcome to the ETCTN Data Uploads in OARS!</b> Please begin by selecting the Protocol and Source Site using the dropdown menus.<br />
-                                Next, select the appropriate case report form (CRF) using the radio buttons and use the adjacent dropdown menu to choose an applicable Assay or Receiving Site.<br />
-                                Located below the CRF selectors are links for Downloading blank csv templates and general Instructions.<br />
-                                Finally, click on “Choose file” to search your computer for the csv file of interest and once it’s ready, click on “Submit.”<br />
-                                Also, there is a “Reset” button if it’s necessary to change the selected csv file prior to submitting the file to upload.
-                            </AlertMessage>
-                        </Alert>
-                    </Div>
-                </Column>
-            </Row> *@
-
             <Row>
                 <Column>
                     <Validations @ref="@ValidationsRef" Mode="ValidationMode.Auto" Model="@ETCTNUploadRequestModel" ValidateOnLoad="false">
@@ -165,11 +147,11 @@
 
 <Modal @ref="UploadInstructionsModal" Closing="@OnUploadInstructionsModalClosing">
     <ModalContent Centered Size="ModalSize.Large">
-        <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
-             <ModalTitle>@ETCTNUploadRequestModel.CRF</ModalTitle>
+         <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
+             <ModalTitle>@SelectedCRFDescription</ModalTitle>
                 <CloseButton />
             </ModalHeader>
-        <ModalBody>
+            <ModalBody>
                 <ListGroup Flush Padding="Padding.Is2">
                  @if (crfRule != null)
                 {
@@ -284,8 +266,10 @@
         {
             ETCTNUploadRequestModel.CRF = value;
 
-            if (ETCTNUploadRequestModel.CRF != null)
+            if (!string.IsNullOrEmpty(ETCTNUploadRequestModel.CRF))
             {
+                SelectedCRFDescription = crfs.First(t => t.FormOID.Equals(ETCTNUploadRequestModel.CRF)).FormName;
+
                 if (ETCTNUploadRequestModel.CRF == "IFA_RESULT_SUMMARY")
                     webReportingETCTNDataUploadURL = wsURL + "RAIUpload.aspx";
                 else
@@ -293,6 +277,8 @@
 
                 ValidationsRef.ValidateAll();
             }
+            else
+                SelectedCRFDescription = string.Empty;
 
             clearFile();
         }
@@ -385,6 +371,12 @@
         await clearFile();
     }
 
+    private string SelectedCRFDescription
+    {
+        get;
+        set;
+    }
+
     private Task OnUploadInstructionsModalClosing(ModalClosingEventArgs e)
     {
         e.Cancel = cancelClose
@@ -442,7 +434,6 @@
         else
             return Visibility.Invisible;
     }
-
 
     private bool IsFileUploadDisabled()
     {

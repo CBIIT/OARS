@@ -39,7 +39,7 @@
                    CommandMode="DataGridCommandMode.ButtonRow">
              <DataGridColumns>
                  <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.Protocol)" Caption="Protocol" />
-                 <DataGridColumn Width="100px" Field="Metadata.CRF" Caption="CRF" />
+                 <DataGridColumn Width="100px" Field="Metadata.CRFDescription" Caption="CRF" />
                  <DataGridColumn Width="100px" Field="Metadata.SourceSite" Caption="Source Site" />
                  <DataGridColumn Width="100px" Field="Metadata.ReceivingSite" Caption="Receiving Site" />
                  <DataGridColumn Width="100px" Field="Metadata.Assay" Caption="Assay" />
@@ -122,8 +122,6 @@
 
         currentEnvironment = configuration.GetValue<string>("System:Environment");
 
-        //await OnRefresh();
-
         await base.OnInitializedAsync();
     }
 
@@ -139,7 +137,7 @@
 
     private Task OnViewClicked(FileIngestRequest request)
     {
-        return UploadETCTNFileDataModal.Show(request.RequestId, request.Metadata.CRF, IsAdminDisplay);
+        return UploadETCTNFileDataModal.Show(request.RequestId, request.Metadata.CRF, request.Metadata.CRFDescription, IsAdminDisplay);
     }
 
     private async Task OnDownloadClicked(FileIngestRequest request)
