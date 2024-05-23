@@ -17,6 +17,21 @@ namespace TheradexPortal.Data.Services
         public async Task<IList<ThorCategory>> GetCategories() {
             return await context.THORDataCategory.OrderBy(c => c.SortOrder).ToListAsync();
         }
+
+        public async Task<IList<ThorCategory>> GetCategoriesForMapping(int mappingId)
+        {
+            var mapping = await context.ProtocolMapping.Include(x => x.Profile).Where(x => x.ProtocolMappingId == mappingId).FirstOrDefaultAsync();
+            var profileCategories = await context.ProfileDataCategory.Include(x => x.ThorCategory).Where(x => x.ProfileId == mapping.ProfileId).ToListAsync();
+            List<ThorCategory> categories = new List<ThorCategory>();
+            foreach (var profileCategory in profileCategories)
+            {
+                if(profileCategory.ThorCategory != null)
+                {
+                    categories.Add(profileCategory.ThorCategory);
+                }
+            }
+            return categories;
+        }
         public async Task<ThorCategory> GetCategory(string id)
         {
             return await context.THORDataCategory.FirstOrDefaultAsync(x => x.ThorDataCategoryId == id);
