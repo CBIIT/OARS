@@ -63,7 +63,7 @@
         </DataGridColumn>
         <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="true">
             <EditCommandTemplate>
-                <Button><Icon Name="IconName.Edit" Clicked="@context.Clicked" /></Button>
+                <Button><Icon Name="IconName.Edit" Clicked="@(() => Edit(context, context.Item))" /></Button>
             </EditCommandTemplate>
             <SaveCommandTemplate>
                 <Button><Icon Name="IconName.Save" Clicked="@context.Clicked" /></Button>
@@ -148,6 +148,12 @@
                 selectedCategoryList.Add(thorField.ThorDataCategoryId);
             }
         }
+    }
+
+    public void Edit(CommandContext context, ProfileField item)
+    {
+        CheckCategories(item);
+        context.Clicked.InvokeAsync();
     }
 
     public async void CheckCategories(ProfileField item)
