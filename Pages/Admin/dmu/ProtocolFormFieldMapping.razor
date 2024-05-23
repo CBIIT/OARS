@@ -110,7 +110,7 @@
                                 DefaultItemText="Select"></SelectList>
                 </EditTemplate>
             </DataGridColumn>
-            <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="true">
+            <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
                 <SaveCommandTemplate>
                     <Button><Icon Name="IconName.Save" Clicked="@context.Clicked" /></Button>
                 </SaveCommandTemplate>
@@ -217,7 +217,7 @@ else{
                                     DefaultItemText="Select"></SelectList>
                     </EditTemplate>
                 </DataGridColumn>
-                <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="true">
+                <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
                     <SaveCommandTemplate>
                         <Button><Icon Name="IconName.Save" Clicked="@context.Clicked" /></Button>
                     </SaveCommandTemplate>
