@@ -69,8 +69,11 @@
                     @{
                         if (context.ProtocolEDCFormId != null && context.ProtocolEDCFormId != 0)
                         {
-                            var currForm = protocolEDCFormList.First(x => x.ProtocolEDCFormId == context.ProtocolEDCFormId);
-                            <Text>@(currForm.EDCFormIdentifier + " - " + currForm.EDCFormName)</Text>
+                            var currForm = protocolEDCFormList.FirstOrDefault(x => x.ProtocolEDCFormId == context.ProtocolEDCFormId);
+                            if (currForm != null)
+                            {
+                                <Text>@(currForm.EDCFormIdentifier + " - " + currForm.EDCFormName)</Text>
+                            }
                         }
                         else if(context.ProtocolEDCFieldId != 0 && context.ProtocolEDCField != null && context.ProtocolEDCField.ProtocolEDCForm != null)
                         {
