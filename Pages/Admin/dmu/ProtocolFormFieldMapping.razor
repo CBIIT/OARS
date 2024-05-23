@@ -125,7 +125,7 @@
                 <DisplayTemplate>
                    @if(context.ThorField != null && context.ThorField.ThorDictionaryId != null && context.ThorField.ThorDictionaryId != 0)
 				   {
-                        <Button Color="Color.Primary" Clicked="@((item) => EditDictionaryMapping(context, protocolEDCFormList.First(x => x.ProtocolEDCFormId == context.ProtocolEDCFormId).EDCFormIdentifier))">Edit</Button>
+                        <Button Color="Color.Primary" Clicked="@((item) => EditDictionaryMapping(context, protocolEDCFormList.First(x => x.ProtocolEDCFormId == context.ProtocolEDCFormId).EDCFormIdentifier))" Disabled="@GetFieldMappingStatus(context)">Edit</Button>
 				   }
                    else{
                        <Text>N/A</Text>
@@ -232,7 +232,7 @@ else{
                     <DisplayTemplate>
                         @if (context.ThorField != null && context.ThorField.ThorDictionaryId != null && context.ThorField.ThorDictionaryId != 0)
                         {
-                            <Button Color="Color.Primary" Clicked="@((item) => EditDictionaryMapping(context, protocolEDCFormList.First(x => x.ProtocolEDCFormId == context.ProtocolEDCFormId).EDCFormIdentifier))">Edit</Button>
+                            <Button Color="Color.Primary" Clicked="@((item) => EditDictionaryMapping(context, protocolEDCFormList.First(x => x.ProtocolEDCFormId == context.ProtocolEDCFormId).EDCFormIdentifier))" Disabled="@GetFieldMappingStatus(context)">Edit</Button>
                         }
                         else
                         {
@@ -394,6 +394,15 @@ else{
         }
     }
 
+    public bool GetFieldMappingStatus(ProtocolFieldMapping item)
+	{
+		if(item.ProtocolEDCFormId == 0 || item.ProtocolEDCFieldId == 0)
+		{
+			return true;
+		}
+		return false;
+	}
+
     public async Task<CancellableRowChange<ProtocolFieldMapping>> ConfirmDelete(CancellableRowChange<ProtocolFieldMapping> item)
     {
         if (!await messageService.Confirm("Are you sure you want to delete this mapping?", "Confirmation"))
@@ -452,7 +461,7 @@ else{
 
     public async void EditDictionaryMapping(ProtocolFieldMapping item, string formLabel)
     {
-        navigation.NavigateTo($"/admin/dmu/dictionary-list-map/{item.ProtocolFieldMappingId}?protocolMappingId={this.protocolMappingId}&protocolTitle={this.protocol}&categoryName={currCategory.CategoryName}&formLabel={formLabel}", true);
+        navigation.NavigateTo($"/admin/dmu/dictionary-list-map/{item.ProtocolFieldMappingId}?protocolMappingId={this.protocolMappingId}&protocolTitle={this.protocol}&categoryName={currCategory.CategoryName}&formLabel={formLabel}&catId={protocolCategoryId}", true);
     }
 
     public async void AddMultiFormField(ProtocolFieldMapping item)
