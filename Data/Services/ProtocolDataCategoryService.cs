@@ -17,12 +17,19 @@ namespace TheradexPortal.Data.Services
 
         public async Task<List<ProtocolDataCategory>> GetCategoriesByMappingId(int mappingId)
         {
-            return await context.ProtocolDataCategories
+            var mapping = await context.ProtocolMapping.Include(x => x.Profile).Where(x => x.ProtocolMappingId == mappingId).FirstOrDefaultAsync();
+            var profileCategories = await context.ProfileDataCategory.Include(x => x.ThorCategory).Where(x => x.ProfileId == mapping.ProfileId).ToListAsync();
+            var pcIds = profileCategories.Select(x => x.ThorDataCategoryId).ToList();
+            var protocolCategories = await context.ProtocolDataCategories
                 .Include(x => x.ProtocolMapping)
                 .Include(x => x.THORDataCategory)
                 .Include(x => x.ProtocolCategoryStatus)
                 .Where(x => x.ProtocolMappingId == mappingId)
                 .ToListAsync();
+
+            protocolCategories = protocolCategories.Where(x => pcIds.Contains(x.THORDataCategoryId)).ToList();
+            return protocolCategories;
+
         }
 
         public async Task<List<ProtocolDataCategory>> GetCategoriesByMappingProfile(int mappingId)

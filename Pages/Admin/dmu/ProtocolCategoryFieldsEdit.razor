@@ -127,7 +127,7 @@
          </div>
      </EmptyTemplate>
  </DataGrid>
- @code {
+@code {
     [Inject] IProtocolFieldService protocolFieldService { get; set; } = null!;
     [Inject] private NavigationManager navigation { get; set; } = null!;
     [Inject] INotificationService notificationService { get; set; }
@@ -188,7 +188,7 @@
     protected override async Task OnInitializedAsync()
     {
         var watch = System.Diagnostics.Stopwatch.StartNew();
-        this.categoryList = await categoryService.GetCategories();
+        this.categoryList = await categoryService.GetCategoriesForMapping(protocolMappingId);
         this.protocolFields = await protocolFieldService.GetAllProtocolFieldsByMappingId(protocolMappingId);
         watch.Stop();
         var elapsedMs = watch.ElapsedMilliseconds;
