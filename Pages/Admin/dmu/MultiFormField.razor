@@ -54,7 +54,7 @@
                 }
             </DisplayTemplate>
             <EditTemplate>
-                <Autocomplete TItem="ProtocolEDCForm" Data="@protocolEDCFormList" TValue="int" TextField="@((item) => item.EDCFormIdentifier)" ValueField="@((item) => item.ProtocolEDCFormId)" SelectedValueChanged="@(e => {@GetFields(e); context.CellValue=e;})" SelectedValue="@(context.Item.ProtocolEDCFormId)" Placeholder="Start typing a form identifier..." Virtualize MinLength="0"></Autocomplete>
+                <Autocomplete TItem="ProtocolEDCForm" Data="@protocolEDCFormList" TValue="int" TextField="@((item) => item.EDCFormIdentifier)" ValueField="@((item) => item.ProtocolEDCFormId)" SelectedValueChanged="@(e => {@GetFields(e); context.CellValue=e;})" SelectedValue="@((int?)context.CellValue ?? context.Item.ProtocolEDCFormId)" Placeholder="Start typing a form identifier..." Virtualize MinLength="0"></Autocomplete>
             </EditTemplate>
         </DataGridColumn>
          <DataGridColumn Field="@nameof(ProtocolFieldMapping.ProtocolEDCFieldId)" Width="30%" Caption="Select EDC Field" Editable="true">

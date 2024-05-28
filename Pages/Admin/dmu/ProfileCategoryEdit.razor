@@ -3,11 +3,7 @@
 @using TheradexPortal.Data.Static;
 @inject IHttpContextAccessor httpContextAccessor
 @layout AdminLayout
-@*
-    TODO: Add ThorRoleCheck check for DMU roles when they are created
-
-<ThorRoleCheck AllowedRoles="@(new List<string> { "??" })"></ThorRoleCheck>
-*@
+<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })" AllowedTHORRoles="@(new List<string> { "DMU Global Admin" })"></AdminRoleCheck>
 
 <DataGrid @ref=dataGridRef
           TItem="ProfileDataCategory"
@@ -54,7 +50,13 @@
                 }
             </DisplayTemplate>
             <EditTemplate>
-                <SelectList TItem="ThorCategory" TValue="string" Data="@categoryList" TextField="@((item)=> item.CategoryName + " (" + item.ThorDataCategoryId + ")")" ValueField="@((item)=>item.ThorDataCategoryId)" SelectedValueChanged="@( v => {context.CellValue = v;})" SelectedValue="@((string?)context.CellValue)"></SelectList>
+                <SelectList TItem="ThorCategory" TValue="string" Data="@categoryList" 
+                    TextField="@((item)=> item.CategoryName + " (" + item.ThorDataCategoryId + ")")" 
+                    ValueField="@((item)=>item.ThorDataCategoryId)" 
+                    SelectedValue="@((String?)context.CellValue ?? context.Item.ThorDataCategoryId)"
+                    SelectedValueChanged="@( v => {context.CellValue = v;})"
+                            DefaultItemValue="@String.Empty"
+                            DefaultItemText="Select the THOR DataCategory"></SelectList>
             </EditTemplate>
          </DataGridColumn>
         <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="true">

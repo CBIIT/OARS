@@ -63,7 +63,7 @@
                               ValueField="@((item) => item.ThorDictionaryId)"
                               Data="@thorDictionaries"
                               Placeholder="Search for an OARS Dictionary Value"
-                              SelectedValue="context.Item.THORDictionaryId"
+                              SelectedValue="@((int?)context.CellValue ?? context.Item.THORDictionaryId)"
                               SelectedValueChanged="v=>context.CellValue=v"
                               Virtualize
                               MinLength="0">
