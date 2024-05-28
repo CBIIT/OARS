@@ -9,5 +9,6 @@ namespace TheradexPortal.Data.Services.Abstract
         public Task<bool> DeleteField(int fieldId);
         public Task<bool> DeleteAllFieldsForMappingId(int mappingId);
         public Task<IList<ProtocolField>> GetAllProtocolFieldsByMappingId(int mappingId);
+        public Task<bool> CreateProtocolFieldsFromProfile(int? profileId, int mappingId);
     }
 }

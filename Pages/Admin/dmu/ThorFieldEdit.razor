@@ -106,7 +106,7 @@
                         string name = this.fieldTypes.First(x => x.ThorFieldTypeId == fieldTypeId).FieldTypeName;
                         if (name == "Dropdown")
                         {
-                            <SelectList TItem="ThorDictionary" TValue="int?" Data="@dictionaryList" TextField="@((item) => item.DictionaryName)" ValueField="@((item)=>item.ThorDictionaryId)" SelectedValueChanged="@( v => {context.CellValue = v;})" SelectedValue="@((int?)context.CellValue)" />
+                            <SelectList TItem="ThorDictionary" TValue="int?" Data="@dictionaryList" TextField="@((item) => item.DictionaryName)" ValueField="@((item)=>item.ThorDictionaryId)" SelectedValueChanged="@( v => {context.CellValue = v;})" SelectedValue="@((int?)context.CellValue)" DefaultItemText="Select a Dictionary Name" DefaultItemValue="0" />
                         }
                         else
                         {
@@ -181,6 +181,9 @@
         this.fieldList = await fieldService.GetFields();
         this.fieldTypes = await fieldService.GetFieldTypes();
         this.dictionaryList = await dictionaryService.GetDictionaries();
+        this.dictionaryList = dictionaryList.GroupBy(d => d.DictionaryName)
+                                   .Select(g => g.First()).OrderBy(d => d.DictionaryName)
+                                   .ToList();
     }
 
     public async void NewItemAction(ThorField item)
@@ -198,9 +201,9 @@
         e.Values.TryGetValue("SortOrder", out var order);
         e.Values.TryGetValue("FieldLabel", out var label);
         e.Values.TryGetValue("ThorFieldTypeId", out var fieldTypeId);
+        e.Values.TryGetValue("ThorDictionaryId", out var dictId);
 
-        if (id == null || catId == null || order == null || label == null || fieldTypeId == null)
-        {
+        if(id == null || catId == null || order == null || label == null || fieldTypeId == null || dictId == null){
             List<string> missingFields = new List<string>();
 
             if(id == null)
@@ -208,20 +211,24 @@
                 missingFields.Add("Field ID");
             }
             if(catId == null)
-			{
-				missingFields.Add("Category ID");
-			}
+            {
+                missingFields.Add("Category ID");
+            }
             if(order == null){
-				missingFields.Add("Sort Order");
-			}
+                missingFields.Add("Sort Order");
+            }
             if(label == null)
             {
                 missingFields.Add("Field Label");
-			}
+            }
             if(fieldTypeId == null)
-			{
-				missingFields.Add("Field Type");
-			}
+            {
+                missingFields.Add("Field Type");
+            }
+            if (fieldTypeId != null && this.fieldTypes.First(x => x.ThorFieldTypeId == (int)fieldTypeId).FieldTypeName == "Dropdown" && dictId == null)
+            {
+                missingFields.Add("Dictionary Name");
+            }
             await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
             e.Cancel = true;
         }

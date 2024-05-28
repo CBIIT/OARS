@@ -18,6 +18,18 @@ namespace TheradexPortal.Data.Services
             return await context.THORDictionary.OrderBy(c => c.SortOrder).ToListAsync();
         }
 
+        public async Task<IList<ThorDictionary>> GetDictionaryEntries(int dictionaryId)
+        {
+            // this needs to get the rest of the things with that dict NAME from the one you pass in
+            var dict = context.THORDictionary.Where(x => x.ThorDictionaryId == dictionaryId).FirstOrDefault();
+            if (dict != null)
+            {
+                var entries = await context.THORDictionary.Where(x => x.DictionaryName == dict.DictionaryName).ToListAsync();
+                return entries;
+            }
+            return new List<ThorDictionary>();
+        }
+
         public async Task<bool> SaveDictionary(ThorDictionary dictionary)
         {
             try

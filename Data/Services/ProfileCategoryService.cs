@@ -26,7 +26,7 @@ namespace TheradexPortal.Data.Services
                 DateTime curDateTime = DateTime.UtcNow;
                 ProfileDataCategory currCategory = context.ProfileDataCategory.Where(p => (p.ProfileDataCategoryId == category.ProfileDataCategoryId)).FirstOrDefault();
 
-                if (currCategory == null || currCategory.ThorCategory.ThorDataCategoryId != category.ThorDataCategoryId)
+                if (currCategory != null && currCategory.ThorCategory != null && currCategory.ThorCategory.ThorDataCategoryId != category.ThorDataCategoryId)
                 {   // Get all the current fields for the category and remove them
                     if (currCategory.ThorCategory.ThorDataCategoryId != category.ThorDataCategoryId)
                     {
@@ -37,19 +37,20 @@ namespace TheradexPortal.Data.Services
                         currFields = currFields.Where(pf => idsToRemove.Contains(pf.THORFieldId)).ToList();
                         context.RemoveRange(currFields);
                     }
-                    //Get all the fields for the category and add them to the profile
-                    var thorFields = await context.THORField.Where(tf => tf.ThorDataCategoryId == category.ThorDataCategoryId).Where(tf => tf.IsActive).ToListAsync();
-                    foreach (var thorField in thorFields)
-                    {
-                        ProfileField newField = new ProfileField
-                        {
-                            THORFieldId = thorField.ThorFieldId,
-                            ProfileId = category.ProfileId,
-                            CreateDate = curDateTime
-                        };
+                }
 
-                        context.Add(newField);
-                    }
+                //Get all the fields for the category and add them to the profile
+                var thorFields = await context.THORField.Where(tf => tf.ThorDataCategoryId == category.ThorDataCategoryId).Where(tf => tf.IsActive).ToListAsync();
+                foreach (var thorField in thorFields)
+                {
+                    ProfileField newField = new ProfileField
+                    {
+                        THORFieldId = thorField.ThorFieldId,
+                        ProfileId = profileId,
+                        CreateDate = curDateTime
+                    };
+
+                    context.Add(newField);
                 }
 
                 if (currCategory == null)

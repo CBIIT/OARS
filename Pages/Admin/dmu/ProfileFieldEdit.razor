@@ -5,11 +5,7 @@
 @inject NavigationManager NavigationManager
 
 @layout AdminLayout
-@*
-        TODO: Add ThorRoleCheck check for DMU roles when they are created
-
-    <ThorRoleCheck AllowedRoles="@(new List<string> { "??" })"></ThorRoleCheck>
-*@
+<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })" AllowedTHORRoles="@(new List<string> { "DMU Global Admin" })"></AdminRoleCheck>
 
 <DataGrid @ref=dataGridRef
           TItem="ProfileField"
@@ -44,7 +40,14 @@
                 @(context?.ThorField?.Category?.CategoryName + " (" + context?.ThorField?.Category?.ThorDataCategoryId + ")")
             </DisplayTemplate>
             <EditTemplate>
-                <SelectList TItem="ThorCategory" TValue="string" Data="@categoryList" TextField="@((item)=>item.CategoryName + "(" + item.ThorDataCategoryId + ")")" ValueField="@((item)=>item.ThorDataCategoryId)" SelectedValueChanged="OnSelectedCategoryValueChanged" DefaultItemValue="@(context.Item?.ThorField?.ThorDataCategoryId)" DefaultItemText="@(context.Item?.ThorField?.ThorDataCategoryId ?? "Select the THOR DataCategory")"></SelectList>
+                <SelectList TItem="ThorCategory" TValue="string" Data="@categoryList" 
+                            TextField="@((item)=>item.CategoryName + " (" + item.ThorDataCategoryId + ")")" 
+                            ValueField="@((item)=>item.ThorDataCategoryId)" 
+                            SelectedValue="@((String?)context.CellValue ?? context.Item.ThorField?.ThorDataCategoryId)"
+                            SelectedValueChanged="@( v => {context.CellValue = v; OnSelectedCategoryValueChanged(v);})"
+                            DefaultItemValue="@String.Empty"
+                            DefaultItemText="Select the THOR DataCategory">
+                </SelectList>
             </EditTemplate>
         </DataGridColumn>
         <DataGridColumn Width="35%" Field="THORFieldId" Caption="OARS Field" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
@@ -52,12 +55,16 @@
                 @context?.THORFieldId - @context?.ThorField?.FieldLabel
             </DisplayTemplate>
             <EditTemplate>
-                <SelectList TItem="ThorField" TValue="string" Data="@fieldList" TextField="@((item)=>item.ThorFieldId + " - " + item.FieldLabel)" ValueField="@((item)=>item.ThorFieldId)"
-                            SelectedValue="@((string)((CellEditContext)context).CellValue)"
+                <SelectList TItem="ThorField" TValue="string" Data="@fieldList" 
+                            TextField="@((item)=>item.ThorFieldId + " - " + item.FieldLabel)" 
+                            ValueField="@((item)=>item.ThorFieldId)"
+                            SelectedValue="@((String?)context.CellValue ?? context.Item.THORFieldId)"
                             SelectedValueChanged="@(e =>
-                        {
-                            context.CellValue = Convert.ToString(e);
-                        } )" DefaultItemValue="@(context.Item?.THORFieldId)" DefaultItemText="@(context.Item?.THORFieldId ?? "Select the THOR Field")">
+                            {
+                                context.CellValue = Convert.ToString(e);
+                            } )" 
+                            DefaultItemValue="@String.Empty"
+                            DefaultItemText="Select the THOR Field">
                 </SelectList>
             </EditTemplate>
         </DataGridColumn>
@@ -161,6 +168,12 @@
         var updatedCategories = await profileCategoryService.GetCategories(profile);
         this.categoryList = await categoryService.GetCategories();
         this.categoryList = this.categoryList.Where(x => updatedCategories.Any(y => y.ThorDataCategoryId == x.ThorDataCategoryId)).ToList();
+        this.fieldList = new List<ThorField>();
+        if (item != null && item.ThorField != null)
+        {
+            this.fieldList = await thorFieldService.GetFields();
+            this.fieldList = fieldList.Where(f => f.ThorDataCategoryId.Equals(item.ThorField?.ThorDataCategoryId)).ToList();
+        }
         updatedCategories = new List<ProfileDataCategory>();
     }
 
@@ -168,6 +181,7 @@
     {
         this.fieldList = await thorFieldService.GetFields();
         this.fieldList = fieldList.Where(f => f.ThorDataCategoryId.Equals(categoryId)).ToList();
+
     }
 
     public async Task<CancellableRowChange<ProfileField>> ConfirmDelete(CancellableRowChange<ProfileField> item)

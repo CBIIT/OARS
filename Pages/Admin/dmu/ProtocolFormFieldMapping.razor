@@ -85,7 +85,7 @@
                     }
                 </DisplayTemplate>
                 <EditTemplate>
-                    <Autocomplete TItem="ProtocolEDCForm" Data="@protocolEDCFormList" TValue="int" TextField="@((item) => {return item.EDCFormIdentifier + " - " + item.EDCFormName;})" ValueField="@((item) => item.ProtocolEDCFormId)" SelectedValueChanged="@(e => {@GetFields(e); context.CellValue=e;})" SelectedValue="@(context.Item.ProtocolEDCFormId)" Placeholder="@(GetPlaceholder(context.Item))" Virtualize MinLength="0"></Autocomplete>
+                    <Autocomplete TItem="ProtocolEDCForm" Data="@protocolEDCFormList" TValue="int" TextField="@((item) => {return item.EDCFormIdentifier + " - " + item.EDCFormName;})" ValueField="@((item) => item.ProtocolEDCFormId)" SelectedValueChanged="@(e => {@GetFields(e); context.CellValue=e;})" SelectedValue="@((int?)context.CellValue ?? context.Item.ProtocolEDCFormId)" Placeholder="@(GetPlaceholder(context.Item))" Virtualize MinLength="0"></Autocomplete>
                 </EditTemplate>
             </DataGridColumn>
             <DataGridColumn Field="@nameof(ProtocolFieldMapping.ProtocolEDCFieldId)" Width="25%" Caption="Select EDC Field" Editable="true">
@@ -124,7 +124,7 @@
                     <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
                 </CancelCommandTemplate>
             </DataGridCommandColumn>
-            <DataGridColumn Field="@nameof(ProtocolFieldMapping.ThorDictionaryId)" Caption="Dicitionary Mapping">
+            <DataGridColumn Field="@nameof(ProtocolFieldMapping.ThorDictionaryId)" Caption="Dictionary Mapping">
                 <DisplayTemplate>
                    @if(context.ThorField != null && context.ThorField.ThorDictionaryId != null && context.ThorField.ThorDictionaryId != 0)
 				   {
@@ -231,7 +231,7 @@ else{
                         <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
                     </CancelCommandTemplate>
                 </DataGridCommandColumn>
-                <DataGridColumn Field="@nameof(ProtocolFieldMapping.ThorDictionaryId)" Caption="Dicitionary Mapping">
+                <DataGridColumn Field="@nameof(ProtocolFieldMapping.ThorDictionaryId)" Caption="Dictionary Mapping">
                     <DisplayTemplate>
                         @if (context.ThorField != null && context.ThorField.ThorDictionaryId != null && context.ThorField.ThorDictionaryId != 0)
                         {
@@ -464,7 +464,7 @@ else{
 
     public async void EditDictionaryMapping(ProtocolFieldMapping item, string formLabel)
     {
-        navigation.NavigateTo($"/admin/dmu/dictionary-list-map/{item.ProtocolFieldMappingId}?protocolMappingId={this.protocolMappingId}&protocolTitle={this.protocol}&categoryName={currCategory.CategoryName}&formLabel={formLabel}&catId={protocolCategoryId}", true);
+        navigation.NavigateTo($"/admin/dmu/dictionary-list-map/{item.ProtocolFieldMappingId}?protocolMappingId={this.protocolMappingId}&protocol={this.protocol}&categoryName={currCategory.CategoryName}&formLabel={formLabel}&catId={protocolCategoryId}&dict={item.ThorField.ThorDictionaryId}", true);
     }
 
     public async void AddMultiFormField(ProtocolFieldMapping item)
