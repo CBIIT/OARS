@@ -201,7 +201,7 @@
         e.Values.TryGetValue("SortOrder", out var order);
         e.Values.TryGetValue("FieldLabel", out var label);
         e.Values.TryGetValue("ThorFieldTypeId", out var fieldTypeId);
-        e.Values.TryGetValue("DictionaryId", out var dictId);
+        e.Values.TryGetValue("ThorDictionaryId", out var dictId);
 
         if(id == null || catId == null || order == null || label == null || fieldTypeId == null || dictId == null){
             List<string> missingFields = new List<string>();
