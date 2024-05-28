@@ -140,6 +140,7 @@
 		if (deleted)
 		{
 			await notificationService.Success("Category successfully deleted");
+            navigation.NavigateTo($"/admin/dmu/profile-categories/{profile}", true);
 		}
 		else
 		{
