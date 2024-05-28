@@ -12,9 +12,9 @@
         <Column ColumnSize="ColumnSize.Is1">
             <Button Clicked="@Back" Color="Color.Primary"><Icon Name="IconName.ArrowLeft" /> Back</Button>
         </Column>
-        <Column><Text><b>Protocol:</b> @protocolMapping.ProtocolTitle</Text></Column>
+        <Column><Text><b>Protocol:</b> @protocolMapping.THORStudyId - @protocolMapping.ProtocolTitle</Text></Column>
         <LoadingIndicator @ref="loadingIndicator" >
-        <Column><Text><b>Copy Mappings From:</b></Text> <SelectList TItem="ProtocolMapping" TValue="int?" Data="@copyFromList" TextField="@((item) => item.ProtocolTitle)" ValueField="@((item) => item.ProtocolMappingId)" SelectedValue="@protocolMapping.SourceProtocolMappingId" SelectedValueChanged="@((v) => {protocolMapping.SourceProtocolMappingId = v; CopyMapping(v);})" Disabled="@(MappingStatus() != "Not Started")" DefaultItemText="Select a Protocol" DefaultItemValue="0"></SelectList></Column>
+        <Column><Text><b>Copy Mappings From:</b></Text> <SelectList TItem="ProtocolMapping" TValue="int?" Data="@copyFromList" TextField="@((item) => item.THORStudyId)" ValueField="@((item) => item.ProtocolMappingId)" SelectedValue="@protocolMapping.SourceProtocolMappingId" SelectedValueChanged="@((v) => {protocolMapping.SourceProtocolMappingId = v; CopyMapping(v);})" Disabled="@(MappingStatus() != "Not Started")" DefaultItemText="Select a Protocol" DefaultItemValue="0"></SelectList></Column>
         </LoadingIndicator>
     </Row>
     <Row>
@@ -111,7 +111,7 @@
         {
             await protocolDataCategoryService.SaveCategory(category, this.protocolMappingId);
         }
-        navigation.NavigateTo($"/admin/dmu/form-field-mapping/{category.ProtocolCategoryId}?protocol={protocolMapping.ProtocolTitle}&protocolMappingId={protocolMappingId}");
+        navigation.NavigateTo($"/admin/dmu/form-field-mapping/{category.ProtocolCategoryId}?protocol={protocolMapping.THORStudyId}&protocolMappingId={protocolMappingId}");
     }
 
     public string MappingStatus()

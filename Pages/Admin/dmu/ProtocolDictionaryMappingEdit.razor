@@ -11,7 +11,7 @@
         <Column ColumnSize="ColumnSize.Is1">
             <Button Clicked="@Back" Color="Color.Primary"><Icon Name="IconName.ArrowLeft" /> Back</Button>
         </Column>
-        <Column><Text><b>Protocol:</b> @protocolTitle</Text></Column> <Column><Text><b>Form Label:</b> @formLabel</Text></Column>
+        <Column><Text><b>Protocol:</b> @protocol</Text></Column> <Column><Text><b>Form Label:</b> @formLabel</Text></Column>
     </Row>
     <Row>
         <Column><Text><b>Report Category:</b> @categoryName</Text></Column> <Column><b>Field Label:</b> @currMapping.ProtocolEDCField.EDCFieldName</Column>
@@ -54,12 +54,12 @@
         </DataGridColumn>
         <DataGridColumn Field="@nameof(ProtocolDictionaryMapping.THORDictionaryId)" Width="50%" Caption="Select OARS Dictionary Value" Editable Filterable="true" Sortable="true">
             <DisplayTemplate>
-                @thorDictionaries.Where(d => d.ThorDictionaryId == context.THORDictionaryId).Select(d => d.DictionaryName).FirstOrDefault()
+                @thorDictionaries.Where(d => d.ThorDictionaryId == context.THORDictionaryId).Select(d => d.DictionaryValue).FirstOrDefault()
             </DisplayTemplate>
             <EditTemplate>
                 <Autocomplete TItem="ThorDictionary"
                               TValue="int"
-                              TextField="@((item) => item.DictionaryName)"
+                              TextField="@((item) => item.DictionaryValue)"
                               ValueField="@((item) => item.ThorDictionaryId)"
                               Data="@thorDictionaries"
                               Placeholder="Search for an OARS Dictionary Value"
@@ -100,10 +100,11 @@
 
     [SupplyParameterFromQuery][Parameter] public int protocolMappingId { get; set; }
     [Parameter] public int fieldId { get; set; }
-    [SupplyParameterFromQuery][Parameter] public string protocolTitle { get; set; }
+    [SupplyParameterFromQuery][Parameter] public string protocol { get; set; }
     [SupplyParameterFromQuery][Parameter] public string categoryName { get; set; }
     [SupplyParameterFromQuery][Parameter] public string formLabel { get; set; }
     [SupplyParameterFromQuery][Parameter] public int catId { get; set; }
+    [SupplyParameterFromQuery][Parameter] public int dict { get; set; }
 
     private DataGrid<ProtocolDictionaryMapping> dataGridRef;
     private IList<ProtocolDictionaryMapping> protocolDictionaryList;
@@ -116,7 +117,7 @@
         if (protocolMappingId != null)
         {
             this.protocolDictionaryList = await dictionaryMappingService.GetProtocolDictionaryMappings(protocolMappingId, fieldId);
-            this.thorDictionaries = await thorDictionaryService.GetDictionaries();
+            this.thorDictionaries = await thorDictionaryService.GetDictionaryEntries(dict);
         }
 
         currMapping = await protocolFieldMappingService.GetProtocolFieldMapping(fieldId);
@@ -144,6 +145,6 @@
 
     private void Back()
     {
-        navigation.NavigateTo($"/admin/dmu/form-field-mapping/{catId}?protocol={protocolTitle}&protocolMappingId={protocolMappingId}");
+        navigation.NavigateTo($"/admin/dmu/form-field-mapping/{catId}?protocol={protocol}&protocolMappingId={protocolMappingId}");
     }
 }

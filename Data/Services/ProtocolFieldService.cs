@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using Blazorise.Extensions;
+using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Services.Abstract;
@@ -10,12 +11,10 @@ namespace TheradexPortal.Data.Services
     {
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
-        private readonly IProtocolMappingService _protocolMappingService;
-        public ProtocolFieldService(IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, NavigationManager navigationManager, IProtocolMappingService protocolMappingService) : base(databaseConnectionService)
+        public ProtocolFieldService(IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, NavigationManager navigationManager) : base(databaseConnectionService)
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;
-            _protocolMappingService = protocolMappingService;
         }
 
         public async Task<IList<ProtocolField>> GetProtocolFieldsByMappingId(int mappingId)
@@ -51,7 +50,7 @@ namespace TheradexPortal.Data.Services
 
         public async Task<IList<ProtocolField>> GetAllProtocolFieldsByMappingId(int mappingId)
         {
-            var mapping = await _protocolMappingService.GetProtocolMapping(mappingId);
+            var mapping = await context.ProtocolMapping.Where(p => p.ProtocolMappingId == mappingId).Include(p => p.Protocol).Include(p => p.Profile).FirstOrDefaultAsync();
             var profileFields = await context.ProfileFields.Include(x => x.ThorField).Where(pf => pf.ProfileId == mapping.ProfileId).ToListAsync();
             var pfIds = profileFields.Select(pf => pf.THORFieldId).ToList();
             var protocolFields = await context.ProtocolField
@@ -88,7 +87,7 @@ namespace TheradexPortal.Data.Services
                     return false;
                 }
                 string protocolMappingFormat = "MM/dd/yyyy";
-                var protocolMapping = _protocolMappingService.GetProtocolMapping(protocolMappingId).Result;
+                var protocolMapping = await context.ProtocolMapping.Where(p => p.ProtocolMappingId == protocolMappingId).Include(p => p.Protocol).Include(p => p.Profile).FirstOrDefaultAsync();
                 if (protocolMapping != null && protocolMapping.DateFormat != null) protocolMappingFormat = protocolMapping.DateFormat;
 
                 DateTime currentDateTime = DateTime.UtcNow;
@@ -126,6 +125,42 @@ namespace TheradexPortal.Data.Services
                 await _errorLogService.SaveErrorLogAsync(0, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
                 return false;
             }
+        }
+
+        public async Task<bool> CreateProtocolFieldsFromProfile(int? profileId, int mappingId)
+        {
+            try
+            {
+                if (profileId == null) return false;
+
+                var profileFields = await context.ProfileFields.Include(x => x.ThorField).Where(pf => pf.ProfileId == profileId).ToListAsync();
+                
+                foreach (var profileField in profileFields)
+                {
+                    ProtocolField protocolField = new ProtocolField
+                    {
+                        ThorDataCategoryId = profileField.ThorField.ThorDataCategoryId,
+                        ThorFieldId = profileField.THORFieldId,
+                        Format = "",
+                        IsRequired = 'N',
+                        IsEnabled = 'N',
+                        CanBeDictionary = 'N',
+                        IsMultiForm = profileField.ThorField.IsMultiForm ? 'Y' : 'N',
+                        CreateDate = DateTime.Now,
+                        UpdateDate = DateTime.Now,
+                    };
+
+                    bool result = await SaveProtocolField(mappingId, protocolField);
+                    if (!result) return false;
+                }
+
+                return true;
+            } catch (Exception ex)
+            {
+                await _errorLogService.SaveErrorLogAsync(0, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+                return false;
+            }
+
         }
 
         public async Task<bool> DeleteAllFieldsForMappingId(int mappingId)

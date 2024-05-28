@@ -7,5 +7,7 @@ namespace TheradexPortal.Data.Services.Abstract
             public Task<IList<ThorDictionary>> GetDictionaries();
             public Task<bool> SaveDictionary(ThorDictionary dictionary);
 
+            public Task<IList<ThorDictionary>> GetDictionaryEntries(int dictionaryId);
+
         }
 }

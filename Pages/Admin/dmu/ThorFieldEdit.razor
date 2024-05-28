@@ -81,7 +81,7 @@
                  </Select>
              </EditTemplate>
          </DataGridColumn>
-         <DataGridColumn Field="@nameof(ThorField.ThorDictionaryId)" Caption="OARS Dictionary Name" Width="20%" Editable Filterable="true" Sortable="true">
+         <DataGridColumn Field="@nameof(ThorField.ThorDictionaryId)" Caption="OARS Dictionary Name" Width="20%" Editable Filterable="true" Sortable="true" >
              <DisplayTemplate>
                  @{
                     if (context.Dictionary != null)
@@ -106,7 +106,7 @@
                         string name = this.fieldTypes.First(x => x.ThorFieldTypeId == fieldTypeId).FieldTypeName;
                         if (name == "Dropdown")
                         {
-                            <SelectList TItem="ThorDictionary" TValue="int?" Data="@dictionaryList" TextField="@((item) => item.DictionaryName)" ValueField="@((item)=>item.ThorDictionaryId)" SelectedValueChanged="@( v => {context.CellValue = v;})" SelectedValue="@((int?)context.CellValue)" />
+                            <SelectList TItem="ThorDictionary" TValue="int?" Data="@dictionaryList" TextField="@((item) => item.DictionaryName)" ValueField="@((item)=>item.ThorDictionaryId)" SelectedValueChanged="@( v => {context.CellValue = v;})" SelectedValue="@((int?)context.CellValue)" DefaultItemText="Select a Dictionary Name" DefaultItemValue="0" />
                         }
                         else
                         {
@@ -181,6 +181,9 @@
         this.fieldList = await fieldService.GetFields();
         this.fieldTypes = await fieldService.GetFieldTypes();
         this.dictionaryList = await dictionaryService.GetDictionaries();
+        this.dictionaryList = dictionaryList.GroupBy(d => d.DictionaryName)
+                                           .Select(g => g.First())
+                                           .ToList();
     }
 
     public async void NewItemAction(ThorField item)
@@ -198,11 +201,16 @@
         e.Values.TryGetValue("SortOrder", out var order);
         e.Values.TryGetValue("FieldLabel", out var label);
         e.Values.TryGetValue("ThorFieldTypeId", out var fieldTypeId);
+        e.Values.TryGetValue("ThorDictionaryId", out var dictId);
+        List<string> missingFields = new List<string>();
+
+        if (fieldTypeId != null && this.fieldTypes.First(x => x.ThorFieldTypeId == (int)fieldTypeId).FieldTypeName == "Dropdown" && dictId == null)
+        {
+            missingFields.Add("Dictionary Name");
+        }
 
         if (id == null || catId == null || order == null || label == null || fieldTypeId == null)
         {
-            List<string> missingFields = new List<string>();
-
             if(id == null)
             {
                 missingFields.Add("Field ID");
@@ -222,6 +230,7 @@
 			{
 				missingFields.Add("Field Type");
 			}
+
             await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
             e.Cancel = true;
         }
