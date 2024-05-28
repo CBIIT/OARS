@@ -73,11 +73,7 @@ public class ALSFileImportService : IALSFileImportService
                             else if (currWorksheet == "DataDictionaryEntries")
                             {
                                 DataRow entry = CreateDictionary(columns, cells, nsmgr, protocolMappingId, dictionaries);
-                                if(entry != null && entry["EDC_Item_Name"] != null 
-                                    && !string.IsNullOrEmpty(entry["EDC_Item_Name"].ToString())
-                                    && entry["EDC_Item_Id"] != null && !string.IsNullOrEmpty(entry["EDC_Item_Id"].ToString())
-                                    && entry["EDC_Dictionary_Name"] != null && !string.IsNullOrEmpty(entry["EDC_Dictionary_Name"].ToString())
-                                    ) {
+                                if(entry != null && entry["EDC_Item_Name"] != null && entry["EDC_Item_Id"] != null && entry["EDC_Dictionary_Name"] != null) {
                                     dictionaries.Rows.Add(entry);
                                 }
                             }
