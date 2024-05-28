@@ -14,10 +14,12 @@ namespace TheradexPortal.Data.Services
     {
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
-        public ProtocolMappingService(IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, NavigationManager navigationManager) : base(databaseConnectionService)
+        private readonly IProtocolFieldService _protocolFieldService;
+        public ProtocolMappingService(IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, NavigationManager navigationManager, IProtocolFieldService protocolFieldService) : base(databaseConnectionService)
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;
+            _protocolFieldService = protocolFieldService;
         }
 
         public async Task<IList<ProtocolMapping>> GetProtocolMappings(bool includeArchived)
@@ -122,6 +124,16 @@ namespace TheradexPortal.Data.Services
 
                     await context.SaveChangesAsync();
                 }
+
+                if (mapping.ProfileId != null && mapping.ProfileId != 0)
+                {
+                    var protocolFields = await _protocolFieldService.GetAllProtocolFieldsByMappingId(mapping.ProtocolMappingId);
+                    if (protocolFields.Count == 0)
+                    {
+                        await _protocolFieldService.CreateProtocolFieldsFromProfile(mapping.ProfileId, mapping.ProtocolMappingId);
+                    }
+                }
+
                 return true;
             }
             catch (Exception ex)
