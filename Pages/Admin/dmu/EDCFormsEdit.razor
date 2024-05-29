@@ -6,6 +6,7 @@
 @page "/admin/dmu/protocol-edc-form-edit/{protocolMappingId:int}"
 
 <AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })"></AdminRoleCheck>
+<LoadingIndicator @ref=loading>
 <DataGrid @ref=dataGridRef
           TItem="ProtocolEDCForm"
           Class="admindatagrid"
@@ -66,6 +67,7 @@
          </div>
      </EmptyTemplate>
  </DataGrid>
+</LoadingIndicator>
 
 
 @code {
@@ -78,17 +80,30 @@
     [Parameter] public bool allowEdit { get; set; }
     private DataGrid<ProtocolEDCForm> dataGridRef;
     private IList<ProtocolEDCForm> edcFormList;
+    private LoadingIndicator loading;
 
     private ThorField? selectedField;
     private ProtocolEDCForm selectedRow;
 
     protected override async Task OnInitializedAsync()
     {
-        var watch = System.Diagnostics.Stopwatch.StartNew();
-        if (protocolMappingId != null) this.edcFormList = await protocolEDCFormService.GetFormsForMappingId(protocolMappingId);
-        watch.Stop();
-        var elapsedMs = watch.ElapsedMilliseconds;
-        System.Console.WriteLine($"EDC Forms Elapsed time: {elapsedMs} ms");
+
+    }
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await loading.Show();
+            if (protocolMappingId != null)
+            {
+                this.edcFormList = await protocolEDCFormService.GetFormsForMappingId(protocolMappingId);
+            }
+            StateHasChanged();
+            await loading.Hide();
+        }
+        return;
     }
 
     public async void Save(SavedRowItem<ProtocolEDCForm, Dictionary<string, object>> e)

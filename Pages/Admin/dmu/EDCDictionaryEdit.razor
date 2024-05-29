@@ -4,6 +4,7 @@
 @inject IHttpContextAccessor httpContextAccessor
 @layout AdminLayout
 
+<LoadingIndicator @ref=loading>
 <DataGrid @ref=dataGridRef
           TItem="ProtocolEDCDictionary"
           Class="admindatagrid"
@@ -62,7 +63,8 @@
          </div>
      </EmptyTemplate>
  </DataGrid>
- @code {
+</LoadingIndicator>
+@code {
     [Inject] private IProtocolEDCDictionaryService protocolDictionaryService { get; set; } = null!;
     [Inject] private NavigationManager navigation { get; set; } = null!;
     [Inject] INotificationService notificationService { get; set; }
@@ -72,15 +74,29 @@
 
     private DataGrid<ProtocolEDCDictionary> dataGridRef;
     private IList<ProtocolEDCDictionary> protocolDicts = new List<ProtocolEDCDictionary>();
+    private LoadingIndicator loading;
 
     protected override async Task OnInitializedAsync()
     {
-        var watch = System.Diagnostics.Stopwatch.StartNew();
-        this.protocolDicts = await protocolDictionaryService.GetDictionariesByMappingId(protocolMappingId);
-        watch.Stop();
-        var elapsedMs = watch.ElapsedMilliseconds;
-        System.Console.WriteLine($"EDC Dictionary Elapsed time: {elapsedMs} ms");
+
     }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await loading.Show();
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            this.protocolDicts = await protocolDictionaryService.GetDictionariesByMappingId(protocolMappingId);
+            watch.Stop();
+            var elapsedMs = watch.ElapsedMilliseconds;
+            System.Console.WriteLine($"EDC Dictionary Elapsed time: {elapsedMs} ms");
+            StateHasChanged();
+            await loading.Hide();
+        }
+        return;
+    }
+
 
 
     public async void Save(SavedRowItem<ProtocolEDCDictionary, Dictionary<string, object>> savedRowItem)
