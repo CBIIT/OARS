@@ -225,12 +225,16 @@
             {
                 missingFields.Add("Field Type");
             }
-            if (fieldTypeId != null && this.fieldTypes.First(x => x.ThorFieldTypeId == (int)fieldTypeId).FieldTypeName == "Dropdown" && dictId == null)
+            if ((fieldTypeId != null && this.fieldTypes.First(x => x.ThorFieldTypeId == (int)fieldTypeId).FieldTypeName == "Dropdown") && dictId == null)
             {
                 missingFields.Add("Dictionary Name");
             }
-            await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
-            e.Cancel = true;
+
+            if(missingFields.Count > 0)
+            {
+                await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
+                e.Cancel = true;
+            }
         }
 
         return e;
