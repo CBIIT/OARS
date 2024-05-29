@@ -25,8 +25,7 @@ namespace TheradexPortal.Data.Services
         {
             var protocolDictionaryMappings = await context.ProtocolDictionaryMapping.Where(p => p.ProtocolFieldMappingId == fieldId).ToListAsync();
             var mappingDictionaryIds = protocolDictionaryMappings.Select(p => p.ProtocolEDCDictionaryId).ToList();
-            var protocolEDCDictionaries = await context.ProtocolEDCDictionary.Where(p => p.ProtocolMappingId == protocolMappingId).ToListAsync();
- 
+            var protocolEDCDictionaries = context.ProtocolEDCDictionary.FromSqlRaw($"SELECT * FROM DMU.\"ProtocolEDCDictionary\" WHERE \"Protocol_Mapping_Id\" = {protocolMappingId}").AsNoTracking();
             foreach (var dictionary in protocolEDCDictionaries)
             {
                 if (!mappingDictionaryIds.Contains(dictionary.ProtocolEDCDictionaryId))

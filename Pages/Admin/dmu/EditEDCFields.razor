@@ -3,7 +3,7 @@
 @using TheradexPortal.Data.Static;
 @inject IHttpContextAccessor httpContextAccessor
 @layout AdminLayout
-
+<LoadingIndicator @ref=loading>
 <DataGrid @ref=dataGridRef
           TItem="ProtocolEDCField"
           Class="admindatagrid"
@@ -103,7 +103,8 @@
          </div>
      </EmptyTemplate>
  </DataGrid>
- @code {
+</LoadingIndicator>
+@code {
     [Inject] IProtocolEDCFieldService protocolFieldService { get; set; } = null!;
     [Inject] IProtocolEDCFormService protocolEDCFormService { get; set; } = null!;
     [Inject] private NavigationManager navigation { get; set; } = null!;
@@ -116,16 +117,24 @@
     private IList<ProtocolEDCField> protocolFields = new List<ProtocolEDCField>();
     private IList<ProtocolEDCForm> protocolForms = new List<ProtocolEDCForm>();
     private ProtocolEDCForm? selectedForm;
+    private LoadingIndicator loading;
 
     protected override async Task OnInitializedAsync()
     {
-        var watch = System.Diagnostics.Stopwatch.StartNew();
-        this.protocolForms = await protocolEDCFormService.GetFormsForMappingId(this.protocolMappingId);
-        var formIds = this.protocolForms.Select(x => x.ProtocolEDCFormId).ToList();
-        this.protocolFields = await protocolFieldService.GetFieldsByFormIds(formIds);
-        watch.Stop();
-        var elapsedMs = watch.ElapsedMilliseconds;
-        System.Console.WriteLine($"EDC Fields Elapsed time: {elapsedMs} ms");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await loading.Show();
+            this.protocolForms = await protocolEDCFormService.GetFormsForMappingId(this.protocolMappingId);
+            var formIds = this.protocolForms.Select(x => x.ProtocolEDCFormId).ToList();
+            this.protocolFields = await protocolFieldService.GetFieldsByFormIds(formIds);
+            StateHasChanged();
+            await loading.Hide();
+        }
+        return;
     }
 
 
