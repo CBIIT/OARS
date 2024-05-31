@@ -26,7 +26,9 @@
           FixedHeader
            FixedHeaderDataGridHeight="calc(100vh - 240px)"
            FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
-           EditMode="DataGridEditMode.Inline"
+          EditMode="DataGridEditMode.Inline"
+          EditItemCreator="@CreateEditItem"
+          NewItemCreator="@CreateNewItem"
            RowUpdated="@Save"
            RowInserted="@Save"
            RowRemoved="@Delete"
@@ -159,6 +161,7 @@
     }
 
     private DataGrid<ProtocolField> dataGridRef;
+    private ProtocolField selectedField;
     private IList<ProtocolField> protocolFields = new List<ProtocolField>();
 
     private List<SelectOption> protocolEnabledOptions = new List<SelectOption>
@@ -185,14 +188,44 @@
         new SelectOption { Text = "No", Value = "N" }
     };
 
+    protected async Task RefreshCategoryList(string? currentCatoryId=null)
+    {
+        var fullCategoryList = await categoryService.GetCategories();
+        var protocolCategoryList = protocolFields.GroupBy(x => x.ThorDataCategoryId).Select(x => x.Key).ToList();
+        var categoryHash = new HashSet<string>(protocolCategoryList);
+        this.categoryList = fullCategoryList.Where(x => currentCategoryId == x.ThorDataCategoryId || !categoryHash.Contains(x.ThorDataCategoryId)).ToList();
+    }
+
+    protected async Task RefreshFieldList(string? currentFieldId=null)
+    {
+        // TODO: create the list based on category and field
+        var fullFieldList = await thorFieldService.GetFields();
+        var protocolFieldList = protocolFields.GroupBy(x => x.ThorFieldId).Select(x => x.Key).ToList();
+        var fieldHash = new HashSet<string>(protocolFieldList);
+        this.fieldList = fullFieldList.Where(x => currentFieldId == x.ThorFieldId || !fieldHash.Contains(x.ThorFieldId)).ToList();
+    }
+
     protected override async Task OnInitializedAsync()
     {
         var watch = System.Diagnostics.Stopwatch.StartNew();
-        this.categoryList = await categoryService.GetCategoriesForMapping(protocolMappingId);
         this.protocolFields = await protocolFieldService.GetAllProtocolFieldsByMappingId(protocolMappingId);
         watch.Stop();
         var elapsedMs = watch.ElapsedMilliseconds;
         System.Console.WriteLine($"Protocol Category Field Elapsed time: {elapsedMs} ms");
+    }
+
+    public ProtocolField CreateNewItem()
+    {
+        selectedField = null;
+        RefreshCategoryList().Wait();
+        return new ProtocolField();
+    }
+
+    public ProtocolField CreateEditItem(ProtocolField protocolField)
+    {
+        selectedField = protocolField;
+        RefreshCategoryList(selectedField.ThorDataCategoryId).Wait();
+        return protocolField;
     }
 
     public async void Save(SavedRowItem<ProtocolField, Dictionary<string, object>> savedRowItem)
