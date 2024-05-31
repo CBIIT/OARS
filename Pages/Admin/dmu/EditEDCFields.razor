@@ -40,7 +40,7 @@
                     }
                     else if (context.ProtocolEDCForm == null && context.ProtocolEDCFormId != null)
                     {
-                        @this.protocolForms.First(x => x.ProtocolEDCFormId == context.ProtocolEDCFormId).EDCFormIdentifier
+                        @this.protocolForms.FirstOrDefault(x => x.ProtocolEDCFormId == context.ProtocolEDCFormId)?.EDCFormIdentifier
                     }
                     else
                     {
@@ -61,7 +61,7 @@
                     }
                     else if (context.ProtocolEDCForm == null && context.ProtocolEDCFormId != null)
 					{
-						@this.protocolForms.First(x => x.ProtocolEDCFormId == context.ProtocolEDCFormId).EDCFormName
+						@this.protocolForms.FirstOrDefault(x => x.ProtocolEDCFormId == context.ProtocolEDCFormId)?.EDCFormName
 					}
 					else
 					{

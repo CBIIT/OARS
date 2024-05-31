@@ -19,6 +19,11 @@ namespace TheradexPortal.Data.Services
             return await context.ProtocolDataSystem.OrderBy(c => c.SortOrder).ToListAsync();
         }
 
+        public async Task<bool> ProtocolDataSystemExists(ProtocolDataSystem protocolDataSystem)
+        {
+            return await context.ProtocolDataSystem.AnyAsync(e => e.DataSystemName == protocolDataSystem.DataSystemName && e.ProtocolDataSystemId != protocolDataSystem.ProtocolDataSystemId);
+        }
+
         public async Task<bool> SaveProtocolDataSystem(ProtocolDataSystem protocolDataSystem)
         {
             try

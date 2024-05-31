@@ -41,7 +41,7 @@
                     }
                     else if (context.ThorCategory == null && context.ThorDataCategoryId != null)
 					{
-						@(this.categoryList.First(x => x.ThorDataCategoryId == context.ThorDataCategoryId).CategoryName + " (" + context.ThorDataCategoryId + ")")
+						@(this.categoryList.FirstOrDefault(x => x.ThorDataCategoryId == context.ThorDataCategoryId)?.CategoryName + " (" + context.ThorDataCategoryId + ")")
 					}
 					else
 					{

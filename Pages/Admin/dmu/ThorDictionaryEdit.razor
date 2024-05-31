@@ -4,7 +4,7 @@
 @layout AdminLayout
 @page "/admin/dmu/dictionary-edit"
 
-<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })"></AdminRoleCheck>
+<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })" AllowedTHORRoles="@(new List<string> { "DMU Global Admin" })"></AdminRoleCheck>
 <DataGrid @ref=dataGridRef
           TItem="ThorDictionary"
           Class="admindatagrid"
@@ -29,9 +29,12 @@
           FixedHeaderDataGridHeight="calc(100vh - 240px)"
           FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
           EditMode="DataGridEditMode.Inline"
+          EditItemCreator="@CreatEditItem"
+          NewItemCreator="@CreateNewItem"
           RowUpdated="@Save"
+          RowUpdating="@Verify"
           RowInserted="@Save"
-          RowInserting="@Verify"
+          RowInserting="@VerifyNew"
           HeaderRowStyling="@(new DataGridRowStyling() { Style="color=rgba(250, 141, 40, 1);" })">
     <DataGridColumns>
         <DataGridColumn Width="35%" Field="@nameof(ThorDictionary.DictionaryName)" Caption="OARS Dictionary Name" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
@@ -81,7 +84,7 @@
     private DataGrid<ThorDictionary> dataGridRef;
     private IList<ThorDictionary> dictionaryList;
 
-    private ThorDictionary? selectedCategory;
+    private ThorDictionary? selectedDictionary;
 
     protected override async Task OnInitializedAsync()
     {
@@ -89,10 +92,37 @@
     }
 
     public void SetActive(ThorDictionary item)
-	{
-		item.IsActive = true;
-	}
+    {
+        item.IsActive = true;
+    }
 
+    public ThorDictionary CreateNewItem()
+    {
+        selectedDictionary = null;
+        return new ThorDictionary();
+    }
+
+    public ThorDictionary CreatEditItem(ThorDictionary thorDictionary)
+    {
+        selectedDictionary = thorDictionary;
+        return thorDictionary;
+    }
+
+    public async Task<CancellableRowChange<ThorDictionary>> VerifyNew(CancellableRowChange<ThorDictionary, Dictionary<string, object>> e)
+    {
+        var v_e = await Verify(e);
+
+        var dictName = e.Values["DictionaryName"];
+        var dictOption = e.Values["DictionaryOption"];
+
+        if (dictName != null && dictOption != null && dictionaryList.Any(x => x.DictionaryName == (string)dictName && x.DictionaryOption == (string)dictOption))
+        {
+            await notificationService.Error($"Dictionary option {dictName} - {dictOption} already exists");
+            v_e.Cancel = true;
+        }
+
+        return v_e;
+    }
     public async Task<CancellableRowChange<ThorDictionary>> Verify(CancellableRowChange<ThorDictionary, Dictionary<string, object>> e)
     {
         e.Values.TryGetValue("DictionaryName", out var dictName);
@@ -111,6 +141,13 @@
             await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
             e.Cancel = true;
 		}
+
+        if (dictName != null && this.selectedDictionary?.DictionaryName != (string)dictName && dictionaryList.Any(x => x.DictionaryName == (string)dictName))
+        {
+            await notificationService.Error($"Dictionary {dictName} already exists");
+            e.Cancel = true;
+        }
+
 		return e;
 	}
 

@@ -770,12 +770,14 @@
         // Remove assigned from role list
         foreach (UserRole ur in selectedUserRoleList)
         {
-            Role foundRole = rolesAvailable.First(r=>r.RoleId == ur.RoleId);
-            rolesAvailable.Remove(foundRole);
+            Role? foundRole = rolesAvailable.FirstOrDefault(r=>r.RoleId == ur.RoleId);
+            if (foundRole != null){
+                rolesAvailable.Remove(foundRole);
+            }
         }
 
         // Step 3
-        if (curPrimRole.FirstOrDefault().Role.AdminType == ThorAdminType.None && curUser.AllStudies)
+        if (curPrimRole.FirstOrDefault()?.Role.AdminType == ThorAdminType.None && curUser.AllStudies)
             studySelectionType = 2;
         else
             studySelectionType = 1;
@@ -787,8 +789,10 @@
         // Remove assigned from study list
         foreach (UserProtocol up in selectedUserProtocolList)
         {
-            Protocol foundProtocol = protocolsAvailable.First(p => p.StudyId == up.StudyId);
-            protocolsAvailable.Remove(foundProtocol);
+            Protocol? foundProtocol = protocolsAvailable.FirstOrDefault(p => p.StudyId == up.StudyId);
+            if (foundProtocol != null){
+                protocolsAvailable.Remove(foundProtocol);
+            }
         }
 
         // Add to assigned groups
@@ -796,8 +800,10 @@
         // Remove assigned from group list
         foreach (UserGroup ug in selectedUserGroupList)
         {
-            Group foundGroup = groupsAvailable.First(g=>g.GroupId == ug.GroupId);
-            groupsAvailable.Remove(foundGroup);
+            Group? foundGroup = groupsAvailable.FirstOrDefault(g=>g.GroupId == ug.GroupId);
+            if (foundGroup != null){
+                groupsAvailable.Remove(foundGroup);
+            }
         }
     }
 
@@ -831,12 +837,15 @@
             foreach (string availStudy in availableSelected)
             {
                 // Remove from Available list
-                Protocol foundProtocol = protocolsAvailable.First(p => p.StudyId == availStudy);
-                protocolsAvailable.Remove(foundProtocol);
-                // Add to Assigned list
-                UserProtocol newUP = new UserProtocol();
-                newUP.StudyId = foundProtocol.StudyId;
-                selectedUserProtocolList.Add(newUP);
+                Protocol? foundProtocol = protocolsAvailable.FirstOrDefault(p => p.StudyId == availStudy);
+                if (foundProtocol != null)
+                {
+                    protocolsAvailable.Remove(foundProtocol);
+                    // Add to Assigned list
+                    UserProtocol newUP = new UserProtocol();
+                    newUP.StudyId = foundProtocol.StudyId;
+                    selectedUserProtocolList.Add(newUP);
+                }
             }
             selectedUserProtocolList = selectedUserProtocolList.OrderBy(sup => sup.StudyId).ToList();
         }
@@ -886,13 +895,16 @@
             foreach (int selGroup in availableGroupsSelected)
             {
                 // Add to assigned list
-                Group foundGroup = groupsAvailable.First(g=>g.GroupId == selGroup);
-                groupsAvailable.Remove(foundGroup);
-                // Remove from available list
-                UserGroup newUG = new UserGroup();
-                newUG.GroupId = foundGroup.GroupId;
-                newUG.Group = foundGroup;
-                selectedUserGroupList.Add(newUG);
+                Group? foundGroup = groupsAvailable.FirstOrDefault(g=>g.GroupId == selGroup);
+                if (foundGroup != null)
+                {
+                    groupsAvailable.Remove(foundGroup);
+                    // Remove from available list
+                    UserGroup newUG = new UserGroup();
+                    newUG.GroupId = foundGroup.GroupId;
+                    newUG.Group = foundGroup;
+                    selectedUserGroupList.Add(newUG);
+                }
             }
         }
         availableGroupsSelected = null;
@@ -930,13 +942,16 @@
             foreach (int selRole in availableRolesSelected)
             {
                 // Add to assigned list
-                Role foundRole = rolesAvailable.First(r => r.RoleId == selRole);
-                rolesAvailable.Remove(foundRole);
-                // Remove from available list
-                UserRole newUR = new UserRole();
-                newUR.RoleId = foundRole.RoleId;
-                newUR.Role = foundRole;
-                selectedUserRoleList.Add(newUR);
+                Role? foundRole = rolesAvailable.FirstOrDefault(r => r.RoleId == selRole);
+                if (foundRole != null)
+                {
+                    rolesAvailable.Remove(foundRole);
+                    // Remove from available list
+                    UserRole newUR = new UserRole();
+                    newUR.RoleId = foundRole.RoleId;
+                    newUR.Role = foundRole;
+                    selectedUserRoleList.Add(newUR);
+                }
             }
         }
         availableRolesSelected = null;
