@@ -17,8 +17,9 @@
           ShowPager
           ShowPageSizes
           Sortable
+          SortMode="DataGridSortMode.Single"
           Filterable
-           FilterMethod="DataGridFilterMethod.StartsWith"
+           FilterMethod="DataGridFilterMethod.Contains"
            MaxPaginationLinks="5"
            PagerPosition="DataGridPagerPosition.Bottom"
            PagerOptions="new(){ButtonSize=Size.Default,
@@ -32,7 +33,7 @@
            @bind-SelectedRows="selectedProtocols">
      <DataGridColumns>
          <DataGridMultiSelectColumn Width="30px"></DataGridMultiSelectColumn>
-        <DataGridColumn Width="10%" Caption="Version" Field="@nameof(ProtocolMapping.MappingVersion)" Editable Filterable="false" Sortable="false">
+        <DataGridColumn Width="10%" Caption="Version" Field="@nameof(ProtocolMapping.MappingVersion)" Editable Filterable="true" Sortable="true">
             <DisplayTemplate>
                 @if(context.ProtocolMappingId == 0)
 				{
@@ -46,9 +47,9 @@
         </DataGridColumn>
         <DataGridColumn Width="20%" Field="@nameof(ProtocolMapping.THORStudyId)" Sortable="true" Filterable="true" Caption="Study ID" SortDirection="SortDirection.Ascending">
         </DataGridColumn>
-        <DataGridColumn Width="50%" Field="@nameof(ProtocolMapping.ProtocolTitle)" Sortable="false" Filterable="true" Caption="Title">
+        <DataGridColumn Width="50%" Field="@nameof(ProtocolMapping.ProtocolTitle)" Sortable="true" Filterable="true" Caption="Title">
         </DataGridColumn>
-        <DataGridColumn Width="10%" Field="Status.StatusName" Sortable="false" Caption="Status">
+        <DataGridColumn Width="10%" Field="Status.StatusName" Sortable="true" Filterable="true" Caption="Status">
         </DataGridColumn>
         <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
             <EditCommandTemplate>

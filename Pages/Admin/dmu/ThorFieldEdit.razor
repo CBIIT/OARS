@@ -129,7 +129,7 @@
          </DataGridColumn>
          <DataGridColumn Field="@nameof(ThorField.SortOrder)" Caption="Order" Editable Filterable="true" Sortable="true" Width="5%">
          </DataGridColumn>
-         <DataGridCheckColumn Field="@nameof(ThorField.IsActive)" Caption="Active" Editable Width="5%">
+         <DataGridCheckColumn Field="@nameof(ThorField.IsActive)" Caption="Active" Filterable="true" Sortable="true" Editable Width="5%">
              <DisplayTemplate>
                  <Check TValue="bool" Checked="context.IsActive" Disabled="true" ReadOnly="true" />
              </DisplayTemplate>

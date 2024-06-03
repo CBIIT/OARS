@@ -13,11 +13,12 @@
           Data="@studyList"
           Responsive
           Sortable
+          SortMode="DataGridSortMode.Single"
           Striped
           ShowPager
           ShowPageSizes
           Filterable
-           FilterMethod="DataGridFilterMethod.Contains"
+          FilterMethod="DataGridFilterMethod.Contains"
            MaxPaginationLinks="5"
            PagerPosition="DataGridPagerPosition.Bottom"
            PagerOptions="new(){ButtonSize=Size.Default,
@@ -31,13 +32,13 @@
            @bind-SelectedRows="selectedProtocols">
      <DataGridColumns>
          <DataGridMultiSelectColumn Width="30px"></DataGridMultiSelectColumn>
-        <DataGridColumn Width="10%" Caption="Version" Field="@nameof(ProtocolMapping.MappingVersion)" Editable Filterable="false" Sortable="false">
+        <DataGridColumn Width="10%" Caption="Version" Field="@nameof(ProtocolMapping.MappingVersion)" Editable Filterable="true" Sortable="true">
         </DataGridColumn>
         <DataGridColumn Width="20%" Field="Protocol.StudyId" Sortable="true" Filterable="true" Caption="Study ID" SortDirection="SortDirection.Ascending">
         </DataGridColumn>
-        <DataGridColumn Width="50%" Field="Protocol.ProtocolTitle" Sortable="false" Filterable="true" Caption="Title">
+         <DataGridColumn Width="50%" Field="Protocol.ProtocolTitle" Sortable="true" Filterable="true" Caption="Title">
         </DataGridColumn>
-        <DataGridColumn Width="10%" Field="Status.StatusName" Sortable="false" Caption="Status">
+         <DataGridColumn Width="10%" Field="Status.StatusName" Sortable="true" Filterable="true" Caption="Status">
         </DataGridColumn>
          <DataGridColumn Sortable="false" Filterable="false" Width="140px">
              <DisplayTemplate>
