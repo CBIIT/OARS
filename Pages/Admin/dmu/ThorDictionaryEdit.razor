@@ -42,7 +42,7 @@
         </DataGridColumn>
         <DataGridColumn Field="@nameof(ThorDictionary.SortOrder)" Caption="Order" Editable Filterable="true" Sortable="true" Width="8%">
         </DataGridColumn>
-        <DataGridCheckColumn Field="@nameof(ThorDictionary.IsActive)" Caption="Active" Editable Width="7%">
+         <DataGridCheckColumn Field="@nameof(ThorDictionary.IsActive)" Caption="Active" Filterable="true" Sortable="true" Editable Width="7%">
             <DisplayTemplate>
                 <Check TValue="bool" Checked="context.IsActive" Disabled="true" ReadOnly="true" />
             </DisplayTemplate>
