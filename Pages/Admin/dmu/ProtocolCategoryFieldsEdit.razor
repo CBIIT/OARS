@@ -36,10 +36,10 @@
      <DataGridColumns>
          <DataGridColumn Caption="Data Category" Width="15%" Editable Sortable="true" SortDirection="SortDirection.Ascending">
             <DisplayTemplate>
-                @context?.ThorDataCategoryId
+                @(context?.ThorDataCategoryId + " - " + context?.ThorField?.Category?.CategoryName)
             </DisplayTemplate>
             <EditTemplate>
-                <SelectList TItem="ThorCategory" TValue="string" Data="@categoryList" TextField="@((item)=>item.CategoryName)" ValueField="@((item)=>item.ThorDataCategoryId)" SelectedValueChanged="@(e =>
+                <SelectList TItem="ThorCategory" TValue="string" Data="@categoryList" TextField="@((item)=>item.ThorDataCategoryId + " - " + item.CategoryName)" ValueField="@((item)=>item.ThorDataCategoryId)" SelectedValueChanged="@(e =>
                                     {
                                         context.Item.ThorDataCategoryId = Convert.ToString(e);
                                         OnSelectedCategoryValueChanged(context.Item.ThorDataCategoryId);
@@ -193,7 +193,8 @@
         var fullCategoryList = await categoryService.GetCategories();
         var protocolCategoryList = protocolFields.GroupBy(x => x.ThorDataCategoryId).Select(x => x.Key).ToList();
         var categoryHash = new HashSet<string>(protocolCategoryList);
-        this.categoryList = fullCategoryList.Where(x => currentCategoryId == x.ThorDataCategoryId || !categoryHash.Contains(x.ThorDataCategoryId)).ToList();
+        this.categoryList = fullCategoryList.Where(x => currentCategoryId == x.ThorDataCategoryId || !categoryHash.Contains(x.ThorDataCategoryId)).OrderBy(x => x.ThorDataCategoryId + " - " + x.CategoryName).ToList();
+        dataGridRef.Refresh();
     }
 
     protected async Task RefreshFieldList(string? currentFieldId=null)
@@ -202,7 +203,8 @@
         var fullFieldList = await thorFieldService.GetFields();
         var protocolFieldList = protocolFields.GroupBy(x => x.ThorFieldId).Select(x => x.Key).ToList();
         var fieldHash = new HashSet<string>(protocolFieldList);
-        this.fieldList = fullFieldList.Where(x => currentFieldId == x.ThorFieldId || !fieldHash.Contains(x.ThorFieldId)).ToList();
+        this.fieldList = fullFieldList.Where(x => currentFieldId == x.ThorFieldId || !fieldHash.Contains(x.ThorFieldId)).OrderBy(x => x.ThorFieldId + " - " + x.FieldLabel).ToList();
+        dataGridRef.Refresh();
     }
 
     protected override async Task OnInitializedAsync()
