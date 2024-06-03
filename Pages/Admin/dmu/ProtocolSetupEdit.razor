@@ -76,7 +76,7 @@
             <Text>Title:</Text>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-            <TextEdit MaxLength="50" @bind-Text="@currentProtocolMap.ProtocolTitle" Disabled="@allowEdit"></TextEdit>
+            <TextEdit @bind-Text="@currentProtocolMap.ProtocolTitle" Disabled="@allowEdit"></TextEdit>
         </Column>
         <Column ColumnSize="ColumnSize.Is2" Class="dmu-column-border-left">
             <Check TValue="bool" @bind-Checked="@phase3" Disabled="@allowEdit">Phase 3</Check>
@@ -94,7 +94,7 @@
             <Text>Sponsor:</Text>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-            <TextEdit MaxLength="50" @bind-Text="@currentProtocolMap.Sponsor" Disabled="@allowEdit"></TextEdit>
+            <TextEdit @bind-Text="@currentProtocolMap.Sponsor" Disabled="@allowEdit"></TextEdit>
         </Column>
         <Column ColumnSize="ColumnSize.Is2" Class="dmu-column-border-left">
             <Check TValue="bool" @bind-Checked="@phase4" Disabled="@allowEdit">Phase 4</Check>
