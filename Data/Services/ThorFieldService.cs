@@ -32,6 +32,30 @@ namespace TheradexPortal.Data.Services
             return await context.THORField.Where(f => f.ThorDataCategoryId == categoryId).OrderBy(c => c.SortOrder).ToListAsync();
         }
 
+        public async Task<IList<ThorField>> GetFieldsForMapping(int mappingId)
+        {
+            var mapping = await context.ProtocolMapping.Include(x => x.Profile).Where(x => x.ProtocolMappingId == mappingId).FirstOrDefaultAsync();
+            if (mapping == null)
+            {
+                return new List<ThorField>();
+            }
+            var profileCategories = await context.ProfileDataCategory.Include(x => x.ThorCategory)
+                .Where(
+                    x => x.ProfileId == mapping.ProfileId &&
+                    x.ThorCategory.IsActive
+                )
+                .ToListAsync();
+            var categoryIds = profileCategories.Select(x => x.ThorDataCategoryId).ToList();
+            var profileFields = await context.ProfileFields.Include(x => x.ThorField)
+                    .Where(x => 
+                        x.ProfileId == mapping.ProfileId && 
+                        x.ThorField.IsActive &&
+                        categoryIds.Contains(x.ThorField.ThorDataCategoryId))
+                    .ToListAsync();
+
+            return profileFields.Select(x => x.ThorField).ToList();
+        }
+
         public async Task<bool> SaveField(ThorField field)
         {
             if(field.ThorDataCategoryId.IsNullOrEmpty() || field.ThorFieldTypeId == null)
@@ -77,5 +101,6 @@ namespace TheradexPortal.Data.Services
                 return false;
             }
         }
+
     }
 }

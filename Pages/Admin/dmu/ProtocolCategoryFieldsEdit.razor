@@ -188,22 +188,41 @@
         new SelectOption { Text = "No", Value = "N" }
     };
 
-    protected async Task RefreshCategoryList(string? currentCatoryId=null)
+    protected async Task RefreshCategoryList(string? currentFieldId = null)
     {
-        var fullCategoryList = await categoryService.GetCategories();
-        var protocolCategoryList = protocolFields.GroupBy(x => x.ThorDataCategoryId).Select(x => x.Key).ToList();
-        var categoryHash = new HashSet<string>(protocolCategoryList);
-        this.categoryList = fullCategoryList.Where(x => currentCategoryId == x.ThorDataCategoryId || !categoryHash.Contains(x.ThorDataCategoryId)).OrderBy(x => x.ThorDataCategoryId + " - " + x.CategoryName).ToList();
+        System.Console.WriteLine("RefreshCategoryList");
+        System.Console.WriteLine("currentFieldId: " + currentFieldId);
+
+        var fullFieldList = await thorFieldService.GetFieldsForMapping(protocolMappingId);
+        var protocolFieldList = protocolFields.GroupBy(x => x.ThorFieldId).Select(x => x.Key).ToList();
+        var fieldHash = new HashSet<string>(protocolFieldList);
+        this.categoryList = fullFieldList.Where(x => x.ThorFieldId == currentFieldId || !fieldHash.Contains(x.ThorFieldId)).Select(x => x.Category).Distinct().ToList();
+        
+        // Print sorted category list as json
+        System.Console.WriteLine("RefreshCategoryList categoryList");
+        System.Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(categoryList));
         dataGridRef.Refresh();
     }
 
-    protected async Task RefreshFieldList(string? currentFieldId=null)
+    protected async Task RefreshFieldList(string currentCategoryId, string? currentFieldId=null)
     {
-        // TODO: create the list based on category and field
-        var fullFieldList = await thorFieldService.GetFields();
-        var protocolFieldList = protocolFields.GroupBy(x => x.ThorFieldId).Select(x => x.Key).ToList();
+        System.Console.WriteLine("RefreshFieldList");
+        System.Console.WriteLine("currentCategoryId: " + currentCategoryId);
+        System.Console.WriteLine("currentFieldId: " + currentFieldId);
+
+        var fullFieldList = await thorFieldService.GetFieldsForMapping(protocolMappingId);
+        var protocolFieldList = protocolFields.Where(x => x.ThorDataCategoryId == currentCategoryId).GroupBy(x => x.ThorFieldId).Select(x => x.Key).ToList();
         var fieldHash = new HashSet<string>(protocolFieldList);
-        this.fieldList = fullFieldList.Where(x => currentFieldId == x.ThorFieldId || !fieldHash.Contains(x.ThorFieldId)).OrderBy(x => x.ThorFieldId + " - " + x.FieldLabel).ToList();
+        this.fieldList = fullFieldList.Where(x => 
+            x.ThorDataCategoryId == currentCategoryId && 
+            ( 
+                currentFieldId == x.ThorFieldId || 
+                !fieldHash.Contains(x.ThorFieldId) 
+            )).OrderBy(x => x.ThorFieldId + " - " + x.FieldLabel).ToList();
+
+        // Print sorted field list as json
+        System.Console.WriteLine("RefreshFieldList fieldList");
+        System.Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(fieldList));
         dataGridRef.Refresh();
     }
 
@@ -220,13 +239,22 @@
     {
         selectedField = null;
         RefreshCategoryList().Wait();
+        fieldList = new List<ThorField>();
+        System.Console.WriteLine("CreateNewItem categoryList");
+        System.Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(categoryList));
         return new ProtocolField();
     }
 
     public ProtocolField CreateEditItem(ProtocolField protocolField)
     {
         selectedField = protocolField;
-        RefreshCategoryList(selectedField.ThorDataCategoryId).Wait();
+        Console.WriteLine("CreateEditItem");
+        Console.WriteLine("protocolField.ThorFieldId: " + protocolField.ThorFieldId);
+        Console.WriteLine("selectedField.ThorFieldId: " + selectedField.ThorFieldId);
+        RefreshCategoryList(selectedField.ThorFieldId).Wait();
+        RefreshFieldList(selectedField.ThorDataCategoryId, selectedField.ThorFieldId).Wait();
+        System.Console.WriteLine("CreateEditItem categoryList");
+        System.Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(categoryList));
         return protocolField;
     }
 
@@ -265,8 +293,7 @@
     async Task OnSelectedCategoryValueChanged(string categoryId)
     {
         currentCategoryId = categoryId;
-        this.fieldList = await thorFieldService.GetFields();
-        this.fieldList = fieldList.Where(f => f.ThorDataCategoryId.Equals(categoryId)).ToList();
+        await RefreshFieldList(categoryId, selectedField?.ThorFieldId);
     }
 
     public async Task<CancellableRowChange<ProtocolField>> ConfirmDelete(CancellableRowChange<ProtocolField> item)
