@@ -507,13 +507,6 @@ else{
     public async void CompleteMapping()
     {
         if(this.isComplete){
-            foreach(var mapping in protocolFieldMappingList){
-                if(mapping.ProtocolEDCFormId == 0 || mapping.ProtocolEDCFieldId == 0){
-                    await notificationService.Error("Please complete all mappings before marking as complete");
-                    isComplete = false;
-                    return;
-                }
-            }
             this.protocolCategory.ProtocolCategoryStatusId = 3; // set to complete
             bool saved = await protocolCategoryService.SaveCategory(this.protocolCategory, this.protocolMappingId);
             if (saved)
