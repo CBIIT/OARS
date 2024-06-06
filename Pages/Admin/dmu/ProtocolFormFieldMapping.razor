@@ -128,7 +128,7 @@
                 <DisplayTemplate>
                    @if(context.ThorField != null && context.ThorField.ThorDictionaryId != null && context.ThorField.ThorDictionaryId != 0)
 				   {
-                        <Button Color="Color.Primary" Clicked="@((item) => EditDictionaryMapping(context, protocolEDCFormList.First(x => x.ProtocolEDCFormId == context.ProtocolEDCFormId).EDCFormIdentifier))" Disabled="@GetFieldMappingStatus(context)">Edit</Button>
+                        <Button Color="Color.Primary" Clicked="@((item) => EditDictionaryMapping(context, protocolEDCFormList.FirstOrDefault(x => x.ProtocolEDCFormId == context.ProtocolEDCFormId)?.EDCFormIdentifier))" Disabled="@GetFieldMappingStatus(context)">Edit</Button>
 				   }
                    else{
                        <Text>N/A</Text>
