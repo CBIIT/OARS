@@ -21,7 +21,7 @@ namespace TheradexPortal.Data.Services
         {
             try
             {
-                return await context.ProtocolEDCField.Where(x => formIds.Contains(x.ProtocolEDCFormId)).ToListAsync();
+                return await context.ProtocolEDCField.Where(x => formIds.Contains(x.ProtocolEDCFormId)).OrderBy(o=>o.EDCFieldIdentifier).ToListAsync();
             }
             catch (Exception ex)
             {

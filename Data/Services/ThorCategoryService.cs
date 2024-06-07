@@ -30,7 +30,7 @@ namespace TheradexPortal.Data.Services
                     categories.Add(profileCategory.ThorCategory);
                 }
             }
-            return categories;
+            return categories.OrderBy(o=>o.CategoryName).ToList();
         }
         public async Task<ThorCategory> GetCategory(string id)
         {

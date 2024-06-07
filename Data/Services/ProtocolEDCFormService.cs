@@ -21,7 +21,7 @@ namespace TheradexPortal.Data.Services
         }
 
         public async Task<IList<ProtocolEDCForm>> GetFormsForMappingId(int protocolMappingId) {
-            return await context.ProtocolEDCForm.Where(p=>p.ProtocolMappingId == protocolMappingId).ToListAsync();
+            return await context.ProtocolEDCForm.Where(p=>p.ProtocolMappingId == protocolMappingId).OrderBy(o=>o.EDCFormIdentifier).ToListAsync();
         }
         public async Task<bool> SaveProtocolEDCForm(ProtocolEDCForm protocolEDCForm)
         {

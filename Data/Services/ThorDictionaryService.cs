@@ -24,7 +24,7 @@ namespace TheradexPortal.Data.Services
             var dict = context.THORDictionary.Where(x => x.ThorDictionaryId == dictionaryId).FirstOrDefault();
             if (dict != null)
             {
-                var entries = await context.THORDictionary.Where(x => x.DictionaryName == dict.DictionaryName).ToListAsync();
+                var entries = await context.THORDictionary.Where(x => x.DictionaryName == dict.DictionaryName).OrderBy(o=>o.DictionaryName).ToListAsync();
                 return entries;
             }
             return new List<ThorDictionary>();
