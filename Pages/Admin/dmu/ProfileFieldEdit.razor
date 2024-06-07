@@ -31,6 +31,8 @@
           EditMode="DataGridEditMode.Inline"
           RowUpdated="@Save"
           NewItemDefaultSetter="@CheckCategories"
+          EditItemCreator="@CreatEditItem"
+          NewItemCreator="@CreateNewItem"
           RowInserted="@Save"
           RowRemoving="@ConfirmDelete"
           RowRemoved="@Delete"
@@ -119,10 +121,25 @@
     private string selectedCategoryId;
     private IList<String> selectedCategoryList = new List<String>();
 
+    private ProfileField? SelectedProfileField;
+
     protected override async Task OnInitializedAsync()
     {
         this.profileFields = await profileFieldService.GetProfileFields(profile);
         this.selectedProfile = await profileService.GetProfile(profile);
+    }
+
+
+    public ProfileField CreateNewItem()
+    {
+        SelectedProfileField = null;
+        return new ProfileField();
+    }
+
+    public ProfileField CreatEditItem(ProfileField profileField)
+    {
+        SelectedProfileField = profileField;
+        return profileField;
     }
 
     public async Task<CancellableRowChange<ProfileField>> Verify(CancellableRowChange<ProfileField, Dictionary<string, object>> e)
@@ -221,9 +238,7 @@
 
     async Task OnSelectedCategoryValueChanged(string categoryId)
     {
-        this.fieldList = await thorFieldService.GetFields();
-        this.fieldList = fieldList.Where(f => f.ThorDataCategoryId.Equals(categoryId)).ToList();
-
+        await RefreshFields(categoryId, SelectedProfileField?.THORFieldId);
     }
 
     public async Task<CancellableRowChange<ProfileField>> ConfirmDelete(CancellableRowChange<ProfileField> item)
