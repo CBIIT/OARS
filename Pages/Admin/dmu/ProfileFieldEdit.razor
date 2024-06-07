@@ -129,11 +129,14 @@
     {
         // e.Values
 
-        if (string.IsNullOrEmpty(e.Item.THORFieldId))
+        var profileFieldId = e.Item.ProfileFieldId;
+        e.Values.TryGetValue("THORFieldId", out var thorFieldId);
+
+        if (string.IsNullOrEmpty((string?)thorFieldId))
         {
             List<string> missingFields = new List<string>();
 
-            if (string.IsNullOrEmpty(e.Item.THORFieldId))
+            if (string.IsNullOrEmpty((string?)thorFieldId))
             {
                 missingFields.Add("OARS Field");
             }
@@ -145,9 +148,9 @@
             }
         }
 
-        if (!string.IsNullOrEmpty(e.Item.THORFieldId) && profileFields.Any(x => x.THORFieldId == e.Item.THORFieldId && x.ProfileFieldId != e.Item.ProfileFieldId))
+        if (!string.IsNullOrEmpty((string?)thorFieldId) && profileFields.Any(x => x.THORFieldId == (string?)thorFieldId && x.ProfileFieldId != profileFieldId))
         {
-            await notificationService.Error($"The field {e.Item.THORFieldId} already exists");
+            await notificationService.Error($"The field {thorFieldId} already exists");
             e.Cancel = true;
         }
 

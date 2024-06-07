@@ -107,7 +107,7 @@
     public async Task<CancellableRowChange<ProtocolDataSystem>> Verify(CancellableRowChange<ProtocolDataSystem, Dictionary<string, object>> e)
     {
         // e.Values
-
+        var protocolDataSystemId = e.Item.ProtocolDataSystemId;
         e.Values.TryGetValue("DataSystemName", out var dataSystemName);
         e.Values.TryGetValue("SortOrder", out var sortOrder);
 
@@ -126,9 +126,9 @@
             e.Cancel = true;
         }
 
-        if (dataSystemName != null && this.selectedDataSystem?.DataSystemName != (string)dataSystemName && protocolDataSystemList.Any(x => x.DataSystemName == e.Item.DataSystemName))
+        if (dataSystemName != null && this.selectedDataSystem?.DataSystemName != (string)dataSystemName && protocolDataSystemList.Any(x => x.DataSystemName == (string)dataSystemName && x.ProtocolDataSystemId != protocolDataSystemId))
         {
-            await notificationService.Error($"Data System {e.Item.DataSystemName} already exists");
+            await notificationService.Error($"Data System {dataSystemName} already exists");
             e.Cancel = true;
         }
 
