@@ -167,6 +167,7 @@ public class CSVFileImportService : ICSVFileImportService
                 HasHeaderRecord = true,
             };
 
+            var rowsSkipped = 0;
             using (var csv = new CsvReader(reader, config))
             {
                 var records = csv.GetRecords<CSVField>().ToArray();
@@ -186,6 +187,10 @@ public class CSVFileImportService : ICSVFileImportService
 
                         fields.Rows.Add(field);
                     }
+                    else
+                    {
+                        rowsSkipped++;
+                    }
                 }
             }
 
@@ -196,7 +201,9 @@ public class CSVFileImportService : ICSVFileImportService
                 {
                     throw new Exception("Error uploading Fields file, clear uploads and try again.");
                 }
+                Console.WriteLine($"Fields saved: {fields.Rows.Count}");
             }
+            Console.WriteLine($"Fields skipped: {rowsSkipped}");
         }
     }
 
@@ -241,6 +248,7 @@ public class CSVFileImportService : ICSVFileImportService
         {
             throw new Exception("Error uploading file, clear uploads and try again.");
         }
+        Console.WriteLine($"Forms saved: {forms.Count}");
     }
 
     public async Task ParseCSVFileMeta(MemoryStream inputFileStream, int protocolMappingId)
@@ -283,7 +291,9 @@ public class CSVFileImportService : ICSVFileImportService
             {
                 throw new Exception("Error uploading dictionary file, clear uploads and try again.");
             }
+            Console.WriteLine($"Dictionaries saved: {dictionaries.Rows.Count}");
         }
+
     }
 
     private DataTable SetUpDictionaryTable()

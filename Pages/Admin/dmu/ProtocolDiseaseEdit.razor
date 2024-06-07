@@ -32,7 +32,9 @@
            RowInserted="@Save"
           @bind-SelectedRow="@selectedRow"
           RowRemoving=@ConfirmDelete
-          RowRemoved=@DeleteRow>
+          RowRemoved=@DeleteRow
+          RowUpdating="@Verify"
+          RowInserting="@Verify">
      <DataGridColumns>
         <DataGridColumn Field="@nameof(ProtocolDisease.DiseaseName)" Width="30%" Caption="Disease Name" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
         </DataGridColumn>
@@ -88,6 +90,14 @@
         var elapsedMs = watch.ElapsedMilliseconds;
         System.Console.WriteLine($"Protocol Disease Elapsed time: {elapsedMs} ms");
     }
+
+    public async Task<CancellableRowChange<ProtocolDisease>> Verify(CancellableRowChange<ProtocolDisease, Dictionary<string, object>> e)
+    {
+        // e.Values
+
+        return e;
+    }
+
 
     public async void Save(SavedRowItem<ProtocolDisease, Dictionary<string, object>> e)
     {

@@ -33,7 +33,9 @@
            RowInserted="@Save"
           @bind-SelectedRow="@selectedRow"
           RowRemoving=@ConfirmDelete
-          RowRemoved=@DeleteRow>
+              RowRemoved=@DeleteRow
+              RowUpdating="@Verify"
+              RowInserting="@Verify">
      <DataGridColumns>
         <DataGridColumn Field="@nameof(ProtocolEDCForm.EDCFormIdentifier)" Width="30%" Caption="EDC Form ID" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
         </DataGridColumn>
@@ -104,6 +106,13 @@
             await loading.Hide();
         }
         return;
+    }
+
+    public async Task<CancellableRowChange<ProtocolEDCForm>> Verify(CancellableRowChange<ProtocolEDCForm, Dictionary<string, object>> e)
+    {
+        // e.Values
+
+        return e;
     }
 
     public async void Save(SavedRowItem<ProtocolEDCForm, Dictionary<string, object>> e)

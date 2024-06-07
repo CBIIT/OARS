@@ -33,7 +33,9 @@
           NewItemDefaultSetter="@CheckCategories"
           RowInserted="@Save"
           RowRemoving="@ConfirmDelete"
-          RowRemoved="@Delete">
+          RowRemoved="@Delete"
+          RowUpdating="@Verify"
+          RowInserting="@Verify">
     <DataGridColumns>
         <DataGridColumn Width="35%" Caption="OARS Data Category" Editable Filterable="true" Sortable="false">
             <DisplayTemplate>
@@ -120,14 +122,37 @@
     protected override async Task OnInitializedAsync()
     {
         this.profileFields = await profileFieldService.GetProfileFields(profile);
-        setCategories(this.profileFields);
-        this.profileCategories = await profileCategoryService.GetCategories(profile);
         this.selectedProfile = await profileService.GetProfile(profile);
-        this.categoryList = await categoryService.GetCategories();
-
-        this.categoryList = this.categoryList.Where(x=> profileCategories.Any(y=> y.ThorDataCategoryId == x.ThorDataCategoryId)).Where(x => x.IsActive).ToList();
     }
 
+    public async Task<CancellableRowChange<ProfileField>> Verify(CancellableRowChange<ProfileField, Dictionary<string, object>> e)
+    {
+        // e.Values
+
+        if (string.IsNullOrEmpty(e.Item.THORFieldId))
+        {
+            List<string> missingFields = new List<string>();
+
+            if (string.IsNullOrEmpty(e.Item.THORFieldId))
+            {
+                missingFields.Add("OARS Field");
+            }
+
+            if (missingFields.Count > 0)
+            {
+                await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
+                e.Cancel = true;
+            }
+        }
+
+        if (!string.IsNullOrEmpty(e.Item.THORFieldId) && profileFields.Any(x => x.THORFieldId == e.Item.THORFieldId && x.ProfileFieldId != e.Item.ProfileFieldId))
+        {
+            await notificationService.Error($"The field {e.Item.THORFieldId} already exists");
+            e.Cancel = true;
+        }
+
+        return e;
+    }
     public async void Save(SavedRowItem<ProfileField, Dictionary<string, object>> savedRowItem)
     {
         bool saved;
@@ -163,6 +188,21 @@
         context.Clicked.InvokeAsync();
     }
 
+    private async Task RefreshFields(string? categoryId, string? currentFieldId=null)
+    {
+        this.fieldList = await thorFieldService.GetFields();
+        this.fieldList = fieldList
+            .Where(f =>
+                f.ThorDataCategoryId.Equals(categoryId) &&
+                f.IsActive &&
+                (
+                    // Exclude the selected fields, except for the current item
+                    !this.profileFields.Any(pf => pf.THORFieldId == f.ThorFieldId) ||
+                    f.ThorFieldId == currentFieldId
+                )
+            ).ToList();
+    }
+
     public async void CheckCategories(ProfileField item)
     {
         var updatedCategories = await profileCategoryService.GetCategories(profile);
@@ -171,8 +211,7 @@
         this.fieldList = new List<ThorField>();
         if (item != null && item.ThorField != null)
         {
-            this.fieldList = await thorFieldService.GetFields();
-            this.fieldList = fieldList.Where(f => f.ThorDataCategoryId.Equals(item.ThorField?.ThorDataCategoryId)).ToList();
+            await RefreshFields(item.ThorField?.ThorDataCategoryId, item.THORFieldId);
         }
         updatedCategories = new List<ProfileDataCategory>();
     }

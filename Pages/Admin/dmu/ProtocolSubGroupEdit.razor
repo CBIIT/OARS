@@ -29,7 +29,9 @@
            RowUpdated="@Save"
            RowInserted="@Save"
            RowRemoved="@Delete"
-           RowRemoving="@ConfirmDelete">
+          RowRemoving="@ConfirmDelete"
+          RowUpdating="@Verify"
+          RowInserting="@Verify">
      <DataGridColumns>
          <DataGridColumn Width="50%" Caption="Sub Group Code" Field="@nameof(ProtocolSubGroup.SubGroupCode)" Filterable="true" Sortable="true" Editable SortDirection="SortDirection.Ascending">
         </DataGridColumn>
@@ -81,6 +83,13 @@
         watch.Stop();
         var elapsedMs = watch.ElapsedMilliseconds;
         System.Console.WriteLine($"Protocol Sub Group Elapsed time: {elapsedMs} ms");
+    }
+
+    public async Task<CancellableRowChange<ProtocolSubGroup>> Verify(CancellableRowChange<ProtocolSubGroup, Dictionary<string, object>> e)
+    {
+        // e.Values
+
+        return e;
     }
 
 

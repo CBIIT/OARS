@@ -12,11 +12,13 @@
           SelectionMode="DataGridSelectionMode.Single"
           Responsive
           Striped
+          Sortable
+
           ShowPager
           ShowPageSizes
           Filterable
-          Sortable
-           FilterMethod="DataGridFilterMethod.StartsWith"
+           FilterMethod="DataGridFilterMethod.Contains"
+
            MaxPaginationLinks="5"
            PagerPosition="DataGridPagerPosition.Bottom"
            PagerOptions="new(){ButtonSize=Size.Default,
@@ -27,26 +29,37 @@
            FixedHeaderDataGridHeight="calc(100vh - 240px)"
            FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
           EditMode="DataGridEditMode.Inline"
-          EditItemCreator="@CreateEditItem"
           NewItemCreator="@CreateNewItem"
+          EditItemCreator="@CreateEditItem"
            RowUpdated="@Save"
            RowInserted="@Save"
            RowRemoved="@Delete"
-           RowRemoving="@ConfirmDelete">
+          RowRemoving="@ConfirmDelete"
+          RowUpdating="@Verify"
+          RowInserting="@Verify">
      <DataGridColumns>
-         <DataGridColumn Caption="Data Category" Width="15%" Editable Sortable="true" SortDirection="SortDirection.Ascending">
+         <DataGridColumn Field="ThorDataCategoryId" Caption="Data Category" Width="15%" Editable Sortable="true" SortDirection="SortDirection.Ascending">
             <DisplayTemplate>
                 @(context?.ThorDataCategoryId + " - " + context?.ThorField?.Category?.CategoryName)
             </DisplayTemplate>
             <EditTemplate>
-                <SelectList TItem="ThorCategory" TValue="string" Data="@categoryList" TextField="@((item)=>item.ThorDataCategoryId + " - " + item.CategoryName)" ValueField="@((item)=>item.ThorDataCategoryId)" SelectedValueChanged="@(e =>
+                <SelectList 
+                    TItem="ThorCategory" 
+                    TValue="string" 
+                    Data="@categoryList" 
+                    TextField="@((item)=>item.ThorDataCategoryId + " - " + item.CategoryName)" 
+                    ValueField="@((item)=>item.ThorDataCategoryId)" 
+                    SelectedValueChanged="@(e =>
                                     {
-                                        context.Item.ThorDataCategoryId = Convert.ToString(e);
-                                        OnSelectedCategoryValueChanged(context.Item.ThorDataCategoryId);
-                                    })" SelectedValue="@((String?)context.CellValue ?? context.Item.ThorDataCategoryId)" DefaultItemText="Select the OARS DataCategory"></SelectList>
+                                        context.CellValue = Convert.ToString(e);
+                                        OnSelectedCategoryValueChanged((string)context.CellValue);
+                                    })" 
+                    SelectedValue="@((string?)context.CellValue ?? context.Item.ThorDataCategoryId)" 
+                    DefaultItemText="Select the OARS DataCategory">
+                </SelectList>
             </EditTemplate>
          </DataGridColumn>
-         <DataGridColumn Caption="Field" Width="15%" Filterable="true" Editable>
+         <DataGridColumn Field="ThorFieldId" Caption="Field" Width="15%" Filterable="true" Editable>
             <DisplayTemplate>
                 @(context?.ThorFieldId + " - " + context?.ThorField?.FieldLabel)
             </DisplayTemplate>
@@ -57,47 +70,61 @@
                         OnSelectedCategoryValueChanged(context.Item?.ThorField?.ThorDataCategoryId);
                     }
 
-                    <SelectList TItem="ThorField" TValue="string" Data="@fieldList" TextField="@((item)=>item.ThorFieldId + " - " + item.FieldLabel)" ValueField="@((item)=>item.ThorFieldId)"
-                                SelectedValue="@((string?)context.CellValue ?? context.Item.ThorFieldId)"
-                                SelectedValueChanged="@(e =>
-                                    {
-                                        context.Item.ThorFieldId = Convert.ToString(e);
-                                    } )" DefaultItemText="Select">
+                    <SelectList 
+                        TItem="ThorField" 
+                        TValue="string" 
+                        Data="@fieldList" 
+                        TextField="@((item)=>item.ThorFieldId + " - " + item.FieldLabel)" 
+                        ValueField="@((item)=>item.ThorFieldId)"
+                        SelectedValueChanged="@(e => {context.CellValue = Convert.ToString(e);} )"
+                        SelectedValue="@((string?)context.CellValue ?? context.Item.ThorFieldId)"
+                        DefaultItemText="Select">
                     </SelectList>
                 }
             </EditTemplate>
          </DataGridColumn>
-         <DataGridColumn Width="15%" Caption="Enabled" Filterable="true" Sortable="false" Editable>
+         <DataGridColumn Field="IsEnabled" Width="15%" Caption="Enabled" Filterable="true" Sortable="false" Editable>
             <DisplayTemplate>
-                @(context?.IsEnabled.ToString() == "Y" ? "Enabled" : "Disabled")
+                @(context.IsEnabled ? "Enabled" : "Disabled")
             </DisplayTemplate>
             <EditTemplate>
-                <SelectList TItem="SelectOption" TValue="string?" Data="@protocolEnabledOptions" TextField="@((item)=>item.Text)" ValueField="@((item)=>item.Value)"
-                    SelectedValueChanged="@( v =>{ context.Item.IsEnabled = v[0]; dataGridRef.Refresh();})" SelectedValue="@((string?)context.CellValue ?? context.Item.IsEnabled.ToString())" DefaultItemText=""></SelectList>
+                <Select TValue="bool" SelectedValueChanged="@( v => {context.CellValue = v;})" SelectedValue="@((bool)context.CellValue)">
+                    <SelectItem Value="false">Disabled</SelectItem>
+                    <SelectItem Value="true">Enabled</SelectItem>
+                </Select>
             </EditTemplate>
         </DataGridColumn>
-        <DataGridColumn Width="15%" Caption="Required" Filterable="true" Sortable="false" Editable>
+        <DataGridColumn Field="IsRequired" Width="15%" Caption="Required" Filterable="true" Sortable="false" Editable>
             <DisplayTemplate>
-                @(context?.IsRequired.ToString() == "Y" ? "Required" : "Not Required")
+                @(context.IsRequired ? "Required" : "Not Required")
             </DisplayTemplate>
             <EditTemplate>
-                <SelectList TItem="SelectOption" TValue="string?" Data="@protocolRequiredOptions" TextField="@((item)=>item.Text)" ValueField="@((item)=>item.Value)" SelectedValueChanged="@( v =>{context.Item.IsRequired = v[0]; dataGridRef.Refresh();})" SelectedValue="@((string?)context.CellValue ?? context.Item.IsRequired.ToString())" DefaultItemText=""></SelectList>
+                <Select TValue="bool" SelectedValueChanged="@( v => {context.CellValue = v;})" SelectedValue="@((bool)context.CellValue)">
+                    <SelectItem Value="false">Not Required</SelectItem>
+                    <SelectItem Value="true">Required</SelectItem>
+                </Select>
             </EditTemplate>
         </DataGridColumn>
-        <DataGridColumn Width="15%" Caption="Can be a Pick List" Filterable="true" Sortable="false" Editable>
+        <DataGridColumn Field="CanBeDictionary" Width="15%" Caption="Can be a Pick List" Filterable="true" Sortable="false" Editable>
             <DisplayTemplate>
-                @(context?.CanBeDictionary.ToString() == "Y" ? "Yes" : "No")
+                @(context.CanBeDictionary ? "Yes" : "No")
             </DisplayTemplate>
             <EditTemplate>
-                <SelectList TItem="SelectOption" TValue="string?" Data="@protocolPickListOptions" TextField="@((item)=>item.Text)" ValueField="@((item)=>item.Value)" SelectedValueChanged="@( v =>{context.Item.CanBeDictionary = v[0]; dataGridRef.Refresh();})" SelectedValue="@((string?)context.CellValue ?? context.Item.CanBeDictionary.ToString())" DefaultItemText=""></SelectList>
+                <Select TValue="bool" SelectedValueChanged="@( v => {context.CellValue = v;})" SelectedValue="@((bool)context.CellValue)">
+                    <SelectItem Value="false">No</SelectItem>
+                    <SelectItem Value="true">Yes</SelectItem>
+                </Select>
             </EditTemplate>
         </DataGridColumn>
-        <DataGridColumn Width="15%" Caption="Is MultiForm" Filterable="true" Sortable="false" Editable>
+        <DataGridColumn Field="IsMultiForm" Width="15%" Caption="Is MultiForm" Filterable="true" Sortable="false" Editable>
             <DisplayTemplate>
-                @(context?.IsMultiForm.ToString() == "Y" ? "Yes" : "No")
+                @(context.IsMultiForm ? "Yes" : "No")
             </DisplayTemplate>
             <EditTemplate>
-                <SelectList TItem="SelectOption" TValue="string?" Data="@protocolMultiFormOptions" TextField="@((item)=>item.Text)" ValueField="@((item)=>item.Value)" SelectedValueChanged="@( v =>{context.Item.IsMultiForm = v[0]; dataGridRef.Refresh();})" SelectedValue="@((string?)context.CellValue ?? context.Item.IsMultiForm.ToString())" DefaultItemText=""></SelectList>
+                <Select TValue="bool" SelectedValueChanged="@( v => {context.CellValue = v;})" SelectedValue="@((bool)context.CellValue)">
+                    <SelectItem Value="false">No</SelectItem>
+                    <SelectItem Value="true">Yes</SelectItem>
+                </Select>
             </EditTemplate>
         </DataGridColumn>
          <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="true">
@@ -119,7 +146,7 @@
          </DataGridCommandColumn>
      </DataGridColumns>
      <ButtonRowTemplate>
-         <Button Color="Color.Primary" Clicked="@AddRow" Disabled="@allowEdit">
+        <Button Color="Color.Primary" Clicked="context.NewCommand.Clicked" Disabled="@allowEdit">
             Add
         </Button>
      </ButtonRowTemplate>
@@ -144,51 +171,16 @@
     private string currentCategoryId = String.Empty;
     private bool deleteConfirmed = false;
 
-    const string Yes = "Y";
-    const string No = "N";
-
-    private enum YesNoSelect
-    {
-        S,
-        Y,
-        N
-    }
-
-    private class SelectOption
-    {
-        public string Text { get; set; }
-        public string Value { get; set; }
-    }
-
     private DataGrid<ProtocolField> dataGridRef;
     private ProtocolField selectedField;
     private IList<ProtocolField> protocolFields = new List<ProtocolField>();
 
-    private List<SelectOption> protocolEnabledOptions = new List<SelectOption>
+    private string? TestContext(CellEditContext<ProtocolField> context, string? fieldValue)
     {
-        new SelectOption { Text = "Enabled", Value = "Y" },
-        new SelectOption { Text = "Disabled", Value = "N" }
-    };
+        return (string?)context.CellValue ?? fieldValue;
+    }
 
-    private List<SelectOption> protocolRequiredOptions = new List<SelectOption>
-    {
-        new SelectOption { Text = "Required", Value = "Y" },
-        new SelectOption { Text = "Not Required", Value = "N" }
-    };
-
-    private List<SelectOption> protocolPickListOptions = new List<SelectOption>
-    {
-        new SelectOption { Text = "Yes", Value = "Y" },
-        new SelectOption { Text = "No", Value = "N" }
-    };
-
-    private List<SelectOption> protocolMultiFormOptions = new List<SelectOption>
-    {
-        new SelectOption { Text = "Yes", Value = "Y" },
-        new SelectOption { Text = "No", Value = "N" }
-    };
-
-    protected async Task RefreshCategoryList(string? currentFieldId = null)
+    protected async Task RefreshCategoryList(string currentFieldId = null)
     {
         System.Console.WriteLine("RefreshCategoryList");
         System.Console.WriteLine("currentFieldId: " + currentFieldId);
@@ -196,16 +188,21 @@
         var fullFieldList = await thorFieldService.GetFieldsForMapping(protocolMappingId);
         var protocolFieldList = protocolFields.GroupBy(x => x.ThorFieldId).Select(x => x.Key).ToList();
         var fieldHash = new HashSet<string>(protocolFieldList);
-        this.categoryList = fullFieldList.Where(x => x.ThorFieldId == currentFieldId || !fieldHash.Contains(x.ThorFieldId)).Select(x => x.Category).Distinct().ToList();
-        
+        this.categoryList = fullFieldList.Where(x => x.ThorFieldId == currentFieldId || !fieldHash.Contains(x.ThorFieldId)).Select(x => x.Category!).Distinct().ToList();
+
         // Print sorted category list as json
         System.Console.WriteLine("RefreshCategoryList categoryList");
         System.Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(categoryList));
-        dataGridRef.Refresh();
+        await dataGridRef.Refresh();
     }
 
-    protected async Task RefreshFieldList(string currentCategoryId, string? currentFieldId=null)
+    protected async Task RefreshFieldList(string currentCategoryId, string currentFieldId=null)
     {
+        if (currentCategoryId == null)
+        {
+            this.fieldList = new List<ThorField>();
+            return;
+        }
         System.Console.WriteLine("RefreshFieldList");
         System.Console.WriteLine("currentCategoryId: " + currentCategoryId);
         System.Console.WriteLine("currentFieldId: " + currentFieldId);
@@ -223,7 +220,7 @@
         // Print sorted field list as json
         System.Console.WriteLine("RefreshFieldList fieldList");
         System.Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(fieldList));
-        dataGridRef.Refresh();
+        await dataGridRef.Refresh();
     }
 
     protected override async Task OnInitializedAsync()
@@ -238,24 +235,54 @@
     public ProtocolField CreateNewItem()
     {
         selectedField = null;
+        currentCategoryId = String.Empty;
+
         RefreshCategoryList().Wait();
         fieldList = new List<ThorField>();
-        System.Console.WriteLine("CreateNewItem categoryList");
-        System.Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(categoryList));
+
         return new ProtocolField();
     }
 
     public ProtocolField CreateEditItem(ProtocolField protocolField)
     {
         selectedField = protocolField;
-        Console.WriteLine("CreateEditItem");
-        Console.WriteLine("protocolField.ThorFieldId: " + protocolField.ThorFieldId);
-        Console.WriteLine("selectedField.ThorFieldId: " + selectedField.ThorFieldId);
+        currentCategoryId = protocolField.ThorDataCategoryId;
+
         RefreshCategoryList(selectedField.ThorFieldId).Wait();
         RefreshFieldList(selectedField.ThorDataCategoryId, selectedField.ThorFieldId).Wait();
-        System.Console.WriteLine("CreateEditItem categoryList");
-        System.Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(categoryList));
+
         return protocolField;
+    }
+
+    public async Task<CancellableRowChange<ProtocolField>> Verify(CancellableRowChange<ProtocolField, Dictionary<string, object>> e)
+    {
+        // e.Values
+        var protocolFieldId = e.Item.ProtocolFieldId;
+        e.Values.TryGetValue("ThorFieldId", out var thorFieldId);
+
+        if (string.IsNullOrEmpty((string?)thorFieldId))
+        {
+            List<string> missingFields = new List<string>();
+
+            if (string.IsNullOrEmpty((string?)thorFieldId))
+            {
+                missingFields.Add("OARS Field");
+            }
+
+            if (missingFields.Count > 0)
+            {
+                await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
+                e.Cancel = true;
+            }
+        }
+
+        if (!string.IsNullOrEmpty((string?)thorFieldId) && protocolFields.Any(x => x.ThorFieldId == (string)thorFieldId && x.ProtocolFieldId != protocolFieldId))
+        {
+            await notificationService.Error($"The field {e.Item.ThorFieldId} already exists");
+            e.Cancel = true;
+        }
+
+        return e;
     }
 
     public async void Save(SavedRowItem<ProtocolField, Dictionary<string, object>> savedRowItem)
@@ -292,8 +319,12 @@
 
     async Task OnSelectedCategoryValueChanged(string categoryId)
     {
+        if (currentCategoryId == categoryId)
+        {
+            return;
+        }
         currentCategoryId = categoryId;
-        await RefreshFieldList(categoryId, selectedField?.ThorFieldId);
+        await RefreshFieldList(categoryId);
     }
 
     public async Task<CancellableRowChange<ProtocolField>> ConfirmDelete(CancellableRowChange<ProtocolField> item)
@@ -304,11 +335,5 @@
             item.Cancel = true;
         }
         return item;
-    }
-
-    public void AddRow()
-    {
-        currentCategoryId = String.Empty;
-        dataGridRef.New();    
     }
 }

@@ -30,7 +30,9 @@
            RowUpdated="@Save"
            RowInserted="@Save"
            RowRemoved="@Delete"
-           RowRemoving="@ConfirmDelete">
+              RowRemoving="@ConfirmDelete"
+              RowUpdating="@Verify"
+              RowInserting="@Verify">
      <DataGridColumns>
         <DataGridColumn Field="@nameof(ProtocolEDCDictionary.EDCDictionaryName)" Width="15%" Caption="EDC Dictionary Name" Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending" Editable>
          </DataGridColumn>
@@ -97,6 +99,14 @@
         return;
     }
 
+
+
+    public async Task<CancellableRowChange<ProtocolEDCDictionary>> Verify(CancellableRowChange<ProtocolEDCDictionary, Dictionary<string, object>> e)
+    {
+        // e.Values
+
+        return e;
+    }
 
 
     public async void Save(SavedRowItem<ProtocolEDCDictionary, Dictionary<string, object>> savedRowItem)

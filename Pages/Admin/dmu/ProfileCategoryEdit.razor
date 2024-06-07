@@ -30,7 +30,9 @@
            RowUpdated="@Save"
            RowInserted="@Save"
            RowRemoving="@ConfirmDelete"
-           RowRemoved="@Delete">
+          RowRemoved="@Delete"
+          RowUpdating="@Verify"
+          RowInserting="@Verify">
      <DataGridColumns>
          <DataGridColumn Width="35%" Field="@nameof(ProfileDataCategory.ThorDataCategoryId)" Caption="OARS Data Category" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
              <DisplayTemplate>
@@ -106,6 +108,13 @@
         this.categoryList = await categoryService.GetCategories();
         this.categoryList = this.categoryList.Where(x => x.IsActive).ToList();
 
+    }
+
+    public async Task<CancellableRowChange<ProfileDataCategory>> Verify(CancellableRowChange<ProfileDataCategory, Dictionary<string, object>> e)
+    {
+        // e.Values
+
+        return e;
     }
 
     public async void Save(SavedRowItem<ProfileDataCategory, Dictionary<string, object>> savedRowItem)

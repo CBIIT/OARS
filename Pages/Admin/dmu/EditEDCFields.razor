@@ -29,7 +29,9 @@
            RowUpdated="@Save"
            RowInserted="@Save"
            RowRemoving="@ConfirmDelete"
-           RowRemoved="@Delete">
+              RowRemoved="@Delete"
+              RowUpdating="@Verify"
+              RowInserting="@Verify">
      <DataGridColumns>
          <DataGridColumn Width="15%" Caption="EDC Form ID" Filterable="true" Sortable="true" Editable SortDirection="SortDirection.Ascending">
              <DisplayTemplate>
@@ -129,14 +131,20 @@
         {
             await loading.Show();
             this.protocolForms = await protocolEDCFormService.GetFormsForMappingId(this.protocolMappingId);
-            var formIds = this.protocolForms.Select(x => x.ProtocolEDCFormId).ToList();
-            this.protocolFields = await protocolFieldService.GetFieldsByFormIds(formIds);
+            this.protocolFields = await protocolFieldService.GetFieldsByProtocolMappingId(this.protocolMappingId);
             StateHasChanged();
             await loading.Hide();
         }
         return;
     }
 
+
+    public async Task<CancellableRowChange<ProtocolEDCField>> Verify(CancellableRowChange<ProtocolEDCField, Dictionary<string, object>> e)
+    {
+        // e.Values
+
+        return e;
+    }
 
     public async void Save(SavedRowItem<ProtocolEDCField, Dictionary<string, object>> savedRowItem)
     {

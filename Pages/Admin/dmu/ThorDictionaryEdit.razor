@@ -10,6 +10,7 @@
           Class="admindatagrid"
           Data="@dictionaryList"
           Editable
+
           Responsive
           Striped
           Sortable
@@ -34,7 +35,7 @@
           RowUpdated="@Save"
           RowUpdating="@Verify"
           RowInserted="@Save"
-          RowInserting="@VerifyNew"
+          RowInserting="@Verify"
           HeaderRowStyling="@(new DataGridRowStyling() { Style="color=rgba(250, 141, 40, 1);" })">
     <DataGridColumns>
         <DataGridColumn Width="35%" Field="@nameof(ThorDictionary.DictionaryName)" Caption="OARS Dictionary Name" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
@@ -108,47 +109,41 @@
         return thorDictionary;
     }
 
-    public async Task<CancellableRowChange<ThorDictionary>> VerifyNew(CancellableRowChange<ThorDictionary, Dictionary<string, object>> e)
-    {
-        var v_e = await Verify(e);
 
-        var dictName = e.Values["DictionaryName"];
-        var dictOption = e.Values["DictionaryOption"];
-
-        if (dictName != null && dictOption != null && dictionaryList.Any(x => x.DictionaryName == (string)dictName && x.DictionaryOption == (string)dictOption))
-        {
-            await notificationService.Error($"Dictionary option {dictName} - {dictOption} already exists");
-            v_e.Cancel = true;
-        }
-
-        return v_e;
-    }
     public async Task<CancellableRowChange<ThorDictionary>> Verify(CancellableRowChange<ThorDictionary, Dictionary<string, object>> e)
     {
+        // e.Values
+
         e.Values.TryGetValue("DictionaryName", out var dictName);
+        e.Values.TryGetValue("DictionaryOption", out var dictOption);
         e.Values.TryGetValue("SortOrder", out var order);
+
         if (dictName == null || order == null)
         {
             List<string> missingFields = new List<string>();
             if (dictName == null)
-			{
-				missingFields.Add("Dictionary Name");
-			}
+            {
+                missingFields.Add("Dictionary Name");
+            }
+            if (dictOption == null)
+            {
+                missingFields.Add("Dictionary Option");
+            }
             if (order == null)
             {
                 missingFields.Add("Order");
-			}
+            }
             await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
-            e.Cancel = true;
-		}
-
-        if (dictName != null && this.selectedDictionary?.DictionaryName != (string)dictName && dictionaryList.Any(x => x.DictionaryName == (string)dictName))
-        {
-            await notificationService.Error($"Dictionary {dictName} already exists");
             e.Cancel = true;
         }
 
-		return e;
+        if (dictName != null && dictOption != null && selectedDictionary?.DictionaryName != (string)dictName && selectedDictionary?.DictionaryOption != (string)dictOption && dictionaryList.Any(x => x.DictionaryName == (string)dictName && x.DictionaryOption == (string)dictOption))
+        {
+            await notificationService.Error($"Dictionary option {dictName} - {dictOption} already exists");
+            e.Cancel = true;
+        }
+
+        return e;
 	}
 
     public async void Save(SavedRowItem<ThorDictionary, Dictionary<string, object>> e)

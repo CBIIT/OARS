@@ -32,7 +32,9 @@
            RowInserted="@Save"
           @bind-SelectedRow="@selectedRow"
           RowRemoving=@ConfirmDelete
-          RowRemoved=@DeleteRow>
+          RowRemoved=@DeleteRow
+          RowUpdating="@Verify"
+          RowInserting="@Verify">
      <DataGridColumns>
         <DataGridColumn Field="@nameof(ProtocolTac.TacCode)" Width="30%" Caption="TAC Code" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
         </DataGridColumn>
@@ -88,6 +90,14 @@
         watch.Stop();
         var elapsedMs = watch.ElapsedMilliseconds;
         System.Console.WriteLine($"Protocol TAC Elapsed time: {elapsedMs} ms");
+    }
+
+
+    public async Task<CancellableRowChange<ProtocolTac>> Verify(CancellableRowChange<ProtocolTac, Dictionary<string, object>> e)
+    {
+        // e.Values
+
+        return e;
     }
 
     public async void Save(SavedRowItem<ProtocolTac, Dictionary<string, object>> e)

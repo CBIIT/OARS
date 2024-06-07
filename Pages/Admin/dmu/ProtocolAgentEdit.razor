@@ -29,7 +29,9 @@
            RowUpdated="@Save"
            RowInserted="@Save"
            RowRemoved="@Delete"
-           RowRemoving="@ConfirmDelete">
+           RowRemoving="@ConfirmDelete"
+              RowUpdating="@Verify"
+              RowInserting="@Verify">
      <DataGridColumns>
          <DataGridColumn Width="30%" Caption="NSC Number" Field="@nameof(ProtocolAgent.NscNumber)" Filterable="true" Sortable="false" Editable>
         </DataGridColumn>
@@ -81,6 +83,14 @@
         watch.Stop();
         var elapsedMs = watch.ElapsedMilliseconds;
         System.Console.WriteLine($"Protocol Agent Elapsed time: {elapsedMs} ms");
+    }
+
+
+    public async Task<CancellableRowChange<ProtocolAgent>> Verify(CancellableRowChange<ProtocolAgent, Dictionary<string, object>> e)
+    {
+        // e.Values
+
+        return e;
     }
 
 
