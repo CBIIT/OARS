@@ -52,6 +52,50 @@
                     </DataGridColumn> 
                     <DataGridColumn Width="100px" Field="@nameof(Protocol.StudyId)" Caption="Study ID" />
                     <DataGridColumn Width="150px" Field="@nameof(Protocol.PrimaryAgent)" Caption="Primary Agent" />
+                    <DataGridColumn Width="150px" Field="@nameof(Protocol.OtherAgents)" Caption="Other Agents" >
+                        <DisplayTemplate> 
+                            @{
+                            var otherAgents = (context as Protocol)?.OtherAgents;
+                            if (otherAgents != null)
+                            {
+                                var otherAgentsList = otherAgents.Split(',').ToList();
+                                @if (otherAgentsList.Count > 1)
+                                {
+                                    <Accordion Margin="Margin.Is0" Padding="Padding.Is0">
+                                        <Collapse>
+                                            <CollapseHeader>
+                                                <AccordionToggle Class="overview-accordion-header">
+                                                    @otherAgentsList.Count Other Agents
+                                                </AccordionToggle>
+                                            </CollapseHeader>
+                                            <CollapseBody Class="overview-accordion-body">
+                                                <Table Hoverable Padding="Padding.Is0">
+                                                    <TableBody>
+                                                        @foreach (var agent in otherAgentsList)
+                                                        {
+                                                            <TableRow>
+                                                                <TableRowCell>@agent</TableRowCell>
+                                                            </TableRow>
+                                                        }
+                                                    </TableBody>
+                                                </Table>
+                                            </CollapseBody>
+                                        </Collapse>
+                                    </Accordion>
+                                }
+                                else
+                                {
+                                    var agent = otherAgentsList.FirstOrDefault();
+                                    @agent
+                                }
+                            }
+                            else
+                            {
+                                
+                            }
+                            }
+                        </DisplayTemplate>
+                    </DataGridColumn>
                     <DataGridColumn Field="@nameof(Protocol.ProtocolTitle)" Caption="Title" />
                     <DataGridDateColumn Width="150px" Field="@nameof(Protocol.ActivationDT)" Caption="Activation Date">
                         <DisplayTemplate>
