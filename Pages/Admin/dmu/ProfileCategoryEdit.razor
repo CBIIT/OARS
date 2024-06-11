@@ -101,21 +101,45 @@
     private DataGrid<ProfileDataCategory> dataGridRef;
     private IList<ProfileDataCategory> profileCategories;
     private IList<ThorCategory> categoryList;
+    private IList<ProfileDataCategory> protocolDataCategories = new List<ProfileDataCategory>();
 
     protected override async Task OnInitializedAsync()
     {
         this.profileCategories = await profileCategoryService.GetCategories(profile);
         this.categoryList = await categoryService.GetCategories();
         this.categoryList = this.categoryList.Where(x => x.IsActive).ToList();
-
     }
 
     public async Task<CancellableRowChange<ProfileDataCategory>> Verify(CancellableRowChange<ProfileDataCategory, Dictionary<string, object>> e)
     {
-        // e.Values
+        protocolDataCategories = await profileCategoryService.GetCategories(profile);
+
+        e.Values.TryGetValue("ThorDataCategoryId", out var ThorDataCategoryId);
+
+        if (string.IsNullOrEmpty((string?)ThorDataCategoryId))
+        {
+            List<string> missingFields = new List<string>();
+
+            if (string.IsNullOrEmpty((string?)ThorDataCategoryId))
+            {
+                missingFields.Add("OARS Data Category");
+            }
+
+            if (missingFields.Count > 0)
+            {
+                await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
+                e.Cancel = true;
+            }
+        }
+
+        if (!string.IsNullOrEmpty((string?)ThorDataCategoryId) && protocolDataCategories.Any(x => x.ThorDataCategoryId == (string)ThorDataCategoryId))
+        {
+            await notificationService.Error($"The field {ThorDataCategoryId} already exists");
+            e.Cancel = true;
+        }
 
         return e;
-    }
+    } 
 
     public async void Save(SavedRowItem<ProfileDataCategory, Dictionary<string, object>> savedRowItem)
     {
