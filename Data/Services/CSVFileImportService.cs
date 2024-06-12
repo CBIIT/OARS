@@ -176,7 +176,7 @@ public class CSVFileImportService : ICSVFileImportService
             {
                 var records = csv.GetRecords<CSVField>().ToArray();
 
-                processInfo.Add("Field records found: " + records.Length.ToString());
+                processInfo.Add("Field records in file: " + records.Length.ToString());
 
                 foreach (var record in records)
                 {
@@ -293,7 +293,7 @@ public class CSVFileImportService : ICSVFileImportService
         {
             var records = csv.GetRecords<CSVDictionary>().ToArray();
 
-            processInfo.Add("Dictionary records found: " + records.Length.ToString());
+            processInfo.Add("Dictionary records in file: " + records.Length.ToString());
 
             foreach (var record in records)
             {
