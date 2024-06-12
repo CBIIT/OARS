@@ -221,6 +221,7 @@
 
                 try
                 {
+                    await notificationService.Info("Importing ALS file...");
                     Feedback = await alsFileImportService.ParseALSFile(ms, this.protocolMappingId);
                     await notificationService.Success("ALS file uploaded successfully.");
                     hideLoading = true;
@@ -242,6 +243,7 @@
 
                 try
                 {
+                    await notificationService.Info("Importing XML file...");
                     Feedback = await xmlFileImportService.ParseXMLFile(ms, this.protocolMappingId);
                     await notificationService.Success("XML file uploaded successfully.");
                     hideLoading = true;
