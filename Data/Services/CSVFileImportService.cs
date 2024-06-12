@@ -216,6 +216,10 @@ public class CSVFileImportService : ICSVFileImportService
             processInfo.Add("Field records inserted: " + fields.Rows.Count.ToString());
             processInfo.Add("Field records skipped: " + skipped.ToString());
         }
+        else
+        {
+            processInfo.Add("No forms found in the database for the fields");
+        }
 
         return processInfo;
     }

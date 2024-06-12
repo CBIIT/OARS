@@ -422,14 +422,23 @@
         {  
             Feedback = new List<string>();
 
-            if (ms != null)
-                Feedback.AddRange(await csvFileImportService.ParseCSVField(ms, this.protocolMappingId));
-
             if (msForm != null)
+            {
+                await notificationService.Info("Importing forms...");
                 Feedback.AddRange(await csvFileImportService.ParseCSVFileForm(msForm, this.protocolMappingId));
+            }
+
+            if (ms != null)
+            {
+                await notificationService.Info("Importing fields...");
+                Feedback.AddRange(await csvFileImportService.ParseCSVField(ms, this.protocolMappingId));
+            }
 
             if (msMeta != null)
+            {
+                await notificationService.Info("Importing dictionaries...");
                 Feedback.AddRange(await csvFileImportService.ParseCSVFileMeta(msMeta, this.protocolMappingId));
+            }
 
             await notificationService.Success("CSV files uploaded successfully!");
 
