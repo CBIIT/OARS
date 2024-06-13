@@ -82,6 +82,7 @@
     private DataGrid<ProtocolTac> dataGridRef;
     private IList<ProtocolTac> protocolTacList;
     private ProtocolTac selectedRow;
+    private IList<ProtocolTac> protocolTacs = new List<ProtocolTac>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -95,7 +96,36 @@
 
     public async Task<CancellableRowChange<ProtocolTac>> Verify(CancellableRowChange<ProtocolTac, Dictionary<string, object>> e)
     {
-        // e.Values
+        protocolTacs = await ProtocolTacService.GetProtocolTACByProtocolMappingId(protocolMappingId);
+
+        e.Values.TryGetValue("TacCode", out var TacCode);
+        e.Values.TryGetValue("TacDescription", out var TacDescription);
+
+        if (string.IsNullOrEmpty((string?)TacCode))
+        {
+            List<string> missingFields = new List<string>();
+
+            if (string.IsNullOrEmpty((string?)TacCode))
+            {
+                missingFields.Add("TAC Code");
+            }
+
+            if (missingFields.Count > 0)
+            {
+                await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
+                e.Cancel = true;
+            }
+        }
+
+        var currentTacs = protocolTacs.Where(x => x.TacCode == (string)TacCode);
+        if (currentTacs != null)
+        {
+            if (!string.IsNullOrEmpty((string?)TacDescription) && currentTacs.Any(p => p.TacDescription == (string)TacDescription))
+            {
+                await notificationService.Error($"The fields {TacCode}, {TacDescription} already exists");
+                e.Cancel = true;
+            }
+        }
 
         return e;
     }

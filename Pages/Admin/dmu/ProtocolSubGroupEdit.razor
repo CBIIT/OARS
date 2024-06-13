@@ -87,7 +87,36 @@
 
     public async Task<CancellableRowChange<ProtocolSubGroup>> Verify(CancellableRowChange<ProtocolSubGroup, Dictionary<string, object>> e)
     {
-        // e.Values
+        protocolSubGroups = await protocolSubGroupService.GetSubGroupsByMappingId(protocolMappingId);
+
+        e.Values.TryGetValue("SubGroupCode", out var SubGroupCode);
+        e.Values.TryGetValue("Description", out var Description);
+
+        if (string.IsNullOrEmpty((string?)SubGroupCode))
+        {
+            List<string> missingFields = new List<string>();
+
+            if (string.IsNullOrEmpty((string?)SubGroupCode))
+            {
+                missingFields.Add("TAC Code");
+            }
+
+            if (missingFields.Count > 0)
+            {
+                await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
+                e.Cancel = true;
+            }
+        }
+
+        var currentSubGroups = protocolSubGroups.Where(x => x.SubGroupCode == (string)SubGroupCode);
+        if (currentSubGroups != null)
+        {
+            if (!string.IsNullOrEmpty((string?)Description) && currentSubGroups.Any(p => p.Description == (string)Description))
+            {
+                await notificationService.Error($"The fields {SubGroupCode}, {Description} already exists");
+                e.Cancel = true;
+            }
+        }
 
         return e;
     }

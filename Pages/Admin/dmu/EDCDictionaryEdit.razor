@@ -103,7 +103,36 @@
 
     public async Task<CancellableRowChange<ProtocolEDCDictionary>> Verify(CancellableRowChange<ProtocolEDCDictionary, Dictionary<string, object>> e)
     {
-        // e.Values
+        protocolDicts = await protocolDictionaryService.GetDictionariesByMappingId(protocolMappingId);
+
+        e.Values.TryGetValue("EDCDictionaryName", out var EDCDictionaryName);
+        e.Values.TryGetValue("EDCItemId", out var EDCItemId);
+
+        if (string.IsNullOrEmpty((string?)EDCDictionaryName))
+        {
+            List<string> missingFields = new List<string>();
+
+            if (string.IsNullOrEmpty((string?)EDCDictionaryName))
+            {
+                missingFields.Add("EDC Dictionary Name");
+            }
+
+            if (missingFields.Count > 0)
+            {
+                await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
+                e.Cancel = true;
+            }
+        }
+
+        var currentProtocolDicts = protocolDicts.Where(x => x.EDCDictionaryName == (string)EDCDictionaryName);
+        if (currentProtocolDicts != null)
+        {
+            if (!string.IsNullOrEmpty((string?)EDCItemId) && currentProtocolDicts.Any(p => p.EDCItemId == (string)EDCItemId))
+            {
+                await notificationService.Error($"The fields {EDCDictionaryName}, {EDCItemId} already exists");
+                e.Cancel = true;
+            }
+        }
 
         return e;
     }

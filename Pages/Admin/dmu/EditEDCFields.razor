@@ -141,7 +141,37 @@
 
     public async Task<CancellableRowChange<ProtocolEDCField>> Verify(CancellableRowChange<ProtocolEDCField, Dictionary<string, object>> e)
     {
-        // e.Values
+        protocolFields = await protocolFieldService.GetFieldsByProtocolMappingId(this.protocolMappingId);
+
+        e.Values.TryGetValue("EDCFieldIdentifier", out var EDCFieldIdentifier);
+        e.Values.TryGetValue("EDCFieldName", out var EDCFieldName);
+        e.Values.TryGetValue("EDCDictionaryName", out var EDCDictionaryName);
+
+        if (string.IsNullOrEmpty((string?)EDCFieldIdentifier))
+        {
+            List<string> missingFields = new List<string>();
+
+            if (string.IsNullOrEmpty((string?)EDCFieldIdentifier))
+            {
+                missingFields.Add("EDC Field ID");
+            }
+
+            if (missingFields.Count > 0)
+            {
+                await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
+                e.Cancel = true;
+            }
+        }
+
+        var currentProtocolFields = protocolFields.Where(x => x.EDCFieldIdentifier == (string)EDCFieldIdentifier);
+        if (currentProtocolFields != null)
+        {
+            if (!string.IsNullOrEmpty((string?)EDCFieldName) && !string.IsNullOrEmpty((string?)EDCDictionaryName) && currentProtocolFields.Any(p => p.EDCFieldName.Equals(EDCFieldName) && p.EDCDictionaryName.Equals(EDCDictionaryName)))
+            {
+                await notificationService.Error($"The fields {EDCFieldIdentifier}, {EDCFieldName}, {EDCDictionaryName} already exists");
+                e.Cancel = true;
+            }
+        }
 
         return e;
     }

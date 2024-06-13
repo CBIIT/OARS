@@ -133,11 +133,11 @@
         }
 
         var currentEDCForms = protocolEDCForms.Where(x => x.EDCFormIdentifier == (string)EDCFormIdentifier);
-        if (!string.IsNullOrEmpty((string?)EDCFormIdentifier) && currentEDCForms != null)
+        if (currentEDCForms != null)
         {
-            if (currentEDCForms.Any(p => p.EDCFormName == (string)EDCFormName))
+            if (!string.IsNullOrEmpty((string?)EDCFormName) && currentEDCForms.Any(p => p.EDCFormName == (string)EDCFormName))
             {
-                await notificationService.Error($"The field {EDCFormIdentifier} already exists");
+                await notificationService.Error($"The fields {EDCFormIdentifier}, {EDCFormName} already exists");
                 e.Cancel = true;
             }
         }
