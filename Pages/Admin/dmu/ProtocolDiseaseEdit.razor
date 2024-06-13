@@ -98,20 +98,22 @@
         e.Values.TryGetValue("DiseaseName", out var DiseaseName);
         e.Values.TryGetValue("MeddraCode", out var MeddraCode);
 
+        List<string> missingFields = new List<string>();
+
         if (string.IsNullOrEmpty((string?)DiseaseName))
         {
-            List<string> missingFields = new List<string>();
+            missingFields.Add("Disease Name");
+        }
 
-            if (string.IsNullOrEmpty((string?)DiseaseName))
-            {
-                missingFields.Add("TAC Code");
-            }
+        if (string.IsNullOrEmpty((string?)MeddraCode))
+        {
+            missingFields.Add("Reporting Meddra Code");
+        }
 
-            if (missingFields.Count > 0)
-            {
-                await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
-                e.Cancel = true;
-            }
+        if (missingFields.Count > 0)
+        {
+            await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
+            e.Cancel = true;
         }
 
         var currentProtocolDiseaseList = protocolDiseaseList.Where(x => x.DiseaseName == (string)DiseaseName);

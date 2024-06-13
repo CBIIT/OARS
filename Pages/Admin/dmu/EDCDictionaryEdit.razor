@@ -107,21 +107,29 @@
 
         e.Values.TryGetValue("EDCDictionaryName", out var EDCDictionaryName);
         e.Values.TryGetValue("EDCItemId", out var EDCItemId);
+        e.Values.TryGetValue("EDCItemName", out var EDCItemName);
+
+        List<string> missingFields = new List<string>();
 
         if (string.IsNullOrEmpty((string?)EDCDictionaryName))
         {
-            List<string> missingFields = new List<string>();
+            missingFields.Add("EDC Dictionary Name");
+        }
 
-            if (string.IsNullOrEmpty((string?)EDCDictionaryName))
-            {
-                missingFields.Add("EDC Dictionary Name");
-            }
+        if (string.IsNullOrEmpty((string?)EDCItemId))
+        {
+            missingFields.Add("EDC Dictionary Value");
+        }
 
-            if (missingFields.Count > 0)
-            {
-                await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
-                e.Cancel = true;
-            }
+        if (string.IsNullOrEmpty((string?)EDCItemName))
+        {
+            missingFields.Add("EDC Dictionary Options");
+        }
+
+        if (missingFields.Count > 0)
+        {
+            await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
+            e.Cancel = true;
         }
 
         var currentProtocolDicts = protocolDicts.Where(x => x.EDCDictionaryName == (string)EDCDictionaryName);

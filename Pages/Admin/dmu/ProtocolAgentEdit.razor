@@ -93,20 +93,22 @@
         e.Values.TryGetValue("NscNumber", out var NscNumber);
         e.Values.TryGetValue("AgentName", out var AgentName);
 
+        List<string> missingFields = new List<string>();
+
         if (string.IsNullOrEmpty((string?)NscNumber))
         {
-            List<string> missingFields = new List<string>();
+            missingFields.Add("NSC Number");
+        }
 
-            if (string.IsNullOrEmpty((string?)NscNumber))
-            {
-                missingFields.Add("NSC Number");
-            }
+        if (string.IsNullOrEmpty((string?)AgentName))
+        {
+            missingFields.Add("Agent Name");
+        }
 
-            if (missingFields.Count > 0)
-            {
-                await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
-                e.Cancel = true;
-            }
+        if (missingFields.Count > 0)
+        {
+            await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
+            e.Cancel = true;
         }
 
         var currentProtocolAgents = protocolAgents.Where(x => x.NscNumber == (string)NscNumber);

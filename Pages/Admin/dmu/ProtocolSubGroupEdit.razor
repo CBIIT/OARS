@@ -92,20 +92,22 @@
         e.Values.TryGetValue("SubGroupCode", out var SubGroupCode);
         e.Values.TryGetValue("Description", out var Description);
 
+        List<string> missingFields = new List<string>();
+
         if (string.IsNullOrEmpty((string?)SubGroupCode))
         {
-            List<string> missingFields = new List<string>();
+            missingFields.Add("Sub Group Code");
+        }
 
-            if (string.IsNullOrEmpty((string?)SubGroupCode))
-            {
-                missingFields.Add("TAC Code");
-            }
+        if (string.IsNullOrEmpty((string?)Description))
+        {
+            missingFields.Add("Description");
+        }
 
-            if (missingFields.Count > 0)
-            {
-                await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
-                e.Cancel = true;
-            }
+        if (missingFields.Count > 0)
+        {
+            await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
+            e.Cancel = true;
         }
 
         var currentSubGroups = protocolSubGroups.Where(x => x.SubGroupCode == (string)SubGroupCode);

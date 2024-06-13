@@ -143,24 +143,37 @@
     {
         protocolFields = await protocolFieldService.GetFieldsByProtocolMappingId(this.protocolMappingId);
 
+        e.Values.TryGetValue("ProtocolEDCFormId", out var ProtocolEDCFormId);
         e.Values.TryGetValue("EDCFieldIdentifier", out var EDCFieldIdentifier);
         e.Values.TryGetValue("EDCFieldName", out var EDCFieldName);
         e.Values.TryGetValue("EDCDictionaryName", out var EDCDictionaryName);
 
+        List<string> missingFields = new List<string>();
+
+        if ((int)ProtocolEDCFormId == 0)
+        {
+            missingFields.Add("EDC Form ID");
+        }
+
         if (string.IsNullOrEmpty((string?)EDCFieldIdentifier))
         {
-            List<string> missingFields = new List<string>();
+            missingFields.Add("EDC Field ID");
+        }
 
-            if (string.IsNullOrEmpty((string?)EDCFieldIdentifier))
-            {
-                missingFields.Add("EDC Field ID");
-            }
+        if (string.IsNullOrEmpty((string?)EDCFieldName))
+        {
+            missingFields.Add("EDC Field Label");
+        }
 
-            if (missingFields.Count > 0)
-            {
-                await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
-                e.Cancel = true;
-            }
+        if (string.IsNullOrEmpty((string?)EDCDictionaryName))
+        {
+            missingFields.Add("EDC Dictionary Name");
+        }
+
+        if (missingFields.Count > 0)
+        {
+            await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
+            e.Cancel = true;
         }
 
         var currentProtocolFields = protocolFields.Where(x => x.EDCFieldIdentifier == (string)EDCFieldIdentifier);

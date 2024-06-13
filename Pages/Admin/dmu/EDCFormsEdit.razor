@@ -116,20 +116,22 @@
         e.Values.TryGetValue("EDCFormIdentifier", out var EDCFormIdentifier);
         e.Values.TryGetValue("EDCFormName", out var EDCFormName);
 
+        List<string> missingFields = new List<string>();
+
         if (string.IsNullOrEmpty((string?)EDCFormIdentifier))
         {
-            List<string> missingFields = new List<string>();
+            missingFields.Add("EDC Form ID");
+        }
 
-            if (string.IsNullOrEmpty((string?)EDCFormIdentifier))
-            {
-                missingFields.Add("EDC Form ID");
-            }
+        if (string.IsNullOrEmpty((string?)EDCFormName))
+        {
+            missingFields.Add("EDC Form Name");
+        }
 
-            if (missingFields.Count > 0)
-            {
-                await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
-                e.Cancel = true;
-            }
+        if (missingFields.Count > 0)
+        {
+            await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
+            e.Cancel = true;
         }
 
         var currentEDCForms = protocolEDCForms.Where(x => x.EDCFormIdentifier == (string)EDCFormIdentifier);
