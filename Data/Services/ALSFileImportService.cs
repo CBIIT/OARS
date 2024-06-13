@@ -17,8 +17,10 @@ public class ALSFileImportService : IALSFileImportService
         _dictionaryService = dictionaryService;
 	}
 
-    public async Task ParseALSFile(Stream inputFileStream, int protocolMappingId)
+    public async Task<List<string>> ParseALSFile(Stream inputFileStream, int protocolMappingId)
     {
+        var processInfo = new List<string>();
+
         if (inputFileStream.Position > 0)
         {
             inputFileStream.Position = 0;
@@ -116,7 +118,14 @@ public class ALSFileImportService : IALSFileImportService
                     }
                 }
             }
+
         }
+        
+        processInfo.Add("Form records inserted: " + forms.Count.ToString());
+        processInfo.Add("Field records inserted: " + fields.Rows.Count.ToString());
+        processInfo.Add("Dictionary records inserted: " + dictionaries.Rows.Count.ToString());
+
+        return processInfo;
     }
 
     private DataTable SetUpDictionaryTable()
