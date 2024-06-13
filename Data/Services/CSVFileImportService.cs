@@ -151,12 +151,17 @@ public class CSVFileImportService : ICSVFileImportService
 
     }
 
-    public async Task ParseCSVField(MemoryStream inputFileStream, int protocolMappingId)
+    public async Task<List<string>> ParseCSVField(MemoryStream inputFileStream, int protocolMappingId)
     {
+        var processInfo = new List<string>();
+
         var forms = await _formService.GetProtocolEDCFormsByProtocolMappingId(protocolMappingId);
+
+        var skipped = 0;
 
         if (forms.Count > 0)
         {
+            var formMap = forms.Where(x => x.EDCFormIdentifier != null).GroupBy(x => x.EDCFormIdentifier!).ToDictionary(x => x.Key, x => x.ToArray()[0]);
             DataTable fields = SetUpFieldTable();
 
             var reader = new StreamReader(inputFileStream, Encoding.UTF8);
@@ -171,11 +176,17 @@ public class CSVFileImportService : ICSVFileImportService
             {
                 var records = csv.GetRecords<CSVField>().ToArray();
 
+                processInfo.Add("Field records in file: " + records.Length.ToString());
+
                 foreach (var record in records)
                 {
-                    var EDCForm = forms.Where(f => f.EDCFormIdentifier == record.pageName).FirstOrDefault();
-                    if ((!string.IsNullOrEmpty(record.pageName) || !string.IsNullOrEmpty(record.exportColumn)) && EDCForm != null)
+
+                    if ((!string.IsNullOrEmpty(record.pageName) || !string.IsNullOrEmpty(record.exportColumn)))
                     {
+                        var EDCForm = formMap.GetValueOrDefault(record.pageName);
+                        if (EDCForm == null)
+                            throw new Exception($"The form identifier {record.pageName} was not found in the list of forms");
+
                         DataRow field = fields.NewRow();
                         field["Update_Date"] = DateTime.Now;
                         field["Create_Date"] = DateTime.Now;
@@ -185,6 +196,10 @@ public class CSVFileImportService : ICSVFileImportService
                         field["EDC_Dictionary_Name"] = record.codelistName;
 
                         fields.Rows.Add(field);
+                    }
+                    else
+                    {
+                        skipped++;
                     }
                 }
             }
@@ -197,11 +212,22 @@ public class CSVFileImportService : ICSVFileImportService
                     throw new Exception("Error uploading Fields file, clear uploads and try again.");
                 }
             }
+
+            processInfo.Add("Field records inserted: " + fields.Rows.Count.ToString());
+            processInfo.Add("Field records skipped: " + skipped.ToString());
         }
+        else
+        {
+            processInfo.Add("No forms found in the database for the fields");
+        }
+
+        return processInfo;
     }
 
-    public async Task ParseCSVFileForm(MemoryStream inputFileStream, int protocolMappingId)
+    public async Task<List<string>> ParseCSVFileForm(MemoryStream inputFileStream, int protocolMappingId)
     {
+        var processInfo = new List<string>();
+
         List<ProtocolEDCForm> forms = new List<ProtocolEDCForm>();
 
         var reader = new StreamReader(inputFileStream, Encoding.UTF8);
@@ -216,6 +242,8 @@ public class CSVFileImportService : ICSVFileImportService
         {
             var records = csv.GetRecords<CSVForm>().ToArray();
             
+            processInfo.Add("Form records in file: " + records.Length.ToString());
+
             foreach (var record in records)
                 {
                 ProtocolEDCForm form = new ProtocolEDCForm
@@ -241,10 +269,16 @@ public class CSVFileImportService : ICSVFileImportService
         {
             throw new Exception("Error uploading file, clear uploads and try again.");
         }
+
+        processInfo.Add("Form records inserted: " + forms.Count.ToString());
+
+        return processInfo;
     }
 
-    public async Task ParseCSVFileMeta(MemoryStream inputFileStream, int protocolMappingId)
+    public async Task<List<string>> ParseCSVFileMeta(MemoryStream inputFileStream, int protocolMappingId)
     {
+        var processInfo = new List<string>();
+
         DataTable dictionaries = SetUpDictionaryTable();
 
         var reader = new StreamReader(inputFileStream, Encoding.UTF8);
@@ -258,6 +292,8 @@ public class CSVFileImportService : ICSVFileImportService
         using (var csv = new CsvReader(reader, config))
         {
             var records = csv.GetRecords<CSVDictionary>().ToArray();
+
+            processInfo.Add("Dictionary records in file: " + records.Length.ToString());
 
             foreach (var record in records)
             {
@@ -284,6 +320,10 @@ public class CSVFileImportService : ICSVFileImportService
                 throw new Exception("Error uploading dictionary file, clear uploads and try again.");
             }
         }
+
+        processInfo.Add("Dictonary records inserted: " + dictionaries.Rows.Count.ToString());
+
+        return processInfo;
     }
 
     private DataTable SetUpDictionaryTable()

@@ -134,6 +134,21 @@
                 }
             </Column>
         </Row>
+            <Row Padding="Padding.Is2">
+                <Column ColumnSize="ColumnSize.Is4">
+                    <ListGroup>
+                        @foreach (var msg in Feedback)
+                        {
+                            <ListGroupItem>
+                                @msg
+                            </ListGroupItem>
+                        }
+                    </ListGroup>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is2" Style="text-align:right;">
+                    <Button class="btn dmu-admin-button-orange" onclick="@RefreshStudy" Visibility="@uploadComplete">Refresh Study</Button>
+                </Column>
+            </Row>
         </LoadingIndicator>
     }
     else
@@ -141,7 +156,8 @@
         <Text>This mapping has already been published and is in readonly mode.</Text>
     }
 </Div>
-    @code {
+@code 
+{
     private FilePicker UploadField;
     private LoadingIndicator loading;
     [Inject] private IDatabaseConnectionService databaseConnectionService { get; set; }
@@ -165,10 +181,13 @@
     private MemoryStream? msMeta = null;
 
     private bool disableProcessCSV = true;
+    private Blazorise.Visibility uploadComplete = Blazorise.Visibility.Invisible;
 
     private FilePicker pickerFile;
     private FilePicker pickerForm;
     private FilePicker pickerMeta;
+
+    private List<string> Feedback = new List<string>();
 
     private enum FileTypeSelect
     {
@@ -202,10 +221,11 @@
 
                 try
                 {
-                    await alsFileImportService.ParseALSFile(ms, this.protocolMappingId);
-                    await notificationService.Success("ALS file uploaded successfully. Reloading mapping...");
-                    navigation.NavigateTo(navigation.Uri, true);
-                    hideLoading = false; // Leave the loading spinner displayed while the page is reloading.
+                    await notificationService.Info("Importing ALS file...");
+                    Feedback = await alsFileImportService.ParseALSFile(ms, this.protocolMappingId);
+                    await notificationService.Success("ALS file uploaded successfully.");
+                    hideLoading = true;
+                    uploadComplete = Blazorise.Visibility.Visible;
                 } catch (Exception ex)
                 {                    
                     ms = null;
@@ -223,10 +243,11 @@
 
                 try
                 {
-                    await xmlFileImportService.ParseXMLFile(ms, this.protocolMappingId);
-                    await notificationService.Success("XML file uploaded successfully. Reloading mapping...");
-                    navigation.NavigateTo(navigation.Uri, true);
-                    hideLoading = false; // Leave the loading spinner displayed while the page is reloading.
+                    await notificationService.Info("Importing XML file...");
+                    Feedback = await xmlFileImportService.ParseXMLFile(ms, this.protocolMappingId);
+                    await notificationService.Success("XML file uploaded successfully.");
+                    hideLoading = true;
+                    uploadComplete = Blazorise.Visibility.Visible;
                 } catch(Exception ex){
                     ms = null;
                     await RollbackUpload(this.protocolMappingId);
@@ -400,17 +421,28 @@
         var hideLoading = true;
         await loading.Show();
         try
-        {
-            if (ms != null)
-                await csvFileImportService.ParseCSVField(ms, this.protocolMappingId);
+        {  
+            Feedback = new List<string>();
 
             if (msForm != null)
-                await csvFileImportService.ParseCSVFileForm(msForm, this.protocolMappingId);
+            {
+                await notificationService.Info("Importing forms...");
+                Feedback.AddRange(await csvFileImportService.ParseCSVFileForm(msForm, this.protocolMappingId));
+            }
+
+            if (ms != null)
+            {
+                await notificationService.Info("Importing fields...");
+                Feedback.AddRange(await csvFileImportService.ParseCSVField(ms, this.protocolMappingId));
+            }
 
             if (msMeta != null)
-                await csvFileImportService.ParseCSVFileMeta(msMeta, this.protocolMappingId);
+            {
+                await notificationService.Info("Importing dictionaries...");
+                Feedback.AddRange(await csvFileImportService.ParseCSVFileMeta(msMeta, this.protocolMappingId));
+            }
 
-            await notificationService.Success("CSV files uploaded successfully! Reloading mapping...");
+            await notificationService.Success("CSV files uploaded successfully!");
 
             await pickerFile.FileEdit.Reset().AsTask();
             await pickerForm.FileEdit.Reset().AsTask();
@@ -420,11 +452,14 @@
             msForm = null;
             msMeta = null;
 
-            hideLoading = false; // Leave the loading spinner displayed while the page is reloading.
-            navigation.NavigateTo(navigation.Uri, true);
+            hideLoading = true;
+            uploadComplete = Blazorise.Visibility.Visible;
         }
         catch (Exception ex)
         {
+            ms = null;
+            msForm = null;
+            msMeta = null;
             await RollbackUpload(this.protocolMappingId);
             await notificationService.Error(ex.Message);
         }
@@ -432,7 +467,13 @@
         {
             if (hideLoading)
                 await loading.Hide();
+            ManageProcessButtonDisabled();
             StateHasChanged();
         }
+    }
+
+    public async void RefreshStudy()
+    {
+        navigation.NavigateTo(navigation.Uri, true);
     }
 }

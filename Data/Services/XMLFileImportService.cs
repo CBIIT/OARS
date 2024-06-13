@@ -19,8 +19,10 @@ namespace TheradexPortal.Data.Services
             _dictionaryService = dictionaryService;
         }
 
-        public async Task ParseXMLFile(Stream inputFileStream, int protocolMappingId)
+        public async Task<List<string>> ParseXMLFile(Stream inputFileStream, int protocolMappingId)
         {
+            var processInfo = new List<string>();
+
             if (inputFileStream.Position > 0)
             {
                 inputFileStream.Position = 0;
@@ -98,6 +100,12 @@ namespace TheradexPortal.Data.Services
                     throw new Exception("Error uploading file, clear uploads and try again.");
                 }
             }
+
+            processInfo.Add("Form records inserted: " + formsToSave.Count.ToString());
+            processInfo.Add("Field records inserted: " + fieldsToSave.Rows.Count.ToString());
+            processInfo.Add("Dictinoary records inserted: " + dictionariesToSave.Rows.Count.ToString());
+
+            return processInfo;
         }
 
         private DataTable SetUpDictionaryTable()
