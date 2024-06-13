@@ -113,11 +113,8 @@
         var currentSubGroups = protocolSubGroups.Where(x => x.SubGroupCode == (string)SubGroupCode);
         if (currentSubGroups != null)
         {
-            if (!string.IsNullOrEmpty((string?)Description) && currentSubGroups.Any(p => p.Description == (string)Description))
-            {
-                await notificationService.Error($"The fields {SubGroupCode}, {Description} already exists");
-                e.Cancel = true;
-            }
+            await notificationService.Error($"The field {SubGroupCode} already exists");
+            e.Cancel = true;
         }
 
         return e;

@@ -122,11 +122,8 @@
         var currentTacs = protocolTacs.Where(x => x.TacCode == (string)TacCode);
         if (currentTacs != null)
         {
-            if (!string.IsNullOrEmpty((string?)TacDescription) && currentTacs.Any(p => p.TacDescription == (string)TacDescription))
-            {
-                await notificationService.Error($"The fields {TacCode}, {TacDescription} already exists");
-                e.Cancel = true;
-            }
+            await notificationService.Error($"The field {TacCode} already exists");
+            e.Cancel = true;
         }
 
         return e;

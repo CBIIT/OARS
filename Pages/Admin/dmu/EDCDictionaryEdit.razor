@@ -135,11 +135,15 @@
         var currentProtocolDicts = protocolDicts.Where(x => x.EDCDictionaryName == (string)EDCDictionaryName);
         if (currentProtocolDicts != null)
         {
-            if (!string.IsNullOrEmpty((string?)EDCItemId) && currentProtocolDicts.Any(p => p.EDCItemId == (string)EDCItemId))
-            {
-                await notificationService.Error($"The fields {EDCDictionaryName}, {EDCItemId} already exists");
-                e.Cancel = true;
-            }
+            await notificationService.Error($"The field {EDCDictionaryName} already exists");
+            e.Cancel = true;
+        }
+
+        currentProtocolDicts = protocolDicts.Where(x => x.EDCItemName == (string)EDCItemName);
+        if (currentProtocolDicts != null)
+        {
+            await notificationService.Error($"The field {EDCItemName} already exists");
+            e.Cancel = true;
         }
 
         return e;

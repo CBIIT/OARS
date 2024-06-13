@@ -116,14 +116,11 @@
             e.Cancel = true;
         }
 
-        var currentProtocolDiseaseList = protocolDiseaseList.Where(x => x.DiseaseName == (string)DiseaseName);
+        var currentProtocolDiseaseList = protocolDiseaseList.Where(x => x.MeddraCode == (string)MeddraCode);
         if (currentProtocolDiseaseList != null)
         {
-            if (!string.IsNullOrEmpty((string?)MeddraCode) && currentProtocolDiseaseList.Any(p => p.MeddraCode == (string)MeddraCode))
-            {
-                await notificationService.Error($"The fields {DiseaseName}, {MeddraCode} already exists");
-                e.Cancel = true;
-            }
+            await notificationService.Error($"The field {MeddraCode} already exists");
+            e.Cancel = true;
         }
 
         return e;

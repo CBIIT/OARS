@@ -179,11 +179,8 @@
         var currentProtocolFields = protocolFields.Where(x => x.EDCFieldIdentifier == (string)EDCFieldIdentifier);
         if (currentProtocolFields != null)
         {
-            if (!string.IsNullOrEmpty((string?)EDCFieldName) && !string.IsNullOrEmpty((string?)EDCDictionaryName) && currentProtocolFields.Any(p => p.EDCFieldName.Equals(EDCFieldName) && p.EDCDictionaryName.Equals(EDCDictionaryName)))
-            {
-                await notificationService.Error($"The fields {EDCFieldIdentifier}, {EDCFieldName}, {EDCDictionaryName} already exists");
-                e.Cancel = true;
-            }
+            await notificationService.Error($"The field {EDCFieldIdentifier} already exists");
+            e.Cancel = true;
         }
 
         return e;
