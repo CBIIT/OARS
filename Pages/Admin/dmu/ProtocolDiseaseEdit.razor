@@ -116,8 +116,8 @@
             e.Cancel = true;
         }
 
-        var currentProtocolDiseaseList = protocolDiseaseList.Where(x => x.MeddraCode == (string)MeddraCode);
-        if (currentProtocolDiseaseList != null)
+        var currentProtocolDiseaseList = protocolDiseaseList.Where(x => x.MeddraCode == (string)MeddraCode).ToList();
+        if (currentProtocolDiseaseList.Count() > 0)
         {
             await notificationService.Error($"The field {MeddraCode} already exists");
             e.Cancel = true;

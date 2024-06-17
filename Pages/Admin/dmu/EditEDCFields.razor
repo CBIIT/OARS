@@ -176,8 +176,8 @@
             e.Cancel = true;
         }
 
-        var currentProtocolFields = protocolFields.Where(x => x.EDCFieldIdentifier == (string)EDCFieldIdentifier);
-        if (currentProtocolFields != null)
+        var currentProtocolFields = protocolFields.Where(x => x.EDCFieldIdentifier == (string)EDCFieldIdentifier).ToList();
+        if (currentProtocolFields.Count() > 0)
         {
             await notificationService.Error($"The field {EDCFieldIdentifier} already exists");
             e.Cancel = true;

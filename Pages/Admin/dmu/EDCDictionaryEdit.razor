@@ -132,15 +132,15 @@
             e.Cancel = true;
         }
 
-        var currentProtocolDicts = protocolDicts.Where(x => x.EDCDictionaryName == (string)EDCDictionaryName && x.EDCItemId.Equals((string)EDCItemId));
-        if (currentProtocolDicts != null)
+        var currentProtocolDicts = protocolDicts.Where(x => x.EDCDictionaryName == (string)EDCDictionaryName && x.EDCItemId.Equals((string)EDCItemId)).ToList();
+        if (currentProtocolDicts.Count() > 0)
         {
             await notificationService.Error($"The fields {EDCDictionaryName}, {EDCItemId} already exists");
             e.Cancel = true;
         }
 
-        currentProtocolDicts = protocolDicts.Where(x => x.EDCDictionaryName == (string)EDCDictionaryName && x.EDCItemName.Equals((string)EDCItemName));
-        if (currentProtocolDicts != null)
+        currentProtocolDicts = protocolDicts.Where(x => x.EDCDictionaryName == (string)EDCDictionaryName && x.EDCItemName.Equals((string)EDCItemName)).ToList();
+        if (currentProtocolDicts.Count() > 0)
         {
             await notificationService.Error($"The fields {EDCDictionaryName}, {EDCItemName} already exists");
             e.Cancel = true;
