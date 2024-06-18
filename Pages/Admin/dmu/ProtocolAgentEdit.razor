@@ -130,6 +130,7 @@
         if (saved)
         {
             await notificationService.Success("Agent successfully saved");
+            this.protocolAgents = await protocolAgentService.GetAgentsByMappingId(protocolMappingId);
             return;
         }
         else

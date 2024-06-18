@@ -157,6 +157,7 @@
         if (saved)
         {
             await notificationService.Success("Category successfully saved");
+            this.categoryList = await categoryService.GetCategories();
             return;
         }
         else

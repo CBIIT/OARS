@@ -271,6 +271,7 @@
         if (saved)
         {
             await notificationService.Success("Field successfully saved");
+            var updatedCategories = await categoryService.GetCategories();
             return;
         }
         else

@@ -160,6 +160,7 @@
         if (saved)
         {
             await notificationService.Success("EDC Form successfully saved");
+            this.edcFormList = await protocolEDCFormService.GetFormsForMappingId(protocolMappingId);
             return;
         }
         else

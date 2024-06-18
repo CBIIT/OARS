@@ -145,6 +145,7 @@
         if (saved)
         {
             await notificationService.Success("Protocol TAC successfully saved");
+            this.protocolTacList = await ProtocolTacService.GetProtocolTACByProtocolMappingId(protocolMappingId);
             return;
         }
         else

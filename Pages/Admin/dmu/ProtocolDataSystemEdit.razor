@@ -153,6 +153,7 @@
         if (saved)
         {
             await notificationService.Success("Protocol Data System successfully saved");
+            this.protocolDataSystemList = await protocolDataSystemService.GetProtocolDataSystems();
             return;
         }
         else

@@ -143,6 +143,7 @@
         if (saved)
         {
             await notificationService.Success("Protocol Disease successfully saved");
+            this.protocolDiseaseList = await ProtocolDiseaseService.GetProtocolDiseaseByProtocolMappingId(protocolMappingId);
             return;
         }
         else

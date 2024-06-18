@@ -146,7 +146,7 @@
         e.Values.TryGetValue("ProtocolEDCFormId", out var ProtocolEDCFormId);
         e.Values.TryGetValue("EDCFieldIdentifier", out var EDCFieldIdentifier);
         e.Values.TryGetValue("EDCFieldName", out var EDCFieldName);
-        e.Values.TryGetValue("EDCDictionaryName", out var EDCDictionaryName);
+        // The dictionary name is optional
 
         List<string> missingFields = new List<string>();
 
@@ -163,11 +163,6 @@
         if (string.IsNullOrEmpty((string?)EDCFieldName))
         {
             missingFields.Add("EDC Field Label");
-        }
-
-        if (string.IsNullOrEmpty((string?)EDCDictionaryName))
-        {
-            missingFields.Add("EDC Dictionary Name");
         }
 
         if (missingFields.Count > 0)
@@ -194,6 +189,8 @@
         if (saved)
         {
             await notificationService.Success("Field successfully saved");
+            this.protocolForms = await protocolEDCFormService.GetFormsForMappingId(this.protocolMappingId);
+            this.protocolFields = await protocolFieldService.GetFieldsByProtocolMappingId(this.protocolMappingId);
             return;
         }
         else

@@ -155,6 +155,7 @@
         if (saved)
         {
             await notificationService.Success("Dictionary successfully saved");
+            this.dictionaryList = await dictionaryService.GetDictionaries();
             return;
         }
         else

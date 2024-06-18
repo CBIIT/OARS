@@ -293,6 +293,7 @@
         if (saved)
         {
             await notificationService.Success("Protocol Field successfully saved");
+            this.protocolFields = await protocolFieldService.GetAllProtocolFieldsByMappingId(protocolMappingId);
             return;
         }
         else

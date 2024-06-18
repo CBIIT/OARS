@@ -129,6 +129,7 @@
         if (saved)
         {
             await notificationService.Success("Subgroup successfully saved");
+            this.protocolSubGroups = await protocolSubGroupService.GetSubGroupsByMappingId(protocolMappingId);
             return;
         }
         else

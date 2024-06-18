@@ -105,6 +105,7 @@
     {
         protocolDicts = await protocolDictionaryService.GetDictionariesByMappingId(protocolMappingId);
 
+        var id = e.Item.ProtocolEDCDictionaryId;
         e.Values.TryGetValue("EDCDictionaryName", out var EDCDictionaryName);
         e.Values.TryGetValue("EDCItemId", out var EDCItemId);
         e.Values.TryGetValue("EDCItemName", out var EDCItemName);
@@ -158,6 +159,7 @@
         if (saved)
         {
             await notificationService.Success("Dictionary successfully saved");
+            this.protocolDicts = await protocolDictionaryService.GetDictionariesByMappingId(protocolMappingId);
             return;
         }
         else
