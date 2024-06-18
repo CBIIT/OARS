@@ -67,7 +67,7 @@ namespace TheradexPortal.Data.Services
                         protocolDataCategories.Add(newCategory);
                     }
                 }
-                return protocolDataCategories;
+                return protocolDataCategories.OrderBy(x => x.THORDataCategory.CategoryName).ToList();
             }
         }
 

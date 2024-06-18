@@ -9,6 +9,8 @@ namespace TheradexPortal.Data.Models
         public int ProtocolFormMappingId { get; set; }
         [Column("Protocol_EDC_Form_Id")]
         public int? ProtocolEDCFormId { get; set; }
+        [ForeignKey("ProtocolEDCFormId")]
+        public ProtocolEDCForm ProtocolEDCForm { get; set; }
         [Column("Is_Primary_Form")]
         public bool IsPrimaryForm { get; set; } = false;
         [Column("Create_Date")]

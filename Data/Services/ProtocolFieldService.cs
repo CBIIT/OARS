@@ -16,11 +16,11 @@ namespace TheradexPortal.Data.Services
             _navManager = navigationManager;
         }
 
-        public async Task<IList<ProtocolField>> GetProtocolFieldsByMappingId(int mappingId)
+        public async Task<IList<ProtocolField>> GetProtocolDateFieldsByMappingId(int protocolMappingId)
         {
             
-            var protocolFields = await context.ProtocolField.Where(pf => pf.ProtocolMappingId == mappingId && pf.ThorField.FieldType.FieldTypeName == "Date" && pf.IsEnabled == 'Y').ToListAsync();
-            var thorFields = await context.THORField.Where(tf => tf.FieldType.FieldTypeName == "Date").ToListAsync();
+            var protocolFields = await context.ProtocolField.Where(pf => pf.ProtocolMappingId == protocolMappingId && pf.ThorField.FieldType!.FieldTypeName == "Date" && pf.IsEnabled == 'Y').ToListAsync();
+            var thorFields = await context.THORField.Where(tf => tf.FieldType!.FieldTypeName == "Date").ToListAsync();
 
             var pfThorFieldIds = new HashSet<string>(protocolFields.Select(pf => pf.ThorFieldId));
 
@@ -30,7 +30,7 @@ namespace TheradexPortal.Data.Services
                 {
                     var pf = new ProtocolField
                     {
-                        ProtocolMappingId = mappingId,
+                        ProtocolMappingId = protocolMappingId,
                         ThorFieldId = thorField.ThorFieldId,
                         ThorField = thorField,
                         Format = "MM/dd/yyyy",
@@ -47,27 +47,50 @@ namespace TheradexPortal.Data.Services
             return protocolFields;
         }
 
-        public async Task<IList<ProtocolField>> GetAllProtocolFieldsByMappingId(int mappingId)
+        public async Task<IList<ProtocolField>> GetAllProtocolFieldsByMappingId(int protocolMappingId)
         {
-            var mapping = await context.ProtocolMapping.Where(p => p.ProtocolMappingId == mappingId).Include(p => p.Protocol).Include(p => p.Profile).FirstOrDefaultAsync();
+            var mapping = await context.ProtocolMapping.Where(p => p.ProtocolMappingId == protocolMappingId).Include(p => p.Protocol).Include(p => p.Profile).FirstOrDefaultAsync();
             var profileFields = await context.ProfileFields.Include(x => x.ThorField).Where(pf => pf.ProfileId == mapping.ProfileId).ToListAsync();
             var pfIds = profileFields.Select(pf => pf.THORFieldId).ToList();
             var protocolFields = await context.ProtocolField
                 .Include(x => x.ThorField)
                 .ThenInclude(y => y.Category)
-                .Where(pf => pf.ProtocolMappingId == mappingId)
+                .Where(pf => pf.ProtocolMappingId == protocolMappingId)
                 .ToListAsync();
 
             protocolFields = protocolFields.Where(p => pfIds.Contains(p.ThorFieldId)).ToList();
 
             foreach (var protocolField in protocolFields)
             {
-                protocolField.ThorDataCategoryId = protocolField.ThorField.Category.ThorDataCategoryId;
+                protocolField.ThorDataCategoryId = protocolField.ThorField.Category!.ThorDataCategoryId;
             }
 
             return protocolFields;
         }
+        
+        public async Task<IList<ProtocolField>> GetAllProtocolFieldsByMappingIdForMapping(int protocolMappingId, string dataCategoryId)
+        {
+            return await context.ProtocolField
+                .Include(pf => pf.ThorField)
+                .Where(pf =>
+                    pf.ProtocolMappingId == protocolMappingId &&
+                    pf.ThorField.ThorDataCategoryId == dataCategoryId &&
+                    pf.IsEnabled == 'Y'
+                )
+                .ToListAsync();
+        }
 
+        public async Task<IList<ProtocolField>> GetAllProtocolDisabledFieldsByMappingIdForMapping(int protocolMappingId, string dataCategoryId)
+        {
+            return await context.ProtocolField
+                .Include(pf => pf.ThorField)
+                .Where(pf =>
+                    pf.ProtocolMappingId == protocolMappingId &&
+                    pf.ThorField.ThorDataCategoryId == dataCategoryId &&
+                    pf.IsEnabled == 'N'
+                )
+                .ToListAsync();
+        }
         public async Task<bool> SaveProtocolField(int protocolMappingId, ProtocolField protocolField)
         {
             try

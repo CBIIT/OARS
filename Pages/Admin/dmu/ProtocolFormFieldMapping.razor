@@ -254,7 +254,8 @@ else{
     [Inject] IProtocolEDCFieldService protocolEDCFieldService { get; set; } = null!;
     [Inject] IProtocolDataCategoryService protocolCategoryService { get; set; } = null!;
     [Inject] IThorCategoryService thorCategoryService { get; set; } = null!;
-    [Inject] IThorFieldService thorFieldService { get; set; } = null!;
+    // [Inject] IThorFieldService thorFieldService { get; set; } = null!;
+    [Inject] IProtocolFieldService protocolFieldService { get; set; } = null!;
     [Inject] IProtocolFieldMappingService protocolFieldMappingService { get; set; } = null!;
     [Inject] IProtocolFormMappingService protocolFormMappingService { get; set; } = null!;
     [Inject] private NavigationManager navigation { get; set; } = null!;
@@ -271,7 +272,10 @@ else{
     private IList<ProtocolEDCForm> protocolEDCFormList;
     private IList<ProtocolEDCField> protocolEDCFieldList;
     private ProtocolDataCategory protocolCategory;
-    private IList<ThorField> thorFieldList;
+    // private IList<ThorField> thorFieldList;
+    private IList<ProtocolField> protocolFields;
+    private IList<ProtocolField> protocolFieldsDisabled;
+    private HashSet<string> protocolFieldIdsDisabled;
     private ThorCategory currCategory;
     private bool isMultiForm;
     private bool isComplete;
@@ -283,19 +287,38 @@ else{
     private Dictionary<int, IList<ProtocolEDCField>> edcFieldsByForm = new Dictionary<int, IList<ProtocolEDCField>>();
 
     protected override async Task OnInitializedAsync()
-    { 
+    {
+        var watch = System.Diagnostics.Stopwatch.StartNew();
         this.protocolCategory = await protocolCategoryService.GetCategory(protocolCategoryId);
+        System.Console.WriteLine($"ProtocolFormFieldMapping - { watch.Elapsed } - GetCategory");
+
+        watch = System.Diagnostics.Stopwatch.StartNew();
         this.isComplete = protocolCategory.ProtocolCategoryStatusId == 3;
-        this.currCategory = await thorCategoryService.GetCategory(protocolCategory.THORDataCategoryId);
-        this.protocolFieldMappingList = await protocolFieldMappingService.GetProtocolFieldMappingsForCategory(currCategory.ThorDataCategoryId);
+        this.currCategory = this.protocolCategory.THORDataCategory;
+        // TODO: update get fieldmapping list to limit it to the mapping configuration
+        this.protocolFieldMappingList = await protocolFieldMappingService.GetProtocolFieldMappingsForCategory(protocolMappingId, currCategory.ThorDataCategoryId);
+        System.Console.WriteLine($"ProtocolFormFieldMapping - {watch.Elapsed} - GetProtocolFieldMappingsForCategory");
+
+        watch = System.Diagnostics.Stopwatch.StartNew();
         this.protocolEDCFormList = await protocolEDCFormService.GetFormsForMappingId(protocolMappingId);
-        this.thorFieldList = await thorFieldService.GetFields(currCategory.ThorDataCategoryId);
+        System.Console.WriteLine($"ProtocolFormFieldMapping - {watch.Elapsed} - GetFormsForMappingId");
+
+        // this.thorFieldList = await thorFieldService.GetFields(currCategory.ThorDataCategoryId);
+        watch = System.Diagnostics.Stopwatch.StartNew();
+        this.protocolFields = await protocolFieldService.GetAllProtocolFieldsByMappingIdForMapping(protocolMappingId, currCategory.ThorDataCategoryId);
+        System.Console.WriteLine($"ProtocolFormFieldMapping - {watch.Elapsed} - GetAllProtocolFieldsByMappingIdForMapping");
+
+        watch = System.Diagnostics.Stopwatch.StartNew();
+        this.protocolFieldsDisabled = await protocolFieldService.GetAllProtocolDisabledFieldsByMappingIdForMapping(protocolMappingId, currCategory.ThorDataCategoryId);
+        System.Console.WriteLine($"ProtocolFormFieldMapping - {watch.Elapsed} - GetAllProtocolDisabledFieldsByMappingIdForMapping");
+
+        this.protocolFieldIdsDisabled = new HashSet<string>(this.protocolFieldsDisabled.Select(x => x.ThorFieldId));
 
         this.protocolFieldMappingList = AddMissingFields(this.protocolFieldMappingList, 0);
 
         this.currCategory = await thorCategoryService.GetCategory(currCategory.ThorDataCategoryId);
 
-        this.multiFormList = await protocolFormMappingService.GetProtocolFormMappingsForCategory(protocolCategoryId);
+        this.multiFormList = await protocolFormMappingService.GetProtocolFormMappingsForCategory(protocolMappingId, protocolCategoryId);
         this.multiFormList = this.multiFormList.OrderBy(x => x.ProtocolFormMappingId).ToList();
         foreach(var form in multiFormList)
         {
@@ -331,11 +354,11 @@ else{
             formId = 0;
         }
         var fieldMappingIds = mappings.Select(x => x.ThorFieldId).ToList();
-        foreach (var field in thorFieldList)
+        foreach (var field in protocolFields)
         {
             if (!fieldMappingIds.Contains(field.ThorFieldId))
             {
-                mappings.Add(new ProtocolFieldMapping { ThorFieldId = field.ThorFieldId, ThorField = field, ProtocolEDCFieldId = 0, ProtocolEDCFormId = (int)formId });
+                mappings.Add(new ProtocolFieldMapping { ThorFieldId = field.ThorFieldId, ThorField = field.ThorField, ProtocolEDCFieldId = 0, ProtocolEDCFormId = (int)formId });
             }
         }
 
@@ -352,7 +375,7 @@ else{
         {
             // when we save a mapping, we want to make sure the status is Incomplete
             this.protocolCategory.ProtocolCategoryStatusId = 2;
-			await protocolCategoryService.SaveCategory(this.protocolCategory, this.protocolMappingId);
+            await protocolCategoryService.SaveCategory(this.protocolCategory, this.protocolMappingId);
         }
 
         if (saved)
@@ -375,7 +398,7 @@ else{
         }
         else if (item.ProtocolEDCFormId != 0 && item.ProtocolEDCField == null)
         {
-            return protocolEDCFormList.First(x => x.ProtocolEDCFormId == item.ProtocolEDCFormId).EDCFormIdentifier;
+            return protocolEDCFormList.FirstOrDefault(x => x.ProtocolEDCFormId == item.ProtocolEDCFormId)?.EDCFormIdentifier ?? $"<ProtocolEDCFormId {item.ProtocolEDCFormId} Not in Protocol Mapping>";
         }
         return item.ProtocolEDCField.ProtocolEDCForm.EDCFormIdentifier;
     }
@@ -389,7 +412,16 @@ else{
 
         if (item.ThorFieldId != null && item.ThorFieldId != "")
         {
-            return thorFieldList.First(x => x.ThorFieldId == item.ThorFieldId).FieldLabel;
+            string notFoundMessage = "";
+            if (this.protocolFieldIdsDisabled.Contains(item.ThorFieldId))
+            {
+                notFoundMessage = $"<THORFieldId {item.ThorFieldId} Disabled In Protocol Mapping>";
+            }
+            else
+            {
+                notFoundMessage = $"<THORFieldId {item.ThorFieldId} Not In Protocol Mapping>";
+            }
+            return protocolFields.FirstOrDefault(x => x.ThorFieldId == item.ThorFieldId)?.ThorField.FieldLabel ?? notFoundMessage;
         }
         else
         {
@@ -479,8 +511,8 @@ else{
         this.multiFormRefs.Add(newForm.ProtocolFormMappingId, new DataGrid<ProtocolFieldMapping>());
         this.multiFormMappings.Add(newForm.ProtocolFormMappingId, new List<ProtocolFieldMapping>());
         this.multiFormList.Add(newForm);
-        foreach(var thorField in this.thorFieldList){
-            this.multiFormMappings[newForm.ProtocolFormMappingId].Add(new ProtocolFieldMapping { ThorFieldId = thorField.ThorFieldId, ThorField = thorField, ProtocolEDCFieldId = 0, ProtocolEDCFormId = 0 });
+        foreach(var protocolField in this.protocolFields){
+            this.multiFormMappings[newForm.ProtocolFormMappingId].Add(new ProtocolFieldMapping { ThorFieldId = protocolField.ThorFieldId, ThorField = protocolField.ThorField, ProtocolEDCFieldId = 0, ProtocolEDCFormId = 0 });
         }
 
         this.edcFieldsByForm.Add(newForm.ProtocolFormMappingId, new List<ProtocolEDCField>());

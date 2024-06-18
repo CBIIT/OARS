@@ -32,9 +32,14 @@ namespace TheradexPortal.Data.Services
             return formMapping;
         }
 
-        public async Task<IList<ProtocolFormMapping>> GetProtocolFormMappingsForCategory(int categoryId)
+        public async Task<IList<ProtocolFormMapping>> GetProtocolFormMappingsForCategory(int protocolMappingId, int categoryId)
         {
-            return await context.ProtocolFormMappings.Where(x => x.ProtocolCategoryId == categoryId).ToListAsync();
+            return await context.ProtocolFormMappings
+                .Include(x => x.ProtocolEDCForm)
+                .Where(x => 
+                    x.ProtocolEDCForm.ProtocolMappingId == protocolMappingId &&
+                    x.ProtocolCategoryId == categoryId
+                ).ToListAsync();
         }
 
         public async Task<bool> SaveProtocolFormMapping(ProtocolFormMapping protocolFormMapping)
