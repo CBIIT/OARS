@@ -122,7 +122,7 @@ namespace TheradexPortal.Data.Models
 
         // what does this mean now that entries are unique per study?
         [Column("Effective_DT")]
-        public DateTime EffectiveDT { get; set; }
+        public DateTime? EffectiveDT { get; set; }
 
         //primary key, unique
         [Column("PR_Record_Id")]
@@ -164,11 +164,11 @@ namespace TheradexPortal.Data.Models
         [Column("Created_By")]
         public string? CreatedBy { get; set; }
 
-        //[Column("Primary_Agent")]
-        //public string? PrimaryAgent { get; set; }
+        [Column("Primary_Agent")]
+        public string? PrimaryAgent { get; set; }
 
-        //[Column("Other_Agents")]
-        //public string? OtherAgents { get; set; }
+        [Column("Other_Agents")]
+        public string? OtherAgents { get; set; }
 
         //[Column("SRC_Record_Id")]
         //public string? SrcRecordId { get; set; }

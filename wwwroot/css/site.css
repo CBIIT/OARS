@@ -260,7 +260,8 @@
 }
 
 .upload-Modal-Body {
-    overflow-x: scroll;
+    height: 100vh;
+    overflow: auto;
 }
 
 .overview-Modal-Cell {
