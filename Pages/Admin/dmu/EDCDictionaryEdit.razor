@@ -140,13 +140,6 @@
             e.Cancel = true;
         }
 
-        currentProtocolDicts = protocolDicts.Where(x => x.EDCDictionaryName == (string)EDCDictionaryName && x.EDCItemName.Equals((string)EDCItemName)).ToList();
-        if (currentProtocolDicts.Count() > 0)
-        {
-            await notificationService.Error($"The fields {EDCDictionaryName}, {EDCItemName} already exists");
-            e.Cancel = true;
-        }
-
         return e;
     }
 
