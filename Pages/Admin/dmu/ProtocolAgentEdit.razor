@@ -114,8 +114,11 @@
         var currentProtocolAgents = protocolAgents.Where(x => x.NscNumber == (string)NscNumber).ToList();
         if (currentProtocolAgents.Count() > 0)
         {
-            await notificationService.Error($"The field {NscNumber} already exists");
-            e.Cancel = true;
+            if (currentProtocolAgents.Any(y => y.AgentName.Equals(AgentName)))
+            {
+                await notificationService.Error($"The fields {NscNumber}, {AgentName} already exists");
+                e.Cancel = true;
+            }
         }
 
         return e;

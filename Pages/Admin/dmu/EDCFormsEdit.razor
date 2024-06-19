@@ -137,8 +137,11 @@
         var currentEDCForms = protocolEDCForms.Where(x => x.EDCFormIdentifier == (string)EDCFormIdentifier).ToList();
         if (currentEDCForms.Count() > 0)
         {
-            await notificationService.Error($"The field {EDCFormIdentifier} already exists");
-            e.Cancel = true;
+            if (currentEDCForms.Any(y => y.EDCFormName.Equals(EDCFormName)))
+            {
+                await notificationService.Error($"The fields {EDCFormIdentifier}, {EDCFormName} already exists");
+                e.Cancel = true;
+            }
         }
 
         return e;
