@@ -22,6 +22,7 @@ using Amazon.DynamoDBv2;
 using Microsoft.Extensions.DependencyInjection;
 using Amazon.DynamoDBv2.DataModel;
 using Amazon.S3;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -170,19 +171,33 @@ var onTokenValidated = async (TokenValidatedContext context) =>
 
     var userRoles = await userRoleService.GetUserRolesAsync(user.UserId);
     var isAdmin = false;
+    var isDMUAdmin = false;
+    var isAnyAdmin = false;
+
     foreach(var role in userRoles)
     {        
         claimsIdentity.AddClaim(new Claim(ThorClaimType.Role, role.RoleName));
         roleList += role.RoleName + ",";
-        if (role.AdminType != ThorAdminType.None)
+        if (role.AdminType == ThorAdminType.IT || role.AdminType == ThorAdminType.Biz || role.AdminType == ThorAdminType.Content)
         {
             isAdmin = true;
             if (!claimsIdentity.HasClaim(c => c.Type == "Admin-" + role.AdminType))
             {
                 claimsIdentity.AddClaim(new Claim("Admin-" + role.AdminType, "true"));
             }
-
         }
+
+        if (role.AdminType == ThorAdminType.DMUGlobal || role.AdminType == ThorAdminType.DMUStudy)
+        {
+            isDMUAdmin = true;
+            if (!claimsIdentity.HasClaim(c => c.Type == "Admin-" + role.AdminType))
+            {
+                claimsIdentity.AddClaim(new Claim("Admin-" + role.AdminType, "true"));
+            }
+        }
+
+        isAnyAdmin = isAdmin || isDMUAdmin;
+
     }
     roleList = roleList.TrimEnd(',');
 
@@ -190,6 +205,8 @@ var onTokenValidated = async (TokenValidatedContext context) =>
     var reportIds = await dashboardService.GetReportIdsForUser(user.UserId, isAdmin);
 
     claimsIdentity.AddClaim(new Claim(ThorClaimType.IsAdmin, isAdmin.ToString()));
+    claimsIdentity.AddClaim(new Claim(ThorClaimType.IsDMUAdmin, isDMUAdmin.ToString()));
+    claimsIdentity.AddClaim(new Claim(ThorClaimType.IsAnyAdmin, isAnyAdmin.ToString()));
     claimsIdentity.AddClaim(new Claim(ThorClaimType.Dashboards, dashboardIds));
     claimsIdentity.AddClaim(new Claim(ThorClaimType.Reports, reportIds));
 
@@ -206,6 +223,14 @@ var onTokenValidated = async (TokenValidatedContext context) =>
 builder.Services.AddAuthorization(options =>
       options.AddPolicy("IsAdmin",
       policy => policy.RequireClaim(ThorClaimType.IsAdmin, true.ToString())));
+
+builder.Services.AddAuthorization(options =>
+      options.AddPolicy("IsDMUAdmin",
+      policy => policy.RequireClaim(ThorClaimType.IsDMUAdmin, true.ToString())));
+
+builder.Services.AddAuthorization(options =>
+      options.AddPolicy("IsAnyAdmin",
+      policy => policy.RequireClaim(ThorClaimType.IsAnyAdmin, true.ToString())));
 
 builder.Services.AddAuthorization(options =>
       options.AddPolicy("IsRegistered",

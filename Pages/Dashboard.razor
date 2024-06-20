@@ -114,6 +114,20 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(ThorClaimType.IsAdmin, "True");
+        string userDashboards = httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.Dashboards).Value;
+        dashboard = await dashboardService.GetDashboardByIdAsync(DashboardId, userDashboards, isAdmin);
+        if (dashboard != null && dashboard.CustomPagePath != null)
+        {
+            navigation.NavigateTo($"{dashboard.CustomPagePath}/{dashboard.DashboardId}", new NavigationOptions
+                {
+                    ReplaceHistoryEntry = true,
+                    ForceLoad = true
+                });
+
+            return;
+        }
+
         await PrimaryNavLayout.ClearDashboardAlerts();
 
         if (fullReportRef != null)
@@ -156,6 +170,15 @@ else
             notFound = true;
             return;
         }
+
+        // if (dashboard.CustomPagePath != null)
+        // {
+        //     navigation.NavigateTo($"{dashboard.CustomPagePath}/{dashboard.DashboardId}", new NavigationOptions
+        //         {
+        //             ReplaceHistoryEntry = true,
+        //             ForceLoad = true
+        //         });
+        // }
 
         PrimaryNavLayout.DashboardName = dashboard.Name;
 

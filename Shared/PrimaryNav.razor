@@ -6,18 +6,6 @@
 @using Microsoft.AspNetCore.Http; 
 @inject IHttpContextAccessor httpContextAccessor
 
-<BarItem>
-    <BarLink Match="Match.Prefix" To="/studies">
-        @if (RenderButtons)
-        {
-            <Button Color="Color.Primary" TextWeight="TextWeight.Bold" Outline Class="text-nowrap">My Studies</Button>
-        }
-        else
-        {
-            <Span>My Studies</Span>
-        }
-    </BarLink>
-</BarItem>
 @if (hasUserFavoriteItems)
 {
 <BarItem>

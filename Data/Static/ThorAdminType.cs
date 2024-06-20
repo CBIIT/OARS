@@ -6,5 +6,7 @@
         static public String IT = "IT";
         static public String Content = "Content";
         static public String Biz = "Biz";
+        static public String DMUGlobal = "DMU Global";
+        static public String DMUStudy = "DMU Study";
     }
 }

@@ -34,6 +34,8 @@
                         <SelectItem Value="1">IT</SelectItem>
                         <SelectItem Value="3">Biz</SelectItem>
                         <SelectItem Value="2">Content</SelectItem>
+                        <SelectItem Value="4">DMU Global</SelectItem>
+                        <SelectItem Value="5">DMU Study</SelectItem>
                     </Select>
                 </Validation>
             </Validations>
@@ -67,7 +69,7 @@
     </TreeView>
 </Div>
 <Div Padding="Padding.Is2" Background="Background.Light" Display="@showIsAdmin">
-    <Text TextColor="TextColor.Dark">Admin users have permissions to all Dashboards and Reports</Text>
+    <Text TextColor="TextColor.Dark">IT, Biz and Content Admin users have permissions to all Dashboards and Reports</Text>
 </Div>
 <Divider />
 <Field Flex="Flex.JustifyContent.Center">
@@ -76,7 +78,7 @@
         <Button Color="Color.Primary" Type="ButtonType.Submit" PreventDefaultOnSubmit Clicked="@Save">Save Role</Button>
     </Div>
 </Field>
-@code {
+ @code {
     [Inject] IUserRoleService roleService { get; set; } = null!;
     [Inject] IStudyService studyService { get; set; } = null!;
     [Inject] IDashboardService dashboardService { get; set; } = null;
@@ -150,6 +152,12 @@
             case "Biz":
                 adminType = 3;
                 break;
+            case "DMU Global":
+                adminType = 4;
+                break;
+            case "DMU Study":
+                adminType = 5;
+                break;
             default:
                 adminType = 0;
                 break;
@@ -201,6 +209,8 @@
                 showTree = Display.None;
                 showIsAdmin = Display.Block;
                 break;
+            case 4:
+            case 5:
             default:
                 showTree = Display.Block;
                 showIsAdmin = Display.None;
@@ -222,11 +232,6 @@
                 return;
             }
 
-            if (isAdmin() && isSecondaryRole())
-            {
-                await NotificationService.Error("Secondary Roles cannot be an Admin Type");
-                return;
-            }
 
             Role saveRole = new Role();
             if (RoleId != null)
@@ -246,6 +251,12 @@
                     break;
                 case 3:
                     saveRole.AdminType = "Biz";
+                    break;
+                case 4:
+                    saveRole.AdminType = "DMU Global";
+                    break;
+                case 5:
+                    saveRole.AdminType = "DMU Study";
                     break;
             }
             saveRole.IsPrimary = isPrimary;
@@ -294,7 +305,7 @@
 
     private bool isAdmin()
     {
-        return this.adminType > 0;
+        return (this.adminType > 0 && this.adminType<=3);
     }
 
     private bool isSecondaryRole()

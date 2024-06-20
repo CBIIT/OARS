@@ -246,29 +246,17 @@
             if (OnSave == null)
             {
                 string dashboards = httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.Dashboards).Value;
-                dashboards = dashboards.TrimStart('|').Split('|')[0];
-                navigation.NavigateTo($"{ThorConstants.DASHBOARD_PAGE_PATH}/{dashboards}", new NavigationOptions { ReplaceHistoryEntry = true });
+                string[] dashboardList = dashboards.TrimStart('|').Split('|');
+                if (dashboardList.Count() < 2)
+                    await notificationService.Error("Could not navigate to next dashboard");
+                else
+                {
+                    dashboards = dashboardList[1];
+                    navigation.NavigateTo($"{ThorConstants.DASHBOARD_PAGE_PATH}/{dashboards}", new NavigationOptions { ReplaceHistoryEntry = true });
+                }
             }
             else
                 OnSave.Invoke(selectedStudies);
-
-
-            // Notify user
-            //if (notificationService != null)
-            //{
-            //    if (saved)
-            //        await notificationService.Success("Studies Updated");
-            //    else
-            //        await notificationService.Error("Save Failed");
-            //}
-
-
-
-            // Notify calling component
-            //if (OnSave != null)
-            //{
-            //    OnSave.Invoke(selectedStudies);
-            //}
         }
         else
         {
