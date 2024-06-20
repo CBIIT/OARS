@@ -15,7 +15,11 @@ namespace TheradexPortal.Data.Services
             _navManager = navigationManager;
         }
         public async Task<IList<ThorDictionary>> GetDictionaries() {
-            return await context.THORDictionary.OrderBy(c => c.SortOrder).ToListAsync();
+            return await context.THORDictionary
+                .OrderBy(c => c.SortOrder)
+                .ThenBy(c => c.DictionaryName)
+                .ThenBy(c => c.DictionaryOption)
+                .ToListAsync();
         }
 
         public async Task<IList<ThorDictionary>> GetDictionaryEntries(int dictionaryId)
@@ -24,7 +28,11 @@ namespace TheradexPortal.Data.Services
             var dict = context.THORDictionary.Where(x => x.ThorDictionaryId == dictionaryId).FirstOrDefault();
             if (dict != null)
             {
-                var entries = await context.THORDictionary.Where(x => x.DictionaryName == dict.DictionaryName).OrderBy(o=>o.DictionaryName).ToListAsync();
+                var entries = await context.THORDictionary.Where(x => x.DictionaryName == dict.DictionaryName)
+                    .OrderBy(o=>o.DictionaryName)
+                    .ThenBy(c => c.DictionaryName)
+                    .ThenBy(c => c.DictionaryOption)
+                    .ToListAsync();
                 return entries;
             }
             return new List<ThorDictionary>();

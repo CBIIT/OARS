@@ -11,6 +11,16 @@ namespace TheradexPortal.Data.Models
         public string? ThorDataCategoryId { get; set; }
         [ForeignKey(nameof(ThorDataCategoryId))]
         public ThorCategory? Category { get; set; }
+        [NotMapped]
+        public string CategoryDisplay
+        {
+            get
+            {
+                if (Category == null)
+                    return "";
+                return Category.CategoryName + " (" + Category.ThorDataCategoryId + ")";
+            }
+        }
         [Column("THOR_Field_Id"), Key]
         public string ThorFieldId { get; set; }
         [Column("Field_Label")]

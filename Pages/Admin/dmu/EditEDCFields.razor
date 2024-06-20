@@ -15,7 +15,7 @@
           ShowPager
           ShowPageSizes
           Filterable
-           FilterMethod="DataGridFilterMethod.StartsWith"
+           FilterMethod="DataGridFilterMethod.Contains"
            MaxPaginationLinks="5"
            PagerPosition="DataGridPagerPosition.Bottom"
            PagerOptions="new(){ButtonSize=Size.Default,
@@ -33,47 +33,29 @@
               RowUpdating="@Verify"
               RowInserting="@Verify">
      <DataGridColumns>
-         <DataGridColumn Width="15%" Caption="EDC Form ID" Filterable="true" Sortable="true" Editable SortDirection="SortDirection.Ascending">
+            <!-- Forgien Key columns should not be sortable because the sort value will be the integer value that does not create a meaningfull sort. -->
+            <DataGridColumn Field="@nameof(ProtocolEDCField.ProtocolEDCFormId)" Width="15%" Caption="EDC Form ID" Filterable="false" Sortable="false" Editable>
              <DisplayTemplate>
-                 @{
-                    if (context.ProtocolEDCForm != null)
-					{
-                        @(context.ProtocolEDCForm.EDCFormIdentifier + " - " + context.ProtocolEDCForm.EDCFormName)
-                    }
-                    else if (context.ProtocolEDCForm == null && context.ProtocolEDCFormId != null)
-                    {
-                        @this.protocolForms.FirstOrDefault(x => x.ProtocolEDCFormId == context.ProtocolEDCFormId)?.EDCFormIdentifier
-                    }
-                    else
-                    {
-                        
-                    }
-                }
+                 @(context.ProtocolEDCFormDisplay)
             </DisplayTemplate>
             <EditTemplate>
-                <SelectList TItem="ProtocolEDCForm" TValue="int?" Data="@protocolForms" TextField="@((item)=>item.EDCFormIdentifier + " - " + item.EDCFormName)" ValueField="@((item)=>item.ProtocolEDCFormId)" SelectedValueChanged="@( v =>{context.CellValue = v; context.UpdateCell(nameof(ProtocolEDCField.ProtocolEDCFormId),v); dataGridRef.Refresh();})" SelectedValue="@((int?)context.CellValue ?? context.Item.ProtocolEDCFormId)" DefaultItemText="Select a Form" DefaultItemValue="0"></SelectList>
+                    <SelectList 
+                        TItem="ProtocolEDCForm" 
+                        TValue="int?" 
+                        Data="@protocolForms" 
+                        TextField="@((item)=>item.EDCFormDisplay)"
+                        ValueField="@((item)=>item.ProtocolEDCFormId)"
+                        SelectedValueChanged="@( v =>{context.CellValue = v; context.UpdateCell(nameof(ProtocolEDCField.ProtocolEDCFormId),v); dataGridRef.Refresh();})"
+                        SelectedValue="@((int?)context.CellValue ?? context.Item.ProtocolEDCFormId)"
+                        DefaultItemText="Select a Form" 
+                        DefaultItemValue="0">
+                    </SelectList>
             </EditTemplate>
          </DataGridColumn>
-         <DataGridColumn Field="@nameof(ProtocolEDCField.ProtocolEDCFormId)" Width="15%" Caption="EDC Form Name" Filterable="true" Sortable="true" Editable>
+            <DataGridColumn Field="@nameof(ProtocolEDCField.ProtocolEDCFormDisplay)" Width="15%" Caption="EDC Form Name" Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
              <DisplayTemplate>
-                @{
-                    if(context.ProtocolEDCForm != null)
-                    {
-                        @context.ProtocolEDCForm.EDCFormName
-                    }
-                    else if (context.ProtocolEDCForm == null && context.ProtocolEDCFormId != null)
-					{
-						@this.protocolForms.FirstOrDefault(x => x.ProtocolEDCFormId == context.ProtocolEDCFormId)?.EDCFormName
-					}
-					else
-					{
-						
-					}
-                }
+                    @context.ProtocolEDCFormDisplay
 			 </DisplayTemplate>
-             <EditTemplate>
-                 <TextEdit Text="@GetFormName((int?)context.CellValue)" Disabled></TextEdit>
-             </EditTemplate>
          </DataGridColumn>
             <DataGridColumn Field="@nameof(ProtocolEDCField.EDCFieldIdentifier)" Caption="EDC Field ID" Width="15%" Filterable="true" Sortable="true" Editable></DataGridColumn>
             <DataGridColumn Field="@nameof(ProtocolEDCField.EDCFieldName)" Caption="EDC Field Label" Width="15%" Filterable="true" Sortable="true" Editable></DataGridColumn>
@@ -146,6 +128,7 @@
         e.Values.TryGetValue("ProtocolEDCFormId", out var ProtocolEDCFormId);
         e.Values.TryGetValue("EDCFieldIdentifier", out var EDCFieldIdentifier);
         e.Values.TryGetValue("EDCFieldName", out var EDCFieldName);
+
         var protocolEDCFieldId = e.Item.ProtocolEDCFieldId;
 
         List<string> missingFields = new List<string>();
@@ -173,10 +156,14 @@
         }
 
         await notificationService.Info("Validating uniqueness...");
-        var currentProtocolFields = protocolFields.Where(x => x.ProtocolEDCFormId == protocolEDCFieldId && x.EDCFieldIdentifier == (string)EDCFieldIdentifier && x.ProtocolEDCFieldId != protocolEDCFieldId).ToList();
+        var currentProtocolFields = protocolFields.Where(x =>
+            x.ProtocolEDCFormId == (int)ProtocolEDCFormId &&
+            x.EDCFieldIdentifier == (string)EDCFieldIdentifier && 
+            x.ProtocolEDCFieldId != protocolEDCFieldId).ToList();
         if (currentProtocolFields.Count() > 0)
         {
-            await notificationService.Error($"The field {EDCFieldIdentifier} already exists");
+            var protocolEDCFormDisplay = GetFormName((int)ProtocolEDCFormId);
+            await notificationService.Error($"The field {EDCFieldIdentifier} already exists for the form {protocolEDCFormDisplay}");
             e.Cancel = true;
         }
 
@@ -234,7 +221,7 @@
             var form = this.protocolForms.FirstOrDefault(x => x.ProtocolEDCFormId == formId);
             if (form != null)
 			{
-				return form.EDCFormName;
+				return form.EDCFormDisplay;
 			}
         }
 		return "";
