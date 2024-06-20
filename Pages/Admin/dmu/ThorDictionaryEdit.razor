@@ -14,7 +14,6 @@
           Responsive
           Striped
           Sortable
-          SortMode="DataGridSortMode.Single"
           ShowPager
           ShowPageSizes
           Filterable
@@ -112,31 +111,39 @@
 
     public async Task<CancellableRowChange<ThorDictionary>> Verify(CancellableRowChange<ThorDictionary, Dictionary<string, object>> e)
     {
-        // e.Values
+        await notificationService.Info("Validating...");
 
         e.Values.TryGetValue("DictionaryName", out var dictName);
         e.Values.TryGetValue("DictionaryOption", out var dictOption);
+        e.Values.TryGetValue("DictionaryValue", out var dictValue);
         e.Values.TryGetValue("SortOrder", out var order);
 
-        if (dictName == null || order == null)
+
+        List<string> missingFields = new List<string>();
+        if (string.IsNullOrWhiteSpace((string)dictName))
         {
-            List<string> missingFields = new List<string>();
-            if (dictName == null)
-            {
-                missingFields.Add("Dictionary Name");
-            }
-            if (dictOption == null)
-            {
-                missingFields.Add("Dictionary Option");
-            }
-            if (order == null)
-            {
-                missingFields.Add("Order");
-            }
+            missingFields.Add("Dictionary Name");
+        }
+        if (string.IsNullOrWhiteSpace((string)dictOption))
+        {
+            missingFields.Add("Dictionary Option");
+        }
+        if (string.IsNullOrWhiteSpace((string)dictValue))
+        {
+            missingFields.Add("Dictionary Value");
+        }
+        if (order == null)
+        {
+            missingFields.Add("Order");
+        }
+        if (missingFields.Count > 0)
+        {
             await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
             e.Cancel = true;
+            return e;
         }
 
+        await notificationService.Info("Validating uniqueness...");
         if (dictName != null && dictOption != null && selectedDictionary?.DictionaryName != (string)dictName && selectedDictionary?.DictionaryOption != (string)dictOption && dictionaryList.Any(x => x.DictionaryName == (string)dictName && x.DictionaryOption == (string)dictOption))
         {
             await notificationService.Error($"Dictionary option {dictName} - {dictOption} already exists");

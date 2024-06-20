@@ -17,7 +17,7 @@
           ShowPager
           ShowPageSizes
           Filterable
-           FilterMethod="DataGridFilterMethod.StartsWith"
+           FilterMethod="DataGridFilterMethod.Contains"
            MaxPaginationLinks="5"
            PagerPosition="DataGridPagerPosition.Bottom"
            PagerOptions="new(){ButtonSize=Size.Default,
@@ -93,7 +93,7 @@
 
     public async Task<CancellableRowChange<ProtocolDisease>> Verify(CancellableRowChange<ProtocolDisease, Dictionary<string, object>> e)
     {
-        protocolDiseaseList = await ProtocolDiseaseService.GetProtocolDiseaseByProtocolMappingId(protocolMappingId);
+        await notificationService.Info("Validating...");
 
         e.Values.TryGetValue("DiseaseName", out var DiseaseName);
         e.Values.TryGetValue("MeddraCode", out var MeddraCode);
@@ -101,12 +101,12 @@
 
         List<string> missingFields = new List<string>();
 
-        if (string.IsNullOrEmpty((string?)DiseaseName))
+        if (string.IsNullOrWhiteSpace((string?)DiseaseName))
         {
             missingFields.Add("Disease Name");
         }
 
-        if (string.IsNullOrEmpty((string?)MeddraCode))
+        if (string.IsNullOrWhiteSpace((string?)MeddraCode))
         {
             missingFields.Add("Reporting Meddra Code");
         }
@@ -115,12 +115,14 @@
         {
             await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
             e.Cancel = true;
+            return e;
         }
 
+        await notificationService.Info("Validating uniqueness...");
         var currentProtocolDiseaseList = protocolDiseaseList.Where(x => x.MeddraCode == (string)MeddraCode && x.ProtocolDiseaseId != protocolDiseaseId).ToList();
         if (currentProtocolDiseaseList.Count() > 0)
         {
-            await notificationService.Error($"The field {MeddraCode} already exists");
+            await notificationService.Error($"The meddra code {MeddraCode} already exists");
             e.Cancel = true;
         }
 

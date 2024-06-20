@@ -18,7 +18,7 @@
           ShowPager
           ShowPageSizes
           Filterable
-           FilterMethod="DataGridFilterMethod.StartsWith"
+           FilterMethod="DataGridFilterMethod.Contains"
            MaxPaginationLinks="5"
            PagerPosition="DataGridPagerPosition.Bottom"
            PagerOptions="new(){ButtonSize=Size.Default,
@@ -72,7 +72,7 @@
 </LoadingIndicator>
 
 
- @code {
+@code {
     [Inject] IProtocolEDCFormService protocolEDCFormService { get; set; } = null!;
     [Inject] private NavigationManager navigation { get; set; } = null!;
     [Inject] INotificationService notificationService { get; set; }
@@ -111,7 +111,7 @@
 
     public async Task<CancellableRowChange<ProtocolEDCForm>> Verify(CancellableRowChange<ProtocolEDCForm, Dictionary<string, object>> e)
     {
-        protocolEDCForms = await protocolEDCFormService.GetFormsForMappingId(protocolMappingId);
+        await notificationService.Info("Validating..."); 
 
         e.Values.TryGetValue("EDCFormIdentifier", out var EDCFormIdentifier);
         e.Values.TryGetValue("EDCFormName", out var EDCFormName);
@@ -119,12 +119,12 @@
 
         List<string> missingFields = new List<string>();
 
-        if (string.IsNullOrEmpty((string?)EDCFormIdentifier))
+        if (string.IsNullOrWhiteSpace((string?)EDCFormIdentifier))
         {
             missingFields.Add("EDC Form ID");
         }
 
-        if (string.IsNullOrEmpty((string?)EDCFormName))
+        if (string.IsNullOrWhiteSpace((string?)EDCFormName))
         {
             missingFields.Add("EDC Form Name");
         }
@@ -133,12 +133,14 @@
         {
             await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
             e.Cancel = true;
+            return e;
         }
 
+        await notificationService.Info("Validating uniqueness...");
         var currentEDCForms = protocolEDCForms.Where(x => x.EDCFormIdentifier == (string)EDCFormIdentifier && x.ProtocolEDCFormId != protocolEDCFormId).ToList();
         if (currentEDCForms.Count() > 0)
         {
-            await notificationService.Error($"The field {EDCFormIdentifier} already exists");
+            await notificationService.Error($"The form {EDCFormIdentifier} already exists");
             e.Cancel = true;
         }
 

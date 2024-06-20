@@ -106,26 +106,31 @@
 
     public async Task<CancellableRowChange<ProtocolDataSystem>> Verify(CancellableRowChange<ProtocolDataSystem, Dictionary<string, object>> e)
     {
+        await notificationService.Info("Validating...");
+
         // e.Values
         var protocolDataSystemId = e.Item.ProtocolDataSystemId;
         e.Values.TryGetValue("DataSystemName", out var dataSystemName);
         e.Values.TryGetValue("SortOrder", out var sortOrder);
 
-        if (dataSystemName == null || sortOrder == null)
+        List<string> missingFields = new List<string>();
+        if (string.IsNullOrWhiteSpace((string)dataSystemName))
         {
-            List<string> missingFields = new List<string>();
-            if (dataSystemName == null)
-            {
-                missingFields.Add("Data System Name");
-            }
-            if (sortOrder == null)
-            {
-                missingFields.Add("Sort Order");
-            }
+            missingFields.Add("Data System Name");
+        }
+        if (sortOrder == null)
+        {
+            missingFields.Add("Sort Order");
+        }
+        if (missingFields.Count > 0)
+        {
             await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
             e.Cancel = true;
+            return e;
         }
 
+
+        await notificationService.Info("Validating uniqueness...");
         if (dataSystemName != null && this.selectedDataSystem?.DataSystemName != (string)dataSystemName && protocolDataSystemList.Any(x => x.DataSystemName == (string)dataSystemName && x.ProtocolDataSystemId != protocolDataSystemId))
         {
             await notificationService.Error($"Data System {dataSystemName} already exists");

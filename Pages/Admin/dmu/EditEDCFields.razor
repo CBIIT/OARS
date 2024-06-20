@@ -54,7 +54,7 @@
                 <SelectList TItem="ProtocolEDCForm" TValue="int?" Data="@protocolForms" TextField="@((item)=>item.EDCFormIdentifier + " - " + item.EDCFormName)" ValueField="@((item)=>item.ProtocolEDCFormId)" SelectedValueChanged="@( v =>{context.CellValue = v; context.UpdateCell(nameof(ProtocolEDCField.ProtocolEDCFormId),v); dataGridRef.Refresh();})" SelectedValue="@((int?)context.CellValue ?? context.Item.ProtocolEDCFormId)" DefaultItemText="Select a Form" DefaultItemValue="0"></SelectList>
             </EditTemplate>
          </DataGridColumn>
-         <DataGridColumn Field="@nameof(ProtocolEDCField.ProtocolEDCFormId)" Width="15%" Caption="EDC Form Name" Filterable="true" Sortable="false" Editable>
+         <DataGridColumn Field="@nameof(ProtocolEDCField.ProtocolEDCFormId)" Width="15%" Caption="EDC Form Name" Filterable="true" Sortable="true" Editable>
              <DisplayTemplate>
                 @{
                     if(context.ProtocolEDCForm != null)
@@ -75,8 +75,8 @@
                  <TextEdit Text="@GetFormName((int?)context.CellValue)" Disabled></TextEdit>
              </EditTemplate>
          </DataGridColumn>
-         <DataGridColumn Field="@nameof(ProtocolEDCField.EDCFieldIdentifier)" Caption="EDC Field ID" Width="15%" Filterable="true" Editable></DataGridColumn>
-         <DataGridColumn Field="@nameof(ProtocolEDCField.EDCFieldName)" Caption="EDC Field Label" Width="15%" Filterable="true" Editable></DataGridColumn>
+            <DataGridColumn Field="@nameof(ProtocolEDCField.EDCFieldIdentifier)" Caption="EDC Field ID" Width="15%" Filterable="true" Sortable="true" Editable></DataGridColumn>
+            <DataGridColumn Field="@nameof(ProtocolEDCField.EDCFieldName)" Caption="EDC Field Label" Width="15%" Filterable="true" Sortable="true" Editable></DataGridColumn>
          <DataGridColumn Field="@nameof(ProtocolEDCField.EDCDictionaryName)" Caption="EDC Dictionary Name" Width="15%" Filterable="true" Editable></DataGridColumn>
          <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="true">
              <EditCommandTemplate>
@@ -141,7 +141,7 @@
 
     public async Task<CancellableRowChange<ProtocolEDCField>> Verify(CancellableRowChange<ProtocolEDCField, Dictionary<string, object>> e)
     {
-        protocolFields = await protocolFieldService.GetFieldsByProtocolMappingId(this.protocolMappingId);
+        await notificationService.Info("Validating...");
 
         e.Values.TryGetValue("ProtocolEDCFormId", out var ProtocolEDCFormId);
         e.Values.TryGetValue("EDCFieldIdentifier", out var EDCFieldIdentifier);
@@ -150,17 +150,17 @@
 
         List<string> missingFields = new List<string>();
 
-        if ((int)ProtocolEDCFormId == 0)
+        if (ProtocolEDCFormId is null || (int)ProtocolEDCFormId == 0)
         {
             missingFields.Add("EDC Form ID");
         }
 
-        if (string.IsNullOrEmpty((string?)EDCFieldIdentifier))
+        if (string.IsNullOrWhiteSpace((string?)EDCFieldIdentifier))
         {
             missingFields.Add("EDC Field ID");
         }
 
-        if (string.IsNullOrEmpty((string?)EDCFieldName))
+        if (string.IsNullOrWhiteSpace((string?)EDCFieldName))
         {
             missingFields.Add("EDC Field Label");
         }
@@ -169,9 +169,11 @@
         {
             await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
             e.Cancel = true;
+            return e;
         }
 
-        var currentProtocolFields = protocolFields.Where(x => x.EDCFieldIdentifier == (string)EDCFieldIdentifier && x.ProtocolEDCFieldId != protocolEDCFieldId).ToList();
+        await notificationService.Info("Validating uniqueness...");
+        var currentProtocolFields = protocolFields.Where(x => x.ProtocolEDCFormId == protocolEDCFieldId && x.EDCFieldIdentifier == (string)EDCFieldIdentifier && x.ProtocolEDCFieldId != protocolEDCFieldId).ToList();
         if (currentProtocolFields.Count() > 0)
         {
             await notificationService.Error($"The field {EDCFieldIdentifier} already exists");

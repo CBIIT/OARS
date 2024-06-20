@@ -114,31 +114,33 @@
 
     public async Task<CancellableRowChange<ThorCategory>> Verify(CancellableRowChange<ThorCategory, Dictionary<string,object>> e)
     {
-        // e.Values
+        await notificationService.Info("Validating...");
 
         e.Values.TryGetValue("CategoryName", out var categoryName);
         e.Values.TryGetValue("ThorDataCategoryId", out var categoryId);
         e.Values.TryGetValue("SortOrder", out var sortOrder);
 
-        if (categoryName == null || categoryId == null || sortOrder == null)
+        List<string> missingFields = new List<string>();
+        if (string.IsNullOrWhiteSpace((string)categoryName))
         {
-            List<string> missingFields = new List<string>();
-            if (categoryName == null)
-            {
-                missingFields.Add("Category Name");
-            }
-            if (categoryId == null)
-            {
-                missingFields.Add("Category ID");
-            }
-            if (sortOrder == null)
-            {
-                missingFields.Add("Sort Order");
-            }
+            missingFields.Add("Category Name");
+        }
+        if (string.IsNullOrWhiteSpace((string)categoryId))
+        {
+            missingFields.Add("Category ID");
+        }
+        if (sortOrder == null)
+        {
+            missingFields.Add("Sort Order");
+        }
+        if (missingFields.Count > 0)
+        {
             await notificationService.Error($"Please fix all errors to save. Missing fields: {string.Join(", ", missingFields)}");
             e.Cancel = true;
+            return e;
         }
 
+        await notificationService.Info("Validating uniqueness...");
         if (categoryId != null && this.selectedCategory?.ThorDataCategoryId != (string)categoryId && categoryList.Any(x => x.ThorDataCategoryId == (string)categoryId))
         {
             await notificationService.Error($"Category ID {e.Item.ThorDataCategoryId} already exists");

@@ -17,7 +17,7 @@
           ShowPager
           ShowPageSizes
           Filterable
-           FilterMethod="DataGridFilterMethod.StartsWith"
+           FilterMethod="DataGridFilterMethod.Contains"
            MaxPaginationLinks="5"
            PagerPosition="DataGridPagerPosition.Bottom"
            PagerOptions="new(){ButtonSize=Size.Default,
@@ -70,7 +70,7 @@
  </DataGrid>
 
 
- @code {
+@code {
     [Inject] IProtocolTACService ProtocolTacService { get; set; } = null!;
     [Inject] private NavigationManager navigation { get; set; } = null!;
     [Inject] INotificationService notificationService { get; set; }
@@ -82,7 +82,6 @@
     private DataGrid<ProtocolTac> dataGridRef;
     private IList<ProtocolTac> protocolTacList;
     private ProtocolTac selectedRow;
-    private IList<ProtocolTac> protocolTacs = new List<ProtocolTac>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -96,7 +95,7 @@
 
     public async Task<CancellableRowChange<ProtocolTac>> Verify(CancellableRowChange<ProtocolTac, Dictionary<string, object>> e)
     {
-        protocolTacs = await ProtocolTacService.GetProtocolTACByProtocolMappingId(protocolMappingId);
+        await notificationService.Info("Validating...");
 
         e.Values.TryGetValue("TacCode", out var TacCode);
         e.Values.TryGetValue("TacDescription", out var TacDescription);
@@ -104,12 +103,12 @@
 
         List<string> missingFields = new List<string>();
 
-        if (string.IsNullOrEmpty((string?)TacCode))
+        if (string.IsNullOrWhiteSpace((string?)TacCode))
         {
             missingFields.Add("TAC Code");
         }
 
-        if (string.IsNullOrEmpty((string?)TacDescription))
+        if (string.IsNullOrWhiteSpace((string?)TacDescription))
         {
             missingFields.Add("TAC Description");
         }
@@ -118,12 +117,14 @@
         {
             await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
             e.Cancel = true;
+            return e;
         }
 
-        IList<ProtocolTac> currentTacs = protocolTacs.Where(x => x.TacCode == (string)TacCode && x.ProtocolTacId != protocolTacId).ToList();
+        await notificationService.Info("Validating uniqueness...");
+        IList<ProtocolTac> currentTacs = protocolTacList.Where(x => x.TacCode == (string)TacCode && x.ProtocolTacId != protocolTacId).ToList();
         if (currentTacs.Count() > 0)
         {
-            await notificationService.Error($"The field {TacCode} already exists");
+            await notificationService.Error($"The code {TacCode} already exists");
             e.Cancel = true;
         }
 

@@ -78,12 +78,12 @@
                         ValueField="@((item)=>item.ThorFieldId)"
                         SelectedValueChanged="@(e => {context.CellValue = Convert.ToString(e);} )"
                         SelectedValue="@((string?)context.CellValue ?? context.Item.ThorFieldId)"
-                        DefaultItemText="Select">
+                                DefaultItemText=@defaultFieldDropdownValue>
                     </SelectList>
                 }
             </EditTemplate>
          </DataGridColumn>
-         <DataGridColumn Field="IsEnabled" Width="15%" Caption="Enabled" Filterable="true" Sortable="false" Editable>
+         <DataGridColumn Field="IsEnabled" Width="15%" Caption="Enabled" Filterable="true" Sortable="true" Editable>
             <DisplayTemplate>
                 @(context.IsEnabled ? "Enabled" : "Disabled")
             </DisplayTemplate>
@@ -94,7 +94,7 @@
                 </Select>
             </EditTemplate>
         </DataGridColumn>
-        <DataGridColumn Field="IsRequired" Width="15%" Caption="Required" Filterable="true" Sortable="false" Editable>
+        <DataGridColumn Field="IsRequired" Width="15%" Caption="Required" Filterable="true" Sortable="true" Editable>
             <DisplayTemplate>
                 @(context.IsRequired ? "Required" : "Not Required")
             </DisplayTemplate>
@@ -105,7 +105,7 @@
                 </Select>
             </EditTemplate>
         </DataGridColumn>
-        <DataGridColumn Field="CanBeDictionary" Width="15%" Caption="Can be a Pick List" Filterable="true" Sortable="false" Editable>
+        <DataGridColumn Field="CanBeDictionary" Width="15%" Caption="Can be a Pick List" Filterable="true" Sortable="true" Editable>
             <DisplayTemplate>
                 @(context.CanBeDictionary ? "Yes" : "No")
             </DisplayTemplate>
@@ -116,7 +116,7 @@
                 </Select>
             </EditTemplate>
         </DataGridColumn>
-        <DataGridColumn Field="IsMultiForm" Width="15%" Caption="Is MultiForm" Filterable="true" Sortable="false" Editable>
+        <DataGridColumn Field="IsMultiForm" Width="15%" Caption="Is MultiForm" Filterable="true" Sortable="true" Editable>
             <DisplayTemplate>
                 @(context.IsMultiForm ? "Yes" : "No")
             </DisplayTemplate>
@@ -174,6 +174,8 @@
     private DataGrid<ProtocolField> dataGridRef;
     private ProtocolField selectedField;
     private IList<ProtocolField> protocolFields = new List<ProtocolField>();
+
+    private string defaultFieldDropdownValue = "Select";
 
     private string? TestContext(CellEditContext<ProtocolField> context, string? fieldValue)
     {
@@ -256,27 +258,30 @@
 
     public async Task<CancellableRowChange<ProtocolField>> Verify(CancellableRowChange<ProtocolField, Dictionary<string, object>> e)
     {
+        await notificationService.Info("Validating...");
+
         // e.Values
         var protocolFieldId = e.Item.ProtocolFieldId;
         e.Values.TryGetValue("ThorFieldId", out var thorFieldId);
 
-        if (string.IsNullOrEmpty((string?)thorFieldId))
+        List<string> missingFields = new List<string>();
+
+        var thorFieldIdStr = (string)thorFieldId;
+
+        if (string.IsNullOrWhiteSpace(thorFieldIdStr) || thorFieldIdStr == defaultFieldDropdownValue)
         {
-            List<string> missingFields = new List<string>();
-
-            if (string.IsNullOrEmpty((string?)thorFieldId))
-            {
-                missingFields.Add("OARS Field");
-            }
-
-            if (missingFields.Count > 0)
-            {
-                await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
-                e.Cancel = true;
-            }
+            missingFields.Add("OARS Field");
         }
 
-        if (!string.IsNullOrEmpty((string?)thorFieldId) && protocolFields.Any(x => x.ThorFieldId == (string)thorFieldId && x.ProtocolFieldId != protocolFieldId))
+        if (missingFields.Count > 0)
+        {
+            await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
+            e.Cancel = true;
+            return e;
+        }
+
+        await notificationService.Info("Validating uniqueness...");
+        if (!string.IsNullOrWhiteSpace((string?)thorFieldId) && protocolFields.Any(x => x.ThorFieldId == (string)thorFieldId && x.ProtocolFieldId != protocolFieldId))
         {
             await notificationService.Error($"The field {e.Item.ThorFieldId} already exists");
             e.Cancel = true;
