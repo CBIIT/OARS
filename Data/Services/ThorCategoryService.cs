@@ -15,7 +15,11 @@ namespace TheradexPortal.Data.Services
             _navManager = navigationManager;
         }
         public async Task<IList<ThorCategory>> GetCategories() {
-            return await context.THORDataCategory.OrderBy(c => c.SortOrder).ToListAsync();
+            return await context.THORDataCategory
+                .OrderBy(c => c.SortOrder)
+                .ThenBy(c => c.CategoryName)
+                .ThenBy(c => c.ThorDataCategoryId)
+                .ToListAsync();
         }
 
         public async Task<IList<ThorCategory>> GetCategoriesForMapping(int mappingId)
@@ -30,7 +34,11 @@ namespace TheradexPortal.Data.Services
                     categories.Add(profileCategory.ThorCategory);
                 }
             }
-            return categories.OrderBy(o=>o.CategoryName).ToList();
+            return categories
+                .OrderBy(c => c.SortOrder)
+                .ThenBy(c => c.CategoryName)
+                .ThenBy(c => c.ThorDataCategoryId)
+                .ToList();
         }
         public async Task<ThorCategory> GetCategory(string id)
         {

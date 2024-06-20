@@ -51,7 +51,36 @@
                         </DisplayTemplate>
                     </DataGridColumn> 
                     <DataGridColumn Width="100px" Field="@nameof(Protocol.StudyId)" Caption="Study ID" />
-                    <DataGridColumn Width="100px" Field="@nameof(Protocol.StudyDrug)" Caption="Primary Agent" />
+                    <DataGridColumn Field="@nameof(Protocol.PrimaryAgent)" Caption="Primary Agent" />
+                    <DataGridColumn Field="@nameof(Protocol.OtherAgents)" Caption="Other Agents" >
+                        <DisplayTemplate> 
+                            @{
+                            var otherAgents = (context as Protocol)?.OtherAgents;
+                            var newItemMark = '-';
+                            if (otherAgents != null)
+                            {
+                                var otherAgentsList = otherAgents.Split(',').ToList();
+                                @if (otherAgentsList.Count > 1)
+                                {
+                                    @foreach (var agent in otherAgentsList)
+                                    {
+                                        @newItemMark @agent
+                                        <br/>
+                                    }
+                                }
+                                else
+                                {
+                                    var agent = otherAgentsList.FirstOrDefault();
+                                    @agent
+                                }
+                            }
+                            else
+                            {
+                                
+                            }
+                            }
+                        </DisplayTemplate>
+                    </DataGridColumn>
                     <DataGridColumn Field="@nameof(Protocol.ProtocolTitle)" Caption="Title" />
                     <DataGridDateColumn Width="150px" Field="@nameof(Protocol.ActivationDT)" Caption="Activation Date">
                         <DisplayTemplate>

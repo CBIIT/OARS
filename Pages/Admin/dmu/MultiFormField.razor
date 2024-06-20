@@ -46,7 +46,7 @@
                 @{
                     if(context.ProtocolEDCFormId != null && context.ProtocolEDCFormId != 0)
                     {
-                        <Text>@protocolEDCFormList.First(x => x.ProtocolEDCFormId == context.ProtocolEDCFormId).EDCFormIdentifier</Text>
+                        <Text>@protocolEDCFormList.FirstOrDefault(x => x.ProtocolEDCFormId == context.ProtocolEDCFormId)?.EDCFormIdentifier</Text>
                     } else
                     {
                         <Text>@context.ProtocolEDCField.ProtocolEDCForm.EDCFormIdentifier</Text>
@@ -62,7 +62,7 @@
                 @{
                     if(context.ProtocolEDCFieldId != null && context.ProtocolEDCFieldId != 0 && context.ProtocolEDCField == null)
 					{
-						<Text>@protocolEDCFieldList.First(x => x.ProtocolEDCFieldId == context.ProtocolEDCFieldId).EDCFieldIdentifier</Text>
+						<Text>@protocolEDCFieldList.FirstOrDefault(x => x.ProtocolEDCFieldId == context.ProtocolEDCFieldId)?.EDCFieldIdentifier</Text>
 					} else
 					{
 						<Text>@(context.ProtocolEDCField.EDCFieldIdentifier + " - " + context.ProtocolEDCField.EDCFieldName)</Text>

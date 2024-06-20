@@ -17,7 +17,7 @@
           ShowPager
           ShowPageSizes
           Filterable
-           FilterMethod="DataGridFilterMethod.StartsWith"
+           FilterMethod="DataGridFilterMethod.Contains"
            MaxPaginationLinks="5"
            PagerPosition="DataGridPagerPosition.Bottom"
            PagerOptions="new(){ButtonSize=Size.Default,
@@ -32,7 +32,9 @@
            RowInserted="@Save"
           @bind-SelectedRow="@selectedRow"
           RowRemoving=@ConfirmDelete
-          RowRemoved=@DeleteRow>
+          RowRemoved=@DeleteRow
+          RowUpdating="@Verify"
+          RowInserting="@Verify">
      <DataGridColumns>
         <DataGridColumn Field="@nameof(ProtocolTac.TacCode)" Width="30%" Caption="TAC Code" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
         </DataGridColumn>
@@ -90,6 +92,45 @@
         System.Console.WriteLine($"Protocol TAC Elapsed time: {elapsedMs} ms");
     }
 
+
+    public async Task<CancellableRowChange<ProtocolTac>> Verify(CancellableRowChange<ProtocolTac, Dictionary<string, object>> e)
+    {
+        await notificationService.Info("Validating...");
+
+        e.Values.TryGetValue("TacCode", out var TacCode);
+        e.Values.TryGetValue("TacDescription", out var TacDescription);
+        var protocolTacId = e.Item.ProtocolTacId;
+
+        List<string> missingFields = new List<string>();
+
+        if (string.IsNullOrWhiteSpace((string?)TacCode))
+        {
+            missingFields.Add("TAC Code");
+        }
+
+        if (string.IsNullOrWhiteSpace((string?)TacDescription))
+        {
+            missingFields.Add("TAC Description");
+        }
+
+        if (missingFields.Count > 0)
+        {
+            await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
+            e.Cancel = true;
+            return e;
+        }
+
+        await notificationService.Info("Validating uniqueness...");
+        IList<ProtocolTac> currentTacs = protocolTacList.Where(x => x.TacCode == (string)TacCode && x.ProtocolTacId != protocolTacId).ToList();
+        if (currentTacs.Count() > 0)
+        {
+            await notificationService.Error($"The code {TacCode} already exists");
+            e.Cancel = true;
+        }
+
+        return e;
+    }
+
     public async void Save(SavedRowItem<ProtocolTac, Dictionary<string, object>> e)
     {
         var toSave = e.Item;
@@ -106,6 +147,7 @@
         if (saved)
         {
             await notificationService.Success("Protocol TAC successfully saved");
+            this.protocolTacList = await ProtocolTacService.GetProtocolTACByProtocolMappingId(protocolMappingId);
             return;
         }
         else

@@ -24,12 +24,45 @@ namespace TheradexPortal.Data.Services
 
         public async Task<IList<ThorField>> GetFields()
         {
-            return await context.THORField.Include(f => f.Category).OrderBy(c => c.SortOrder).ToListAsync();
+            return await context.THORField.Include(f => f.Category)
+                .OrderBy(c => c.SortOrder)
+                .ThenBy(c => c.ThorFieldId)
+                .ToListAsync();
         }
 
         public async Task<IList<ThorField>> GetFields(string categoryId)
         {
-            return await context.THORField.Where(f => f.ThorDataCategoryId == categoryId).OrderBy(c => c.SortOrder).ToListAsync();
+            return await context.THORField.Where(f => f.ThorDataCategoryId == categoryId)
+                .OrderBy(c => c.SortOrder)
+                .ThenBy(c => c.ThorFieldId)
+                .ToListAsync();
+        }
+
+        public async Task<IList<ThorField>> GetFieldsForMapping(int mappingId)
+        {
+            var mapping = await context.ProtocolMapping.Include(x => x.Profile).Where(x => x.ProtocolMappingId == mappingId).FirstOrDefaultAsync();
+            if (mapping == null)
+            {
+                return new List<ThorField>();
+            }
+            var profileCategories = await context.ProfileDataCategory.Include(x => x.ThorCategory)
+                .Where(
+                    x => x.ProfileId == mapping.ProfileId &&
+                    x.ThorCategory.IsActive
+                )
+                .ToListAsync();
+            var categoryIds = profileCategories.Select(x => x.ThorDataCategoryId).ToList();
+            var profileFields = await context.ProfileFields.Include(x => x.ThorField)
+                    .Where(x => 
+                        x.ProfileId == mapping.ProfileId && 
+                        x.ThorField.IsActive &&
+                        categoryIds.Contains(x.ThorField.ThorDataCategoryId))
+                    .ToListAsync();
+
+            return profileFields.Select(x => x.ThorField)
+                .OrderBy(c => c.SortOrder)
+                .ThenBy(c => c.ThorFieldId)
+                .ToList();
         }
 
         public async Task<bool> SaveField(ThorField field)
@@ -77,5 +110,6 @@ namespace TheradexPortal.Data.Services
                 return false;
             }
         }
+
     }
 }

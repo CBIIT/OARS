@@ -93,8 +93,8 @@
                     @{
                         if (context.ProtocolEDCFieldId != null && context.ProtocolEDCFieldId != 0 && context.ProtocolEDCField == null)
                         {
-                            var currentField = protocolEDCFieldList.First(x => x.ProtocolEDCFieldId == context.ProtocolEDCFieldId);
-                            <Text>@(currentField.EDCFieldIdentifier + " - " + currentField.EDCFieldName)</Text>
+                            var currentField = protocolEDCFieldList.FirstOrDefault(x => x.ProtocolEDCFieldId == context.ProtocolEDCFieldId);
+                            <Text>@(currentField?.EDCFieldIdentifier + " - " + currentField?.EDCFieldName)</Text>
                         }
                         else if(context.ProtocolEDCField != null && context.ProtocolEDCField.ProtocolEDCFieldId != 0)
                         {
@@ -199,8 +199,8 @@ else{
                         @{
                             if (context.ProtocolEDCFieldId != null && context.ProtocolEDCFieldId != 0)
                             {
-                                var currentField = edcFieldsByForm[form.Form.ProtocolFormMappingId].First(x => x.ProtocolEDCFieldId == context.ProtocolEDCFieldId);
-                                <Text>@(currentField.EDCFieldIdentifier + " - " + currentField.EDCFieldName)</Text>
+                                var currentField = edcFieldsByForm[form.Form.ProtocolFormMappingId].FirstOrDefault(x => x.ProtocolEDCFieldId == context.ProtocolEDCFieldId);
+                                <Text>@(currentField?.EDCFieldIdentifier + " - " + currentField?.EDCFieldName)</Text>
                             }
                             else if (context.ProtocolEDCField != null && context.ProtocolEDCField.ProtocolEDCFieldId != 0)
                             {
@@ -236,7 +236,7 @@ else{
                     <DisplayTemplate>
                         @if (context.ThorField != null && context.ThorField.ThorDictionaryId != null && context.ThorField.ThorDictionaryId != 0)
                         {
-                            <Button Color="Color.Primary" Clicked="@((item) => EditDictionaryMapping(context, protocolEDCFormList.First(x => x.ProtocolEDCFormId == context.ProtocolEDCFormId).EDCFormIdentifier))" Disabled="@GetFieldMappingStatus(context)">Edit</Button>
+                            <Button Color="Color.Primary" Clicked="@((item) => EditDictionaryMapping(context, protocolEDCFormList.FirstOrDefault(x => x.ProtocolEDCFormId == context.ProtocolEDCFormId)?.EDCFormIdentifier))" Disabled="@GetFieldMappingStatus(context)">Edit</Button>
                         }
                         else
                         {
@@ -401,7 +401,7 @@ else{
         }
     }
 
-    private string GetPlaceholder(ProtocolFieldMapping item)
+    private string? GetPlaceholder(ProtocolFieldMapping item)
     {
         if (item.ProtocolEDCFormId == 0 && item.ProtocolEDCField == null)
         {
@@ -414,7 +414,7 @@ else{
         return item.ProtocolEDCField.ProtocolEDCForm.EDCFormIdentifier;
     }
 
-    public string GetThorFieldLabel(ProtocolFieldMapping item)
+    public string? GetThorFieldLabel(ProtocolFieldMapping item)
     {
         if (item.ThorFieldId == null || item.ThorFieldId == "")
         {
@@ -436,7 +436,7 @@ else{
         }
         else
         {
-            return item.ThorField.FieldLabel;
+            return item.ThorField?.FieldLabel;
         }
     }
 
@@ -505,8 +505,12 @@ else{
         }
     }
 
-    public async void EditDictionaryMapping(ProtocolFieldMapping item, string formLabel)
+    public async void EditDictionaryMapping(ProtocolFieldMapping item, string? formLabel)
     {
+        if (item.ThorField?.ThorDictionaryId == null || item.ThorField.ThorDictionaryId == 0 || formLabel == null)
+        {
+            return;
+        }
         navigation.NavigateTo($"/admin/dmu/dictionary-list-map/{item.ProtocolFieldMappingId}?protocolMappingId={this.protocolMappingId}&protocol={this.protocol}&categoryName={currCategory.CategoryName}&formLabel={formLabel}&catId={protocolCategoryId}&dict={item.ThorField.ThorDictionaryId}", true);
     }
 

@@ -16,7 +16,7 @@
           ShowPager
           ShowPageSizes
           Filterable
-           FilterMethod="DataGridFilterMethod.StartsWith"
+           FilterMethod="DataGridFilterMethod.Contains"
            MaxPaginationLinks="5"
            PagerPosition="DataGridPagerPosition.Bottom"
            PagerOptions="new(){ButtonSize=Size.Default,
@@ -26,11 +26,14 @@
            FixedHeader
            FixedHeaderDataGridHeight="calc(100vh - 240px)"
            FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
-           EditMode="DataGridEditMode.Inline"
+          EditMode="DataGridEditMode.Inline"
+          NewItemDefaultSetter="@CheckCategories"
            RowUpdated="@Save"
            RowInserted="@Save"
            RowRemoving="@ConfirmDelete"
-           RowRemoved="@Delete">
+          RowRemoved="@Delete"
+          RowUpdating="@Verify"
+          RowInserting="@Verify">
      <DataGridColumns>
          <DataGridColumn Width="35%" Field="@nameof(ProfileDataCategory.ThorDataCategoryId)" Caption="OARS Data Category" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
              <DisplayTemplate>
@@ -41,7 +44,7 @@
                     }
                     else if (context.ThorCategory == null && context.ThorDataCategoryId != null)
 					{
-						@(this.categoryList.First(x => x.ThorDataCategoryId == context.ThorDataCategoryId).CategoryName + " (" + context.ThorDataCategoryId + ")")
+						@(this.categoryList.FirstOrDefault(x => x.ThorDataCategoryId == context.ThorDataCategoryId)?.CategoryName + " (" + context.ThorDataCategoryId + ")")
 					}
 					else
 					{
@@ -61,7 +64,7 @@
          </DataGridColumn>
         <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="true">
             <EditCommandTemplate>
-                <Button><Icon Name="IconName.Edit" Clicked="@context.Clicked" /></Button>
+                <Button><Icon Name="IconName.Edit" Clicked="@(() => Edit(context, context.Item))" /></Button>
             </EditCommandTemplate>
             <SaveCommandTemplate>
                 <Button><Icon Name="IconName.Save" Clicked="@context.Clicked" /></Button>
@@ -99,14 +102,65 @@
     private DataGrid<ProfileDataCategory> dataGridRef;
     private IList<ProfileDataCategory> profileCategories;
     private IList<ThorCategory> categoryList;
+    private IList<ProfileDataCategory> protocolDataCategories = new List<ProfileDataCategory>();
 
     protected override async Task OnInitializedAsync()
     {
         this.profileCategories = await profileCategoryService.GetCategories(profile);
         this.categoryList = await categoryService.GetCategories();
-        this.categoryList = this.categoryList.Where(x => x.IsActive).ToList();
-
+        // Exclue inactive and already selected categories
+        CheckCategories(null);
     }
+
+    public void Edit(CommandContext context, ProfileDataCategory item)
+    {
+        CheckCategories(item);
+        context.Clicked.InvokeAsync();
+    }
+
+    public async void CheckCategories(ProfileDataCategory? item)
+    {
+        this.categoryList = await categoryService.GetCategories();
+        // Exclue inactive and already selected categories, if supplied
+        this.categoryList = this.categoryList.Where(x =>
+            x.IsActive &&
+            (
+                x.ThorDataCategoryId == item?.ThorDataCategoryId ||
+                !this.profileCategories.Where(y => y.ThorDataCategoryId == x.ThorDataCategoryId).Any() 
+            )
+        )
+        .OrderBy(x => x.CategoryName + " (" + x.ThorDataCategoryId + ")")
+        .ToList();
+    }
+
+    public async Task<CancellableRowChange<ProfileDataCategory>> Verify(CancellableRowChange<ProfileDataCategory, Dictionary<string, object>> e)
+    {
+        var profileDataCategoryId = e.Item.ProfileDataCategoryId;
+
+        e.Values.TryGetValue("ThorDataCategoryId", out var ThorDataCategoryId);
+
+        List<string> missingFields = new List<string>();
+
+        if (string.IsNullOrWhiteSpace((string?)ThorDataCategoryId))
+        {
+            missingFields.Add("OARS Data Category");
+        }
+
+        if (missingFields.Count > 0)
+        {
+            await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
+            e.Cancel = true;
+        }
+
+
+        if (!string.IsNullOrWhiteSpace((string?)ThorDataCategoryId) && protocolDataCategories.Any(x => x.ThorDataCategoryId == (string)ThorDataCategoryId && x.ProfileDataCategoryId != profileDataCategoryId))
+        {
+            await notificationService.Error($"The field {ThorDataCategoryId} already exists");
+            e.Cancel = true;
+        }
+
+        return e;
+    } 
 
     public async void Save(SavedRowItem<ProfileDataCategory, Dictionary<string, object>> savedRowItem)
     {

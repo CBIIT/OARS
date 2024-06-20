@@ -21,7 +21,10 @@ namespace TheradexPortal.Data.Services
         }
 
         public async Task<IList<ProtocolEDCForm>> GetFormsForMappingId(int protocolMappingId) {
-            return await context.ProtocolEDCForm.Where(p=>p.ProtocolMappingId == protocolMappingId).OrderBy(o=>o.EDCFormIdentifier).ToListAsync();
+            return await context.ProtocolEDCForm
+                .Where(p=>p.ProtocolMappingId == protocolMappingId)
+                .OrderBy(o=>o.EDCFormIdentifier + "|" + o.EDCFormName)
+                .ToListAsync();
         }
         public async Task<bool> SaveProtocolEDCForm(ProtocolEDCForm protocolEDCForm)
         {
@@ -54,7 +57,10 @@ namespace TheradexPortal.Data.Services
         }    
 
         public async Task<IList<ProtocolEDCForm>> GetProtocolEDCFormsByProtocolMappingId(int protocolMappingId) {
-            return await context.ProtocolEDCForms.Where(p=>p.ProtocolMappingId == protocolMappingId).ToListAsync();
+            return await context.ProtocolEDCForms
+                .Where(p=>p.ProtocolMappingId == protocolMappingId)
+                .OrderBy(o => o.EDCFormIdentifier + "|" + o.EDCFormName)
+                .ToListAsync();
         }
 
         public async Task<IList<int>> GetFormIdsForMappingId(int mappingId)

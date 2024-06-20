@@ -19,7 +19,7 @@ namespace TheradexPortal.Data.Services
         public async Task<IList<ProtocolField>> GetProtocolDateFieldsByMappingId(int protocolMappingId)
         {
             
-            var protocolFields = await context.ProtocolField.Where(pf => pf.ProtocolMappingId == protocolMappingId && pf.ThorField.FieldType!.FieldTypeName == "Date" && pf.IsEnabled == 'Y').ToListAsync();
+            var protocolFields = await context.ProtocolField.Where(pf => pf.ProtocolMappingId == protocolMappingId && pf.ThorField.FieldType!.FieldTypeName == "Date" && pf.IsEnabled).ToListAsync();
             var thorFields = await context.THORField.Where(tf => tf.FieldType!.FieldTypeName == "Date").ToListAsync();
 
             var pfThorFieldIds = new HashSet<string>(protocolFields.Select(pf => pf.ThorFieldId));
@@ -34,10 +34,10 @@ namespace TheradexPortal.Data.Services
                         ThorFieldId = thorField.ThorFieldId,
                         ThorField = thorField,
                         Format = "MM/dd/yyyy",
-                        IsRequired = 'F',
-                        IsEnabled = 'F',
-                        CanBeDictionary = 'F',
-                        IsMultiForm = 'F',
+                        IsRequired = false,
+                        IsEnabled = false,
+                        CanBeDictionary = false,
+                        IsMultiForm = false,
                         CreateDate = DateTime.Now,
                         UpdateDate = DateTime.Now
                     };
@@ -50,6 +50,9 @@ namespace TheradexPortal.Data.Services
         public async Task<IList<ProtocolField>> GetAllProtocolFieldsByMappingId(int protocolMappingId)
         {
             var mapping = await context.ProtocolMapping.Where(p => p.ProtocolMappingId == protocolMappingId).Include(p => p.Protocol).Include(p => p.Profile).FirstOrDefaultAsync();
+            if (mapping == null)
+                return new List<ProtocolField>();
+
             var profileFields = await context.ProfileFields.Include(x => x.ThorField).Where(pf => pf.ProfileId == mapping.ProfileId).ToListAsync();
             var pfIds = profileFields.Select(pf => pf.THORFieldId).ToList();
             var protocolFields = await context.ProtocolField
@@ -75,7 +78,7 @@ namespace TheradexPortal.Data.Services
                 .Where(pf =>
                     pf.ProtocolMappingId == protocolMappingId &&
                     pf.ThorField.ThorDataCategoryId == dataCategoryId &&
-                    pf.IsEnabled == 'Y'
+                    pf.IsEnabled
                 )
                 .ToListAsync();
         }
@@ -87,7 +90,7 @@ namespace TheradexPortal.Data.Services
                 .Where(pf =>
                     pf.ProtocolMappingId == protocolMappingId &&
                     pf.ThorField.ThorDataCategoryId == dataCategoryId &&
-                    pf.IsEnabled == 'N'
+                    pf.IsEnabled == false
                 )
                 .ToListAsync();
         }
@@ -157,10 +160,9 @@ namespace TheradexPortal.Data.Services
 
                 var profileFields = await context.ProfileFields
                     .Include(x => x.ThorField)
-                    .Where(pf => 
-                        pf.ProfileId == profileId &&
-                        pf.ThorField.IsActive == true
-                    ).ToListAsync();
+                    .Include(x => x.ThorField.FieldType)
+                    .Where(pf => pf.ProfileId == profileId && pf.ThorField.IsActive)
+                    .ToListAsync();
 
                 foreach (var profileField in profileFields)
                 {
@@ -169,10 +171,10 @@ namespace TheradexPortal.Data.Services
                         ThorDataCategoryId = profileField.ThorField.ThorDataCategoryId,
                         ThorFieldId = profileField.THORFieldId,
                         Format = "",
-                        IsRequired = 'N',
-                        IsEnabled = 'Y',
-                        CanBeDictionary = profileField.ThorField.ThorDictionaryId != null ? 'Y' : 'N',
-                        IsMultiForm = profileField.ThorField.IsMultiForm ? 'Y' : 'N',
+                        IsRequired = false,
+                        IsEnabled = false,
+                        CanBeDictionary = profileField.ThorField.FieldType?.FieldTypeName == "Dropdown",
+                        IsMultiForm = profileField.ThorField.IsMultiForm,
                         CreateDate = DateTime.Now,
                         UpdateDate = DateTime.Now,
                     };
