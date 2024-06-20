@@ -34,41 +34,78 @@ namespace TheradexPortal.Data.Services
 
         public async Task<List<ProtocolDataCategory>> GetCategoriesByMappingProfile(int mappingId)
         {
-            var profile = await context.ProtocolMapping.Include(x => x.Profile).Where(x => x.ProtocolMappingId == mappingId).FirstOrDefaultAsync();
-            if (profile == null)
-            {
-                return new List<ProtocolDataCategory>();
-            } else
-            {
-                var profileDataCategories = await context.ProfileDataCategory
-                    .Include(x => x.ThorCategory).Where(x => x.ProfileId == profile.ProfileId).ToListAsync();
-                var protocolDataCategories = await context.ProtocolDataCategories
-                .Include(x => x.ProtocolMapping)
-                .Include(x => x.THORDataCategory)
-                .Include(x => x.ProtocolCategoryStatus)
+            var dataCategories = await context.ProtocolField
+                .Include(x => x.ThorField)
                 .Where(x => x.ProtocolMappingId == mappingId)
+                .GroupBy(x => x.ThorField.ThorDataCategoryId)
+                .Select(x => x.Select(y => y.ThorField.Category).First())
                 .ToListAsync();
 
-                foreach (var profileCategory in profileDataCategories)
+            var protocolDataCategories = await context.ProtocolDataCategories
+                .Include(x => x.THORDataCategory)
+                .Include(x => x.ProtocolCategoryStatus)
+                .Where(x => x.ProtocolMappingId == mappingId) 
+                .ToListAsync();
+
+            var defaultDataCategoryStatus = await context.ProtocolCategoryStatus.FirstOrDefaultAsync(x => x.ProtocolCategoryStatusId == 1);
+
+            foreach (var category in dataCategories)
+            {
+                if (!protocolDataCategories.Any(x => x.THORDataCategoryId == category.ThorDataCategoryId))
                 {
-                    if(protocolDataCategories.Find(x => x.THORDataCategoryId == profileCategory.ThorDataCategoryId) == null)
+                    ProtocolDataCategory newCategory = new ProtocolDataCategory
                     {
-                        ProtocolDataCategory newCategory = new ProtocolDataCategory
-                        {
-                            ProtocolMappingId = mappingId,
-                            THORDataCategoryId = profileCategory.ThorDataCategoryId,
-                            THORDataCategory = profileCategory.ThorCategory,
-                            ProtocolCategoryStatus = await context.ProtocolCategoryStatus.FirstOrDefaultAsync(x => x.ProtocolCategoryStatusId == 1),
-                            ProtocolCategoryStatusId = 1,
-                            IsMultiForm = false,
-                            CreateDate = DateTime.Now,
-                            UpdateDate = DateTime.Now
-                        };
-                        protocolDataCategories.Add(newCategory);
-                    }
+                        ProtocolMappingId = mappingId,
+                        THORDataCategoryId = category!.ThorDataCategoryId,
+                        THORDataCategory = category,
+                        ProtocolCategoryStatusId = 1,
+                        ProtocolCategoryStatus = defaultDataCategoryStatus,
+                        IsMultiForm = false,
+                        CreateDate = DateTime.Now,
+                        UpdateDate = DateTime.Now
+                    };
+                    protocolDataCategories.Add(newCategory);
+
                 }
-                return protocolDataCategories.OrderBy(x => x.THORDataCategory.CategoryName).ToList();
             }
+
+            return protocolDataCategories.OrderBy(x => x.THORDataCategory.CategoryName).ToList();
+
+            //var profile = await context.ProtocolMapping.Include(x => x.Profile).Where(x => x.ProtocolMappingId == mappingId).FirstOrDefaultAsync();
+            //if (profile == null)
+            //{
+            //    return new List<ProtocolDataCategory>();
+            //} else
+            //{
+            //    var profileDataCategories = await context.ProfileDataCategory
+            //        .Include(x => x.ThorCategory).Where(x => x.ProfileId == profile.ProfileId).ToListAsync();
+            //    var protocolDataCategories = await context.ProtocolDataCategories
+            //    .Include(x => x.ProtocolMapping)
+            //    .Include(x => x.THORDataCategory)
+            //    .Include(x => x.ProtocolCategoryStatus)
+            //    .Where(x => x.ProtocolMappingId == mappingId)
+            //    .ToListAsync();
+
+            //    foreach (var profileCategory in profileDataCategories)
+            //    {
+            //        if(protocolDataCategories.Find(x => x.THORDataCategoryId == profileCategory.ThorDataCategoryId) == null)
+            //        {
+            //            ProtocolDataCategory newCategory = new ProtocolDataCategory
+            //            {
+            //                ProtocolMappingId = mappingId,
+            //                THORDataCategoryId = profileCategory.ThorDataCategoryId,
+            //                THORDataCategory = profileCategory.ThorCategory,
+            //                ProtocolCategoryStatus = await context.ProtocolCategoryStatus.FirstOrDefaultAsync(x => x.ProtocolCategoryStatusId == 1),
+            //                ProtocolCategoryStatusId = 1,
+            //                IsMultiForm = false,
+            //                CreateDate = DateTime.Now,
+            //                UpdateDate = DateTime.Now
+            //            };
+            //            protocolDataCategories.Add(newCategory);
+            //        }
+            //    }
+            //    return protocolDataCategories.OrderBy(x => x.THORDataCategory.CategoryName).ToList();
+            //}
         }
 
         public async Task<ProtocolDataCategory> GetCategory(int categoryId)

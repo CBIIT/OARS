@@ -155,7 +155,12 @@ namespace TheradexPortal.Data.Services
             {
                 if (profileId == null) return false;
 
-                var profileFields = await context.ProfileFields.Include(x => x.ThorField).Where(pf => pf.ProfileId == profileId).ToListAsync();
+                var profileFields = await context.ProfileFields
+                    .Include(x => x.ThorField)
+                    .Where(pf => 
+                        pf.ProfileId == profileId &&
+                        pf.ThorField.IsActive == true
+                    ).ToListAsync();
 
                 foreach (var profileField in profileFields)
                 {
@@ -165,8 +170,8 @@ namespace TheradexPortal.Data.Services
                         ThorFieldId = profileField.THORFieldId,
                         Format = "",
                         IsRequired = 'N',
-                        IsEnabled = 'N',
-                        CanBeDictionary = 'N',
+                        IsEnabled = 'Y',
+                        CanBeDictionary = profileField.ThorField.ThorDictionaryId != null ? 'Y' : 'N',
                         IsMultiForm = profileField.ThorField.IsMultiForm ? 'Y' : 'N',
                         CreateDate = DateTime.Now,
                         UpdateDate = DateTime.Now,
