@@ -97,6 +97,7 @@
 
         e.Values.TryGetValue("DiseaseName", out var DiseaseName);
         e.Values.TryGetValue("MeddraCode", out var MeddraCode);
+        var protocolDiseaseId = e.Item.ProtocolDiseaseId;
 
         List<string> missingFields = new List<string>();
 
@@ -116,14 +117,11 @@
             e.Cancel = true;
         }
 
-        var currentProtocolDiseaseList = protocolDiseaseList.Where(x => x.MeddraCode == (string)MeddraCode).ToList();
+        var currentProtocolDiseaseList = protocolDiseaseList.Where(x => x.MeddraCode == (string)MeddraCode && x.ProtocolDiseaseId != protocolDiseaseId).ToList();
         if (currentProtocolDiseaseList.Count() > 0)
         {
-            if (currentProtocolDiseaseList.Any(y => y.DiseaseName.Equals(DiseaseName)))
-            {
-                await notificationService.Error($"The fields {MeddraCode}, {DiseaseName} already exists");
-                e.Cancel = true;
-            }
+            await notificationService.Error($"The field {MeddraCode} already exists");
+            e.Cancel = true;
         }
 
         return e;

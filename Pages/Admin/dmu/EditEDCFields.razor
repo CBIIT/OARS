@@ -146,7 +146,7 @@
         e.Values.TryGetValue("ProtocolEDCFormId", out var ProtocolEDCFormId);
         e.Values.TryGetValue("EDCFieldIdentifier", out var EDCFieldIdentifier);
         e.Values.TryGetValue("EDCFieldName", out var EDCFieldName);
-        // The dictionary name is optional
+        var protocolEDCFieldId = e.Item.ProtocolEDCFieldId;
 
         List<string> missingFields = new List<string>();
 
@@ -171,7 +171,7 @@
             e.Cancel = true;
         }
 
-        var currentProtocolFields = protocolFields.Where(x => x.EDCFieldIdentifier == (string)EDCFieldIdentifier).ToList();
+        var currentProtocolFields = protocolFields.Where(x => x.EDCFieldIdentifier == (string)EDCFieldIdentifier && x.ProtocolEDCFieldId != protocolEDCFieldId).ToList();
         if (currentProtocolFields.Count() > 0)
         {
             await notificationService.Error($"The field {EDCFieldIdentifier} already exists");

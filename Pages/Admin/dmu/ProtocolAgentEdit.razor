@@ -92,6 +92,7 @@
 
         e.Values.TryGetValue("NscNumber", out var NscNumber);
         e.Values.TryGetValue("AgentName", out var AgentName);
+        var protocolAgentId = e.Item.ProtocolAgentId;
 
         List<string> missingFields = new List<string>();
 
@@ -111,14 +112,11 @@
             e.Cancel = true;
         }
 
-        var currentProtocolAgents = protocolAgents.Where(x => x.NscNumber == (string)NscNumber).ToList();
+        var currentProtocolAgents = protocolAgents.Where(x => x.NscNumber == (string)NscNumber && x.ProtocolAgentId != protocolAgentId).ToList();
         if (currentProtocolAgents.Count() > 0)
         {
-            if (currentProtocolAgents.Any(y => y.AgentName.Equals(AgentName)))
-            {
-                await notificationService.Error($"The fields {NscNumber}, {AgentName} already exists");
-                e.Cancel = true;
-            }
+            await notificationService.Error($"The field {NscNumber} already exists");
+            e.Cancel = true;
         }
 
         return e;

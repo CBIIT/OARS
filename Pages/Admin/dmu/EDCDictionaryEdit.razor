@@ -105,10 +105,10 @@
     {
         protocolDicts = await protocolDictionaryService.GetDictionariesByMappingId(protocolMappingId);
 
-        var id = e.Item.ProtocolEDCDictionaryId;
         e.Values.TryGetValue("EDCDictionaryName", out var EDCDictionaryName);
         e.Values.TryGetValue("EDCItemId", out var EDCItemId);
         e.Values.TryGetValue("EDCItemName", out var EDCItemName);
+        var id = e.Item.ProtocolEDCDictionaryId;
 
         List<string> missingFields = new List<string>();
 
@@ -133,10 +133,10 @@
             e.Cancel = true;
         }
 
-        var currentProtocolDicts = protocolDicts.Where(x => x.EDCDictionaryName == (string)EDCDictionaryName && x.EDCItemId.Equals((string)EDCItemId)).ToList();
+        var currentProtocolDicts = protocolDicts.Where(x => x.EDCDictionaryName == (string)EDCDictionaryName && x.ProtocolEDCDictionaryId != id).ToList();
         if (currentProtocolDicts.Count() > 0)
         {
-            await notificationService.Error($"The fields {EDCDictionaryName}, {EDCItemId} already exists");
+            await notificationService.Error($"The field {EDCDictionaryName} already exists");
             e.Cancel = true;
         }
 

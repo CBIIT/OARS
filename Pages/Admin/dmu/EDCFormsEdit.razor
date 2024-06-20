@@ -115,6 +115,7 @@
 
         e.Values.TryGetValue("EDCFormIdentifier", out var EDCFormIdentifier);
         e.Values.TryGetValue("EDCFormName", out var EDCFormName);
+        var protocolEDCFormId = e.Item.ProtocolEDCFormId;
 
         List<string> missingFields = new List<string>();
 
@@ -134,14 +135,11 @@
             e.Cancel = true;
         }
 
-        var currentEDCForms = protocolEDCForms.Where(x => x.EDCFormIdentifier == (string)EDCFormIdentifier).ToList();
+        var currentEDCForms = protocolEDCForms.Where(x => x.EDCFormIdentifier == (string)EDCFormIdentifier && x.ProtocolEDCFormId != protocolEDCFormId).ToList();
         if (currentEDCForms.Count() > 0)
         {
-            if (currentEDCForms.Any(y => y.EDCFormName.Equals(EDCFormName)))
-            {
-                await notificationService.Error($"The fields {EDCFormIdentifier}, {EDCFormName} already exists");
-                e.Cancel = true;
-            }
+            await notificationService.Error($"The field {EDCFormIdentifier} already exists");
+            e.Cancel = true;
         }
 
         return e;

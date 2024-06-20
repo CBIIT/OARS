@@ -100,6 +100,7 @@
 
         e.Values.TryGetValue("TacCode", out var TacCode);
         e.Values.TryGetValue("TacDescription", out var TacDescription);
+        var protocolTacId = e.Item.ProtocolTacId;
 
         List<string> missingFields = new List<string>();
 
@@ -119,14 +120,11 @@
             e.Cancel = true;
         }
 
-        IList<ProtocolTac> currentTacs = protocolTacs.Where(x => x.TacCode == (string)TacCode).ToList();
+        IList<ProtocolTac> currentTacs = protocolTacs.Where(x => x.TacCode == (string)TacCode && x.ProtocolTacId != protocolTacId).ToList();
         if (currentTacs.Count() > 0)
         {
-            if (currentTacs.Any(y => y.TacDescription.Equals(TacDescription)))
-            {
-                await notificationService.Error($"The fields {TacCode}, {TacDescription} already exists");
-                e.Cancel = true;
-            }
+            await notificationService.Error($"The field {TacCode} already exists");
+            e.Cancel = true;
         }
 
         return e;

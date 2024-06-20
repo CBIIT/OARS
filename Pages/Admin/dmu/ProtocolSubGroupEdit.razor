@@ -91,6 +91,7 @@
 
         e.Values.TryGetValue("SubGroupCode", out var SubGroupCode);
         e.Values.TryGetValue("Description", out var Description);
+        var protocolSubGroupId = e.Item.ProtocolSubGroupId;
 
         List<string> missingFields = new List<string>();
 
@@ -110,14 +111,11 @@
             e.Cancel = true;
         }
 
-        var currentSubGroups = protocolSubGroups.Where(x => x.SubGroupCode == (string)SubGroupCode).ToList();
+        var currentSubGroups = protocolSubGroups.Where(x => x.SubGroupCode == (string)SubGroupCode && x.ProtocolSubGroupId != protocolSubGroupId).ToList();
         if (currentSubGroups.Count() > 0)
         {
-            if (currentSubGroups.Any(y => y.Description.Equals(Description)))
-            {
-                await notificationService.Error($"The fields {SubGroupCode}, {Description} already exists");
-                e.Cancel = true;
-            }
+            await notificationService.Error($"The field {SubGroupCode} already exists");
+            e.Cancel = true;
         }
 
         return e;
