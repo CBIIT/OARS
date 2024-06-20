@@ -6,5 +6,7 @@ namespace TheradexPortal.Data.Services.Abstract
     {
         public Task<IList<ProtocolDataSystem>> GetProtocolDataSystems();
         public Task<bool> SaveProtocolDataSystem(ProtocolDataSystem protocolDataSystem);
+
+        public Task<bool> ProtocolDataSystemExists(ProtocolDataSystem protocolDataSystem);
     }
 }

@@ -15,7 +15,7 @@
           ShowPager
           ShowPageSizes
           Filterable
-           FilterMethod="DataGridFilterMethod.StartsWith"
+           FilterMethod="DataGridFilterMethod.Contains"
            MaxPaginationLinks="5"
            PagerPosition="DataGridPagerPosition.Bottom"
            PagerOptions="new(){ButtonSize=Size.Default,
@@ -29,11 +29,13 @@
            RowUpdated="@Save"
            RowInserted="@Save"
            RowRemoved="@Delete"
-           RowRemoving="@ConfirmDelete">
+          RowRemoving="@ConfirmDelete"
+          RowUpdating="@Verify"
+          RowInserting="@Verify">
      <DataGridColumns>
          <DataGridColumn Width="50%" Caption="Sub Group Code" Field="@nameof(ProtocolSubGroup.SubGroupCode)" Filterable="true" Sortable="true" Editable SortDirection="SortDirection.Ascending">
         </DataGridColumn>
-        <DataGridColumn Field="@nameof(ProtocolSubGroup.Description)" Width="50%" Caption="Description" Filterable="true" Sortable="false" Editable>
+        <DataGridColumn Field="@nameof(ProtocolSubGroup.Description)" Width="50%" Caption="Description" Filterable="true" Sortable="true" Editable>
         </DataGridColumn>
         <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="true">
             <EditCommandTemplate>
@@ -62,7 +64,7 @@
         </div>
     </EmptyTemplate>
 </DataGrid>
- @code {
+@code {
     [Inject] private IProtocolSubGroupService protocolSubGroupService { get; set; } = null!;
     [Inject] private NavigationManager navigation { get; set; } = null!;
     [Inject] private IMessageService messageService { get; set; } = null!;
@@ -83,6 +85,44 @@
         System.Console.WriteLine($"Protocol Sub Group Elapsed time: {elapsedMs} ms");
     }
 
+    public async Task<CancellableRowChange<ProtocolSubGroup>> Verify(CancellableRowChange<ProtocolSubGroup, Dictionary<string, object>> e)
+    {
+        await notificationService.Info("Validating...");
+
+        e.Values.TryGetValue("SubGroupCode", out var SubGroupCode);
+        e.Values.TryGetValue("Description", out var Description);
+        var protocolSubGroupId = e.Item.ProtocolSubGroupId;
+
+        List<string> missingFields = new List<string>();
+
+        if (string.IsNullOrWhiteSpace((string?)SubGroupCode))
+        {
+            missingFields.Add("Sub Group Code");
+        }
+
+        if (string.IsNullOrWhiteSpace((string?)Description))
+        {
+            missingFields.Add("Description");
+        }
+
+        if (missingFields.Count > 0)
+        {
+            await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
+            e.Cancel = true;
+            return e;
+        }
+
+        await notificationService.Info("Validating uniqueness...");
+        var currentSubGroups = protocolSubGroups.Where(x => x.SubGroupCode == (string)SubGroupCode && x.ProtocolSubGroupId != protocolSubGroupId).ToList();
+        if (currentSubGroups.Count() > 0)
+        {
+            await notificationService.Error($"The sub group {SubGroupCode} already exists");
+            e.Cancel = true;
+        }
+
+        return e;
+    }
+
 
     public async void Save(SavedRowItem<ProtocolSubGroup, Dictionary<string, object>> savedRowItem)
     {
@@ -92,6 +132,7 @@
         if (saved)
         {
             await notificationService.Success("Subgroup successfully saved");
+            this.protocolSubGroups = await protocolSubGroupService.GetSubGroupsByMappingId(protocolMappingId);
             return;
         }
         else

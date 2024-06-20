@@ -4,12 +4,8 @@
 @inject IHttpContextAccessor httpContextAccessor
 @layout AdminLayout
 
-@*
-    TODO: Add ThorRoleCheck check for DMU roles when they are created
 
-<ThorRoleCheck AllowedRoles="@(new List<string> { "??" })"></ThorRoleCheck>
-*@
-
+<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })" AllowedTHORRoles="@(new List<string> { "DMU Global Admin" })"></AdminRoleCheck>
 <DataGrid @ref=dataGridRef
           TItem="ThorField"
           Class="admindatagrid"
@@ -17,7 +13,6 @@
           Editable
           Responsive
           Sortable
-          SortMode="DataGridSortMode.Single"
           Striped
           ShowPager
           ShowPageSizes
@@ -33,9 +28,12 @@
           FixedHeader
            FixedHeaderDataGridHeight="calc(100vh - 240px)"
            FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
-           EditMode="DataGridEditMode.Inline"
+          EditMode="DataGridEditMode.Inline"
+          EditItemCreator="@CreatEditItem"
+          NewItemCreator="@CreateNewItem"
            RowUpdated="@Save"
-           RowInserting="@Verify"
+           RowUpdating="@Verify"
+          RowInserting="@Verify"
            RowInserted="@Save">
      <DataGridColumns>
           <DataGridColumn Width="15%" Field="@nameof(ThorField.ThorDataCategoryId)" Caption="OARS Data Category" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
@@ -59,7 +57,7 @@
 					 }
 					 else if (context.FieldType == null && context.ThorFieldTypeId != null)
 					 {
-						@this.fieldTypes.First(x => x.ThorFieldTypeId == context.ThorFieldTypeId).FieldTypeName
+						@this.fieldTypes.FirstOrDefault(x => x.ThorFieldTypeId == context.ThorFieldTypeId)?.FieldTypeName
 					 }
 					 else
 					 {
@@ -91,7 +89,7 @@
                     }
                     else if (context.Dictionary == null && context.ThorDictionaryId != null)
                     {
-                        @this.dictionaryList.First(x => x.ThorDictionaryId == context.ThorDictionaryId).DictionaryName
+                        @this.dictionaryList.FirstOrDefault(x => x.ThorDictionaryId == context.ThorDictionaryId)?.DictionaryName
                     }
                     else
 					{
@@ -104,8 +102,8 @@
                     int? fieldTypeId = (int?)context.ReadCell(nameof(ThorField.ThorFieldTypeId));
                     if(fieldTypeId != null)
                     {
-                        string name = this.fieldTypes.First(x => x.ThorFieldTypeId == fieldTypeId).FieldTypeName;
-                        if (name == "Dropdown")
+                        var fieldType = this.fieldTypes.FirstOrDefault(x => x.ThorFieldTypeId == fieldTypeId);
+                        if (fieldType != null && fieldType.FieldTypeName == "Dropdown")
                         {
                             <SelectList TItem="ThorDictionary" TValue="int?" Data="@dictionaryList" TextField="@((item) => item.DictionaryName)" ValueField="@((item)=>item.ThorDictionaryId)" SelectedValueChanged="@( v => {context.CellValue = v;})" SelectedValue="@((int?)context.CellValue)" DefaultItemText="Select a Dictionary Name" DefaultItemValue="0" />
                         }
@@ -187,6 +185,8 @@
                                    .ToList();
     }
 
+
+
     public async void NewItemAction(ThorField item)
     {
         item.IsActive = true;
@@ -194,9 +194,23 @@
         this.categoryList = updatedCategories;
     }
 
+    public ThorField CreateNewItem()
+    {
+        selectedField = null;
+        return new ThorField();
+    }
+
+    public ThorField CreatEditItem(ThorField thorField)
+    {
+        selectedField = thorField;
+        return thorField;
+    }
+
 
     public async Task<CancellableRowChange<ThorField>> Verify(CancellableRowChange<ThorField, Dictionary<string, object>> e)
     {
+        await notificationService.Info("Validating...");
+
         e.Values.TryGetValue("ThorFieldId", out var id);
         e.Values.TryGetValue("ThorDataCategoryId", out var catId);
         e.Values.TryGetValue("SortOrder", out var order);
@@ -204,38 +218,44 @@
         e.Values.TryGetValue("ThorFieldTypeId", out var fieldTypeId);
         e.Values.TryGetValue("ThorDictionaryId", out var dictId);
 
-        if(id == null || catId == null || order == null || label == null || fieldTypeId == null || dictId == null){
-            List<string> missingFields = new List<string>();
+        List<string> missingFields = new List<string>();
 
-            if(id == null)
-            {
-                missingFields.Add("Field ID");
-            }
-            if(catId == null)
-            {
-                missingFields.Add("Category ID");
-            }
-            if(order == null){
-                missingFields.Add("Sort Order");
-            }
-            if(label == null)
-            {
-                missingFields.Add("Field Label");
-            }
-            if(fieldTypeId == null)
-            {
-                missingFields.Add("Field Type");
-            }
-            if ((fieldTypeId != null && this.fieldTypes.First(x => x.ThorFieldTypeId == (int)fieldTypeId).FieldTypeName == "Dropdown") && dictId == null)
-            {
-                missingFields.Add("Dictionary Name");
-            }
+        if (string.IsNullOrWhiteSpace((string)id))
+        {
+            missingFields.Add("Field ID");
+        }
+        if (string.IsNullOrWhiteSpace((string)catId))
+        {
+            missingFields.Add("Category ID");
+        }
+        if(order == null){
+            missingFields.Add("Sort Order");
+        }
+        if (string.IsNullOrWhiteSpace((string)label))
+        {
+            missingFields.Add("Field Label");
+        }
+        if(fieldTypeId == null)
+        {
+            missingFields.Add("Field Type");
+        }
+        if ((fieldTypeId != null && this.fieldTypes.FirstOrDefault(x => x.ThorFieldTypeId == (int)fieldTypeId)?.FieldTypeName == "Dropdown") && dictId == null)
+        {
+            missingFields.Add("Dictionary Name");
+        }
 
-            if(missingFields.Count > 0)
-            {
-                await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
-                e.Cancel = true;
-            }
+        if(missingFields.Count > 0)
+        {
+            await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
+            e.Cancel = true;
+            return e;
+        }
+
+        await notificationService.Info("Validating uniqueness...");
+        if (id != null && this.selectedField?.ThorFieldId != (string)id && fieldList.Any(x => x.ThorFieldId == (string)id))
+        {
+            await notificationService.Error($"The field {id} already exists");
+            e.Cancel = true;
         }
 
         return e;
@@ -250,6 +270,7 @@
         if (saved)
         {
             await notificationService.Success("Field successfully saved");
+            var updatedCategories = await categoryService.GetCategories();
             return;
         }
         else

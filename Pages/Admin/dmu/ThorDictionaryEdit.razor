@@ -4,16 +4,16 @@
 @layout AdminLayout
 @page "/admin/dmu/dictionary-edit"
 
-<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })"></AdminRoleCheck>
+<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })" AllowedTHORRoles="@(new List<string> { "DMU Global Admin" })"></AdminRoleCheck>
 <DataGrid @ref=dataGridRef
           TItem="ThorDictionary"
           Class="admindatagrid"
           Data="@dictionaryList"
           Editable
+
           Responsive
           Striped
           Sortable
-          SortMode="DataGridSortMode.Single"
           ShowPager
           ShowPageSizes
           Filterable
@@ -29,7 +29,10 @@
           FixedHeaderDataGridHeight="calc(100vh - 240px)"
           FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
           EditMode="DataGridEditMode.Inline"
+          EditItemCreator="@CreatEditItem"
+          NewItemCreator="@CreateNewItem"
           RowUpdated="@Save"
+          RowUpdating="@Verify"
           RowInserted="@Save"
           RowInserting="@Verify"
           HeaderRowStyling="@(new DataGridRowStyling() { Style="color=rgba(250, 141, 40, 1);" })">
@@ -81,7 +84,7 @@
     private DataGrid<ThorDictionary> dataGridRef;
     private IList<ThorDictionary> dictionaryList;
 
-    private ThorDictionary? selectedCategory;
+    private ThorDictionary? selectedDictionary;
 
     protected override async Task OnInitializedAsync()
     {
@@ -89,29 +92,65 @@
     }
 
     public void SetActive(ThorDictionary item)
-	{
-		item.IsActive = true;
-	}
+    {
+        item.IsActive = true;
+    }
+
+    public ThorDictionary CreateNewItem()
+    {
+        selectedDictionary = null;
+        return new ThorDictionary();
+    }
+
+    public ThorDictionary CreatEditItem(ThorDictionary thorDictionary)
+    {
+        selectedDictionary = thorDictionary;
+        return thorDictionary;
+    }
+
 
     public async Task<CancellableRowChange<ThorDictionary>> Verify(CancellableRowChange<ThorDictionary, Dictionary<string, object>> e)
     {
+        await notificationService.Info("Validating...");
+
         e.Values.TryGetValue("DictionaryName", out var dictName);
+        e.Values.TryGetValue("DictionaryOption", out var dictOption);
+        e.Values.TryGetValue("DictionaryValue", out var dictValue);
         e.Values.TryGetValue("SortOrder", out var order);
-        if (dictName == null || order == null)
+
+
+        List<string> missingFields = new List<string>();
+        if (string.IsNullOrWhiteSpace((string)dictName))
         {
-            List<string> missingFields = new List<string>();
-            if (dictName == null)
-			{
-				missingFields.Add("Dictionary Name");
-			}
-            if (order == null)
-            {
-                missingFields.Add("Order");
-			}
+            missingFields.Add("Dictionary Name");
+        }
+        if (string.IsNullOrWhiteSpace((string)dictOption))
+        {
+            missingFields.Add("Dictionary Option");
+        }
+        if (string.IsNullOrWhiteSpace((string)dictValue))
+        {
+            missingFields.Add("Dictionary Value");
+        }
+        if (order == null)
+        {
+            missingFields.Add("Order");
+        }
+        if (missingFields.Count > 0)
+        {
             await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
             e.Cancel = true;
-		}
-		return e;
+            return e;
+        }
+
+        await notificationService.Info("Validating uniqueness...");
+        if (dictName != null && dictOption != null && selectedDictionary?.DictionaryName != (string)dictName && selectedDictionary?.DictionaryOption != (string)dictOption && dictionaryList.Any(x => x.DictionaryName == (string)dictName && x.DictionaryOption == (string)dictOption))
+        {
+            await notificationService.Error($"Dictionary option {dictName} - {dictOption} already exists");
+            e.Cancel = true;
+        }
+
+        return e;
 	}
 
     public async void Save(SavedRowItem<ThorDictionary, Dictionary<string, object>> e)
@@ -123,6 +162,7 @@
         if (saved)
         {
             await notificationService.Success("Dictionary successfully saved");
+            this.dictionaryList = await dictionaryService.GetDictionaries();
             return;
         }
         else

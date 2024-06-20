@@ -17,7 +17,7 @@
           ShowPager
           ShowPageSizes
           Filterable
-           FilterMethod="DataGridFilterMethod.StartsWith"
+           FilterMethod="DataGridFilterMethod.Contains"
            MaxPaginationLinks="5"
            PagerPosition="DataGridPagerPosition.Bottom"
            PagerOptions="new(){ButtonSize=Size.Default,
@@ -32,7 +32,9 @@
            RowInserted="@Save"
           @bind-SelectedRow="@selectedRow"
           RowRemoving=@ConfirmDelete
-          RowRemoved=@DeleteRow>
+          RowRemoved=@DeleteRow
+          RowUpdating="@Verify"
+          RowInserting="@Verify">
      <DataGridColumns>
         <DataGridColumn Field="@nameof(ProtocolDisease.DiseaseName)" Width="30%" Caption="Disease Name" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
         </DataGridColumn>
@@ -89,6 +91,45 @@
         System.Console.WriteLine($"Protocol Disease Elapsed time: {elapsedMs} ms");
     }
 
+    public async Task<CancellableRowChange<ProtocolDisease>> Verify(CancellableRowChange<ProtocolDisease, Dictionary<string, object>> e)
+    {
+        await notificationService.Info("Validating...");
+
+        e.Values.TryGetValue("DiseaseName", out var DiseaseName);
+        e.Values.TryGetValue("MeddraCode", out var MeddraCode);
+        var protocolDiseaseId = e.Item.ProtocolDiseaseId;
+
+        List<string> missingFields = new List<string>();
+
+        if (string.IsNullOrWhiteSpace((string?)DiseaseName))
+        {
+            missingFields.Add("Disease Name");
+        }
+
+        if (string.IsNullOrWhiteSpace((string?)MeddraCode))
+        {
+            missingFields.Add("Reporting Meddra Code");
+        }
+
+        if (missingFields.Count > 0)
+        {
+            await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
+            e.Cancel = true;
+            return e;
+        }
+
+        await notificationService.Info("Validating uniqueness...");
+        var currentProtocolDiseaseList = protocolDiseaseList.Where(x => x.MeddraCode == (string)MeddraCode && x.ProtocolDiseaseId != protocolDiseaseId).ToList();
+        if (currentProtocolDiseaseList.Count() > 0)
+        {
+            await notificationService.Error($"The meddra code {MeddraCode} already exists");
+            e.Cancel = true;
+        }
+
+        return e;
+    }
+
+
     public async void Save(SavedRowItem<ProtocolDisease, Dictionary<string, object>> e)
     {
         var toSave = e.Item;
@@ -105,6 +146,7 @@
         if (saved)
         {
             await notificationService.Success("Protocol Disease successfully saved");
+            this.protocolDiseaseList = await ProtocolDiseaseService.GetProtocolDiseaseByProtocolMappingId(protocolMappingId);
             return;
         }
         else

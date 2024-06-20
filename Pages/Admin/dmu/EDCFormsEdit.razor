@@ -18,7 +18,7 @@
           ShowPager
           ShowPageSizes
           Filterable
-           FilterMethod="DataGridFilterMethod.StartsWith"
+           FilterMethod="DataGridFilterMethod.Contains"
            MaxPaginationLinks="5"
            PagerPosition="DataGridPagerPosition.Bottom"
            PagerOptions="new(){ButtonSize=Size.Default,
@@ -33,7 +33,9 @@
            RowInserted="@Save"
           @bind-SelectedRow="@selectedRow"
           RowRemoving=@ConfirmDelete
-          RowRemoved=@DeleteRow>
+              RowRemoved=@DeleteRow
+              RowUpdating="@Verify"
+              RowInserting="@Verify">
      <DataGridColumns>
         <DataGridColumn Field="@nameof(ProtocolEDCForm.EDCFormIdentifier)" Width="30%" Caption="EDC Form ID" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
         </DataGridColumn>
@@ -84,6 +86,7 @@
 
     private ThorField? selectedField;
     private ProtocolEDCForm selectedRow;
+    private IList<ProtocolEDCForm> protocolEDCForms = new List<ProtocolEDCForm>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -106,6 +109,44 @@
         return;
     }
 
+    public async Task<CancellableRowChange<ProtocolEDCForm>> Verify(CancellableRowChange<ProtocolEDCForm, Dictionary<string, object>> e)
+    {
+        await notificationService.Info("Validating..."); 
+
+        e.Values.TryGetValue("EDCFormIdentifier", out var EDCFormIdentifier);
+        e.Values.TryGetValue("EDCFormName", out var EDCFormName);
+        var protocolEDCFormId = e.Item.ProtocolEDCFormId;
+
+        List<string> missingFields = new List<string>();
+
+        if (string.IsNullOrWhiteSpace((string?)EDCFormIdentifier))
+        {
+            missingFields.Add("EDC Form ID");
+        }
+
+        if (string.IsNullOrWhiteSpace((string?)EDCFormName))
+        {
+            missingFields.Add("EDC Form Name");
+        }
+
+        if (missingFields.Count > 0)
+        {
+            await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
+            e.Cancel = true;
+            return e;
+        }
+
+        await notificationService.Info("Validating uniqueness...");
+        var currentEDCForms = protocolEDCForms.Where(x => x.EDCFormIdentifier == (string)EDCFormIdentifier && x.ProtocolEDCFormId != protocolEDCFormId).ToList();
+        if (currentEDCForms.Count() > 0)
+        {
+            await notificationService.Error($"The form {EDCFormIdentifier} already exists");
+            e.Cancel = true;
+        }
+
+        return e;
+    }
+
     public async void Save(SavedRowItem<ProtocolEDCForm, Dictionary<string, object>> e)
     {
         var toSave = e.Item;
@@ -122,6 +163,7 @@
         if (saved)
         {
             await notificationService.Success("EDC Form successfully saved");
+            this.edcFormList = await protocolEDCFormService.GetFormsForMappingId(protocolMappingId);
             return;
         }
         else

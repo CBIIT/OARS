@@ -29,6 +29,18 @@ namespace TheradexPortal.Data.Services
                 return new List<ProtocolEDCField>();
             }
         }
+        public async Task<List<ProtocolEDCField>> GetFieldsByProtocolMappingId(int protocolMappingId)
+        {
+            try
+            {
+                return await context.ProtocolEDCField.Where(x => x.ProtocolEDCForm.ProtocolMappingId == protocolMappingId).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                await _errorLogService.SaveErrorLogAsync(0, "", ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+                return new List<ProtocolEDCField>();
+            }
+        }
 
         public async Task<bool> SaveField(ProtocolEDCField field)
         {

@@ -15,7 +15,7 @@
           ShowPageSizes
           Sortable
           Filterable
-           FilterMethod="DataGridFilterMethod.StartsWith"
+           FilterMethod="DataGridFilterMethod.Contains"
            MaxPaginationLinks="5"
            PagerPosition="DataGridPagerPosition.Bottom"
            PagerOptions="new(){ButtonSize=Size.Default,
@@ -29,9 +29,11 @@
            RowUpdated="@Save"
            RowInserted="@Save"
            RowRemoved="@Delete"
-           RowRemoving="@ConfirmDelete">
+           RowRemoving="@ConfirmDelete"
+              RowUpdating="@Verify"
+              RowInserting="@Verify">
      <DataGridColumns>
-         <DataGridColumn Width="30%" Caption="NSC Number" Field="@nameof(ProtocolAgent.NscNumber)" Filterable="true" Sortable="false" Editable>
+         <DataGridColumn Width="30%" Caption="NSC Number" Field="@nameof(ProtocolAgent.NscNumber)" Filterable="true" Sortable="true" Editable>
         </DataGridColumn>
         <DataGridColumn Field="@nameof(ProtocolAgent.AgentName)" Width="30%" Caption="Agent Name" Filterable="true" Sortable="true" Editable SortDirection="SortDirection.Ascending">
         </DataGridColumn>
@@ -62,7 +64,7 @@
          </div>
      </EmptyTemplate>
  </DataGrid>
- @code {
+@code {
     [Inject] private IProtocolAgentService protocolAgentService { get; set; } = null!;
     [Inject] private NavigationManager navigation { get; set; } = null!;
     [Inject] private IMessageService messageService { get; set; } = null!;
@@ -84,6 +86,45 @@
     }
 
 
+    public async Task<CancellableRowChange<ProtocolAgent>> Verify(CancellableRowChange<ProtocolAgent, Dictionary<string, object>> e)
+    {
+        await notificationService.Info("Validating..."); 
+
+        e.Values.TryGetValue("NscNumber", out var NscNumber);
+        e.Values.TryGetValue("AgentName", out var AgentName);
+        var protocolAgentId = e.Item.ProtocolAgentId;
+
+        List<string> missingFields = new List<string>();
+
+        if (string.IsNullOrWhiteSpace((string?)NscNumber))
+        {
+            missingFields.Add("NSC Number");
+        }
+
+        if (string.IsNullOrWhiteSpace((string?)AgentName))
+        {
+            missingFields.Add("Agent Name");
+        }
+
+        if (missingFields.Count > 0)
+        {
+            await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
+            e.Cancel = true;
+            return e;
+        }
+
+        await notificationService.Info("Validating uniqueness...");
+        var currentProtocolAgents = protocolAgents.Where(x => x.NscNumber == (string)NscNumber && x.ProtocolAgentId != protocolAgentId).ToList();
+        if (currentProtocolAgents.Count() > 0)
+        {
+            await notificationService.Error($"The NCS number {NscNumber} already exists");
+            e.Cancel = true;
+        }
+
+        return e;
+    }
+
+
     public async void Save(SavedRowItem<ProtocolAgent, Dictionary<string, object>> savedRowItem)
     {
         var toSave = savedRowItem.Item;
@@ -92,6 +133,7 @@
         if (saved)
         {
             await notificationService.Success("Agent successfully saved");
+            this.protocolAgents = await protocolAgentService.GetAgentsByMappingId(protocolMappingId);
             return;
         }
         else

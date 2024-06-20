@@ -172,6 +172,7 @@ public class CSVFileImportService : ICSVFileImportService
                 HasHeaderRecord = true,
             };
 
+            var rowsSkipped = 0;
             using (var csv = new CsvReader(reader, config))
             {
                 var records = csv.GetRecords<CSVField>().ToArray();
@@ -319,6 +320,7 @@ public class CSVFileImportService : ICSVFileImportService
             {
                 throw new Exception("Error uploading dictionary file, clear uploads and try again.");
             }
+            Console.WriteLine($"Dictionaries saved: {dictionaries.Rows.Count}");
         }
 
         processInfo.Add("Dictonary records inserted: " + dictionaries.Rows.Count.ToString());

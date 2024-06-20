@@ -29,7 +29,9 @@
            RowUpdated="@Save"
            RowInserted="@Save"
            RowRemoving="@ConfirmDelete"
-           RowRemoved="@Delete">
+              RowRemoved="@Delete"
+              RowUpdating="@Verify"
+              RowInserting="@Verify">
      <DataGridColumns>
          <DataGridColumn Width="15%" Caption="EDC Form ID" Filterable="true" Sortable="true" Editable SortDirection="SortDirection.Ascending">
              <DisplayTemplate>
@@ -40,7 +42,7 @@
                     }
                     else if (context.ProtocolEDCForm == null && context.ProtocolEDCFormId != null)
                     {
-                        @this.protocolForms.First(x => x.ProtocolEDCFormId == context.ProtocolEDCFormId).EDCFormIdentifier
+                        @this.protocolForms.FirstOrDefault(x => x.ProtocolEDCFormId == context.ProtocolEDCFormId)?.EDCFormIdentifier
                     }
                     else
                     {
@@ -52,7 +54,7 @@
                 <SelectList TItem="ProtocolEDCForm" TValue="int?" Data="@protocolForms" TextField="@((item)=>item.EDCFormIdentifier + " - " + item.EDCFormName)" ValueField="@((item)=>item.ProtocolEDCFormId)" SelectedValueChanged="@( v =>{context.CellValue = v; context.UpdateCell(nameof(ProtocolEDCField.ProtocolEDCFormId),v); dataGridRef.Refresh();})" SelectedValue="@((int?)context.CellValue ?? context.Item.ProtocolEDCFormId)" DefaultItemText="Select a Form" DefaultItemValue="0"></SelectList>
             </EditTemplate>
          </DataGridColumn>
-         <DataGridColumn Field="@nameof(ProtocolEDCField.ProtocolEDCFormId)" Width="15%" Caption="EDC Form Name" Filterable="true" Sortable="false" Editable>
+         <DataGridColumn Field="@nameof(ProtocolEDCField.ProtocolEDCFormId)" Width="15%" Caption="EDC Form Name" Filterable="true" Sortable="true" Editable>
              <DisplayTemplate>
                 @{
                     if(context.ProtocolEDCForm != null)
@@ -61,7 +63,7 @@
                     }
                     else if (context.ProtocolEDCForm == null && context.ProtocolEDCFormId != null)
 					{
-						@this.protocolForms.First(x => x.ProtocolEDCFormId == context.ProtocolEDCFormId).EDCFormName
+						@this.protocolForms.FirstOrDefault(x => x.ProtocolEDCFormId == context.ProtocolEDCFormId)?.EDCFormName
 					}
 					else
 					{
@@ -73,8 +75,8 @@
                  <TextEdit Text="@GetFormName((int?)context.CellValue)" Disabled></TextEdit>
              </EditTemplate>
          </DataGridColumn>
-         <DataGridColumn Field="@nameof(ProtocolEDCField.EDCFieldIdentifier)" Caption="EDC Field ID" Width="15%" Filterable="true" Editable></DataGridColumn>
-         <DataGridColumn Field="@nameof(ProtocolEDCField.EDCFieldName)" Caption="EDC Field Label" Width="15%" Filterable="true" Editable></DataGridColumn>
+            <DataGridColumn Field="@nameof(ProtocolEDCField.EDCFieldIdentifier)" Caption="EDC Field ID" Width="15%" Filterable="true" Sortable="true" Editable></DataGridColumn>
+            <DataGridColumn Field="@nameof(ProtocolEDCField.EDCFieldName)" Caption="EDC Field Label" Width="15%" Filterable="true" Sortable="true" Editable></DataGridColumn>
          <DataGridColumn Field="@nameof(ProtocolEDCField.EDCDictionaryName)" Caption="EDC Dictionary Name" Width="15%" Filterable="true" Editable></DataGridColumn>
          <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="true">
              <EditCommandTemplate>
@@ -129,14 +131,57 @@
         {
             await loading.Show();
             this.protocolForms = await protocolEDCFormService.GetFormsForMappingId(this.protocolMappingId);
-            var formIds = this.protocolForms.Select(x => x.ProtocolEDCFormId).ToList();
-            this.protocolFields = await protocolFieldService.GetFieldsByFormIds(formIds);
+            this.protocolFields = await protocolFieldService.GetFieldsByProtocolMappingId(this.protocolMappingId);
             StateHasChanged();
             await loading.Hide();
         }
         return;
     }
 
+
+    public async Task<CancellableRowChange<ProtocolEDCField>> Verify(CancellableRowChange<ProtocolEDCField, Dictionary<string, object>> e)
+    {
+        await notificationService.Info("Validating...");
+
+        e.Values.TryGetValue("ProtocolEDCFormId", out var ProtocolEDCFormId);
+        e.Values.TryGetValue("EDCFieldIdentifier", out var EDCFieldIdentifier);
+        e.Values.TryGetValue("EDCFieldName", out var EDCFieldName);
+        var protocolEDCFieldId = e.Item.ProtocolEDCFieldId;
+
+        List<string> missingFields = new List<string>();
+
+        if (ProtocolEDCFormId is null || (int)ProtocolEDCFormId == 0)
+        {
+            missingFields.Add("EDC Form ID");
+        }
+
+        if (string.IsNullOrWhiteSpace((string?)EDCFieldIdentifier))
+        {
+            missingFields.Add("EDC Field ID");
+        }
+
+        if (string.IsNullOrWhiteSpace((string?)EDCFieldName))
+        {
+            missingFields.Add("EDC Field Label");
+        }
+
+        if (missingFields.Count > 0)
+        {
+            await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
+            e.Cancel = true;
+            return e;
+        }
+
+        await notificationService.Info("Validating uniqueness...");
+        var currentProtocolFields = protocolFields.Where(x => x.ProtocolEDCFormId == protocolEDCFieldId && x.EDCFieldIdentifier == (string)EDCFieldIdentifier && x.ProtocolEDCFieldId != protocolEDCFieldId).ToList();
+        if (currentProtocolFields.Count() > 0)
+        {
+            await notificationService.Error($"The field {EDCFieldIdentifier} already exists");
+            e.Cancel = true;
+        }
+
+        return e;
+    }
 
     public async void Save(SavedRowItem<ProtocolEDCField, Dictionary<string, object>> savedRowItem)
     {
@@ -146,6 +191,8 @@
         if (saved)
         {
             await notificationService.Success("Field successfully saved");
+            this.protocolForms = await protocolEDCFormService.GetFormsForMappingId(this.protocolMappingId);
+            this.protocolFields = await protocolFieldService.GetFieldsByProtocolMappingId(this.protocolMappingId);
             return;
         }
         else
