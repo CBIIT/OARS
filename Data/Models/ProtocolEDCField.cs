@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using CsvHelper.Configuration.Attributes;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TheradexPortal.Data.Models
 {
@@ -9,6 +10,29 @@ namespace TheradexPortal.Data.Models
         public int ProtocolEDCFieldId { get; set; }
         [Column("Protocol_EDC_Form_Id")]
         public int ProtocolEDCFormId { get; set; } = 0;
+
+        [NotMapped]
+        public string ProtocolEDCFormName
+        {
+            get
+            {
+                if (ProtocolEDCForm == null)
+                    return "";
+                return ProtocolEDCForm.EDCFormName ?? "";
+            }
+        }
+
+        [NotMapped]
+        public string ProtocolEDCFormDisplay
+        {
+            get
+            {
+                if (ProtocolEDCForm == null)
+                    return "";
+                return ProtocolEDCForm.EDCFormDisplay;
+            }
+        }
+
         [Column("EDC_Field_Identifier")]
         public string? EDCFieldIdentifier { get; set; }
         [Column("EDC_Field_Name")]

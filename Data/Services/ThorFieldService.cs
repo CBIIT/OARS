@@ -24,12 +24,18 @@ namespace TheradexPortal.Data.Services
 
         public async Task<IList<ThorField>> GetFields()
         {
-            return await context.THORField.Include(f => f.Category).OrderBy(c => c.SortOrder).ToListAsync();
+            return await context.THORField.Include(f => f.Category)
+                .OrderBy(c => c.SortOrder)
+                .ThenBy(c => c.ThorFieldId)
+                .ToListAsync();
         }
 
         public async Task<IList<ThorField>> GetFields(string categoryId)
         {
-            return await context.THORField.Where(f => f.ThorDataCategoryId == categoryId).OrderBy(c => c.SortOrder).ToListAsync();
+            return await context.THORField.Where(f => f.ThorDataCategoryId == categoryId)
+                .OrderBy(c => c.SortOrder)
+                .ThenBy(c => c.ThorFieldId)
+                .ToListAsync();
         }
 
         public async Task<IList<ThorField>> GetFieldsForMapping(int mappingId)
@@ -53,7 +59,10 @@ namespace TheradexPortal.Data.Services
                         categoryIds.Contains(x.ThorField.ThorDataCategoryId))
                     .ToListAsync();
 
-            return profileFields.Select(x => x.ThorField).ToList();
+            return profileFields.Select(x => x.ThorField)
+                .OrderBy(c => c.SortOrder)
+                .ThenBy(c => c.ThorFieldId)
+                .ToList();
         }
 
         public async Task<bool> SaveField(ThorField field)

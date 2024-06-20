@@ -14,6 +14,15 @@ namespace TheradexPortal.Data.Models
         public string? EDCFormIdentifier { get; set; }
         [Column("EDC_Form_Name")]
         public string? EDCFormName { get; set; }
+        [NotMapped]
+        public string EDCFormDisplay
+        {
+            get
+            {
+                return (EDCFormIdentifier ?? "") + " - " + (EDCFormName ?? "");
+            }
+        }
+
         [Column("Create_Date")]
         public DateTime CreateDate { get; set; }
         [Column("Update_Date")]

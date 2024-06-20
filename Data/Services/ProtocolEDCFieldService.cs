@@ -21,7 +21,10 @@ namespace TheradexPortal.Data.Services
         {
             try
             {
-                return await context.ProtocolEDCField.Where(x => formIds.Contains(x.ProtocolEDCFormId)).OrderBy(o=>o.EDCFieldIdentifier).ToListAsync();
+                return await context.ProtocolEDCField
+                    .Where(x => formIds.Contains(x.ProtocolEDCFormId))
+                    .OrderBy(o=>o.EDCFieldIdentifier)
+                    .ToListAsync();
             }
             catch (Exception ex)
             {
@@ -33,7 +36,10 @@ namespace TheradexPortal.Data.Services
         {
             try
             {
-                return await context.ProtocolEDCField.Where(x => x.ProtocolEDCForm.ProtocolMappingId == protocolMappingId).ToListAsync();
+                return await context.ProtocolEDCField
+                    .Where(x => x.ProtocolEDCForm.ProtocolMappingId == protocolMappingId)
+                    .OrderBy(x => x.EDCFieldIdentifier)
+                    .ToListAsync();
             }
             catch (Exception ex)
             {

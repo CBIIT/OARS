@@ -18,7 +18,7 @@
           Sortable
           ShowPageSizes
           Filterable
-          FilterMethod="DataGridFilterMethod.StartsWith"
+          FilterMethod="DataGridFilterMethod.Contains"
           MaxPaginationLinks="5"
           PagerPosition="DataGridPagerPosition.Bottom"
           PagerOptions="new(){ButtonSize=Size.Default,
@@ -220,14 +220,19 @@
                     !this.profileFields.Any(pf => pf.THORFieldId == f.ThorFieldId) ||
                     f.ThorFieldId == currentFieldId
                 )
-            ).ToList();
+            )
+            .OrderBy(x => x.ThorFieldId + " - " + x.FieldLabel)
+            .ToList();
     }
 
     public async void CheckCategories(ProfileField item)
     {
         var updatedCategories = await profileCategoryService.GetCategories(profile);
         this.categoryList = await categoryService.GetCategories();
-        this.categoryList = this.categoryList.Where(x => updatedCategories.Any(y => y.ThorDataCategoryId == x.ThorDataCategoryId)).ToList();
+        this.categoryList = this.categoryList
+            .Where(x => updatedCategories.Any(y => y.ThorDataCategoryId == x.ThorDataCategoryId))
+            .OrderBy(x => x.CategoryName + " (" + x.ThorDataCategoryId + ")")
+            .ToList();
         this.fieldList = new List<ThorField>();
         if (item != null && item.ThorField != null)
         {

@@ -36,13 +36,18 @@
           RowInserting="@Verify"
            RowInserted="@Save">
      <DataGridColumns>
-          <DataGridColumn Width="15%" Field="@nameof(ThorField.ThorDataCategoryId)" Caption="OARS Data Category" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
+          <DataGridColumn Width="15%" Field="@nameof(ThorField.ThorDataCategoryId)" Caption="OARS Data Category ID" Editable Filterable="false" Sortable="false">
               <DisplayTemplate>
                 @(context.Category.CategoryName + " (" + context.ThorDataCategoryId + ")") 
               </DisplayTemplate>
              <EditTemplate>
 				 <SelectList TItem="ThorCategory" TValue="string" Data="@categoryList" TextField="@((item)=>item.CategoryName + " (" + item.ThorDataCategoryId + ")")" ValueField="@((item)=>item.ThorDataCategoryId)" SelectedValueChanged="@( v => {context.CellValue = v;})" SelectedValue="@((string?)context.CellValue)" DefaultItemText="Select A Category" DefaultItemValue="@String.Empty"></SelectList>
 			 </EditTemplate>
+         </DataGridColumn>
+        <DataGridColumn Field="@nameof(ThorField.CategoryDisplay)" Width="15%" Caption="OARS Data Category" Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
+             <DisplayTemplate>
+                @context.CategoryDisplay
+			 </DisplayTemplate>
          </DataGridColumn>
          <DataGridColumn Field="@nameof(ThorField.ThorFieldId)" Width="15%" Caption="OARS Field ID" Editable Filterable="true" Sortable="true">
          </DataGridColumn>
@@ -181,7 +186,10 @@
         this.fieldTypes = await fieldService.GetFieldTypes();
         this.dictionaryList = await dictionaryService.GetDictionaries();
         this.dictionaryList = dictionaryList.GroupBy(d => d.DictionaryName)
-                                   .Select(g => g.First()).OrderBy(d => d.DictionaryName)
+                                   .Select(g => g.First())
+                                   .OrderBy(d => d.SortOrder)
+                                   .ThenBy(d => d.DictionaryName)
+                                   .ThenBy(d => d.DictionaryOption)
                                    .ToList();
     }
 
