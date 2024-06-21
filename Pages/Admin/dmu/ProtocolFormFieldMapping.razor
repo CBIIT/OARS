@@ -254,7 +254,6 @@ else{
                         }
                     </DisplayTemplate>
                     <EditTemplate>
-                        <!-- TODO: Don't try to select the currently associated form. The currently associated forms are excluded from the list and displayed above each dropdown. -->
                         <SelectList TItem="ProtocolEDCField" TValue="int" Data="@edcFieldsByForm[form.Form.ProtocolFormMappingId]" TextField="@((item)=>item.EDCFieldDisplay)"
                                     ValueField="@((item) => item.ProtocolEDCFieldId)"
                                     SelectedValueChanged="@( v =>{context.CellValue = v;})"
@@ -344,7 +343,6 @@ else{
         watch = System.Diagnostics.Stopwatch.StartNew();
         this.isComplete = protocolCategory.ProtocolCategoryStatusId == 3;
         this.currCategory = this.protocolCategory.THORDataCategory;
-        // TODO: update get fieldmapping list to limit it to the mapping configuration
         this.protocolFieldMappingList = await protocolFieldMappingService.GetProtocolFieldMappingsForCategory(protocolMappingId, currCategory.ThorDataCategoryId);
         System.Console.WriteLine($"ProtocolFormFieldMapping - {watch.Elapsed} - GetProtocolFieldMappingsForCategory");
 
