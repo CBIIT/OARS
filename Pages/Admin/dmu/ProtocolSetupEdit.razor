@@ -195,6 +195,7 @@
     [Inject] IProtocolDataSystemService protocolDataSystemService { get; set; } = null!;
     [Inject] IProtocolMappingService protocolMappingService { get; set; } = null!;
     [Inject] IProtocolPhaseService protocolPhaseService { get; set; } = null!;
+    [Inject] INotificationService notificationService { get; set; } = null!;
     [Inject] private NavigationManager navigation { get; set; } = null!;
     [Inject] IUserService userService { get; set; } = null!;
 
@@ -236,6 +237,7 @@
     protected override async Task OnInitializedAsync()
     {
         var watch = System.Diagnostics.Stopwatch.StartNew();
+        await notificationService.Info("Loading Protocol Setup...");
         this.currentProtocolMap = await protocolMappingService.GetProtocolMapping(protocolMappingId);
         this.phasesSet = await protocolPhaseService.GetProtocolMappingPhases(protocolMappingId);
         this.crossoverOptions = await protocolMappingService.GetCrossoverOptions();

@@ -128,7 +128,7 @@
                 <DisplayTemplate>
                    @if(context.ThorField != null && context.ThorField.ThorDictionaryId != null && context.ThorField.ThorDictionaryId != 0)
 				   {
-                        <Button Color="Color.Primary" Clicked="@((item) => EditDictionaryMapping(context, protocolEDCFormList.FirstOrDefault(x => x.ProtocolEDCFormId == context.ProtocolEDCFormId)?.EDCFormIdentifier))" Disabled="@GetFieldMappingStatus(context)">Edit</Button>
+                        <Button Color="Color.Primary" Clicked="@((item) => EditDictionaryMapping(context))" Disabled="@GetFieldMappingStatus(context)">Edit</Button>
 				   }
                    else{
                        <Text>N/A</Text>
@@ -277,7 +277,7 @@ else{
                     <DisplayTemplate>
                         @if (context.ThorField != null && context.ThorField.ThorDictionaryId != null && context.ThorField.ThorDictionaryId != 0)
                         {
-                            <Button Color="Color.Primary" Clicked="@((item) => EditDictionaryMapping(context, protocolEDCFormList.FirstOrDefault(x => x.ProtocolEDCFormId == context.ProtocolEDCFormId)?.EDCFormIdentifier))" Disabled="@GetFieldMappingStatus(context)">Edit</Button>
+                            <Button Color="Color.Primary" Clicked="@((item) => EditDictionaryMapping(context))" Disabled="@GetFieldMappingStatus(context)">Edit</Button>
                         }
                         else
                         {
@@ -493,13 +493,13 @@ else{
     }
 
     public bool GetFieldMappingStatus(ProtocolFieldMapping item)
-	{
-		if(item.ProtocolEDCFormId == 0 || item.ProtocolEDCFieldId == 0)
-		{
-			return true;
-		}
-		return false;
-	}
+    {
+        if(item.ProtocolEDCFormId == 0 || item.ProtocolEDCFieldId == 0)
+        {
+            return true;
+        }
+        return false;
+    }
 
     public async Task<CancellableRowChange<ProtocolFieldMapping>> ConfirmDelete(CancellableRowChange<ProtocolFieldMapping> item)
     {
@@ -557,13 +557,25 @@ else{
         }
     }
 
-    public async void EditDictionaryMapping(ProtocolFieldMapping item, string? formLabel)
+    public async void EditDictionaryMapping(ProtocolFieldMapping item)
     {
+
+        var protocolFieldMappingId = item.ProtocolFieldMappingId;
+        var protocolMappingId = this.protocolMappingId;
+        var protocol = this.protocol;
+        var categoryName = this.currCategory.CategoryName;
+        var formLabel = item.ProtocolEDCField.ProtocolEDCForm.EDCFormDisplay; // protocolEDCFormList.FirstOrDefault(x => x.ProtocolEDCFormId == item.ProtocolEDCFormId)?.EDCFormIdentifier;
+        var protocolCategoryId = this.protocolCategoryId;
+        var thorDictionaryId = item.ThorField?.ThorDictionaryId;
+
         if (item.ThorField?.ThorDictionaryId == null || item.ThorField.ThorDictionaryId == 0 || formLabel == null)
         {
             return;
         }
-        navigation.NavigateTo($"/admin/dmu/dictionary-list-map/{item.ProtocolFieldMappingId}?protocolMappingId={this.protocolMappingId}&protocol={this.protocol}&categoryName={currCategory.CategoryName}&formLabel={formLabel}&catId={protocolCategoryId}&dict={item.ThorField.ThorDictionaryId}", true);
+
+        var url = $"/admin/dmu/dictionary-list-map/{protocolFieldMappingId}?protocolMappingId={protocolMappingId}&protocol={protocol}&categoryName={categoryName}&formLabel={formLabel}&protocolCategoryId={protocolCategoryId}&thorDictionaryId={thorDictionaryId}";
+
+        navigation.NavigateTo(url);
     }
 
     public async void AddMultiFormField(ProtocolFieldMapping item)

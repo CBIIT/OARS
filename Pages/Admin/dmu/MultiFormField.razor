@@ -60,17 +60,17 @@
          <DataGridColumn Field="@nameof(ProtocolFieldMapping.ProtocolEDCFieldId)" Width="30%" Caption="Select EDC Field" Editable="true">
             <DisplayTemplate>
                 @{
-                    if(context.ProtocolEDCFieldId != null && context.ProtocolEDCFieldId != 0 && context.ProtocolEDCField == null)
+                    if(context.ProtocolEDCFieldId != 0 && context.ProtocolEDCField == null)
 					{
 						<Text>@protocolEDCFieldList.FirstOrDefault(x => x.ProtocolEDCFieldId == context.ProtocolEDCFieldId)?.EDCFieldIdentifier</Text>
 					} else
 					{
-						<Text>@(context.ProtocolEDCField.EDCFieldIdentifier + " - " + context.ProtocolEDCField.EDCFieldName)</Text>
+						<Text>@(context.ProtocolEDCField.EDCFieldDisplay)</Text>
 					}
                 }
             </DisplayTemplate>
             <EditTemplate>
-                <SelectList TItem="ProtocolEDCField" TValue="int" Data="@protocolEDCFieldList" TextField="@((item)=>item.EDCFieldIdentifier + " - " + item.EDCFieldName)"
+                <SelectList TItem="ProtocolEDCField" TValue="int" Data="@protocolEDCFieldList" TextField="@((item)=>item.EDCFieldDisplay)"
                     ValueField="@((item) => item.ProtocolEDCFieldId)"
                             SelectedValueChanged="@( v =>{context.CellValue = v;})" 
                             SelectedValue="@((int?)context.CellValue ?? context.Item.ProtocolEDCFieldId)"

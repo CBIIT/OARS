@@ -40,19 +40,19 @@
      <DataGridColumns>
          <DataGridColumn Field="ThorDataCategoryId" Caption="Data Category" Width="15%" Editable Sortable="true" SortDirection="SortDirection.Ascending">
             <DisplayTemplate>
-                @(context?.ThorDataCategoryId + " - " + context?.ThorField?.Category?.CategoryName)
+                @(context?.ThorField?.Category?.CategoryDisplay)
             </DisplayTemplate>
             <EditTemplate>
                 <SelectList 
                     TItem="ThorCategory" 
                     TValue="string" 
                     Data="@categoryList" 
-                    TextField="@((item)=>item.ThorDataCategoryId + " - " + item.CategoryName)" 
+                    TextField="@((item)=>item.CategoryDisplay)" 
                     ValueField="@((item)=>item.ThorDataCategoryId)" 
-                    SelectedValueChanged="@(e =>
+                    SelectedValueChanged="@(async e =>
                                     {
                                         context.CellValue = Convert.ToString(e);
-                                        OnSelectedCategoryValueChanged((string)context.CellValue);
+                                        await OnSelectedCategoryValueChanged((string)context.CellValue);
                                     })" 
                     SelectedValue="@((string?)context.CellValue ?? context.Item.ThorDataCategoryId)" 
                     DefaultItemText="Select the OARS DataCategory">
@@ -61,20 +61,20 @@
          </DataGridColumn>
          <DataGridColumn Field="ThorFieldId" Caption="Field" Width="15%" Filterable="true" Editable>
             <DisplayTemplate>
-                @(context?.ThorFieldId + " - " + context?.ThorField?.FieldLabel)
+                @(context?.ThorField?.FieldDisplay)
             </DisplayTemplate>
             <EditTemplate>
                 @{
-                    if (currentCategoryId == null || currentCategoryId == String.Empty)
-                    {
-                        OnSelectedCategoryValueChanged(context.Item?.ThorField?.ThorDataCategoryId);
-                    }
+                    // if (currentCategoryId == null || currentCategoryId == String.Empty)
+                    // {
+                    //     OnSelectedCategoryValueChanged(context.Item?.ThorField?.ThorDataCategoryId);
+                    // }
 
                     <SelectList 
                         TItem="ThorField" 
                         TValue="string" 
                         Data="@fieldList" 
-                        TextField="@((item)=>item.ThorFieldId + " - " + item.FieldLabel)" 
+                        TextField="@((item)=>item.FieldDisplay)" 
                         ValueField="@((item)=>item.ThorFieldId)"
                         SelectedValueChanged="@(e => {context.CellValue = Convert.ToString(e);} )"
                         SelectedValue="@((string?)context.CellValue ?? context.Item.ThorFieldId)"
@@ -217,7 +217,7 @@
             ( 
                 currentFieldId == x.ThorFieldId || 
                 !fieldHash.Contains(x.ThorFieldId) 
-            )).OrderBy(x => x.ThorFieldId + " - " + x.FieldLabel).ToList();
+            )).OrderBy(x => x.FieldDisplay).ToList();
 
         // Print sorted field list as json
         System.Console.WriteLine("RefreshFieldList fieldList");
@@ -228,6 +228,7 @@
     protected override async Task OnInitializedAsync()
     {
         var watch = System.Diagnostics.Stopwatch.StartNew();
+        await notificationService.Info("Loading OARS Fields...");
         this.protocolFields = await protocolFieldService.GetAllProtocolFieldsByMappingId(protocolMappingId);
         watch.Stop();
         var elapsedMs = watch.ElapsedMilliseconds;

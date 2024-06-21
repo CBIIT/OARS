@@ -84,6 +84,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await notificationService.Info("Loading Data Systems...");
         this.protocolDataSystemList = await protocolDataSystemService.GetProtocolDataSystems();
     }
 

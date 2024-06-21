@@ -101,6 +101,7 @@
             await loading.Show();
             if (protocolMappingId != null)
             {
+                await notificationService.Info("Loading EDC forms...");
                 this.edcFormList = await protocolEDCFormService.GetFormsForMappingId(protocolMappingId);
             }
             StateHasChanged();

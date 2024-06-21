@@ -46,12 +46,13 @@ namespace TheradexPortal.Data.Services
             return mappings;
         }
 
-        public async Task<ProtocolFieldMapping> GetProtocolFieldMapping(int id)
+        public async Task<ProtocolFieldMapping> GetProtocolFieldMapping(int protocolFieldMappingId)
         {
             var fieldMapping = await context.ProtocolFieldMappings
                 .Include(x=>x.ThorField)
                 .Include(x=>x.ProtocolEDCField)
-                .FirstOrDefaultAsync(x => x.ProtocolFieldMappingId == id);
+                .Include(x=>x.ProtocolEDCField.ProtocolEDCForm)
+                .FirstOrDefaultAsync(x => x.ProtocolFieldMappingId == protocolFieldMappingId);
             return fieldMapping;
         }
 

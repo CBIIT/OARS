@@ -79,6 +79,7 @@
     protected override async Task OnInitializedAsync()
     {
         var watch = System.Diagnostics.Stopwatch.StartNew();
+        await notificationService.Info("Loading Sub Groups...");
         this.protocolSubGroups = await protocolSubGroupService.GetSubGroupsByMappingId(protocolMappingId);
         watch.Stop();
         var elapsedMs = watch.ElapsedMilliseconds;

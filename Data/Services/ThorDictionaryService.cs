@@ -14,21 +14,34 @@ namespace TheradexPortal.Data.Services
             _errorLogService = errorLogService;
             _navManager = navigationManager;
         }
-        public async Task<IList<ThorDictionary>> GetDictionaries() {
-            return await context.THORDictionary
+        public async Task<IList<ThorDictionary>> GetDictionaries(bool activeOnly = false) {
+
+            var dictQuery = context.THORDictionary.AsQueryable();
+
+            if (activeOnly)
+            {
+                dictQuery = dictQuery.Where(x => x.IsActive);
+            }
+
+            return await dictQuery
                 .OrderBy(c => c.SortOrder)
                 .ThenBy(c => c.DictionaryName)
                 .ThenBy(c => c.DictionaryOption)
                 .ToListAsync();
         }
 
-        public async Task<IList<ThorDictionary>> GetDictionaryEntries(int dictionaryId)
+        public async Task<IList<ThorDictionary>> GetDictionaryEntries(int dictionaryId, bool activeOnly = true)
         {
             // this needs to get the rest of the things with that dict NAME from the one you pass in
             var dict = context.THORDictionary.Where(x => x.ThorDictionaryId == dictionaryId).FirstOrDefault();
             if (dict != null)
             {
-                var entries = await context.THORDictionary.Where(x => x.DictionaryName == dict.DictionaryName)
+                var dictQuery = context.THORDictionary.Where(x => x.DictionaryName == dict.DictionaryName);
+                if (activeOnly)
+                {
+                    dictQuery = dictQuery.Where(x => x.IsActive);
+                }
+                var entries = await dictQuery
                     .OrderBy(o=>o.DictionaryName)
                     .ThenBy(c => c.DictionaryName)
                     .ThenBy(c => c.DictionaryOption)

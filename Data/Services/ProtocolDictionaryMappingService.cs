@@ -21,28 +21,33 @@ namespace TheradexPortal.Data.Services
             return protocolDictionaryMappings;
         }
 
-        public async Task<List<ProtocolDictionaryMapping>> GetProtocolDictionaryMappings(int protocolMappingId, int fieldId)
+        public async Task<List<ProtocolDictionaryMapping>> GetProtocolDictionaryMappings(int protocolMappingId) // , int fieldId
         {
-            var protocolDictionaryMappings = await context.ProtocolDictionaryMapping.Where(p => p.ProtocolFieldMappingId == fieldId).ToListAsync();
-            var mappingDictionaryIds = protocolDictionaryMappings.Select(p => p.ProtocolEDCDictionaryId).ToList();
-            var protocolEDCDictionaries = context.ProtocolEDCDictionary.FromSqlRaw($"SELECT * FROM DMU.\"ProtocolEDCDictionary\" WHERE \"Protocol_Mapping_Id\" = {protocolMappingId}").AsNoTracking();
-            foreach (var dictionary in protocolEDCDictionaries)
-            {
-                if (!mappingDictionaryIds.Contains(dictionary.ProtocolEDCDictionaryId))
-                {
-                    protocolDictionaryMappings.Add(new ProtocolDictionaryMapping
-                    {
-                        ProtocolEDCDictionaryId = dictionary.ProtocolEDCDictionaryId,
-                        ProtocolEDCDictionaryName = dictionary.EDCItemName,
-                        ProtocolFieldMappingId = fieldId
-                    });
-                }
-                else
-                {
-                    var currMapping = protocolDictionaryMappings.Where(p => p.ProtocolEDCDictionaryId == dictionary.ProtocolEDCDictionaryId).FirstOrDefault();
-                    currMapping.ProtocolEDCDictionaryName = dictionary.EDCItemName; // since this isn't actually from the DB make sure it's set on all the mappings to display
-                }
-            }
+            var protocolDictionaryMappings = await context.ProtocolDictionaryMapping
+                .Include(p => p.ProtocolEDCDictionary)
+                .Include(p => p.ProtocolFieldMapping)
+                .Include(p => p.THORDictionary)
+                .Where(p => p.ProtocolFieldMappingId == protocolMappingId)
+                .ToListAsync();
+            //var mappingDictionaryIds = protocolDictionaryMappings.Select(p => p.ProtocolEDCDictionaryId).ToList();
+            //var protocolEDCDictionaries = context.ProtocolEDCDictionary.FromSqlRaw($"SELECT * FROM DMU.\"ProtocolEDCDictionary\" WHERE \"Protocol_Mapping_Id\" = {protocolMappingId}").AsNoTracking();
+            //foreach (var dictionary in protocolEDCDictionaries)
+            //{
+            //    if (!mappingDictionaryIds.Contains(dictionary.ProtocolEDCDictionaryId))
+            //    {
+            //        protocolDictionaryMappings.Add(new ProtocolDictionaryMapping
+            //        {
+            //            ProtocolEDCDictionaryId = dictionary.ProtocolEDCDictionaryId,
+            //            ProtocolEDCDictionaryName = dictionary.EDCItemName,
+            //            ProtocolFieldMappingId = fieldId
+            //        });
+            //    }
+            //    else
+            //    {
+            //        var currMapping = protocolDictionaryMappings.Where(p => p.ProtocolEDCDictionaryId == dictionary.ProtocolEDCDictionaryId).FirstOrDefault();
+            //        currMapping.ProtocolEDCDictionaryName = dictionary.EDCItemName; // since this isn't actually from the DB make sure it's set on all the mappings to display
+            //    }
+            //}
             return protocolDictionaryMappings;
         }
 
