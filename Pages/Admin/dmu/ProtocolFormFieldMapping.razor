@@ -72,12 +72,12 @@
                             var currForm = protocolEDCFormList.FirstOrDefault(x => x.ProtocolEDCFormId == context.ProtocolEDCFormId);
                             if (currForm != null)
                             {
-                                <Text>@(currForm.EDCFormIdentifier + " - " + currForm.EDCFormName)</Text>
+                                <Text>@(currForm.EDCFormDisplay)</Text>
                             }
                         }
                         else if(context.ProtocolEDCFieldId != 0 && context.ProtocolEDCField != null && context.ProtocolEDCField.ProtocolEDCForm != null)
                         {
-                            <Text>@(context.ProtocolEDCField.ProtocolEDCForm.EDCFormIdentifier + " - " + context.ProtocolEDCField.ProtocolEDCForm.EDCFormName)</Text>
+                            <Text>@(context.ProtocolEDCField.ProtocolEDCForm.EDCFormDisplay)</Text>
                         } else
                         {
                             <Text>Not Mapped</Text>
@@ -85,7 +85,7 @@
                     }
                 </DisplayTemplate>
                 <EditTemplate>
-                    <Autocomplete TItem="ProtocolEDCForm" Data="@protocolEDCFormList" TValue="int" TextField="@((item) => {return item.EDCFormIdentifier + " - " + item.EDCFormName;})" ValueField="@((item) => item.ProtocolEDCFormId)" SelectedValueChanged="@(e => {@GetFields(e); context.CellValue=e;})" SelectedValue="@((int?)context.CellValue ?? context.Item.ProtocolEDCFormId)" Placeholder="@(GetPlaceholder(context.Item))" Virtualize MinLength="0"></Autocomplete>
+                    <Autocomplete TItem="ProtocolEDCForm" Data="@protocolEDCFormList" TValue="int" TextField="@((item) => {return item.EDCFormDisplay;})" ValueField="@((item) => item.ProtocolEDCFormId)" SelectedValueChanged="@(e => {@GetFields(e); context.CellValue=e;})" SelectedValue="@((int?)context.CellValue ?? context.Item.ProtocolEDCFormId)" Placeholder="@(GetPlaceholder(context.Item))" Virtualize MinLength="0"></Autocomplete>
                 </EditTemplate>
             </DataGridColumn>
             <DataGridColumn Field="@nameof(ProtocolFieldMapping.ProtocolEDCFieldId)" Width="25%" Caption="Select EDC Field" Editable="true">
@@ -94,7 +94,7 @@
                         if (context.ProtocolEDCFieldId != null && context.ProtocolEDCFieldId != 0 && context.ProtocolEDCField == null)
                         {
                             var currentField = protocolEDCFieldList.FirstOrDefault(x => x.ProtocolEDCFieldId == context.ProtocolEDCFieldId);
-                            <Text>@(currentField?.EDCFieldIdentifier + " - " + currentField?.EDCFieldName)</Text>
+                            <Text>@(currentField?.EDCFieldDisplay)</Text>
                         }
                         else if(context.ProtocolEDCField != null && context.ProtocolEDCField.ProtocolEDCFieldId != 0)
                         {
@@ -106,7 +106,7 @@
                     }
                 </DisplayTemplate>
                 <EditTemplate>
-                    <SelectList TItem="ProtocolEDCField" TValue="int" Data="@protocolEDCFieldList" TextField="@((item)=>item.EDCFieldIdentifier + " - " + item.EDCFieldName)"
+                    <SelectList TItem="ProtocolEDCField" TValue="int" Data="@protocolEDCFieldList" TextField="@((item)=>item.EDCFieldDisplay)"
                                 ValueField="@((item) => item.ProtocolEDCFieldId)"
                                 SelectedValueChanged="@( v =>{context.CellValue = v;})"
                                 SelectedValue="@((int?)context.CellValue ?? context.Item.ProtocolEDCFieldId)"
@@ -161,7 +161,48 @@
 else{
     foreach(var form in multiFormList.Select((x,i) => new { Form = x, Index = i+1 })){
         <Row>
-            <Column><b>Form @form.Index: @form.Form.ProtocolEDCForm.EDCFormIdentifier - @form.Form.ProtocolEDCForm.EDCFormName</b><SelectList TItem="ProtocolEDCForm" Data="@protocolEDCFormList" TValue="int" ValueField="@((item) => item.ProtocolEDCFormId)" TextField="@((item) => item.EDCFormIdentifier + " - " + item.EDCFormName)" SelectedValue="@(form.Form.ProtocolEDCFormId ?? 0)" SelectedValueChanged="@(v=> { form.Form.ProtocolEDCFormId = v; UpdateFields(v, form.Form.ProtocolFormMappingId); this.protocolFormMappingService.SaveProtocolFormMapping(form.Form);})" DefaultItemText="Select a Form" DefaultItemValue="0"></SelectList></Column>
+            <Column>
+                <b>Form @form.Index: 
+                    @{
+                         
+                            if (form.Form?.ProtocolEDCFormId is null)
+                            {
+                                <Text></Text>
+                            }
+                            else
+                            {
+                                <Text>@form.Form.ProtocolEDCForm?.EDCFormDisplay</Text>
+                            }
+                     }
+                </b>
+                <Row>
+                    <Column ColumnSize="ColumnSize.IsAuto">
+                        @{
+                            if (form.Form?.ProtocolEDCFormId is null)
+                            {
+                                <Text>Select:</Text>
+                            }
+                            else
+                            {
+                                <Text>Change to:</Text>
+                            }
+                        } 
+                    </Column>
+                    <Column ColumnSize="ColumnSize.IsAuto">
+                        <SelectList 
+                            TItem="ProtocolEDCForm" 
+                            Data="@protocolEDCFormList" 
+                            TValue="int" 
+                            ValueField="@((item) => item.ProtocolEDCFormId)" 
+                            TextField="@((item) => item.EDCFormDisplay)" 
+                            SelectedValue="0" 
+                            SelectedValueChanged="@(v=> { FormSelectionChange(v, form.Form); })" 
+                            DefaultItemText="Select a Form" 
+                            DefaultItemValue="0">
+                        </SelectList>
+                    </Column>
+                </Row>
+            </Column>
             <Column><Switch TValue="bool" Checked="@form.Form.IsPrimaryForm" CheckedChanged="@((v) => {UpdatePrimaryForm(v, form.Form);})">Primary Form</Switch></Column>
         </Row>
 		<DataGrid @ref=multiFormRefs[form.Form.ProtocolFormMappingId]
@@ -200,7 +241,7 @@ else{
                             if (context.ProtocolEDCFieldId != null && context.ProtocolEDCFieldId != 0)
                             {
                                 var currentField = edcFieldsByForm[form.Form.ProtocolFormMappingId].FirstOrDefault(x => x.ProtocolEDCFieldId == context.ProtocolEDCFieldId);
-                                <Text>@(currentField?.EDCFieldIdentifier + " - " + currentField?.EDCFieldName)</Text>
+                                <Text>@(currentField?.EDCFieldDisplay)</Text>
                             }
                             else if (context.ProtocolEDCField != null && context.ProtocolEDCField.ProtocolEDCFieldId != 0)
                             {
@@ -214,7 +255,7 @@ else{
                     </DisplayTemplate>
                     <EditTemplate>
                         <!-- TODO: Don't try to select the currently associated form. The currently associated forms are excluded from the list and displayed above each dropdown. -->
-                        <SelectList TItem="ProtocolEDCField" TValue="int" Data="@edcFieldsByForm[form.Form.ProtocolFormMappingId]" TextField="@((item)=>item.EDCFieldIdentifier + " - " + item.EDCFieldName)"
+                        <SelectList TItem="ProtocolEDCField" TValue="int" Data="@edcFieldsByForm[form.Form.ProtocolFormMappingId]" TextField="@((item)=>item.EDCFieldDisplay)"
                                     ValueField="@((item) => item.ProtocolEDCFieldId)"
                                     SelectedValueChanged="@( v =>{context.CellValue = v;})"
                                     SelectedValue="@((int?)context.CellValue ?? context.Item.ProtocolEDCFieldId)"
@@ -340,6 +381,17 @@ else{
         this.RefreshFormsDropdown();
     }
 
+    private void FormSelectionChange(int protocolEDCFormId, ProtocolFormMapping? form)
+    {
+        if (form == null)
+            return;
+
+        form.ProtocolEDCFormId = protocolEDCFormId; 
+        UpdateFields(protocolEDCFormId, form.ProtocolFormMappingId);
+        RefreshFormsDropdown();
+        this.protocolFormMappingService.SaveProtocolFormMapping(form);
+    }
+
     private void RefreshFormsDropdown()
     {
         this.protocolEDCFormList = this.protocolEDCFormListFull.Where(x => !this.multiFormList.Any(y => y.ProtocolEDCFormId == x.ProtocolEDCFormId)).Select(x => x).ToList();
@@ -409,7 +461,7 @@ else{
         }
         else if (item.ProtocolEDCFormId != 0 && item.ProtocolEDCField == null)
         {
-            return protocolEDCFormList.FirstOrDefault(x => x.ProtocolEDCFormId == item.ProtocolEDCFormId)?.EDCFormIdentifier ?? $"<ProtocolEDCFormId {item.ProtocolEDCFormId} Not in Protocol Mapping>";
+            return protocolEDCFormList.FirstOrDefault(x => x.ProtocolEDCFormId == item.ProtocolEDCFormId)?.EDCFormDisplay ?? $"<ProtocolEDCFormId {item.ProtocolEDCFormId} Not in Protocol Mapping>";
         }
         return item.ProtocolEDCField.ProtocolEDCForm.EDCFormIdentifier;
     }
@@ -421,7 +473,7 @@ else{
             return "<Not Mapped>";
         }
 
-        if (item.ThorFieldId != null && item.ThorFieldId != "")
+        if (item.ThorFieldId != null && !string.IsNullOrWhiteSpace(item.ThorFieldId))
         {
             string notFoundMessage = "";
             if (this.protocolFieldIdsDisabled.Contains(item.ThorFieldId))
@@ -432,7 +484,7 @@ else{
             {
                 notFoundMessage = $"<THORFieldId {item.ThorFieldId} Not In Protocol Mapping>";
             }
-            return protocolFields.FirstOrDefault(x => x.ThorFieldId == item.ThorFieldId)?.ThorField.FieldLabel ?? notFoundMessage;
+            return item.ThorField?.FieldDisplay ?? notFoundMessage;
         }
         else
         {
@@ -522,7 +574,7 @@ else{
     public async void AddForm()
     {
         ProtocolFormMapping newForm = new ProtocolFormMapping { ProtocolEDCFormId = null, ProtocolCategoryId = protocolCategoryId };
-        this.protocolFormMappingService.SaveProtocolFormMapping(newForm);
+        await this.protocolFormMappingService.SaveProtocolFormMapping(newForm);
         this.multiFormRefs.Add(newForm.ProtocolFormMappingId, new DataGrid<ProtocolFieldMapping>());
         this.multiFormMappings.Add(newForm.ProtocolFormMappingId, new List<ProtocolFieldMapping>());
         this.multiFormList.Add(newForm);

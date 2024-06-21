@@ -37,6 +37,15 @@ namespace TheradexPortal.Data.Models
         public string? EDCFieldIdentifier { get; set; }
         [Column("EDC_Field_Name")]
         public string? EDCFieldName { get; set; }
+        [NotMapped]
+        public string EDCFieldDisplay
+        {
+            get
+            {
+                return EDCFieldIdentifier + " - " + EDCFieldName;
+            }
+        }
+
         [Column("EDC_Dictionary_Name")]
         public string? EDCDictionaryName { get; set; }
         [Column("Create_Date")]

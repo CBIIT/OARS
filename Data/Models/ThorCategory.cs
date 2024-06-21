@@ -11,6 +11,14 @@ namespace TheradexPortal.Data.Models
         public string ThorDataCategoryId { get; set; }
         [Column("Category_Name")]
         public string? CategoryName { get; set; }
+        [NotMapped]
+        public string CategoryDisplay
+        {
+            get
+            {
+                return CategoryName + " (" + ThorDataCategoryId + ")";
+            }
+        }
         [Column("Is_Multi_Form")]
         public Boolean IsMultiForm { get; set; }
         [Column("Sort_Order")]
