@@ -159,6 +159,8 @@ public class CSVFileImportService : ICSVFileImportService
 
         var skipped = 0;
 
+        processInfo.Add($"Adding fields to {forms.Count.ToString()} forms");
+
         if (forms.Count > 0)
         {
             var formMap = forms.Where(x => x.EDCFormIdentifier != null).GroupBy(x => x.EDCFormIdentifier!).ToDictionary(x => x.Key, x => x.ToArray()[0]);
