@@ -157,7 +157,7 @@
     }
 </Div>
 @code 
-{
+    {
     private FilePicker UploadField;
     private LoadingIndicator loading;
     [Inject] private IDatabaseConnectionService databaseConnectionService { get; set; }
@@ -427,18 +427,21 @@
             if (msForm != null)
             {
                 await notificationService.Info("Importing forms...");
+                Feedback.Add("Forms file supplied");
                 Feedback.AddRange(await csvFileImportService.ParseCSVFileForm(msForm, this.protocolMappingId));
             }
 
             if (ms != null)
             {
                 await notificationService.Info("Importing fields...");
+                Feedback.Add("Fields file supplied");
                 Feedback.AddRange(await csvFileImportService.ParseCSVField(ms, this.protocolMappingId));
             }
 
             if (msMeta != null)
             {
                 await notificationService.Info("Importing dictionaries...");
+                Feedback.Add("Pick list file supplied");
                 Feedback.AddRange(await csvFileImportService.ParseCSVFileMeta(msMeta, this.protocolMappingId));
             }
 

@@ -5,21 +5,6 @@
 @layout AdminLayout
 
 <AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })"></AdminRoleCheck>
-<Alert Color="Color.Danger" @bind-Visible="@visibleValidationError">
-    <AlertDescription>The required fields must have a valid value before saving. Please check!</AlertDescription>
-    <AlertMessage>Save Validation Error!</AlertMessage>
-    <CloseButton />
-</Alert>
-<Alert Color="Color.Success" @bind-Visible="@visibleSaveFormSuccess">
-    <AlertDescription>The protocol mapping was saved!</AlertDescription>
-    <AlertMessage>Save Validation Process!</AlertMessage>
-    <CloseButton />
-</Alert>
-<Alert Color="Color.Danger" @bind-Visible="@visibleSaveFormError">
-    <AlertDescription>Error, The protocol mapping was not saved!</AlertDescription>
-    <AlertMessage>Save Validation Process!</AlertMessage>
-    <CloseButton />
-</Alert>
 <Div Padding="Padding.Is4" Margin="Margin.Is3.FromBottom">
     <Row Padding="Padding.Is2" Class="dmu-admin-subpanel dmu-header-white">
         <Column ColumnSize="ColumnSize.Is2">
@@ -195,6 +180,7 @@
     [Inject] IProtocolDataSystemService protocolDataSystemService { get; set; } = null!;
     [Inject] IProtocolMappingService protocolMappingService { get; set; } = null!;
     [Inject] IProtocolPhaseService protocolPhaseService { get; set; } = null!;
+    [Inject] IProtocolFieldService protocolFieldService { get; set; } = null!;
     [Inject] INotificationService notificationService { get; set; } = null!;
     [Inject] private NavigationManager navigation { get; set; } = null!;
     [Inject] IUserService userService { get; set; } = null!;
@@ -220,10 +206,6 @@
     private string phase2IsRandomized = "S";
     private string phase3IsRandomized = "S";
     private string phase4IsRandomized = "S";
-
-    private bool visibleValidationError = false;
-    private bool visibleSaveFormSuccess = false;
-    private bool visibleSaveFormError = false;
 
     private IList<ProtocolPhase> phasesSet = new List<ProtocolPhase>();
 
@@ -282,6 +264,12 @@
     {
         bool formValid = true;
 
+        if (currentProtocolMap == null)
+        {
+            await notificationService.Error("The protocol mapping object is empty.");
+            return;
+        }
+
         if (currentProtocolMap?.THORStudyId?.Trim() == String.Empty) formValid = false;
         if (currentProtocolMap?.ProtocolDataSystemId == null) formValid = false;
         if (currentProtocolMap?.ProfileId == null ) formValid = false;
@@ -315,19 +303,32 @@
                 phasesSet[3].IsRandomized = phase4IsRandomized == "Y" ? 'Y' : phase4IsRandomized == "N" ? 'N' : null;
             }
 
+            await notificationService.Info("Saving the protocol mapping setup...");
             bool saveResult = await protocolMappingService.SaveProtocolMapping(currentProtocolMap, phasesSet);
             if (saveResult)
             {
-                visibleSaveFormSuccess = true;
+
+                if (currentProtocolMap?.ProfileId != null && currentProtocolMap?.ProfileId != 0)
+                {
+
+                    var protocolFields = await protocolFieldService.GetAllProtocolFieldsByMappingId(currentProtocolMap.ProtocolMappingId);
+                    if (protocolFields.Count == 0)
+                    {
+                        await notificationService.Info("Creating protocol fields from profile...");
+                        await protocolFieldService.CreateProtocolFieldsFromProfile(currentProtocolMap.ProfileId, currentProtocolMap.ProtocolMappingId);
+                    }
+                }
+
+                await notificationService.Success("The protocol mapping setup was saved!");
             }
             else
             {
-                visibleSaveFormError = true;
+                await notificationService.Error("Error saving the protocol mapping setup!");
             }
         }
         else
         {
-            visibleValidationError = true;
+            await notificationService.Error("Missing required fields!");
         }
     }
 

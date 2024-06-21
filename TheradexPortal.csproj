@@ -25,6 +25,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<Content Remove="Pages\Admin\dmu\StudySelect.razor" />
 		<Content Remove="Pages\StudyGrid\StudyGridComponent.razor" />
 		<Content Remove="wwwroot\Privacy.html" />
 	</ItemGroup>
