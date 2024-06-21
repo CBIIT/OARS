@@ -73,7 +73,7 @@
 @code {
     [Inject] IProtocolDiseaseService ProtocolDiseaseService { get; set; } = null!;
     [Inject] private NavigationManager navigation { get; set; } = null!;
-    [Inject] INotificationService notificationService { get; set; }
+    [Inject] INotificationService notificationService { get; set; } = null!;
     [Inject] private IMessageService messageService { get; set; } = null!;
 
     [Parameter] public int protocolMappingId { get; set; }
@@ -85,7 +85,11 @@
     protected override async Task OnInitializedAsync()
     {
         var watch = System.Diagnostics.Stopwatch.StartNew();
-        if (protocolMappingId != null) this.protocolDiseaseList = await ProtocolDiseaseService.GetProtocolDiseaseByProtocolMappingId(protocolMappingId);
+        if (protocolMappingId > 0) 
+        {
+            await notificationService.Info("Loading Diseases...");
+            this.protocolDiseaseList = await ProtocolDiseaseService.GetProtocolDiseaseByProtocolMappingId(protocolMappingId);
+        }
         watch.Stop();
         var elapsedMs = watch.ElapsedMilliseconds;
         System.Console.WriteLine($"Protocol Disease Elapsed time: {elapsedMs} ms");

@@ -40,11 +40,11 @@
                  @{
                     if(context.ThorCategory != null)
                     {
-                        @(context.ThorCategory.CategoryName + " (" + context.ThorDataCategoryId + ")")
+                        @(context.ThorCategory.CategoryDisplay)
                     }
                     else if (context.ThorCategory == null && context.ThorDataCategoryId != null)
 					{
-						@(this.categoryList.FirstOrDefault(x => x.ThorDataCategoryId == context.ThorDataCategoryId)?.CategoryName + " (" + context.ThorDataCategoryId + ")")
+                        @(this.categoryList.FirstOrDefault(x => x.ThorDataCategoryId == context.ThorDataCategoryId)?.CategoryDisplay)
 					}
 					else
 					{
@@ -53,9 +53,9 @@
                 }
             </DisplayTemplate>
             <EditTemplate>
-                <SelectList TItem="ThorCategory" TValue="string" Data="@categoryList" 
-                    TextField="@((item)=> item.CategoryName + " (" + item.ThorDataCategoryId + ")")" 
-                    ValueField="@((item)=>item.ThorDataCategoryId)" 
+                <SelectList TItem="ThorCategory" TValue="string" Data="@categoryList"
+                            TextField="@((item)=> item.CategoryDisplay)"
+                            ValueField="@((item)=>item.ThorDataCategoryId)" 
                     SelectedValue="@((String?)context.CellValue ?? context.Item.ThorDataCategoryId)"
                     SelectedValueChanged="@( v => {context.CellValue = v;})"
                             DefaultItemValue="@String.Empty"
@@ -129,7 +129,7 @@
                 !this.profileCategories.Where(y => y.ThorDataCategoryId == x.ThorDataCategoryId).Any() 
             )
         )
-        .OrderBy(x => x.CategoryName + " (" + x.ThorDataCategoryId + ")")
+        .OrderBy(x => x.CategoryDisplay)
         .ToList();
     }
 

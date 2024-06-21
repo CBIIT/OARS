@@ -112,6 +112,7 @@
         if (firstRender)
         {
             await loading.Show();
+            await notificationService.Info("Loading EDC fields...");
             this.protocolForms = await protocolEDCFormService.GetFormsForMappingId(this.protocolMappingId);
             this.protocolFields = await protocolFieldService.GetFieldsByProtocolMappingId(this.protocolMappingId);
             StateHasChanged();

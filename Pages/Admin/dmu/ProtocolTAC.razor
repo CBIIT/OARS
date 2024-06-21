@@ -73,7 +73,7 @@
 @code {
     [Inject] IProtocolTACService ProtocolTacService { get; set; } = null!;
     [Inject] private NavigationManager navigation { get; set; } = null!;
-    [Inject] INotificationService notificationService { get; set; }
+    [Inject] INotificationService notificationService { get; set; } = null!;
     [Inject] private IMessageService messageService { get; set; } = null!;
 
     [Parameter] public int protocolMappingId { get; set; }
@@ -86,7 +86,8 @@
     protected override async Task OnInitializedAsync()
     {
         var watch = System.Diagnostics.Stopwatch.StartNew();
-        if (protocolMappingId != null) this.protocolTacList = await ProtocolTacService.GetProtocolTACByProtocolMappingId(protocolMappingId);
+        await notificationService.Info("Loading TACs...");
+        this.protocolTacList = await ProtocolTacService.GetProtocolTACByProtocolMappingId(protocolMappingId);
         watch.Stop();
         var elapsedMs = watch.ElapsedMilliseconds;
         System.Console.WriteLine($"Protocol TAC Elapsed time: {elapsedMs} ms");

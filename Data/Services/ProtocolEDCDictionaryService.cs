@@ -18,11 +18,11 @@ namespace TheradexPortal.Data.Services
             _configuration = configuration;
         }
 
-        public async Task<List<ProtocolEDCDictionary>> GetDictionariesByMappingId(int mappingId)
+        public async Task<List<ProtocolEDCDictionary>> GetDictionariesByMappingId(int protocolMappingId)
         {
             try
             {
-                return context.ProtocolEDCDictionary.Where(p => p.ProtocolMappingId == mappingId).ToList();
+                return context.ProtocolEDCDictionary.Where(p => p.ProtocolMappingId == protocolMappingId).ToList();
             } catch (Exception ex)
             {
                 await _errorLogService.SaveErrorLogAsync(0, "", ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
@@ -30,13 +30,26 @@ namespace TheradexPortal.Data.Services
             }
         }
 
-        public async Task<bool> SaveDictionary(ProtocolEDCDictionary dictionary, int mappingId)
+        public async Task<List<ProtocolEDCDictionary>> GetDictionariesByMappingIdAndDictionaryName(int protocolMappingId, string dictionaryName)
+        {
+            try
+            {
+                return context.ProtocolEDCDictionary.Where(p => p.ProtocolMappingId == protocolMappingId && p.EDCDictionaryName == dictionaryName).ToList();
+            }
+            catch (Exception ex)
+            {
+                await _errorLogService.SaveErrorLogAsync(0, "", ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+                return new List<ProtocolEDCDictionary>();
+            }
+        }
+
+        public async Task<bool> SaveDictionary(ProtocolEDCDictionary dictionary, int protocolMappingId)
         {
             try
             {
                 DateTime currentDateTime = DateTime.UtcNow;
 
-                int? statusId = context.ProtocolMapping.Where(x => x.ProtocolMappingId == mappingId).Select(x => x.ProtocolMappingStatusId).FirstOrDefault();
+                int? statusId = context.ProtocolMapping.Where(x => x.ProtocolMappingId == protocolMappingId).Select(x => x.ProtocolMappingStatusId).FirstOrDefault();
                 if (statusId != null)
                 {
                     string? statusText = context.ProtocolMappingStatus.Where(x => x.ProtocolMappingStatusId == statusId).Select(x => x.StatusName).FirstOrDefault();
@@ -53,7 +66,7 @@ namespace TheradexPortal.Data.Services
 
                 if (currentDictionary == null || dictionary.CreateDate == null)
                 {
-                    dictionary.ProtocolMappingId = mappingId;
+                    dictionary.ProtocolMappingId = protocolMappingId;
                     dictionary.CreateDate = currentDateTime;
                     dictionary.UpdatedDate = currentDateTime;
                     context.Add(dictionary);
@@ -118,12 +131,12 @@ namespace TheradexPortal.Data.Services
             }
         }   
 
-        public async Task<bool> DeleteAllDictionariesForMappingId(int mappingId)
+        public async Task<bool> DeleteAllDictionariesForMappingId(int protocolMappingId)
         {
             try
             {
                 // Similar to above, this version of EF doesn't support bulk deletes and RemoveRange is too slow, so we have to do it this way
-                context.Database.ExecuteSqlRaw("DELETE FROM DMU.\"ProtocolEDCDictionary\" WHERE \"Protocol_Mapping_Id\" = :mappingId", new OracleParameter("mappingId", mappingId));
+                context.Database.ExecuteSqlRaw("DELETE FROM DMU.\"ProtocolEDCDictionary\" WHERE \"Protocol_Mapping_Id\" = :protocolMappingId", new OracleParameter("protocolMappingId", protocolMappingId));
                 return true;
             }
             catch (Exception ex)

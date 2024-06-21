@@ -41,11 +41,11 @@
     <DataGridColumns>
         <DataGridColumn Width="35%" Caption="OARS Data Category" Editable Filterable="true" Sortable="false">
             <DisplayTemplate>
-                @(context?.ThorField?.Category?.CategoryName + " (" + context?.ThorField?.Category?.ThorDataCategoryId + ")")
+                @(context?.ThorField?.Category?.CategoryDisplay)
             </DisplayTemplate>
             <EditTemplate>
                 <SelectList TItem="ThorCategory" TValue="string" Data="@categoryList" 
-                            TextField="@((item)=>item.CategoryName + " (" + item.ThorDataCategoryId + ")")" 
+                            TextField="@((item)=>item.CategoryDisplay)"
                             ValueField="@((item)=>item.ThorDataCategoryId)" 
                             SelectedValue="@((String?)context.CellValue ?? context.Item.ThorField?.ThorDataCategoryId)"
                             SelectedValueChanged="@( v => {context.CellValue = v; OnSelectedCategoryValueChanged(v);})"
@@ -60,7 +60,7 @@
             </DisplayTemplate>
             <EditTemplate>
                 <SelectList TItem="ThorField" TValue="string" Data="@fieldList" 
-                            TextField="@((item)=>item.ThorFieldId + " - " + item.FieldLabel)" 
+                            TextField="@((item)=>item.FieldDisplay)" 
                             ValueField="@((item)=>item.ThorFieldId)"
                             SelectedValue="@((String?)context.CellValue ?? context.Item.THORFieldId)"
                             SelectedValueChanged="@(e =>
@@ -221,7 +221,7 @@
                     f.ThorFieldId == currentFieldId
                 )
             )
-            .OrderBy(x => x.ThorFieldId + " - " + x.FieldLabel)
+            .OrderBy(x => x.FieldDisplay)
             .ToList();
     }
 
@@ -231,7 +231,7 @@
         this.categoryList = await categoryService.GetCategories();
         this.categoryList = this.categoryList
             .Where(x => updatedCategories.Any(y => y.ThorDataCategoryId == x.ThorDataCategoryId))
-            .OrderBy(x => x.CategoryName + " (" + x.ThorDataCategoryId + ")")
+            .OrderBy(x => x.CategoryDisplay)
             .ToList();
         this.fieldList = new List<ThorField>();
         if (item != null && item.ThorField != null)

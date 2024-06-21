@@ -26,11 +26,19 @@ namespace TheradexPortal.Data.Services
             return await context.ProtocolFieldMappings.Where(x => x.ThorFieldId == fieldId).Include(x => x.ProtocolEDCField).Include(p => p.ProtocolEDCField.ProtocolEDCForm).ToListAsync();
         }
 
-        public async Task<IList<ProtocolFieldMapping>> GetProtocolFieldMappingsForCategory(string categoryId)
+        public async Task<IList<ProtocolFieldMapping>> GetProtocolFieldMappingsForCategory(int protocolMappingId, string categoryId)
         {
-            var thorFields = await context.THORField.Where(x => x.ThorDataCategoryId == categoryId).ToListAsync();
-            var fieldIds = thorFields.Select(x => x.ThorFieldId).ToList();
-            var mappings = await context.ProtocolFieldMappings.Where(x => fieldIds.Contains(x.ThorFieldId)).Include(x => x.ProtocolEDCField).Include(p => p.ProtocolEDCField.ProtocolEDCForm).ToListAsync();
+            var mappings = await context.ProtocolFieldMappings.
+                Include(x => x.ProtocolEDCField).
+                Include(p => p.ProtocolEDCField.ProtocolEDCForm).
+                Include(p => p.ThorField).
+                Where(p => 
+                    p.ProtocolEDCField.ProtocolEDCForm.ProtocolMappingId == protocolMappingId &&
+                    p.ThorFieldId != null &&
+                    p.ThorField!.ThorDataCategoryId == categoryId
+                )
+                .ToListAsync();
+
             foreach(var mapping in mappings)
             {
                 mapping.ProtocolEDCFormId = mapping.ProtocolEDCField.ProtocolEDCFormId;
@@ -38,12 +46,13 @@ namespace TheradexPortal.Data.Services
             return mappings;
         }
 
-        public async Task<ProtocolFieldMapping> GetProtocolFieldMapping(int id)
+        public async Task<ProtocolFieldMapping> GetProtocolFieldMapping(int protocolFieldMappingId)
         {
             var fieldMapping = await context.ProtocolFieldMappings
                 .Include(x=>x.ThorField)
                 .Include(x=>x.ProtocolEDCField)
-                .FirstOrDefaultAsync(x => x.ProtocolFieldMappingId == id);
+                .Include(x=>x.ProtocolEDCField.ProtocolEDCForm)
+                .FirstOrDefaultAsync(x => x.ProtocolFieldMappingId == protocolFieldMappingId);
             return fieldMapping;
         }
 

@@ -18,13 +18,21 @@ namespace TheradexPortal.Data.Models
             {
                 if (Category == null)
                     return "";
-                return Category.CategoryName + " (" + Category.ThorDataCategoryId + ")";
+                return Category.CategoryDisplay;
             }
         }
         [Column("THOR_Field_Id"), Key]
         public string ThorFieldId { get; set; }
         [Column("Field_Label")]
         public string? FieldLabel { get; set; }
+        [NotMapped]
+        public string FieldDisplay
+        {
+            get
+            {
+                return ThorFieldId + " - " + FieldLabel;
+            }
+        }
         [ForeignKey(nameof(ThorFieldTypeId))]
         public ThorFieldType? FieldType { get; set; }
         [Column("THOR_Field_Type")]

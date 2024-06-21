@@ -3,7 +3,7 @@
 @inject IHttpContextAccessor httpContextAccessor
 @inject IConfiguration configuration
 @layout AdminLayout
-@page "/admin/dmu/dictionary-list-map/{fieldId:int}"
+@page "/admin/dmu/dictionary-list-map/{protocolFieldMappingId:int}"
 <AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })" AllowedTHORRoles="@(new List<string> { "DMU Study Mapping", "DMU Study Admin", "DMU Global Admin" })"></AdminRoleCheck>
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Mapping</h2></Div>
 <Row Background="Background.Light" Style="padding-bottom:10px;padding-top:10px;">
@@ -47,10 +47,10 @@
     <DataGridColumns>
         <DataGridColumn Field="@nameof(ProtocolDictionaryMapping.ProtocolEDCDictionaryId)" Width="50%" Caption="For each EDC Dictionary Value" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
             <DisplayTemplate>
-                @context.ProtocolEDCDictionaryName
+                @context.ProtocolEDCDictionaryDisplay
             </DisplayTemplate>
             <EditTemplate>
-                @context.Item.ProtocolEDCDictionaryName
+                @context.Item.ProtocolEDCDictionaryDisplay
             </EditTemplate>
         </DataGridColumn>
         <DataGridColumn Field="@nameof(ProtocolDictionaryMapping.THORDictionaryId)" Width="50%" Caption="Select OARS Dictionary Value" Editable Filterable="true" Sortable="true">
@@ -92,20 +92,21 @@
 </LoadingIndicator>
 
 @code {
+    [Inject] IProtocolEDCDictionaryService protocolEDCDictionaryService { get; set; } = null!;
     [Inject] IProtocolDictionaryMappingService dictionaryMappingService { get; set; } = null!;
     [Inject] IThorDictionaryService thorDictionaryService { get; set; } = null!;
     [Inject] IProtocolFieldMappingService protocolFieldMappingService { get; set; } = null!;
     [Inject] private NavigationManager navigation { get; set; } = null!;
-    [Inject] INotificationService notificationService { get; set; }
+    [Inject] INotificationService notificationService { get; set; } = null!;
     [Inject] private IMessageService messageService { get; set; } = null!;
 
     [SupplyParameterFromQuery][Parameter] public int protocolMappingId { get; set; }
-    [Parameter] public int fieldId { get; set; }
+    [Parameter] public int protocolFieldMappingId { get; set; }
     [SupplyParameterFromQuery][Parameter] public string protocol { get; set; }
     [SupplyParameterFromQuery][Parameter] public string categoryName { get; set; }
     [SupplyParameterFromQuery][Parameter] public string formLabel { get; set; }
-    [SupplyParameterFromQuery][Parameter] public int catId { get; set; }
-    [SupplyParameterFromQuery][Parameter] public int dict { get; set; }
+    [SupplyParameterFromQuery][Parameter] public int protocolCategoryId { get; set; }
+    [SupplyParameterFromQuery][Parameter] public int thorDictionaryId { get; set; }
 
     private DataGrid<ProtocolDictionaryMapping> dataGridRef;
     private IList<ProtocolDictionaryMapping> protocolDictionaryList;
@@ -114,9 +115,11 @@
     private ProtocolFieldMapping currMapping;
     private LoadingIndicator loading;
 
+    private int? ProtocolMappingId { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
-        currMapping = await protocolFieldMappingService.GetProtocolFieldMapping(fieldId);
+        currMapping = await protocolFieldMappingService.GetProtocolFieldMapping(protocolFieldMappingId);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -124,11 +127,25 @@
         if (firstRender)
         {
             await loading.Show();
-            if (protocolMappingId != null)
+            await notificationService.Info("Loading EDC dictionary mappings...");
+            var protocolEDCDictionaryList = await protocolEDCDictionaryService.GetDictionariesByMappingIdAndDictionaryName(protocolMappingId, currMapping.ProtocolEDCField?.EDCDictionaryName);
+            this.protocolDictionaryList = await dictionaryMappingService.GetProtocolDictionaryMappings(protocolFieldMappingId);
+            foreach (var edcDictionary in protocolEDCDictionaryList)
             {
-                this.protocolDictionaryList = await dictionaryMappingService.GetProtocolDictionaryMappings(protocolMappingId, fieldId);
-                this.thorDictionaries = await thorDictionaryService.GetDictionaryEntries(dict);
+                if (!this.protocolDictionaryList.Any(x => x.ProtocolEDCDictionaryId == edcDictionary.ProtocolEDCDictionaryId))
+                {
+                    this.protocolDictionaryList.Add(new ProtocolDictionaryMapping
+                    {
+                        ProtocolEDCDictionaryId = edcDictionary.ProtocolEDCDictionaryId,
+                        ProtocolEDCDictionary = edcDictionary,
+                        ProtocolFieldMappingId = protocolFieldMappingId
+                    });
+                
+                }
             }
+            await notificationService.Info("Loading OARS dictionary mappings...");
+            this.thorDictionaries = await thorDictionaryService.GetDictionaryEntries(thorDictionaryId);
+            
             StateHasChanged();
             await loading.Hide();
         }
@@ -138,7 +155,7 @@
     public async void Save(SavedRowItem<ProtocolDictionaryMapping, Dictionary<string, object>> e)
     {
         var toSave = e.Item;
-        toSave.ProtocolFieldMappingId = this.fieldId;
+        toSave.ProtocolFieldMappingId = this.protocolFieldMappingId;
 
         bool saved = await dictionaryMappingService.SaveProtocolDictionaryMapping(toSave);
 
@@ -156,6 +173,6 @@
 
     private void Back()
     {
-        navigation.NavigateTo($"/admin/dmu/form-field-mapping/{catId}?protocol={protocol}&protocolMappingId={protocolMappingId}");
+        navigation.NavigateTo($"/admin/dmu/form-field-mapping/{protocolCategoryId}?protocol={protocol}&protocolMappingId={protocolMappingId}");
     }
 }

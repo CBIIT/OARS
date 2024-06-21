@@ -88,6 +88,7 @@
         if (firstRender)
         {
             await loading.Show();
+            await notificationService.Info("Loading EDC dictionaries...");
             var watch = System.Diagnostics.Stopwatch.StartNew();
             this.protocolDicts = await protocolDictionaryService.GetDictionariesByMappingId(protocolMappingId);
             watch.Stop();
