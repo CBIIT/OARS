@@ -125,14 +125,6 @@ namespace TheradexPortal.Data.Services
                     await context.SaveChangesAsync();
                 }
 
-                if (mapping.ProfileId != null && mapping.ProfileId != 0)
-                {
-                    var protocolFields = await _protocolFieldService.GetAllProtocolFieldsByMappingId(mapping.ProtocolMappingId);
-                    if (protocolFields.Count == 0)
-                    {
-                        await _protocolFieldService.CreateProtocolFieldsFromProfile(mapping.ProfileId, mapping.ProtocolMappingId);
-                    }
-                }
 
                 return true;
             }
