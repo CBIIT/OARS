@@ -39,6 +39,7 @@
                    CommandMode="DataGridCommandMode.ButtonRow">
              <DataGridColumns>
                  <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.Protocol)" Caption="Protocol" />
+                 <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.UserId)" Displayable="@IsAdminDisplay" Caption="UserId" />
                  <DataGridColumn Width="100px" Field="Metadata.CRFDescription" Caption="CRF" />
                  <DataGridColumn Width="100px" Field="Metadata.SourceSite" Caption="Source Site" />
                  <DataGridColumn Width="100px" Field="Metadata.ReceivingSite" Caption="Receiving Site" />

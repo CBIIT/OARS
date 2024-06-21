@@ -23,36 +23,30 @@ namespace TheradexPortal.Data.Services
 
         public async Task<List<FileIngestRequest>?> GetAllRequestsOfUser(int userId, bool isAdminDisplay, string environment)
         {
-            //var conditions = new List<ScanCondition>
-            //    {
-            //        new ScanCondition("UserId", ScanOperator.Equal, new string[1] { userId.ToString() })
-            //    };
+            var conditions = new List<ScanCondition>();
 
-            //var records = await (_dynamoDbContext.ScanAsync<FileIngestRequest>(conditions).GetNextSetAsync());
-
-            //return records;
-
-            var search = _dynamoDbContext.ScanAsync<FileIngestRequest>
-            (
-              new[] {
-                new ScanCondition
+            if (!isAdminDisplay)
+            {
+                conditions.Add(new ScanCondition
                   (
                     nameof(FileIngestRequest.UserId),
                     ScanOperator.Equal,
                     userId.ToString()
-                  ),
-                new ScanCondition
+                  ));
+
+                conditions.Add(new ScanCondition
                   (
                     nameof(FileIngestRequest.Environment),
                     ScanOperator.Equal,
                     environment.ToString()
-                  )
-              }
-            );
+                  ));
+            }
+
+            var search = _dynamoDbContext.ScanAsync<FileIngestRequest>(conditions);
 
             var result = await search.GetRemainingAsync();
 
-            return result?.OrderBy(p => p.CreatedDate).ToList();
+            return result?.OrderByDescending(p => p.CreatedDate).ToList();
 
             //QueryRequest queryRequest = new QueryRequest
             //{
