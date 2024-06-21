@@ -8,6 +8,6 @@ namespace TheradexPortal.Data.Services.Abstract
         public Task<List<ProtocolDataCategory>> GetCategoriesByMappingId(int mappingId);
         public Task<List<ProtocolDataCategory>> GetCategoriesByMappingProfile(int mappingId);
         public Task<bool> SaveCategory(ProtocolDataCategory category, int mappingId);
-        public Task<ProtocolDataCategory> GetCategory(int categoryId);
+        public Task<ProtocolDataCategory?> GetCategory(int categoryId);
     }
 }

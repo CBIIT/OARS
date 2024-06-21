@@ -301,7 +301,7 @@ else{
     [Inject] IProtocolFieldMappingService protocolFieldMappingService { get; set; } = null!;
     [Inject] IProtocolFormMappingService protocolFormMappingService { get; set; } = null!;
     [Inject] private NavigationManager navigation { get; set; } = null!;
-    [Inject] INotificationService notificationService { get; set; }
+    [Inject] INotificationService notificationService { get; set; } = null!;
     [Inject] private IMessageService messageService { get; set; } = null!;
     [Inject] IProtocolMappingService protocolMappingService { get; set; } = null!;
 
@@ -314,7 +314,7 @@ else{
     private IList<ProtocolEDCForm> protocolEDCFormListFull;
     private IList<ProtocolEDCForm> protocolEDCFormList;
     private IList<ProtocolEDCField> protocolEDCFieldList;
-    private ProtocolDataCategory protocolCategory;
+    private ProtocolDataCategory? protocolCategory;
     // private IList<ThorField> thorFieldList;
     private IList<ProtocolField> protocolFields;
     private IList<ProtocolField> protocolFieldsDisabled;
@@ -333,6 +333,12 @@ else{
     {
         var watch = System.Diagnostics.Stopwatch.StartNew();
         this.protocolCategory = await protocolCategoryService.GetCategory(protocolCategoryId);
+        if (this.protocolCategory == null)
+        {
+            await notificationService.Error("Category not found");
+            return;
+        }
+
         System.Console.WriteLine($"ProtocolFormFieldMapping - { watch.Elapsed } - GetCategory");
 
         watch = System.Diagnostics.Stopwatch.StartNew();
