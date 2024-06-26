@@ -259,7 +259,8 @@
  
         // Display or Hide Admin button
         bool isAdmin = Convert.ToBoolean(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.IsAdmin).Value);
-        if (isAdmin)
+        bool isDMUAdmin = Convert.ToBoolean(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.IsDMUAdmin).Value);
+        if (isAdmin || isDMUAdmin)
             adminDisplay = Display.Block;
         else
             adminDisplay = Display.None;

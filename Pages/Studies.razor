@@ -1,4 +1,5 @@
 ﻿@page "/studies"
+@page "/studies/{dashboardid:int?}"
 @inject IHttpContextAccessor httpContextAccessor
 
 <StudyGrid />
@@ -9,6 +10,8 @@
 @code
 {
     [Inject] private IUserService userService { get; set; } = null!;
+
+    [Parameter] public int DashboardId { get; set; }
 
     [CascadingParameter]
     public PrimaryNavLayout PrimaryNavLayout { get; set; }
