@@ -229,8 +229,7 @@ namespace TheradexPortal.Data.Services
 
             // Get all of the forms and form mappings for the source
             var sourceForms = await context.ProtocolEDCForms.Where(p => p.ProtocolMappingId == sourceId).ToListAsync();
-            var sourceFormIds = sourceForms.Select(p => p.ProtocolEDCFormId).ToList();
-            var sourceFormMappings = await context.ProtocolFormMappings.Where(p => sourceFormIds.Contains((int)p.ProtocolEDCFormId)).ToListAsync();
+            var sourceFormMappings = await context.ProtocolFormMappings.Where(p => p.ProtocolEDCForm.ProtocolMappingId == sourceId).ToListAsync();
 
             List<ProtocolEDCForm> targetForms = new List<ProtocolEDCForm>();
             if(sourceFormMappings.Count != 0)
@@ -266,9 +265,8 @@ namespace TheradexPortal.Data.Services
             }
 
             // Get all of the fields and field mappings for the source
-            var sourceFields = await context.ProtocolEDCField.Where(p => sourceFormIds.Contains(p.ProtocolEDCFormId)).ToListAsync();
-            var sourceFieldIds = sourceFields.Select(p => p.ProtocolEDCFieldId).ToList();
-            var sourceFieldMappings = await context.ProtocolFieldMappings.Where(p => sourceFieldIds.Contains(p.ProtocolEDCFieldId)).ToListAsync();
+            var sourceFields = await context.ProtocolEDCField.Where(p => p.ProtocolEDCForm.ProtocolMappingId == sourceId).ToListAsync();
+            var sourceFieldMappings = await context.ProtocolFieldMappings.Where(p => p.ProtocolEDCField.ProtocolEDCForm.ProtocolMappingId == sourceId).ToListAsync();
 
             List<ProtocolEDCField> targetFields = new List<ProtocolEDCField>();
             if (sourceFieldMappings.Count != 0)
@@ -306,8 +304,7 @@ namespace TheradexPortal.Data.Services
 
             // Get all of the dictionaries for the source
             var sourceDictionaries = await context.ProtocolEDCDictionary.Where(p => p.ProtocolMappingId == sourceId).ToListAsync();
-            var sourceDictionaryIds = sourceDictionaries.Select(p => p.ProtocolEDCDictionaryId).ToList();
-            var sourceDictionaryMappings = await context.ProtocolDictionaryMapping.Where(p => sourceDictionaryIds.Contains(p.ProtocolEDCDictionaryId)).ToListAsync();
+            var sourceDictionaryMappings = await context.ProtocolDictionaryMapping.Where(p => p.ProtocolFieldMapping.ProtocolEDCField.ProtocolEDCForm.ProtocolMappingId == sourceId).ToListAsync();
 
             List<ProtocolEDCDictionary> targetDictionaries = new List<ProtocolEDCDictionary>();
             if(sourceDictionaryMappings.Count != 0)
@@ -366,6 +363,7 @@ namespace TheradexPortal.Data.Services
 
             } catch (Exception ex)
             {
+                await _errorLogService.SaveErrorLogAsync(0, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
                 return false;
             }
         }
