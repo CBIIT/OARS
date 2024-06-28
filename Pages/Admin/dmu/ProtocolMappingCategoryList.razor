@@ -159,6 +159,8 @@
                 if(copyResult)
                 {
                     await notificationService.Success("Mapping copied successfully");
+                    await notificationService.Info("Refreshing categories...");
+                    this.protocolDataCategoryList = await protocolDataCategoryService.GetCategoriesByMappingProfile(protocolMappingId);
                 }
                 else
                 {
