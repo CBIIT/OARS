@@ -222,7 +222,7 @@
 
         if (hasProtocolFields)
         {
-            var result = await messageService.Confirm("Are you sure you want to delete the existing fields? This will reset the field list and properties to defaults.", "Confirmation");
+            var result = await messageService.Confirm("Are you sure you want to delete the existing fields? This will reset the field list and field properties to defaults.", "Confirmation");
             if (!result)
             {
                 return;
