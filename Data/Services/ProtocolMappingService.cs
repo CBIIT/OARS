@@ -227,9 +227,17 @@ namespace TheradexPortal.Data.Services
             target.SourceProtocolMappingId = sourceId;
             context.Update(target);
 
+            // TODO: Test for mutli-form scenarios
+
+            // TODO: Test for dictionary scenarios with many to one dictionary values and ensure that the dictionary values are copied by Form, field, and dictionary name and item id
+
             // Get all of the forms and form mappings for the source
-            var sourceForms = await context.ProtocolEDCForms.Where(p => p.ProtocolMappingId == sourceId).ToListAsync();
-            var sourceFormMappings = await context.ProtocolFormMappings.Where(p => p.ProtocolEDCForm.ProtocolMappingId == sourceId).ToListAsync();
+            var sourceForms = await context.ProtocolEDCForms.Where(p => p.ProtocolMappingId == sourceId)
+                .GroupBy(p => p.EDCFormIdentifier)
+                .ToDictionaryAsync(p => p.Key!, p => p.ToList());
+            var sourceFormMappings = await context.ProtocolFormMappings.Where(p => p.ProtocolEDCForm.ProtocolMappingId == sourceId)
+                .GroupBy(p => p.ProtocolEDCForm.EDCFormIdentifier)
+                .ToDictionaryAsync(p => p.Key!, p => p.ToList());
 
             List<ProtocolEDCForm> targetForms = new List<ProtocolEDCForm>();
             if(sourceFormMappings.Count != 0)
@@ -247,10 +255,19 @@ namespace TheradexPortal.Data.Services
 
             foreach (var targetForm in targetForms)
             {
-                var matchingSourceForm = sourceForms.FirstOrDefault(sf => sf.EDCFormIdentifier == targetForm.EDCFormIdentifier);
+                if (sourceForms.ContainsKey(targetForm.EDCFormIdentifier) == false)
+                {
+                    continue;
+                }
+
+                var matchingSourceForm = sourceForms[targetForm.EDCFormIdentifier!].First();
                 if (matchingSourceForm != null)
                 {
-                    var toCopy = sourceFormMappings.Where(sf => sf.ProtocolEDCFormId == matchingSourceForm.ProtocolEDCFormId).FirstOrDefault();
+                    if (!sourceFormMappings.ContainsKey(matchingSourceForm.EDCFormIdentifier!))
+                    {
+                        continue;
+                    }
+                    var toCopy = sourceFormMappings[matchingSourceForm.EDCFormIdentifier!].First();
                     if (toCopy != null)
                     {
                         DataRow targetFormMapping = formMappings.NewRow();
@@ -265,13 +282,17 @@ namespace TheradexPortal.Data.Services
             }
 
             // Get all of the fields and field mappings for the source
-            var sourceFields = await context.ProtocolEDCField.Where(p => p.ProtocolEDCForm.ProtocolMappingId == sourceId).ToListAsync();
-            var sourceFieldMappings = await context.ProtocolFieldMappings.Where(p => p.ProtocolEDCField.ProtocolEDCForm.ProtocolMappingId == sourceId).ToListAsync();
+            var sourceFields = await context.ProtocolEDCField.Where(p => p.ProtocolEDCForm.ProtocolMappingId == sourceId)
+                .GroupBy(p => p.ProtocolEDCForm.EDCFormIdentifier + "|" + p.EDCFieldIdentifier)
+                .ToDictionaryAsync(p => p.Key!, p => p.ToList());
+            var sourceFieldMappings = await context.ProtocolFieldMappings.Where(p => p.ProtocolEDCField.ProtocolEDCForm.ProtocolMappingId == sourceId)
+                .GroupBy(p => p.ProtocolEDCField.ProtocolEDCForm.EDCFormIdentifier + "|" + p.ProtocolEDCField.EDCFieldIdentifier)
+                .ToDictionaryAsync(p => p.Key!, p => p.ToList());
 
             List<ProtocolEDCField> targetFields = new List<ProtocolEDCField>();
             if (sourceFieldMappings.Count != 0)
             {
-                targetFields = await context.ProtocolEDCField.Where(p => p.ProtocolEDCFormId == targetId).ToListAsync();
+                targetFields = await context.ProtocolEDCField.Where(p => p.ProtocolEDCForm.ProtocolMappingId == targetId).ToListAsync();
             }
 
             Dictionary<int, int> sourceTargetMatches = new Dictionary<int, int>();
@@ -285,11 +306,24 @@ namespace TheradexPortal.Data.Services
 
             foreach(var targetField in targetFields)
             {
-                var matchingSourceField = sourceFields.FirstOrDefault(sf => sf.EDCFieldIdentifier == targetField.EDCFieldIdentifier);
+                if (targetField.ProtocolEDCForm == null)
+                {
+                    continue;
+                }
+                if (sourceFieldMappings.ContainsKey(targetField.ProtocolEDCForm.EDCFormIdentifier + "|" + targetField.EDCFieldIdentifier) == false)
+                {
+                    continue;
+                }
+
+                var matchingSourceField = sourceFields[targetField.ProtocolEDCForm.EDCFormIdentifier + "|" + targetField.EDCFieldIdentifier].First();
                 if(matchingSourceField != null)
                 {
                     sourceTargetMatches.Add(matchingSourceField.ProtocolEDCFieldId, targetField.ProtocolEDCFieldId);
-                    var toCopy = sourceFieldMappings.Where(sf => sf.ProtocolEDCFieldId == matchingSourceField.ProtocolEDCFieldId).FirstOrDefault();
+                    if (!sourceFieldMappings.ContainsKey(matchingSourceField.ProtocolEDCForm.EDCFormIdentifier + "|" + matchingSourceField.EDCFieldIdentifier))
+                    {
+                        continue;
+                    }
+                    var toCopy = sourceFieldMappings[matchingSourceField.ProtocolEDCForm.EDCFormIdentifier + "|" + matchingSourceField.EDCFieldIdentifier].First();
                     if (toCopy != null)
                     {
                         DataRow targetFieldMapping = fieldMappings.NewRow();
@@ -303,8 +337,11 @@ namespace TheradexPortal.Data.Services
             }
 
             // Get all of the dictionaries for the source
-            var sourceDictionaries = await context.ProtocolEDCDictionary.Where(p => p.ProtocolMappingId == sourceId).ToListAsync();
-            var sourceDictionaryMappings = await context.ProtocolDictionaryMapping.Where(p => p.ProtocolFieldMapping.ProtocolEDCField.ProtocolEDCForm.ProtocolMappingId == sourceId).ToListAsync();
+            var sourceDictionaries = await context.ProtocolEDCDictionary.Where(p => p.ProtocolMappingId == sourceId)
+                .GroupBy(p => p.EDCDictionaryName + "|" + p.EDCItemId)
+                .ToDictionaryAsync(p => p.Key!, p => p.ToList());
+            var sourceDictionaryMappings = await context.ProtocolDictionaryMapping.Where(p => p.ProtocolFieldMapping.ProtocolEDCField.ProtocolEDCForm.ProtocolMappingId == sourceId)
+                .ToListAsync();
 
             List<ProtocolEDCDictionary> targetDictionaries = new List<ProtocolEDCDictionary>();
             if(sourceDictionaryMappings.Count != 0)
