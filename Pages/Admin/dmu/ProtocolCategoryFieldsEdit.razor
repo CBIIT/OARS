@@ -124,7 +124,7 @@
         </DataGridColumn>
          <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="true">
              <EditCommandTemplate>
-                 <Button Disabled="@allowEdit"><Icon Name="IconName.Edit" Clicked="@context.Clicked" /></Button>
+                 <Button Disabled="@preventEdit"><Icon Name="IconName.Edit" Clicked="@context.Clicked" /></Button>
              </EditCommandTemplate>
              <SaveCommandTemplate>
                  <Button><Icon Name="IconName.Save" Clicked="@context.Clicked" /></Button>
@@ -141,9 +141,22 @@
          </DataGridCommandColumn>
      </DataGridColumns>
      <ButtonRowTemplate>
-        <Button Color="Color.Primary" Clicked="context.NewCommand.Clicked" Disabled="@allowEdit">
+        <Button Color="Color.Primary" Clicked="context.NewCommand.Clicked" Disabled="@preventEdit">
             Add
         </Button>
+        <Button Color="Color.Primary" Clicked="@(async evnt => await RefreshFields())" Disabled="@preventFieldRefresh">
+            Refresh from Profile
+        </Button>
+        @{
+            if (!hasProfile)
+            {
+                <Text>&nbsp;Select a profile / monitoring method</Text>
+            }
+            else if (hasFieldMappings)
+            {
+                <Text>&nbsp;Field mappings exist</Text>
+            }
+        }        
      </ButtonRowTemplate>
      <EmptyTemplate>
          <div class="box">
@@ -152,25 +165,79 @@
      </EmptyTemplate>
  </DataGrid>
 @code {
+    [Inject] IProtocolMappingService protocolMappingService { get; set; } = null!;
     [Inject] IProtocolFieldService protocolFieldService { get; set; } = null!;
+    [Inject] IProtocolFieldMappingService protocolFieldMappingService { get; set; } = null!;
     [Inject] private NavigationManager navigation { get; set; } = null!;
-    [Inject] INotificationService notificationService { get; set; }
+    [Inject] INotificationService notificationService { get; set; } = null!;
     [Inject] private IMessageService messageService { get; set; } = null!;
     [Inject] IThorCategoryService categoryService { get; set; } = null!;
     [Inject] IThorFieldService thorFieldService { get; set; } = null!;
     [Parameter] public int protocolMappingId { get; set; }
-    [Parameter] public bool allowEdit { get; set; }
+    [Parameter] public bool preventEdit { get; set; }
+
+    private bool hasFieldMappings = false;
+    private bool hasProtocolFields = false;
+    private bool hasProfile = false;
+
+    private bool preventFieldRefresh
+    {
+        get
+        {
+            return (preventEdit || !hasProfile || hasFieldMappings);
+        }
+    }
 
     private IList<ThorCategory> categoryList;
     private IList<ThorField> fieldList = new List<ThorField>();
     private string currentCategoryId = String.Empty;
     private bool deleteConfirmed = false;
 
+    private ProtocolMapping protocolMapping;
     private DataGrid<ProtocolField> dataGridRef;
     private ProtocolField selectedField;
     private IList<ProtocolField> protocolFields = new List<ProtocolField>();
 
     private string defaultFieldDropdownValue = "Select";
+
+    private async Task RefreshFields()
+    {
+        if (protocolMapping == null)
+            return;
+
+        this.hasFieldMappings = await protocolFieldMappingService.HasProtocolFieldMappingsForProtocolMapping(protocolMapping.ProtocolMappingId);
+        if (this.hasFieldMappings)
+        {
+            await notificationService.Error("Field mappings exist");
+            return;
+        }
+
+        this.hasProtocolFields = await protocolFieldService.HasProtocolFieldsByMappingId(protocolMapping.ProtocolMappingId);
+
+        if (protocolMapping.ProfileId == null || protocolMapping.ProfileId == 0)
+        {
+            await notificationService.Error("Profile not set");
+            return;
+        }
+
+        if (hasProtocolFields)
+        {
+            var result = await messageService.Confirm("Are you sure you want to delete the existing fields? This will reset the field list and properties to defaults.", "Confirmation");
+            if (!result)
+            {
+                return;
+            }
+            await notificationService.Info("Deleting existing protocol fields...");
+            await protocolFieldService.DeleteAllFieldsForMappingId(protocolMapping.ProtocolMappingId);
+        }
+
+        await notificationService.Info("Creating protocol fields from profile...");
+        await protocolFieldService.CreateProtocolFieldsFromProfile(protocolMapping.ProfileId, protocolMapping.ProtocolMappingId);
+
+        await notificationService.Info("Loading protocol Fields...");
+        this.protocolFields = await protocolFieldService.GetAllProtocolFieldsByMappingId(protocolMapping.ProtocolMappingId);
+
+    }
 
     private string? TestContext(CellEditContext<ProtocolField> context, string? fieldValue)
     {
@@ -222,9 +289,14 @@
 
     protected override async Task OnInitializedAsync()
     {
+        this.protocolMapping = await protocolMappingService.GetProtocolMapping(protocolMappingId);
+
+        this.hasProfile = this.protocolMapping.ProfileId != null && this.protocolMapping.ProfileId > 0;
+        this.hasProtocolFields = await protocolFieldService.HasProtocolFieldsByMappingId(protocolMapping.ProtocolMappingId);
+        this.hasFieldMappings = await protocolFieldMappingService.HasProtocolFieldMappingsForProtocolMapping(protocolMapping.ProtocolMappingId);
         var watch = System.Diagnostics.Stopwatch.StartNew();
         await notificationService.Info("Loading OARS Fields...");
-        this.protocolFields = await protocolFieldService.GetAllProtocolFieldsByMappingId(protocolMappingId);
+        this.protocolFields = await protocolFieldService.GetAllProtocolFieldsByMappingId(protocolMapping.ProtocolMappingId);
         watch.Stop();
         var elapsedMs = watch.ElapsedMilliseconds;
         System.Console.WriteLine($"Protocol Category Field Elapsed time: {elapsedMs} ms");
