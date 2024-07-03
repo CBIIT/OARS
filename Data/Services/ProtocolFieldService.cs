@@ -16,6 +16,11 @@ namespace TheradexPortal.Data.Services
             _navManager = navigationManager;
         }
 
+        public async Task<bool> HasProtocolFieldsByMappingId(int protocolMappingId)
+        {
+            return await context.ProtocolField.Where(x => x.ProtocolMappingId == protocolMappingId).AnyAsync();
+        }
+
         public async Task<IList<ProtocolField>> GetProtocolDateFieldsByMappingId(int protocolMappingId)
         {
             
@@ -172,7 +177,7 @@ namespace TheradexPortal.Data.Services
                         ThorFieldId = profileField.THORFieldId,
                         Format = "",
                         IsRequired = false,
-                        IsEnabled = false,
+                        IsEnabled = true,
                         CanBeDictionary = profileField.ThorField.FieldType?.FieldTypeName == "Dropdown",
                         IsMultiForm = profileField.ThorField.IsMultiForm,
                         CreateDate = DateTime.Now,

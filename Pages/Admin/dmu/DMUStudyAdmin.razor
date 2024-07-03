@@ -32,18 +32,18 @@
                 </Step>
             </Items>
             <Content>
-                <StepPanel Name="protocolsetup"><ProtocolSetupEdit protocolMappingId="@protocolMappingId" allowEdit="@(!IsActive())"></ProtocolSetupEdit></StepPanel>
-                <StepPanel Name="protocolconfig"><ThorFieldFormat protocolMappingId="@protocolMappingId" allowEdit="@(!IsActive())"></ThorFieldFormat></StepPanel>
-                <StepPanel Name="protocolfileupload"><ProtocolFileUpload protocolMappingId="@protocolMappingId" allowEdit="@(!IsActive())"></ProtocolFileUpload></StepPanel>
-                <StepPanel Name="edcformsedit"><EDCFormsEdit protocolMappingId="@protocolMappingId" allowEdit="@(!IsActive())"></EDCFormsEdit></StepPanel>
-                <StepPanel Name="protocolfieldedit"><EditEDCFields protocolMappingId="@protocolMappingId" allowEdit="@(!IsActive())"></EditEDCFields></StepPanel>
-                <StepPanel Name="protocoldictionary"><EDCDictionaryEdit protocolMappingId="@protocolMappingId" allowEdit="@(!IsActive())"></EDCDictionaryEdit></StepPanel>
-                <StepPanel Name="protocolcategoryfieldedit"><ProtocolCategoryFieldsEdit protocolMappingId="@protocolMappingId" allowEdit="@(!IsActive())"></ProtocolCategoryFieldsEdit></StepPanel>
-                <StepPanel Name="protocoltac"><ProtocolTAC protocolMappingId="@protocolMappingId" allowEdit="@(!IsActive())"></ProtocolTAC></StepPanel>
-                <StepPanel Name="protocoldisease"><ProtocolDiseaseEdit protocolMappingId="@protocolMappingId" allowEdit="@(!IsActive())"></ProtocolDiseaseEdit></StepPanel>
-                <StepPanel Name="protocolagentedit"><ProtocolAgentEdit protocolMappingId="@protocolMappingId" allowEdit="@(!IsActive())"></ProtocolAgentEdit></StepPanel>
-                <StepPanel Name="protocolsubgroupedit"><ProtocolSubGroupEdit protocolMappingId="@protocolMappingId" allowEdit="@(!IsActive())"></ProtocolSubGroupEdit></StepPanel>
-                <StepPanel Name="protocolpublish"><ProtocolPublish protocolMappingId="@protocolMappingId" allowEdit="@(!IsActive())"></ProtocolPublish></StepPanel>
+                <StepPanel Name="protocolsetup"><ProtocolSetupEdit protocolMappingId="@protocolMappingId" preventEdit="@(!IsActive())"></ProtocolSetupEdit></StepPanel>
+                <StepPanel Name="protocolconfig"><ThorFieldFormat protocolMappingId="@protocolMappingId" preventEdit="@(!IsActive())"></ThorFieldFormat></StepPanel>
+                <StepPanel Name="protocolfileupload"><ProtocolFileUpload protocolMappingId="@protocolMappingId" preventEdit="@(!IsActive())"></ProtocolFileUpload></StepPanel>
+                <StepPanel Name="edcformsedit"><EDCFormsEdit protocolMappingId="@protocolMappingId" preventEdit="@(!IsActive())"></EDCFormsEdit></StepPanel>
+                <StepPanel Name="protocolfieldedit"><EditEDCFields protocolMappingId="@protocolMappingId" preventEdit="@(!IsActive())"></EditEDCFields></StepPanel>
+                <StepPanel Name="protocoldictionary"><EDCDictionaryEdit protocolMappingId="@protocolMappingId" preventEdit="@(!IsActive())"></EDCDictionaryEdit></StepPanel>
+                <StepPanel Name="protocolcategoryfieldedit"><ProtocolCategoryFieldsEdit protocolMappingId="@protocolMappingId" preventEdit="@(!IsActive())"></ProtocolCategoryFieldsEdit></StepPanel>
+                <StepPanel Name="protocoltac"><ProtocolTAC protocolMappingId="@protocolMappingId" preventEdit="@(!IsActive())"></ProtocolTAC></StepPanel>
+                <StepPanel Name="protocoldisease"><ProtocolDiseaseEdit protocolMappingId="@protocolMappingId" preventEdit="@(!IsActive())"></ProtocolDiseaseEdit></StepPanel>
+                <StepPanel Name="protocolagentedit"><ProtocolAgentEdit protocolMappingId="@protocolMappingId" preventEdit="@(!IsActive())"></ProtocolAgentEdit></StepPanel>
+                <StepPanel Name="protocolsubgroupedit"><ProtocolSubGroupEdit protocolMappingId="@protocolMappingId" preventEdit="@(!IsActive())"></ProtocolSubGroupEdit></StepPanel>
+                <StepPanel Name="protocolpublish"><ProtocolPublish protocolMappingId="@protocolMappingId" preventEdit="@(!IsActive())"></ProtocolPublish></StepPanel>
             </Content>
         </Steps>
     </Row>
@@ -52,15 +52,15 @@
     string selectedStep = "protocolsetup";
     [AllowNull] private Steps stepsRef;
     [Parameter] public int protocolMappingId { get; set; }
-    [SupplyParameterFromQuery][Parameter] public string published { get; set; }
     [Inject] IProtocolMappingService protocolMappingService { get; set; } = null!;
     [Inject] NavigationManager navigation { get; set; } = null!;
     private string mappingName;
     private string protocolNum;
+    private ProtocolMapping protocolMapping;
 
     protected override async Task OnInitializedAsync()
     {
-        var protocolMapping = await protocolMappingService.GetProtocolMapping(protocolMappingId);
+        this.protocolMapping = await protocolMappingService.GetProtocolMapping(protocolMappingId);
         this.mappingName = protocolMapping.ProtocolTitle;
         this.protocolNum = protocolMapping.THORStudyId;
     }
@@ -71,7 +71,7 @@
     }
     private bool IsActive()
     {
-        return this.published == "Active";
+        return this.protocolMapping?.Status?.StatusName == "Active";
     }
 
     private void Back()
