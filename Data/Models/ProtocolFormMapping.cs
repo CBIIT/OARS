@@ -19,5 +19,7 @@ namespace TheradexPortal.Data.Models
         public DateTime UpdateDate { get; set; }
         [Column("Protocol_Category_Id")]
         public int ProtocolCategoryId { get; set; }
+        [ForeignKey("ProtocolCategoryId")]
+        public ProtocolDataCategory ProtocolCategory { get; set; }
     }
 }

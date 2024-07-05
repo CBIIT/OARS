@@ -32,6 +32,25 @@ namespace TheradexPortal.Data.Services
 
         }
 
+        public async Task<ProtocolDataCategory> BuildDefaultProtocolDataCategory(ThorCategory category, int mappingId)
+        {
+            var defaultDataCategoryStatus = await context.ProtocolCategoryStatus.FirstOrDefaultAsync(x => x.ProtocolCategoryStatusId == 1);
+            if (defaultDataCategoryStatus == null) {
+                throw new Exception("Default Protocol Category Status not found");
+            }
+            return new ProtocolDataCategory
+            {
+                ProtocolMappingId = mappingId,
+                THORDataCategoryId = category.ThorDataCategoryId,
+                THORDataCategory = category,
+                ProtocolCategoryStatusId = 1,
+                ProtocolCategoryStatus = defaultDataCategoryStatus,
+                IsMultiForm = false,
+                CreateDate = DateTime.Now,
+                UpdateDate = DateTime.Now
+            };
+        }
+
         public async Task<List<ProtocolDataCategory>> GetCategoriesByMappingProfile(int mappingId)
         {
             var dataCategories = await context.ProtocolField
@@ -47,23 +66,16 @@ namespace TheradexPortal.Data.Services
                 .Where(x => x.ProtocolMappingId == mappingId) 
                 .ToListAsync();
 
-            var defaultDataCategoryStatus = await context.ProtocolCategoryStatus.FirstOrDefaultAsync(x => x.ProtocolCategoryStatusId == 1);
 
             foreach (var category in dataCategories)
             {
+                if (category == null)
+                {
+                    continue;
+                }
                 if (!protocolDataCategories.Any(x => x.THORDataCategoryId == category.ThorDataCategoryId))
                 {
-                    ProtocolDataCategory newCategory = new ProtocolDataCategory
-                    {
-                        ProtocolMappingId = mappingId,
-                        THORDataCategoryId = category!.ThorDataCategoryId,
-                        THORDataCategory = category,
-                        ProtocolCategoryStatusId = 1,
-                        ProtocolCategoryStatus = defaultDataCategoryStatus,
-                        IsMultiForm = false,
-                        CreateDate = DateTime.Now,
-                        UpdateDate = DateTime.Now
-                    };
+                    ProtocolDataCategory newCategory = await BuildDefaultProtocolDataCategory(category, mappingId);
                     protocolDataCategories.Add(newCategory);
 
                 }
