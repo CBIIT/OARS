@@ -111,14 +111,14 @@
     {
         if(mapping.ProtocolMappingId > 0)
         {
-            navigation.NavigateTo($"/admin/dmu/study-admin/{mapping.ProtocolMappingId}?published={mapping.Status.StatusName}");
+            navigation.NavigateTo($"/admin/dmu/study-admin/{mapping.ProtocolMappingId}");
         }
         else
         {
             List<ProtocolPhase> phases = new List<ProtocolPhase>();
             mapping.ProtocolMappingStatusId = 1;
             await protocolMappingService.SaveProtocolMapping(mapping, phases);
-            navigation.NavigateTo($"/admin/dmu/study-admin/{mapping.ProtocolMappingId}?published=Active");
+            navigation.NavigateTo($"/admin/dmu/study-admin/{mapping.ProtocolMappingId}");
         }
     }
 

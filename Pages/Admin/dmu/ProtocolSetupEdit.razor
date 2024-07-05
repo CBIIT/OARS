@@ -25,13 +25,13 @@
             <Text>* Protocol:</Text>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-            <TextEdit MaxLength="50" Disabled="@allowEdit" @bind-Text="@currentProtocolMap.THORStudyId"></TextEdit>
+            <TextEdit MaxLength="50" Disabled="@preventEdit" @bind-Text="@currentProtocolMap.THORStudyId"></TextEdit>
         </Column>
         <Column ColumnSize="ColumnSize.Is2" Class="dmu-column-border-left">
-            <Check TValue="bool" @bind-Checked="@phase1" Disabled="@allowEdit">Phase 1</Check>
+            <Check TValue="bool" @bind-Checked="@phase1" Disabled="@preventEdit">Phase 1</Check>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-            <Select TValue="string" @bind-SelectedValue="@phase1IsRandomized" Disabled="@allowEdit">
+            <Select TValue="string" @bind-SelectedValue="@phase1IsRandomized" Disabled="@preventEdit">
                 <SelectItem Value="@YesNoSelect.S">Select</SelectItem>
                 <SelectItem Value="@YesNoSelect.Y">Randomized</SelectItem>
                 <SelectItem Value="@YesNoSelect.N">Non-Randomized</SelectItem>
@@ -43,13 +43,13 @@
             <Text>Billing Code:</Text>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-            <TextEdit MaxLength="50" @bind-Text="@currentProtocolMap.BillingCode" Disabled="@allowEdit"></TextEdit>
+            <TextEdit MaxLength="50" @bind-Text="@currentProtocolMap.BillingCode" Disabled="@preventEdit"></TextEdit>
         </Column>
         <Column ColumnSize="ColumnSize.Is2" Class="dmu-column-border-left">
-            <Check TValue="bool" @bind-Checked="@phase2" Disabled="@allowEdit">Phase 2</Check>
+            <Check TValue="bool" @bind-Checked="@phase2" Disabled="@preventEdit">Phase 2</Check>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-            <Select TValue="string" @bind-SelectedValue="@phase2IsRandomized" Disabled="@allowEdit">
+            <Select TValue="string" @bind-SelectedValue="@phase2IsRandomized" Disabled="@preventEdit">
                 <SelectItem Value="@YesNoSelect.S">Select</SelectItem>
                 <SelectItem Value="@YesNoSelect.Y">Randomized</SelectItem>
                 <SelectItem Value="@YesNoSelect.N">Non-Randomized</SelectItem>
@@ -61,13 +61,13 @@
             <Text>Title:</Text>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-            <TextEdit @bind-Text="@currentProtocolMap.ProtocolTitle" Disabled="@allowEdit"></TextEdit>
+            <TextEdit @bind-Text="@currentProtocolMap.ProtocolTitle" Disabled="@preventEdit"></TextEdit>
         </Column>
         <Column ColumnSize="ColumnSize.Is2" Class="dmu-column-border-left">
-            <Check TValue="bool" @bind-Checked="@phase3" Disabled="@allowEdit">Phase 3</Check>
+            <Check TValue="bool" @bind-Checked="@phase3" Disabled="@preventEdit">Phase 3</Check>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-            <Select TValue="string" @bind-SelectedValue="@phase3IsRandomized" Disabled="@allowEdit">
+            <Select TValue="string" @bind-SelectedValue="@phase3IsRandomized" Disabled="@preventEdit">
                 <SelectItem Value="@YesNoSelect.S">Select</SelectItem>
                 <SelectItem Value="@YesNoSelect.Y">Randomized</SelectItem>
                 <SelectItem Value="@YesNoSelect.N">Non-Randomized</SelectItem>
@@ -79,13 +79,13 @@
             <Text>Sponsor:</Text>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-            <TextEdit @bind-Text="@currentProtocolMap.Sponsor" Disabled="@allowEdit"></TextEdit>
+            <TextEdit @bind-Text="@currentProtocolMap.Sponsor" Disabled="@preventEdit"></TextEdit>
         </Column>
         <Column ColumnSize="ColumnSize.Is2" Class="dmu-column-border-left">
-            <Check TValue="bool" @bind-Checked="@phase4" Disabled="@allowEdit">Phase 4</Check>
+            <Check TValue="bool" @bind-Checked="@phase4" Disabled="@preventEdit">Phase 4</Check>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-            <Select TValue="string" @bind-SelectedValue="@phase4IsRandomized" Disabled="@allowEdit">
+            <Select TValue="string" @bind-SelectedValue="@phase4IsRandomized" Disabled="@preventEdit">
                 <SelectItem Value="@YesNoSelect.S">Select</SelectItem>
                 <SelectItem Value="@YesNoSelect.Y">Randomized</SelectItem>
                 <SelectItem Value="@YesNoSelect.N">Non-Randomized</SelectItem>
@@ -97,7 +97,7 @@
             <Text>*EDC System:</Text>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-            <Select TValue="int?" @bind-SelectedValue="@currentProtocolMap.ProtocolDataSystemId" Disabled="@allowEdit">
+            <Select TValue="int?" @bind-SelectedValue="@currentProtocolMap.ProtocolDataSystemId" Disabled="@preventEdit">
                 <SelectItem Value="@invalidId">Select the EDC System</SelectItem>
                 @foreach (var edcSystem in edcSystemList)
                 {
@@ -117,7 +117,7 @@
             <Text>*Monitoring Method:</Text>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-            <Select TValue="int?" @bind-SelectedValue="@currentProtocolMap.ProfileId" Disabled="@allowEdit">
+            <Select TValue="int?" @bind-SelectedValue="@currentProtocolMap.ProfileId" Disabled="@preventEdit">
                 <SelectItem Value="@invalidId">Select Monitoring Method</SelectItem>
                 @foreach (var profile in profileList)
                 {
@@ -137,7 +137,7 @@
             <Text>*Date Format:</Text>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-            <TextEdit Placeholder="ddMMMyyyy:HH:mm:ss.ff" MaxLength="50" @bind-Text="@currentProtocolMap.DateFormat" Disabled="@allowEdit"></TextEdit>
+            <TextEdit Placeholder="ddMMMyyyy:HH:mm:ss.ff" MaxLength="50" @bind-Text="@currentProtocolMap.DateFormat" Disabled="@preventEdit"></TextEdit>
         </Column>
         <Column ColumnSize="ColumnSize.Is2" Class="dmu-column-border-left">
 
@@ -151,7 +151,7 @@
             <Text>*Data File Folder:</Text>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
-            <TextEdit @bind-Text="@currentProtocolMap.DataFileFolder" Disabled="@allowEdit"></TextEdit>
+            <TextEdit @bind-Text="@currentProtocolMap.DataFileFolder" Disabled="@preventEdit"></TextEdit>
         </Column>
         <Column ColumnSize="ColumnSize.Is2" Class="dmu-column-border-left">
         </Column>
@@ -168,8 +168,8 @@
         <Column ColumnSize="ColumnSize.Is4">
             <Field Flex="Flex.JustifyContent.Center">
                 <Div>
-                    <Button Color="Color.Light" Disabled="@allowEdit" Clicked="@Cancel">Cancel</Button>
-                    <Button Class="dmu-admin-button-orange" Type="ButtonType.Submit" PreventDefaultOnSubmit Clicked="@SaveNewProtocolMapping" Disabled="@allowEdit">Save</Button>
+                    <Button Color="Color.Light" Disabled="@preventEdit" Clicked="@Cancel">Cancel</Button>
+                    <Button Class="dmu-admin-button-orange" Type="ButtonType.Submit" PreventDefaultOnSubmit Clicked="@SaveNewProtocolMapping" Disabled="@preventEdit">Save</Button>
                 </Div>
             </Field>
         </Column>
@@ -186,7 +186,7 @@
     [Inject] IUserService userService { get; set; } = null!;
 
     [Parameter] public int protocolMappingId { get; set; }
-    [Parameter] public bool allowEdit {get; set;}
+    [Parameter] public bool preventEdit {get; set;}
 
     private IList<Profile> profileList = new List<Profile>();
     private int selectedMappingProfileId = 0;
@@ -310,9 +310,8 @@
 
                 if (currentProtocolMap?.ProfileId != null && currentProtocolMap?.ProfileId != 0)
                 {
-
-                    var protocolFields = await protocolFieldService.GetAllProtocolFieldsByMappingId(currentProtocolMap.ProtocolMappingId);
-                    if (protocolFields.Count == 0)
+                    var hasProtocolFields = await protocolFieldService.HasProtocolFieldsByMappingId(currentProtocolMap.ProtocolMappingId);
+                    if (!hasProtocolFields)
                     {
                         await notificationService.Info("Creating protocol fields from profile...");
                         await protocolFieldService.CreateProtocolFieldsFromProfile(currentProtocolMap.ProfileId, currentProtocolMap.ProtocolMappingId);

@@ -35,14 +35,30 @@ namespace TheradexPortal.Data.Models
         }
         [ForeignKey(nameof(ThorFieldTypeId))]
         public ThorFieldType? FieldType { get; set; }
+
         [Column("THOR_Field_Type")]
         public int? ThorFieldTypeId { get; set; }
+        public string FieldTypeName
+        {
+            get
+            {
+                return FieldType?.FieldTypeName??"";
+            }
+        }
+
         [Column("Is_Derivable")]
         public bool Derivable { get; set; }
         [ForeignKey(nameof(ThorDictionaryId))]
         public ThorDictionary? Dictionary { get; set; }
         [Column("THOR_Dictionary_Id")]
         public int? ThorDictionaryId { get; set; }
+        public string DictionaryName
+        {
+            get
+            {
+                return Dictionary?.DictionaryName??"";
+            }
+        }
 
         [Column("Sort_Order")]
         public int? SortOrder { get; set; }

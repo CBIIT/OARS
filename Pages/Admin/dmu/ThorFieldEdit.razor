@@ -53,7 +53,7 @@
          </DataGridColumn>
           <DataGridColumn Width="15%" Field="@nameof(ThorField.FieldLabel)" Caption="OARS Field Label" Editable Filterable="true" Sortable="true">
          </DataGridColumn>
-         <DataGridColumn Width="10%" Caption="OARS Field Type" Field="@nameof(ThorField.ThorFieldTypeId)" Editable Filterable="true" Sortable="true">
+         <DataGridColumn Width="10%" Caption="OARS Field Type" Field="@nameof(ThorField.ThorFieldTypeId)" Editable Filterable="false" Sortable="false">
              <DisplayTemplate>
                  @{
                      if(context.FieldType != null)
@@ -82,7 +82,12 @@
                      DefaultItemText="Select A Type" 
                      DefaultItemValue="0"/>
              </EditTemplate>
-         </DataGridColumn>
+        </DataGridColumn>
+        <DataGridColumn Field="@nameof(ThorField.FieldTypeName)" Width="10%" Caption="OARS Field Type" Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
+            <DisplayTemplate>
+                @context.FieldTypeName
+            </DisplayTemplate>
+        </DataGridColumn>
          <DataGridColumn Field="@nameof(ThorField.Derivable)" Width="5%" Caption="Derivable" Editable Filterable="true" Sortable="true">
              <DisplayTemplate>
                  @((bool)context.Derivable ? "Yes" : "No")
@@ -94,7 +99,7 @@
                  </Select>
              </EditTemplate>
          </DataGridColumn>
-         <DataGridColumn Field="@nameof(ThorField.ThorDictionaryId)" Caption="OARS Dictionary Name" Width="20%" Editable Filterable="true" Sortable="true">
+         <DataGridColumn Field="@nameof(ThorField.ThorDictionaryId)" Caption="OARS Dictionary Name" Width="20%" Editable Filterable="false" Sortable="false">
              <DisplayTemplate>
                  @{
                     if (context.Dictionary != null)
@@ -127,6 +132,11 @@
                     }
                 }
 			 </EditTemplate>
+        </DataGridColumn>
+        <DataGridColumn Field="@nameof(ThorField.DictionaryName)" Width="10%" Caption="OARS Dictionary Name" Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
+            <DisplayTemplate>
+                @context.DictionaryName
+            </DisplayTemplate>
         </DataGridColumn>
          <DataGridColumn Field="@nameof(ThorField.IsMultiForm)" Width="5%" Caption="Multi Form" Editable Filterable="true" Sortable="true">
              <DisplayTemplate>

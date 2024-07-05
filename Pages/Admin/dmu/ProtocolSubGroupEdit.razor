@@ -39,7 +39,7 @@
         </DataGridColumn>
         <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="true">
             <EditCommandTemplate>
-                <Button Disabled="@allowEdit"><Icon Name="IconName.Edit" Clicked="@context.Clicked" /></Button>
+                <Button Disabled="@preventEdit"><Icon Name="IconName.Edit" Clicked="@context.Clicked" /></Button>
             </EditCommandTemplate>
             <SaveCommandTemplate>
                 <Button><Icon Name="IconName.Save" Clicked="@context.Clicked" /></Button>
@@ -51,12 +51,12 @@
                 <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
             </ClearFilterCommandTemplate>
             <DeleteCommandTemplate>
-                <Button><Icon Name="IconName.Delete" Clicked="@context.Clicked" /></Button>
+                <Button Disabled="@preventEdit"><Icon Name="IconName.Delete" Clicked="@context.Clicked" /></Button>
             </DeleteCommandTemplate>
         </DataGridCommandColumn>
     </DataGridColumns>
     <ButtonRowTemplate>
-        <Button Color="Color.Primary" Clicked="@context.NewCommand.Clicked" Disabled="@allowEdit">Add</Button>
+        <Button Color="Color.Primary" Clicked="@context.NewCommand.Clicked" Disabled="@preventEdit">Add</Button>
     </ButtonRowTemplate>
     <EmptyTemplate>
         <div class="box">
@@ -70,7 +70,7 @@
     [Inject] private IMessageService messageService { get; set; } = null!;
     [Inject] INotificationService notificationService { get; set; }
     [Parameter] public int protocolMappingId { get; set; }
-    [Parameter] public bool allowEdit { get; set; }
+    [Parameter] public bool preventEdit { get; set; }
 
     private DataGrid<ProtocolSubGroup> dataGridRef;
     private IList<ProtocolSubGroup> protocolSubGroups = new List<ProtocolSubGroup>();

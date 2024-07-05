@@ -4,6 +4,7 @@ namespace TheradexPortal.Data.Services.Abstract
 {
     public interface IProtocolFieldService
     {
+        public Task<bool> HasProtocolFieldsByMappingId(int protocolMappingId);
         public Task<IList<ProtocolField>> GetProtocolDateFieldsByMappingId(int protocolMappingId);
         public Task<bool> SaveProtocolField(int protocolMappingId, ProtocolField protocolField);
         public Task<bool> DeleteField(int fieldId);
