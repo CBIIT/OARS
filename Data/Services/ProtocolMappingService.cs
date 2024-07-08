@@ -233,12 +233,14 @@ namespace TheradexPortal.Data.Services
             return protocolMappings;
         }
 
+        private struct FieldMapping
+        {
+            public int ProtocolEDCFieldId;
+            public string ThorFieldId;
+        }
+
         public async Task<bool> CopyMapping(int sourceId, int targetId)
         {
-            ProtocolMapping target = await context.ProtocolMapping.Where(p => p.ProtocolMappingId == targetId).FirstOrDefaultAsync();
-            target.SourceProtocolMappingId = sourceId;
-            context.Update(target);
-
             var sourceFormMappings = await context.ProtocolFormMappings
                 .Include(p => p.ProtocolCategory)
                 .Include(p => p.ProtocolCategory.THORDataCategory)
@@ -275,6 +277,10 @@ namespace TheradexPortal.Data.Services
                 }
 
                 var targetForm = targetForms[sourceForm.Key];
+                if (targetForm.ProtocolMappingId == null)
+                {
+                    continue;
+                }
                 var sourceFormMappingList = sourceForm.Value;
                 foreach (var srcFormMapping in sourceFormMappingList)
                 {
@@ -292,7 +298,7 @@ namespace TheradexPortal.Data.Services
                     }
                     if (!targetProtocolDataCategories.TryGetValue(srcFormMapping.ProtocolCategory.THORDataCategoryId, out ProtocolDataCategory? targetProtocolDataCategory))
                     {
-                        targetProtocolDataCategory = await _protocolDataCategoryService.BuildDefaultProtocolDataCategory(srcFormMapping.ProtocolCategory.THORDataCategory, targetForm.ProtocolMappingId.Value);
+                        targetProtocolDataCategory = await _protocolDataCategoryService.GetOrCreateProtocolDataCategory(targetForm.ProtocolMappingId.Value, srcFormMapping.ProtocolCategory.THORDataCategoryId);
                         targetProtocolDataCategories.Add(srcFormMapping.ProtocolCategory.THORDataCategoryId, targetProtocolDataCategory);
                     }
 
@@ -323,7 +329,8 @@ namespace TheradexPortal.Data.Services
                     .ToDictionaryAsync(Dictionary => Dictionary.Key, Dictionary => Dictionary.ToList().First()!);
             }
 
-            Dictionary<int, int> sourceTargetFieldMapIdMap = new Dictionary<int, int>();
+            //// Map the source mapping Id to the target EDC Field Id and THOR Field Id 
+            //var sourceTargetFieldMapIdMap = new Dictionary<int, FieldMapping>();
 
             DataTable fieldMappings = new DataTable();
             fieldMappings.Columns.Add("Protocol_Field_Mapping_Id", typeof(int));
@@ -352,14 +359,13 @@ namespace TheradexPortal.Data.Services
                         continue;
                     }
 
-                    sourceTargetFieldMapIdMap.Add(srcFieldMapping.ProtocolEDCFieldId, targetField.ProtocolEDCFieldId);
-
                     DataRow targetFieldMapping = fieldMappings.NewRow();
                     targetFieldMapping["THOR_Field_Id"] = srcFieldMapping.ThorFieldId;
                     targetFieldMapping["Protocol_EDC_Field_Id"] = targetField.ProtocolEDCFieldId;
                     targetFieldMapping["Create_Date"] = DateTime.Now;
                     targetFieldMapping["Update_Date"] = DateTime.Now;
                     fieldMappings.Rows.Add(targetFieldMapping);
+
                 }
             }
 
@@ -386,97 +392,99 @@ namespace TheradexPortal.Data.Services
                 return false;
             }
 
-            //// Get all of the dictionaries for the source
-            ////var sourceDictionaries = await context.ProtocolEDCDictionary
-            ////    .Where(p => p.ProtocolMappingId == sourceId)
-            ////    .GroupBy(p => p.EDCDictionaryName + "|" + p.EDCItemId)
-            ////    .ToDictionaryAsync(p => p.Key!, p => p.ToList());
-            //var sourceDictionaryMappings = await context.ProtocolDictionaryMapping
-            //    .Include(p => p.ProtocolEDCDictionary)
-            //    .Include(p => p.ProtocolFieldMapping)
-            //    .Include(p => p.ProtocolFieldMapping!.ProtocolEDCField)
-            //    .Where(p => p.ProtocolFieldMapping!.ProtocolEDCField.ProtocolEDCForm.ProtocolMappingId == sourceId)
-            //    .GroupBy(p => p.ProtocolEDCDictionary!.EDCDictionaryName + "|" + p.ProtocolEDCDictionary.EDCItemId)
-            //    .ToDictionaryAsync(p => p.Key, p => p.ToList());
+            // Get all of the dictionaries for the source
+            var sourceDictionaryMappings = await context.ProtocolDictionaryMapping
+                .Include(p => p.ProtocolEDCDictionary)
+                .Include(p => p.ProtocolFieldMapping)
+                .Include(p => p.ProtocolFieldMapping!.ProtocolEDCField)
+                .Where(p => p.ProtocolFieldMapping!.ProtocolEDCField.ProtocolEDCForm.ProtocolMappingId == sourceId)
+                .GroupBy(p => p.ProtocolEDCDictionary!.EDCDictionaryName + "|" + p.ProtocolEDCDictionary.EDCItemId)
+                .ToDictionaryAsync(p => p.Key, p => p.ToList());
 
-            //Dictionary<string, ProtocolEDCDictionary> targetDictionaries = new Dictionary<string, ProtocolEDCDictionary>();
-            //if(sourceDictionaryMappings.Count != 0)
-            //{
-            //    targetDictionaries = await context.ProtocolEDCDictionary
-            //        .Where(p => p.ProtocolMappingId == targetId)
-            //        .GroupBy(p => p.EDCDictionaryName + "|" + p.EDCItemId)
-            //        .ToDictionaryAsync(p => p.Key!, p => p.ToList().First()!);
-            //}
+            Dictionary<string, ProtocolFieldMapping> targetFieldMappings = new Dictionary<string, ProtocolFieldMapping>();
+            Dictionary<string, ProtocolEDCDictionary> targetDictionaries = new Dictionary<string, ProtocolEDCDictionary>();
+            if (sourceDictionaryMappings.Count != 0)
+            {
+                // Get the newly created target field mappings that can have dictionaries associeated, for the target field mapping IDs
+                targetFieldMappings = await context.ProtocolFieldMappings
+                .Include(p => p.ProtocolEDCField)
+                .Include(p => p.ProtocolEDCField.ProtocolEDCForm)
+                .Where(p =>
+                    p.ProtocolEDCField.ProtocolEDCForm.ProtocolMappingId == targetId &&
+                    p.ThorField.ThorDictionaryId > 0
+                )
+                .GroupBy(p => p.ProtocolEDCField.ProtocolEDCForm.EDCFormIdentifier + "|" + p.ProtocolEDCField.EDCFieldIdentifier + "|" + p.ThorFieldId)
+                .ToDictionaryAsync(p => p.Key, p => p.ToList().First());
 
-            //DataTable dictionaryMappings = new DataTable();
-            //dictionaryMappings.Columns.Add("Protocol_Dictionary_Mapping_Id", typeof(int));
-            //dictionaryMappings.Columns.Add("Protocol_Field_Mapping_Id", typeof(int));
-            //dictionaryMappings.Columns.Add("Protocol_EDC_Dictionary_Id", typeof(int));
-            //dictionaryMappings.Columns.Add("THOR_Dictionary_Id", typeof(int));
-            //dictionaryMappings.Columns.Add("Create_Date", typeof(DateTime));
-            //dictionaryMappings.Columns.Add("Update_Date", typeof(DateTime));
+                targetDictionaries = await context.ProtocolEDCDictionary
+                    .Where(p => p.ProtocolMappingId == targetId)
+                    .GroupBy(p => p.EDCDictionaryName + "|" + p.EDCItemId)
+                    .ToDictionaryAsync(p => p.Key!, p => p.ToList().First()!);
+            }
 
-            //foreach (var dictMapDictItem in sourceDictionaryMappings)
-            //{
-            //    var dictCompositeKey = dictMapDictItem.Key;
-            //    if (targetDictionaries.ContainsKey(dictCompositeKey) == false)
-            //    {
-            //        continue;
-            //    }
+            DataTable dictionaryMappings = new DataTable();
+            dictionaryMappings.Columns.Add("Protocol_Dictionary_Mapping_Id", typeof(int));
+            dictionaryMappings.Columns.Add("Protocol_Field_Mapping_Id", typeof(int));
+            dictionaryMappings.Columns.Add("Protocol_EDC_Dictionary_Id", typeof(int));
+            dictionaryMappings.Columns.Add("THOR_Dictionary_Id", typeof(int));
+            dictionaryMappings.Columns.Add("Create_Date", typeof(DateTime));
+            dictionaryMappings.Columns.Add("Update_Date", typeof(DateTime));
 
-            //    var targetDictionary = targetDictionaries[dictCompositeKey];
+            foreach (var dictMapDictItem in sourceDictionaryMappings)
+            {
+                var dictCompositeKey = dictMapDictItem.Key;
+                if (targetDictionaries.ContainsKey(dictCompositeKey) == false)
+                {
+                    continue;
+                }
 
-            //    var sourceDictionaryMappingList = dictMapDictItem.Value;
-            //    foreach (var sourceDictionaryMapping in sourceDictionaryMappingList)
-            //    {
-            //        if (sourceTargetFieldMapIdMap.ContainsKey(sourceDictionaryMapping.ProtocolFieldMappingId) == false)
-            //        {
-            //            continue;
-            //        }
-            //    }
+                var targetDictionary = targetDictionaries[dictCompositeKey];
 
-            //    //if (sourceTargetFieldMapIdMap.ContainsKey()
-            //    //var targetThorFieldId = 
+                var sourceDictionaryMappingList = dictMapDictItem.Value;
+                foreach (var sourceDictionaryMapping in sourceDictionaryMappingList)
+                {
+                    var protocolFieldMapping = sourceDictionaryMapping.ProtocolFieldMapping;
+                    var sourceFieldMappingKey = $"{protocolFieldMapping!.ProtocolEDCField.ProtocolEDCForm.EDCFormIdentifier}|{protocolFieldMapping.ProtocolEDCField.EDCFieldIdentifier + "|" + protocolFieldMapping.ThorFieldId}";
+                    if (targetFieldMappings.ContainsKey(sourceFieldMappingKey) == false)
+                    {
+                        continue;
+                    }
 
+                    var targetFieldMapping = targetFieldMappings[sourceFieldMappingKey];
 
-            //}
-            //foreach(var targetDictionary in targetDictionaries)
-            //{
-            //    var matchingSourceDictionary = sourceDictionaries.FirstOrDefault(sd => sd.EDCDictionaryName == targetDictionary.EDCDictionaryName);
-            //    if(matchingSourceDictionary != null)
-            //    {
-            //        var toCopy = sourceDictionaryMappings.Where(sd => sd.ProtocolEDCDictionaryId == matchingSourceDictionary.ProtocolEDCDictionaryId).FirstOrDefault();
-            //        if (toCopy != null)
-            //        {
-            //            DataRow targetDictionaryMapping = dictionaryMappings.NewRow();
-            //            targetDictionaryMapping["Protocol_EDC_Dictionary_Id"] = targetDictionary.ProtocolEDCDictionaryId;
-            //            targetDictionaryMapping["Protocol_Field_Mapping_Id"] = sourceTargetFieldMapIdMap[toCopy.ProtocolFieldMappingId];
-            //            targetDictionaryMapping["THOR_Dictionary_Id"] = toCopy.THORDictionaryId;
-            //            targetDictionaryMapping["Create_Date"] = DateTime.Now;
-            //            targetDictionaryMapping["Update_Date"] = DateTime.Now;
+                    DataRow targetDictionaryMapping = dictionaryMappings.NewRow();
+                    targetDictionaryMapping["Protocol_Field_Mapping_Id"] = targetFieldMapping.ProtocolFieldMappingId;
+                    targetDictionaryMapping["Protocol_EDC_Dictionary_Id"] = targetDictionary.ProtocolEDCDictionaryId;
+                    targetDictionaryMapping["THOR_Dictionary_Id"] = sourceDictionaryMapping.THORDictionaryId;
+                    targetDictionaryMapping["Create_Date"] = DateTime.Now;
+                    targetDictionaryMapping["Update_Date"] = DateTime.Now;
+                    dictionaryMappings.Rows.Add(targetDictionaryMapping);
+                }
 
-            //            dictionaryMappings.Rows.Add(targetDictionaryMapping);
-            //        }
-            //    }
-            //}
+            }
 
-            //try
-            //{
-            //    using (var bulkCopy = new OracleBulkCopy(oracleConnection, OracleBulkCopyOptions.UseInternalTransaction))
-            //    {
+            try
+            {
+                using (var bulkCopy = new OracleBulkCopy(oracleConnection, OracleBulkCopyOptions.UseInternalTransaction))
+                {
+                    bulkCopy.DestinationSchemaName = "DMU";
+                    bulkCopy.DestinationTableName = "\"ProtocolDictionaryMapping\"";
+                    bulkCopy.BatchSize = dictionaryMappings.Rows.Count;
+                    bulkCopy.WriteToServer(dictionaryMappings);
+                }
 
-            //        bulkCopy.DestinationTableName = "\"ProtocolDictionaryMapping\"";
-            //        bulkCopy.BatchSize = dictionaryMappings.Rows.Count;
-            //        bulkCopy.WriteToServer(dictionaryMappings);
-            //    }
+                await context.SaveChangesAsync();
 
-            //    await context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                await _errorLogService.SaveErrorLogAsync(0, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+                return false;
+            }
 
-            //} catch (Exception ex)
-            //{
-            //    await _errorLogService.SaveErrorLogAsync(0, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
-            //    return false;
-            //}
+            var target = await context.ProtocolMapping.Where(p => p.ProtocolMappingId == targetId).FirstOrDefaultAsync();
+            target.SourceProtocolMappingId = sourceId;
+            context.Update(target);
 
             return true;
         }
