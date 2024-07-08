@@ -32,6 +32,25 @@ namespace TheradexPortal.Data.Services
 
         }
 
+        public async Task<ProtocolDataCategory> BuildDefaultProtocolDataCategory(ThorCategory category, int mappingId)
+        {
+            var defaultDataCategoryStatus = await context.ProtocolCategoryStatus.FirstOrDefaultAsync(x => x.ProtocolCategoryStatusId == 1);
+            if (defaultDataCategoryStatus == null) {
+                throw new Exception("Default Protocol Category Status not found");
+            }
+            return new ProtocolDataCategory
+            {
+                ProtocolMappingId = mappingId,
+                THORDataCategoryId = category.ThorDataCategoryId,
+                THORDataCategory = category,
+                ProtocolCategoryStatusId = 1,
+                ProtocolCategoryStatus = defaultDataCategoryStatus,
+                IsMultiForm = false,
+                CreateDate = DateTime.Now,
+                UpdateDate = DateTime.Now
+            };
+        }
+
         public async Task<List<ProtocolDataCategory>> GetCategoriesByMappingProfile(int mappingId)
         {
             var dataCategories = await context.ProtocolField
@@ -47,25 +66,41 @@ namespace TheradexPortal.Data.Services
                 .Where(x => x.ProtocolMappingId == mappingId) 
                 .ToListAsync();
 
-            var defaultDataCategoryStatus = await context.ProtocolCategoryStatus.FirstOrDefaultAsync(x => x.ProtocolCategoryStatusId == 1);
 
             foreach (var category in dataCategories)
             {
+                if (category == null)
+                {
+                    continue;
+                }
                 if (!protocolDataCategories.Any(x => x.THORDataCategoryId == category.ThorDataCategoryId))
                 {
-                    ProtocolDataCategory newCategory = new ProtocolDataCategory
-                    {
-                        ProtocolMappingId = mappingId,
-                        THORDataCategoryId = category!.ThorDataCategoryId,
-                        THORDataCategory = category,
-                        ProtocolCategoryStatusId = 1,
-                        ProtocolCategoryStatus = defaultDataCategoryStatus,
-                        IsMultiForm = false,
-                        CreateDate = DateTime.Now,
-                        UpdateDate = DateTime.Now
-                    };
+                    ProtocolDataCategory newCategory = await BuildDefaultProtocolDataCategory(category, mappingId);
                     protocolDataCategories.Add(newCategory);
+                }
+                
+            }
 
+            // Get the in-progress status
+            var inProgressStatus = await context.ProtocolCategoryStatus.FirstOrDefaultAsync(x => x.ProtocolCategoryStatusId == 2);
+            if (inProgressStatus == null)
+            {
+                throw new Exception("In-progress Protocol Category Status not found");
+            }
+
+            foreach (var protocolDataCategory in protocolDataCategories)
+            {
+                // Ensure that the mapping has not started if the status is Not Started
+                if (protocolDataCategory.ProtocolCategoryStatusId == 1 &&
+                    await context.ProtocolFieldMappings.AnyAsync(x => 
+                        x.ThorFieldId != null &&                        
+                        x.ProtocolEDCField.ProtocolEDCForm.ProtocolMappingId == mappingId &&
+                        x.ThorField.ThorDataCategoryId == protocolDataCategory.THORDataCategoryId))
+                {
+                    // Field mappings found for this category, set status to in-progress
+                    protocolDataCategory.ProtocolCategoryStatus = inProgressStatus;
+                    protocolDataCategory.ProtocolCategoryStatusId = inProgressStatus.ProtocolCategoryStatusId;
+                    await SaveCategory(protocolDataCategory, mappingId);                    
                 }
             }
 
@@ -82,6 +117,26 @@ namespace TheradexPortal.Data.Services
                 .FirstOrDefaultAsync(x => x.ProtocolCategoryId == categoryId);
 
             return category;
+        }
+
+        public async Task<ProtocolDataCategory> GetOrCreateProtocolDataCategory(int mappingId, string thorDataCategoryId)
+        {
+
+            var existingCategory = await context.ProtocolDataCategories
+                .FirstOrDefaultAsync(x => x.ProtocolMappingId == mappingId && x.THORDataCategoryId == thorDataCategoryId);
+            if (existingCategory != null)
+            {
+                return existingCategory;
+            }
+
+            var category = await context.THORDataCategory.FirstOrDefaultAsync(x => x.ThorDataCategoryId == thorDataCategoryId);
+            if (category == null)
+            {
+                throw new Exception("Category not found");
+            }
+            await this.SaveCategory(await this.BuildDefaultProtocolDataCategory(category, mappingId), mappingId);
+
+            return await context.ProtocolDataCategories.FirstOrDefaultAsync(x => x.ProtocolMappingId == mappingId && x.THORDataCategoryId == thorDataCategoryId);
         }
 
         public async Task<bool> SaveCategory(ProtocolDataCategory category, int mappingId)

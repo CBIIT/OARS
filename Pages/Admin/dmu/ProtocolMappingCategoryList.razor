@@ -14,7 +14,12 @@
         </Column>
         <Column><Text><b>Protocol:</b> @protocolMapping.THORStudyId - @protocolMapping.ProtocolTitle</Text></Column>
         <LoadingIndicator @ref="loadingIndicator" >
-            <Column><Text><b>Copy Mappings From:</b></Text> <SelectList TItem="ProtocolMapping" TValue="int?" Data="@copyFromList" TextField="@((item) => item.THORStudyId)" ValueField="@((item) => item.ProtocolMappingId)" SelectedValue="protocolMapping.SourceProtocolMappingId" SelectedValueChanged="@((v) => {protocolMapping.SourceProtocolMappingId = v; CopyMapping(v);})" Disabled="@(MappingStatus() != "Not Started")" DefaultItemText="Select a Protocol" DefaultItemValue="0"></SelectList></Column>
+            <Column>
+                <Text><b>Copy Mappings From:</b></Text> 
+                <SelectList TItem="ProtocolMapping" TValue="int?" Data="@copyFromList" TextField="@((item) => item.THORStudyId)" ValueField="@((item) => item.ProtocolMappingId)" SelectedValue="sourceMappingId" SelectedValueChanged="@((v) => {sourceMappingId = v;})" Disabled="@(MappingStatus() != "Not Started")" DefaultItemText="Select a Protocol" DefaultItemValue="0"></SelectList>
+                <Button Color="Color.Primary" Clicked="@(() => CopyMapping(sourceMappingId))" Disabled="@(MappingStatus() != "Not Started" || sourceMappingId == 0)">Copy Mapping</Button>
+            </Column>
+            
         </LoadingIndicator>
     </Row>
     <Row>
@@ -73,6 +78,8 @@
     [Inject] IUserService userService { get; set; } = null!;
 
     [Parameter] public int protocolMappingId { get; set; }
+
+    private int? sourceMappingId = 0;
 
     private DataGrid<ProtocolDataCategory> dataGridRef;
     private IList<ProtocolDataCategory> protocolDataCategoryList;
@@ -159,6 +166,8 @@
                 if(copyResult)
                 {
                     await notificationService.Success("Mapping copied successfully");
+                    await notificationService.Info("Refreshing categories...");
+                    this.protocolDataCategoryList = await protocolDataCategoryService.GetCategoriesByMappingProfile(protocolMappingId);
                 }
                 else
                 {
