@@ -613,7 +613,8 @@ else{
             return;
         }
 
-        var url = $"/admin/dmu/dictionary-list-map/{protocolFieldMappingId}?protocolMappingId={protocolMappingId}&protocol={protocol}&categoryName={categoryName}&formLabel={formLabel}&protocolCategoryId={protocolCategoryId}&thorDictionaryId={thorDictionaryId}";
+        // var url = $"/admin/dmu/dictionary-list-map/{protocolFieldMappingId}?protocolMappingId={protocolMappingId}&protocol={protocol}&categoryName={categoryName}&formLabel={formLabel}&protocolCategoryId={protocolCategoryId}&thorDictionaryId={thorDictionaryId}";
+        var url = $"/admin/dmu/dictionary-list-map/{protocolFieldMappingId}?protocolCategoryId={protocolCategoryId}";
 
         navigation.NavigateTo(url);
     }

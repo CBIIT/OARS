@@ -55,8 +55,10 @@ namespace TheradexPortal.Data.Services
         {
             var fieldMapping = await context.ProtocolFieldMappings
                 .Include(x=>x.ThorField)
+                .Include(x=>x.ThorField.Category)
                 .Include(x=>x.ProtocolEDCField)
                 .Include(x=>x.ProtocolEDCField.ProtocolEDCForm)
+                .Include(x=>x.ProtocolEDCField.ProtocolEDCForm.ProtocolMapping)
                 .FirstOrDefaultAsync(x => x.ProtocolFieldMappingId == protocolFieldMappingId);
             return fieldMapping;
         }
