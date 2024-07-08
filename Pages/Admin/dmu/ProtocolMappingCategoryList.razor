@@ -118,7 +118,7 @@
         {
             await protocolDataCategoryService.SaveCategory(category, this.protocolMappingId);
         }
-        navigation.NavigateTo($"/admin/dmu/form-field-mapping/{category.ProtocolCategoryId}?protocol={protocolMapping.THORStudyId}&protocolMappingId={protocolMappingId}");
+        navigation.NavigateTo($"/admin/dmu/form-field-mapping/{category.ProtocolCategoryId}");
     }
 
     public string MappingStatus()

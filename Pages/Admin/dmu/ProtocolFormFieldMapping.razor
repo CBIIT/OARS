@@ -106,7 +106,7 @@
                                 DefaultItemText="Select"></SelectList>
                 </EditTemplate>
             </DataGridColumn>
-            <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
+            <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="true">
                 <SaveCommandTemplate>
                     <Button><Icon Name="IconName.Save" Clicked="@context.Clicked" /></Button>
                 </SaveCommandTemplate>
@@ -116,6 +116,9 @@
                 <CancelCommandTemplate>
                     <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
                 </CancelCommandTemplate>
+                <DeleteCommandTemplate>
+                    <Button><Icon Name="IconName.Delete" Clicked="@(() => Delete(context.Item))" /></Button>
+                </DeleteCommandTemplate>
             </DataGridCommandColumn>
             <DataGridColumn Field="@nameof(ProtocolFieldMapping.ThorDictionaryId)" Caption="Dictionary Mapping">
                 <DisplayTemplate>
@@ -146,7 +149,7 @@
         </ButtonRowTemplate>
         <EmptyTemplate>
             <div class="box">
-                No multi-form field mappings found.
+                No field mappings found.
             </div>
         </EmptyTemplate>
     </DataGrid>
@@ -254,7 +257,7 @@ else{
                                     DefaultItemText="Select"></SelectList>
                     </EditTemplate>
                 </DataGridColumn>
-                <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
+                <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="true">
                     <SaveCommandTemplate>
                         <Button><Icon Name="IconName.Save" Clicked="@context.Clicked" /></Button>
                     </SaveCommandTemplate>
@@ -264,6 +267,9 @@ else{
                     <CancelCommandTemplate>
                         <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
                     </CancelCommandTemplate>
+                    <DeleteCommandTemplate>
+                        <Button><Icon Name="IconName.Delete" Clicked="@(() => Delete(context.Item))" /></Button>
+                    </DeleteCommandTemplate>
                 </DataGridCommandColumn>
                 <DataGridColumn Field="@nameof(ProtocolFieldMapping.ThorDictionaryId)" Caption="Dictionary Mapping">
                     <DisplayTemplate>
@@ -277,7 +283,12 @@ else{
                         }
                     </DisplayTemplate>
                 </DataGridColumn>
-        </DataGridColumns>
+            </DataGridColumns>
+            <EmptyTemplate>
+                <div class="box">
+                    No multi-form field mappings found.
+                </div>
+            </EmptyTemplate>
         </DataGrid>
     }
     <Button Color="Color.Primary" Clicked="AddForm">Add Form</Button>
@@ -298,8 +309,9 @@ else{
     [Inject] IProtocolMappingService protocolMappingService { get; set; } = null!;
 
     [Parameter] public int protocolCategoryId { get; set; }
-    [SupplyParameterFromQuery][Parameter] public string protocol { get; set; }
-    [SupplyParameterFromQuery][Parameter] public int protocolMappingId { get; set; }
+
+    public string protocol { get; set; }
+    public int protocolMappingId { get; set; }
 
     private DataGrid<ProtocolFieldMapping> dataGridRef;
     private IList<ProtocolFieldMapping> protocolFieldMappingList;
@@ -330,16 +342,23 @@ else{
             await notificationService.Error("Category not found");
             return;
         }
+        this.protocol = this.protocolCategory.ProtocolMapping.THORStudyId;
+        this.protocolMappingId = this.protocolCategory.ProtocolMappingId;
 
         System.Console.WriteLine($"ProtocolFormFieldMapping - { watch.Elapsed } - GetCategory");
 
         this.isComplete = protocolCategory.ProtocolCategoryStatusId == 3;
         this.currCategory = this.protocolCategory.THORDataCategory;
 
-        await UpdateFieldList();
-        await UpdateFieldListMultiForm();
+        await RefreshFields();
 
         this.RefreshFormsDropdown();
+    }
+
+    private async Task RefreshFields()
+    {
+        await UpdateFieldList();
+        await UpdateFieldListMultiForm();
     }
 
     private async Task UpdateFieldList()
@@ -544,6 +563,7 @@ else{
         if (deleted)
         {
             await notificationService.Success("Mapping successfully deleted");
+            await RefreshFields();
             return;
         }
         else
