@@ -99,6 +99,13 @@
         if (httpContextAccessor?.HttpContext?.User.HasAnyTHORRole(allowed.ToArray()) == false && httpContextAccessor?.HttpContext?.User.HasAnyAdminRole(adminRole.ToArray()) == false)
         {
             var studyIds = userService.GetProtocolAccessForUser(httpContextAccessor.HttpContext.User.GetUserId());
+
+            if (!studyIds.Contains(protocolMapping.THORStudyId))
+            {
+                await notificationService.Error("You do not have access to this protocol");
+                navigation.NavigateTo("/admin/dmu/study-mapping");
+            }
+
             copyFromList = await protocolMappingService.GetProtocolMappings(studyIds, false);
         }
         else

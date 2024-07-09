@@ -1,4 +1,5 @@
-﻿@using TheradexPortal.Data.Models;
+﻿@using TheradexPortal.Data.Identity
+@using TheradexPortal.Data.Models;
 @using TheradexPortal.Data.Services.Abstract;
 @inject IHttpContextAccessor httpContextAccessor
 @inject IConfiguration configuration
@@ -307,6 +308,7 @@ else{
     [Inject] INotificationService notificationService { get; set; } = null!;
     [Inject] private IMessageService messageService { get; set; } = null!;
     [Inject] IProtocolMappingService protocolMappingService { get; set; } = null!;
+    [Inject] IUserService userService { get; set; } = null!;
 
     [Parameter] public int protocolCategoryId { get; set; }
 
@@ -344,6 +346,18 @@ else{
         }
         this.protocol = this.protocolCategory.ProtocolMapping.THORStudyId;
         this.protocolMappingId = this.protocolCategory.ProtocolMappingId;
+
+        List<string> allowed = new List<string> { "DMU Study Admin", "DMU Global Admin" };
+        List<string> adminRole = new List<string> { "IT" };
+        if (httpContextAccessor?.HttpContext?.User.HasAnyTHORRole(allowed.ToArray()) == false && httpContextAccessor?.HttpContext?.User.HasAnyAdminRole(adminRole.ToArray()) == false)
+        {
+            var studyIds = userService.GetProtocolAccessForUser(httpContextAccessor.HttpContext.User.GetUserId());
+            if (!studyIds.Contains(protocol))
+            {
+                await notificationService.Error("You do not have access to this protocol");
+                navigation.NavigateTo("/admin/dmu/study-mapping");
+            }
+        }
 
         System.Console.WriteLine($"ProtocolFormFieldMapping - { watch.Elapsed } - GetCategory");
 
