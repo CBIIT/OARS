@@ -119,7 +119,7 @@ namespace TheradexPortal.Data.Services
             return category;
         }
 
-        public async Task<ProtocolDataCategory> GetOrCreateProtocolDataCategory(int mappingId, string thorDataCategoryId)
+        public async Task<ProtocolDataCategory> GetOrBuildProtocolDataCategory(int mappingId, string thorDataCategoryId)
         {
 
             var existingCategory = await context.ProtocolDataCategories
@@ -134,9 +134,7 @@ namespace TheradexPortal.Data.Services
             {
                 throw new Exception("Category not found");
             }
-            await this.SaveCategory(await this.BuildDefaultProtocolDataCategory(category, mappingId), mappingId);
-
-            return await context.ProtocolDataCategories.FirstOrDefaultAsync(x => x.ProtocolMappingId == mappingId && x.THORDataCategoryId == thorDataCategoryId);
+            return await this.BuildDefaultProtocolDataCategory(category, mappingId);
         }
 
         public async Task<bool> SaveCategory(ProtocolDataCategory category, int mappingId)

@@ -241,6 +241,26 @@ namespace TheradexPortal.Data.Services
 
         public async Task<bool> CopyMapping(int sourceId, int targetId)
         {
+            var sourceProtocolCategories = await context.ProtocolDataCategories
+                .Include(p => p.THORDataCategory)
+                .Where(p => p.ProtocolMappingId == sourceId)
+                .ToListAsync();
+
+            var targetProtocolDataCategories = new Dictionary<string, ProtocolDataCategory>();
+
+            foreach (var sourceCategory in sourceProtocolCategories)
+            {
+                if (sourceCategory.THORDataCategoryId == null)
+                {
+                    continue;
+                }
+
+                var targetCategory = await _protocolDataCategoryService.GetOrBuildProtocolDataCategory(targetId, sourceCategory.THORDataCategoryId);
+                targetCategory.IsMultiForm = sourceCategory.IsMultiForm;
+                var saveSuccess = await _protocolDataCategoryService.SaveCategory(targetCategory, targetId);
+                targetProtocolDataCategories.Add(sourceCategory.THORDataCategoryId, targetCategory);
+            }
+
             var sourceFormMappings = await context.ProtocolFormMappings
                 .Include(p => p.ProtocolCategory)
                 .Include(p => p.ProtocolCategory.THORDataCategory)
@@ -261,12 +281,11 @@ namespace TheradexPortal.Data.Services
             DataTable formMappings = new DataTable();
             formMappings.Columns.Add("Protocol_Form_Mapping_Id", typeof(int));
             formMappings.Columns.Add("Protocol_EDC_Form_Id", typeof(int));
-            formMappings.Columns.Add("Is_Primary_Form", typeof(bool));
+            formMappings.Columns.Add("Is_Primary_Form", typeof(char));
             formMappings.Columns.Add("Create_Date", typeof(DateTime));
             formMappings.Columns.Add("Update_Date", typeof(DateTime));
             formMappings.Columns.Add("Protocol_Category_Id", typeof(int));
 
-            var targetProtocolDataCategories = new Dictionary<string, ProtocolDataCategory>();
 
             foreach (var sourceForm in sourceFormMappings)
             {
@@ -296,16 +315,13 @@ namespace TheradexPortal.Data.Services
                     {
                         continue;
                     }
-                    if (!targetProtocolDataCategories.TryGetValue(srcFormMapping.ProtocolCategory.THORDataCategoryId, out ProtocolDataCategory? targetProtocolDataCategory))
-                    {
-                        targetProtocolDataCategory = await _protocolDataCategoryService.GetOrCreateProtocolDataCategory(targetForm.ProtocolMappingId.Value, srcFormMapping.ProtocolCategory.THORDataCategoryId);
-                        targetProtocolDataCategories.Add(srcFormMapping.ProtocolCategory.THORDataCategoryId, targetProtocolDataCategory);
-                    }
+
+                    var targetProtocolDataCategory = targetProtocolDataCategories[srcFormMapping.ProtocolCategory.THORDataCategoryId];
 
                     DataRow targetFormMapping = formMappings.NewRow();
                     targetFormMapping["Protocol_Category_Id"] = targetProtocolDataCategory.ProtocolCategoryId;
                     targetFormMapping["Protocol_EDC_Form_Id"] = targetForm.ProtocolEDCFormId;
-                    targetFormMapping["Is_Primary_Form"] = srcFormMapping.IsPrimaryForm;
+                    targetFormMapping["Is_Primary_Form"] = srcFormMapping.IsPrimaryForm ? 'Y' : 'N';
                     targetFormMapping["Create_Date"] = DateTime.Now;
                     targetFormMapping["Update_Date"] = DateTime.Now;
                     formMappings.Rows.Add(targetFormMapping);
