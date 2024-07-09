@@ -51,6 +51,15 @@ namespace TheradexPortal.Data.Services
             return mappings;
         }
 
+        public async Task<IList<ProtocolField>> GetProtocolFieldsForCategory(int protocolMappingId, string categoryId)
+        {
+            var fields = await context.ProtocolField
+                .Include(x => x.ThorField)
+                .Where(x => x.ProtocolMappingId == protocolMappingId && x.ThorField.ThorDataCategoryId == categoryId)
+                .ToListAsync();
+            return fields;
+        }
+
         public async Task<ProtocolFieldMapping> GetProtocolFieldMapping(int protocolFieldMappingId)
         {
             var fieldMapping = await context.ProtocolFieldMappings

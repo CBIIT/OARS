@@ -123,7 +123,11 @@
             </DataGridCommandColumn>
             <DataGridColumn Field="@nameof(ProtocolFieldMapping.ThorDictionaryId)" Caption="Dictionary Mapping">
                 <DisplayTemplate>
-                   @if(context.ThorField != null && context.ThorField.ThorDictionaryId != null && context.ThorField.ThorDictionaryId != 0)
+                   @if(context.ThorField != null && 
+                        context.ThorField.ThorDictionaryId != null && 
+                        context.ThorField.ThorDictionaryId != 0 &&
+                        this.protocolFieldsDict[context.ThorFieldId].CanBeDictionary
+                   )
 				   {
                         <Button Color="Color.Primary" Clicked="@((item) => EditDictionaryMapping(context))" Disabled="@GetFieldMappingStatus(context)">Edit</Button>
 				   }
@@ -134,7 +138,9 @@
             </DataGridColumn>
             <DataGridColumn Field="@nameof(ProtocolFieldMapping.ThorFieldId)" Caption="Multi Form Field">
                 <DisplayTemplate>
-                    @if(currCategory.IsMultiForm || (context.ThorField != null && context.ThorField.IsMultiForm))
+                    @if (context.ThorFieldId != null &&
+                        this.protocolFieldsDict[context.ThorFieldId].IsMultiForm
+                    )
 					{
 						<Button Color="Color.Primary" Clicked="@(() => AddMultiFormField(context))">Add Form</Button>
 					}
@@ -271,7 +277,11 @@ else{
                 </DataGridCommandColumn>
                 <DataGridColumn Field="@nameof(ProtocolFieldMapping.ThorDictionaryId)" Caption="Dictionary Mapping">
                     <DisplayTemplate>
-                        @if (context.ThorField != null && context.ThorField.ThorDictionaryId != null && context.ThorField.ThorDictionaryId != 0)
+                        @if (context.ThorField != null && 
+                            context.ThorField.ThorDictionaryId != null &&
+                            context.ThorField.ThorDictionaryId != 0 &&
+                            this.protocolFieldsDict[context.ThorFieldId].CanBeDictionary
+                        )
                         {
                             <Button Color="Color.Primary" Clicked="@((item) => EditDictionaryMapping(context))" Disabled="@GetFieldMappingStatus(context)">Edit</Button>
                         }
@@ -320,6 +330,7 @@ else{
     private ProtocolDataCategory? protocolCategory;
     // private IList<ThorField> thorFieldList;
     private IList<ProtocolField> protocolFields;
+    private IDictionary<string, ProtocolField> protocolFieldsDict;
     private IList<ProtocolField> protocolFieldsDisabled;
     private HashSet<string> protocolFieldIdsDisabled;
     private ThorCategory currCategory;
@@ -361,6 +372,22 @@ else{
         this.isComplete = protocolCategory.ProtocolCategoryStatusId == 3;
         this.currCategory = this.protocolCategory.THORDataCategory;
 
+        watch = System.Diagnostics.Stopwatch.StartNew();
+        this.protocolFields = await protocolFieldService.GetAllProtocolFieldsByMappingIdForMapping(protocolMappingId, currCategory.ThorDataCategoryId);
+        System.Console.WriteLine($"ProtocolFormFieldMapping - {watch.Elapsed} - GetAllProtocolFieldsByMappingIdForMapping");
+
+        if (this.protocolFields.Count == 0)
+            await notificationService.Warning($"No fields were found associated to {currCategory.ThorDataCategoryId} for this mapping.");
+
+        this.protocolFieldsDict = this.protocolFields.ToDictionary(x => x.ThorFieldId);
+
+        watch = System.Diagnostics.Stopwatch.StartNew();
+        this.protocolFieldsDisabled = await protocolFieldService.GetAllProtocolDisabledFieldsByMappingIdForMapping(protocolMappingId, currCategory.ThorDataCategoryId);
+        System.Console.WriteLine($"ProtocolFormFieldMapping - {watch.Elapsed} - GetAllProtocolDisabledFieldsByMappingIdForMapping");
+
+        this.protocolFieldIdsDisabled = new HashSet<string>(this.protocolFieldsDisabled.Select(x => x.ThorFieldId));
+
+
         await RefreshFields();
 
         this.RefreshFormsDropdown();
@@ -376,26 +403,13 @@ else{
     {
         var watch = System.Diagnostics.Stopwatch.StartNew();
         this.protocolFieldMappingList = await protocolFieldMappingService.GetProtocolFieldMappingsForCategory(protocolMappingId, currCategory.ThorDataCategoryId);
+
         System.Console.WriteLine($"ProtocolFormFieldMapping - {watch.Elapsed} - GetProtocolFieldMappingsForCategory");
 
         watch = System.Diagnostics.Stopwatch.StartNew();
         this.protocolEDCFormListFull = await protocolEDCFormService.GetFormsForMappingId(protocolMappingId);
 
         System.Console.WriteLine($"ProtocolFormFieldMapping - {watch.Elapsed} - GetFormsForMappingId");
-
-        // this.thorFieldList = await thorFieldService.GetFields(currCategory.ThorDataCategoryId);
-        watch = System.Diagnostics.Stopwatch.StartNew();
-        this.protocolFields = await protocolFieldService.GetAllProtocolFieldsByMappingIdForMapping(protocolMappingId, currCategory.ThorDataCategoryId);
-        System.Console.WriteLine($"ProtocolFormFieldMapping - {watch.Elapsed} - GetAllProtocolFieldsByMappingIdForMapping");
-
-        if (this.protocolFields.Count == 0)
-            await notificationService.Warning($"No fields were found associated to {currCategory.ThorDataCategoryId} for this mapping.");
-
-        watch = System.Diagnostics.Stopwatch.StartNew();
-        this.protocolFieldsDisabled = await protocolFieldService.GetAllProtocolDisabledFieldsByMappingIdForMapping(protocolMappingId, currCategory.ThorDataCategoryId);
-        System.Console.WriteLine($"ProtocolFormFieldMapping - {watch.Elapsed} - GetAllProtocolDisabledFieldsByMappingIdForMapping");
-
-        this.protocolFieldIdsDisabled = new HashSet<string>(this.protocolFieldsDisabled.Select(x => x.ThorFieldId));
 
         this.protocolFieldMappingList = AddMissingFields(this.protocolFieldMappingList, 0);
 
@@ -611,6 +625,7 @@ else{
             if (item.ProtocolFieldMappingId == 0)
             {
                 protocolFieldMappingList.Remove(item);
+                this.StateHasChanged();
                 return;
             }
 
