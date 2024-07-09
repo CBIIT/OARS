@@ -1,4 +1,5 @@
-﻿@using TheradexPortal.Data.Models;
+﻿@using TheradexPortal.Data.Identity
+@using TheradexPortal.Data.Models;
 @using TheradexPortal.Data.Services.Abstract;
 @inject IHttpContextAccessor httpContextAccessor
 @inject IConfiguration configuration
@@ -14,11 +15,11 @@
         <Column><Text><b>Protocol:</b> @protocol</Text></Column> <Column><Text><b>Form Label:</b> @formLabel</Text></Column>
     </Row>
     <Row>
-        <Column><Text><b>Report Category:</b> @categoryName</Text></Column> <Column><b>Field Label:</b> @currMapping.ProtocolEDCField.EDCFieldName</Column>
+        <Column><Text><b>Report Category:</b> @categoryName</Text></Column> <Column><b>Field Label:</b> @currFieldMapping.ProtocolEDCField.EDCFieldName</Column>
     </Row>
     <Row>
         <Column></Column>
-        <Column><Text><b>OARS Field:</b> @currMapping.ThorField.FieldLabel</Text></Column>
+        <Column><Text><b>OARS Field:</b> @currFieldMapping.ThorField.FieldLabel</Text></Column>
     </Row>
 </Row>
 <LoadingIndicator @ref=loading>
@@ -55,12 +56,12 @@
         </DataGridColumn>
         <DataGridColumn Field="@nameof(ProtocolDictionaryMapping.THORDictionaryId)" Width="50%" Caption="Select OARS Dictionary Value" Editable Filterable="true" Sortable="true">
             <DisplayTemplate>
-                @thorDictionaries.Where(d => d.ThorDictionaryId == context.THORDictionaryId).Select(d => d.DictionaryValue).FirstOrDefault()
+                @thorDictionaries.Where(d => d.ThorDictionaryId == context.THORDictionaryId).Select(d => d.ThorDictionaryDisplay).FirstOrDefault()
             </DisplayTemplate>
             <EditTemplate>
                 <SelectList TItem="ThorDictionary"
                               TValue="int"
-                              TextField="@((item) => item.DictionaryValue)"
+                                TextField="@((item) => item.ThorDictionaryDisplay)"
                               ValueField="@((item) => item.ThorDictionaryId)"
                               Data="@thorDictionaries"
                               SelectedValue="@((int?)context.CellValue ?? context.Item.THORDictionaryId)"
@@ -99,27 +100,84 @@
     [Inject] private NavigationManager navigation { get; set; } = null!;
     [Inject] INotificationService notificationService { get; set; } = null!;
     [Inject] private IMessageService messageService { get; set; } = null!;
+    [Inject] IUserService userService { get; set; } = null!;
 
-    [SupplyParameterFromQuery][Parameter] public int protocolMappingId { get; set; }
     [Parameter] public int protocolFieldMappingId { get; set; }
-    [SupplyParameterFromQuery][Parameter] public string protocol { get; set; }
-    [SupplyParameterFromQuery][Parameter] public string categoryName { get; set; }
-    [SupplyParameterFromQuery][Parameter] public string formLabel { get; set; }
+    public int protocolMappingId { get; set; }
+    public string protocol { get; set; }
+    public string categoryName { get; set; }
+    public string formLabel { get; set; }
     [SupplyParameterFromQuery][Parameter] public int protocolCategoryId { get; set; }
-    [SupplyParameterFromQuery][Parameter] public int thorDictionaryId { get; set; }
+    public int thorDictionaryId { get; set; }
 
     private DataGrid<ProtocolDictionaryMapping> dataGridRef;
     private IList<ProtocolDictionaryMapping> protocolDictionaryList;
     private IList<ThorDictionary> thorDictionaries;
     private List<int> selectedValues;
-    private ProtocolFieldMapping currMapping;
+    private ProtocolFieldMapping currFieldMapping;
     private LoadingIndicator loading;
-
-    private int? ProtocolMappingId { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        currMapping = await protocolFieldMappingService.GetProtocolFieldMapping(protocolFieldMappingId);
+        currFieldMapping = await protocolFieldMappingService.GetProtocolFieldMapping(protocolFieldMappingId);
+        if (currFieldMapping == null)
+        {
+            await notificationService.Error("Error loading field mapping");
+            return;
+        }
+        if (currFieldMapping.ThorField == null)
+        {
+            await notificationService.Error("Error loading OARS field for mapping");
+            return;
+        }
+        if (currFieldMapping.ThorField.ThorDictionaryId == null)
+        {
+            await notificationService.Error("Error loading OARS dictionary for mapping");
+            return;
+        }
+        if (currFieldMapping.ProtocolEDCField == null)
+        {
+            await notificationService.Error("Error loading EDC field for mapping");
+            return;
+        }
+        if (currFieldMapping.ProtocolEDCField.ProtocolEDCForm == null)
+        {
+            await notificationService.Error("Error loading EDC form for mapping");
+            return;
+        }
+        if (currFieldMapping.ProtocolEDCField.ProtocolEDCForm.ProtocolMapping == null)
+        {
+            await notificationService.Error("Error loading protocol mapping for mapping");
+            return;
+        }
+        if (currFieldMapping.ProtocolEDCField.ProtocolEDCForm.ProtocolMappingId == null)
+        {
+            await notificationService.Error("Error loading protocol mapping id for mapping");
+            return;
+        }
+        if (currFieldMapping.ProtocolEDCField.ProtocolEDCForm.ProtocolMapping.THORStudyId == null)
+        {
+            await notificationService.Error("Error loading protocol study id for mapping");
+            return;
+        }
+        protocolMappingId = currFieldMapping.ProtocolEDCField.ProtocolEDCForm.ProtocolMappingId.Value;
+        protocol = currFieldMapping.ProtocolEDCField.ProtocolEDCForm.ProtocolMapping.THORStudyId!;
+        categoryName = currFieldMapping.ThorField.CategoryDisplay;
+        formLabel = currFieldMapping.ProtocolEDCField.ProtocolEDCForm.EDCFormDisplay;
+        thorDictionaryId = currFieldMapping.ThorField.ThorDictionaryId.Value;
+
+
+        List<string> allowed = new List<string> { "DMU Study Admin", "DMU Global Admin" };
+        List<string> adminRole = new List<string> { "IT" };
+        if (httpContextAccessor?.HttpContext?.User.HasAnyTHORRole(allowed.ToArray()) == false && httpContextAccessor?.HttpContext?.User.HasAnyAdminRole(adminRole.ToArray()) == false)
+        {
+            var studyIds = userService.GetProtocolAccessForUser(httpContextAccessor.HttpContext.User.GetUserId());
+            if (!studyIds.Contains(protocol))
+            {
+                await notificationService.Error("You do not have access to this protocol");
+                navigation.NavigateTo("/admin/dmu/study-mapping");
+            }
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -128,7 +186,7 @@
         {
             await loading.Show();
             await notificationService.Info("Loading EDC dictionary mappings...");
-            var protocolEDCDictionaryList = await protocolEDCDictionaryService.GetDictionariesByMappingIdAndDictionaryName(protocolMappingId, currMapping.ProtocolEDCField?.EDCDictionaryName);
+            var protocolEDCDictionaryList = await protocolEDCDictionaryService.GetDictionariesByMappingIdAndDictionaryName(protocolMappingId, currFieldMapping.ProtocolEDCField?.EDCDictionaryName);
             this.protocolDictionaryList = await dictionaryMappingService.GetProtocolDictionaryMappings(protocolFieldMappingId);
             foreach (var edcDictionary in protocolEDCDictionaryList)
             {
@@ -173,6 +231,6 @@
 
     private void Back()
     {
-        navigation.NavigateTo($"/admin/dmu/form-field-mapping/{protocolCategoryId}?protocol={protocol}&protocolMappingId={protocolMappingId}");
+        navigation.NavigateTo($"/admin/dmu/form-field-mapping/{protocolCategoryId}");
     }
 }

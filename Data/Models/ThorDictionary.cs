@@ -29,5 +29,15 @@ namespace TheradexPortal.Data.Models
 
         [Column("Update_Date")]
         public DateTime? UpdateDate { get; set; }
+
+        // Display fields
+        [NotMapped]
+        public string? ThorDictionaryDisplay
+        {
+            get
+            {
+                return DictionaryOption + " - " + DictionaryValue;
+            }
+        }
     }
 }
