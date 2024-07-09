@@ -7,67 +7,68 @@
 @page "/admin/dmu/category-list-map/{protocolMappingId:int}"
 <AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })" AllowedTHORRoles="@(new List<string> { "DMU Study Mapping", "DMU Study Admin", "DMU Global Admin" })"></AdminRoleCheck>
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Mapping</h2></Div>
-<Row Background="Background.Light" Style="padding-bottom:10px;">
-    <Row Style="padding-top:10px">
-        <Column ColumnSize="ColumnSize.Is1">
-            <Button Clicked="@Back" Color="Color.Primary"><Icon Name="IconName.ArrowLeft" /> Back</Button>
-        </Column>
-        <Column><Text><b>Protocol:</b> @protocolMapping.THORStudyId - @protocolMapping.ProtocolTitle</Text></Column>
-        <LoadingIndicator @ref="loadingIndicator" >
+<LoadingIndicator @ref="loadingIndicator">
+    <Row Background="Background.Light" Style="padding-bottom:10px;">
+        <Row Style="padding-top:10px">
+            <Column ColumnSize="ColumnSize.Is1">
+                <Button Clicked="@Back" Color="Color.Primary"><Icon Name="IconName.ArrowLeft" /> Back</Button>
+            </Column>
+
+            <Column><Text><b>Protocol:</b> @protocolMapping.THORStudyId - @protocolMapping.ProtocolTitle</Text></Column>
+        </Row>
+        <Row>
             <Column>
                 <Text><b>Copy Mappings From:</b></Text> 
                 <SelectList TItem="ProtocolMapping" TValue="int?" Data="@copyFromList" TextField="@((item) => item.THORStudyId)" ValueField="@((item) => item.ProtocolMappingId)" SelectedValue="sourceMappingId" SelectedValueChanged="@((v) => {sourceMappingId = v;})" Disabled="@(MappingStatus() != "Not Started")" DefaultItemText="Select a Protocol" DefaultItemValue="0"></SelectList>
                 <Button Color="Color.Primary" Clicked="@(() => CopyMapping(sourceMappingId))" Disabled="@(MappingStatus() != "Not Started" || sourceMappingId == 0)">Copy Mapping</Button>
-            </Column>
-            
-        </LoadingIndicator>
-    </Row>
-    <Row>
-        <Column><Text><b>Data Mapping Status:</b> @MappingStatus()</Text></Column>
-        <Column><Text><b>Data Mapping Version:</b> @protocolMapping.Profile.ProfileName</Text></Column>
-        <Column><Text><b>Lead Protocol Organization:</b> @protocolMapping.Sponsor</Text></Column>
-        <Column><Button Color="Color.Primary" Clicked="@GenerateMapping">Generate Mapping Document</Button></Column>
+            </Column>            
+        </Row>
+        <Row>
+            <Column><Text><b>Data Mapping Status:</b> @MappingStatus()</Text></Column>
+            <Column><Text><b>Data Mapping Version:</b> @protocolMapping.Profile.ProfileName</Text></Column>
+            <Column><Text><b>Lead Protocol Organization:</b> @protocolMapping.Sponsor</Text></Column>
+            <Column><Button Color="Color.Primary" Clicked="@GenerateMapping">Generate Mapping Document</Button></Column>
 
+        </Row>
     </Row>
-</Row>
-<DataGrid @ref=dataGridRef
-          TItem="ProtocolDataCategory"
-          Class="admindatagrid"
-          Data="@protocolDataCategoryList"
-          Editable
-          Responsive
-          Striped
-          ShowPager
-          ShowPageSizes
-          MaxPaginationLinks="5"
-          PagerPosition="DataGridPagerPosition.Bottom"
-          PagerOptions="new(){ButtonSize=Size.Default,
-                                PaginationPosition=PagerElementPosition.Default,
-                                TotalItemsPosition=PagerElementPosition.End,
-                                }"
-          FixedHeader
-          FixedHeaderDataGridHeight="calc(100vh - 240px)"
-          FixedHeaderDataGridMaxHeight="calc(100vh - 240px)">
-    <DataGridColumns>
-        <DataGridColumn Field="THORDataCategory.CategoryName" Width="50%" Caption="Data Category" Filterable="true">
-        </DataGridColumn>
-        <DataGridColumn Field="ProtocolCategoryStatus.CategoryStatusName" Width="30%" Caption="Data Mapping Status">
-        </DataGridColumn>
-        <DataGridColumn Field="@nameof(ProtocolDataCategory.UpdateDate)" Width="30%" Caption="Last Updated">
-        </DataGridColumn>
-        <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
-            <EditCommandTemplate>
-                <Button><Icon Name="IconName.Edit" Clicked="@(() => EditCategory(context.Item))" /></Button>
-            </EditCommandTemplate>
-        </DataGridCommandColumn>
-    </DataGridColumns>
-    <EmptyTemplate>
-        <div class="box">
-            No data categories found.
-        </div>
-    </EmptyTemplate>
-</DataGrid>
-
+    <DataGrid @ref=dataGridRef
+              TItem="ProtocolDataCategory"
+              Class="admindatagrid"
+              Data="@protocolDataCategoryList"
+              Editable
+              Responsive
+              Striped
+              ShowPager
+              ShowPageSizes
+              MaxPaginationLinks="5"
+              PagerPosition="DataGridPagerPosition.Bottom"
+              PagerOptions="new(){ButtonSize=Size.Default,
+                                    PaginationPosition=PagerElementPosition.Default,
+                                    TotalItemsPosition=PagerElementPosition.End,
+                                    }"
+              FixedHeader
+              FixedHeaderDataGridHeight="calc(100vh - 240px)"
+              FixedHeaderDataGridMaxHeight="calc(100vh - 240px)">
+        <DataGridColumns>
+            <DataGridColumn Field="THORDataCategory.CategoryName" Width="50%" Caption="Data Category" Filterable="true">
+            </DataGridColumn>
+            <DataGridColumn Field="ProtocolCategoryStatus.CategoryStatusName" Width="30%" Caption="Data Mapping Status">
+            </DataGridColumn>
+            <DataGridColumn Field="@nameof(ProtocolDataCategory.UpdateDate)" Width="30%" Caption="Last Updated">
+            </DataGridColumn>
+            <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
+                <EditCommandTemplate>
+                    <Button><Icon Name="IconName.Edit" Clicked="@(() => EditCategory(context.Item))" /></Button>
+                </EditCommandTemplate>
+            </DataGridCommandColumn>
+        </DataGridColumns>
+        <EmptyTemplate>
+            <div class="box">
+                No data categories found.
+            </div>
+        </EmptyTemplate>
+    </DataGrid>
+</LoadingIndicator>
 
 @code {
     [Inject] IProtocolDataCategoryService protocolDataCategoryService { get; set; } = null!;
@@ -99,6 +100,13 @@
         if (httpContextAccessor?.HttpContext?.User.HasAnyTHORRole(allowed.ToArray()) == false && httpContextAccessor?.HttpContext?.User.HasAnyAdminRole(adminRole.ToArray()) == false)
         {
             var studyIds = userService.GetProtocolAccessForUser(httpContextAccessor.HttpContext.User.GetUserId());
+
+            if (!studyIds.Contains(protocolMapping.THORStudyId))
+            {
+                await notificationService.Error("You do not have access to this protocol");
+                navigation.NavigateTo("/admin/dmu/study-mapping");
+            }
+
             copyFromList = await protocolMappingService.GetProtocolMappings(studyIds, false);
         }
         else
@@ -118,7 +126,7 @@
         {
             await protocolDataCategoryService.SaveCategory(category, this.protocolMappingId);
         }
-        navigation.NavigateTo($"/admin/dmu/form-field-mapping/{category.ProtocolCategoryId}?protocol={protocolMapping.THORStudyId}&protocolMappingId={protocolMappingId}");
+        navigation.NavigateTo($"/admin/dmu/form-field-mapping/{category.ProtocolCategoryId}");
     }
 
     public string MappingStatus()
@@ -165,9 +173,7 @@
 
                 if(copyResult)
                 {
-                    await notificationService.Success("Mapping copied successfully");
-                    await notificationService.Info("Refreshing categories...");
-                    this.protocolDataCategoryList = await protocolDataCategoryService.GetCategoriesByMappingProfile(protocolMappingId);
+                    navigation.NavigateTo($"admin/dmu/category-list-map/{protocolMappingId}", true);            
                 }
                 else
                 {
