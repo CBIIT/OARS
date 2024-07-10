@@ -99,6 +99,9 @@ namespace TheradexPortal.Data.Services
         {
             try
             {
+                await context.ProtocolDictionaryMapping
+                    .Where(ProtocolDictionaryMapping => ProtocolDictionaryMapping.ProtocolFieldMappingId == mapping.ProtocolFieldMappingId)
+                    .ExecuteDeleteAsync();
                 context.ProtocolFieldMappings.Remove(mapping);
                 await context.SaveChangesAsync();
                 return true;

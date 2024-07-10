@@ -112,7 +112,7 @@
                     <Button><Icon Name="IconName.Save" Clicked="@context.Clicked" /></Button>
                 </SaveCommandTemplate>
                 <EditCommandTemplate>
-                    <Button><Icon Name="IconName.Edit" Clicked="@(async () => await Edit(context, context.Item))" /></Button>
+                    <Button Disabled="@(this.protocolFieldsDict.ContainsKey(context.Item.ThorFieldId) == false)"><Icon Name="IconName.Edit" Clicked="@(async () => await Edit(context, context.Item))" /></Button>
                 </EditCommandTemplate>
                 <CancelCommandTemplate>
                     <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
@@ -126,6 +126,7 @@
                    @if(context.ThorField != null && 
                         context.ThorField.ThorDictionaryId != null && 
                         context.ThorField.ThorDictionaryId != 0 &&
+                        this.protocolFieldsDict.ContainsKey(context.ThorFieldId) &&
                         this.protocolFieldsDict[context.ThorFieldId].CanBeDictionary
                    )
 				   {
@@ -139,6 +140,7 @@
             <DataGridColumn Field="@nameof(ProtocolFieldMapping.ThorFieldId)" Caption="Multi Form Field">
                 <DisplayTemplate>
                     @if (context.ThorFieldId != null &&
+                        this.protocolFieldsDict.ContainsKey(context.ThorFieldId) &&
                         this.protocolFieldsDict[context.ThorFieldId].IsMultiForm
                     )
 					{
@@ -266,7 +268,7 @@ else{
                         <Button><Icon Name="IconName.Save" Clicked="@context.Clicked" /></Button>
                     </SaveCommandTemplate>
                     <EditCommandTemplate>
-                        <Button><Icon Name="IconName.Edit" Clicked="@(async () => await EditMultiForm(context, context.Item, form.Form.ProtocolFormMappingId))" /></Button>
+                        <Button Disabled="@(this.protocolFieldsDict.ContainsKey(context.Item.ThorFieldId) == false)"><Icon Name="IconName.Edit" Clicked="@(async () => await EditMultiForm(context, context.Item, form.Form.ProtocolFormMappingId))" /></Button>
                     </EditCommandTemplate>
                     <CancelCommandTemplate>
                         <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
@@ -280,6 +282,7 @@ else{
                         @if (context.ThorField != null && 
                             context.ThorField.ThorDictionaryId != null &&
                             context.ThorField.ThorDictionaryId != 0 &&
+                            this.protocolFieldsDict.ContainsKey(context.ThorFieldId) &&
                             this.protocolFieldsDict[context.ThorFieldId].CanBeDictionary
                         )
                         {
@@ -379,7 +382,8 @@ else{
         if (this.protocolFields.Count == 0)
             await notificationService.Warning($"No fields were found associated to {currCategory.ThorDataCategoryId} for this mapping.");
 
-        this.protocolFieldsDict = this.protocolFields.ToDictionary(x => x.ThorFieldId);
+        // The field should only ever be added once to a protocol, but this groupby is done in case of bad data
+        this.protocolFieldsDict = this.protocolFields.GroupBy(x => x.ThorFieldId).ToDictionary(x => x.Key, x => x.First());
 
         watch = System.Diagnostics.Stopwatch.StartNew();
         this.protocolFieldsDisabled = await protocolFieldService.GetAllProtocolDisabledFieldsByMappingIdForMapping(protocolMappingId, currCategory.ThorDataCategoryId);
@@ -578,23 +582,17 @@ else{
             return "<Not Mapped>";
         }
 
-        if (item.ThorFieldId != null && !string.IsNullOrWhiteSpace(item.ThorFieldId))
+        if (this.protocolFieldIdsDisabled.Contains(item.ThorFieldId))
         {
-            string notFoundMessage = "";
-            if (this.protocolFieldIdsDisabled.Contains(item.ThorFieldId))
-            {
-                notFoundMessage = $"<THORFieldId {item.ThorFieldId} Disabled In Protocol Mapping>";
-            }
-            else
-            {
-                notFoundMessage = $"<THORFieldId {item.ThorFieldId} Not In Protocol Mapping>";
-            }
-            return item.ThorField?.FieldDisplay ?? notFoundMessage;
+            return $"<THORFieldId {item.ThorFieldId} Disabled In Protocol Mapping>";
         }
-        else
+        
+        if (!this.protocolFieldsDict.ContainsKey(item.ThorFieldId))
         {
-            return item.ThorField?.FieldLabel;
+            return $"<THORFieldId {item.ThorFieldId} Not In Protocol Mapping>";
         }
+
+        return item.ThorField?.FieldDisplay ?? $"<Unknown THORFieldId {item.ThorFieldId}>";
     }
 
     public bool GetFieldMappingStatus(ProtocolFieldMapping item)

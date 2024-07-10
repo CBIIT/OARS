@@ -95,6 +95,11 @@
             this.protocolMapping = await protocolMappingService.GetProtocolMapping(protocolMappingId);
         }
 
+        if (this.protocolMapping.SourceProtocolMappingId > 0)
+        {
+            this.sourceMappingId = this.protocolMapping.SourceProtocolMappingId;
+        }
+
         List<string> allowed = new List<string> { "DMU Study Admin", "DMU Global Admin" };
         List<string> adminRole = new List<string> { "IT" };
         if (httpContextAccessor?.HttpContext?.User.HasAnyTHORRole(allowed.ToArray()) == false && httpContextAccessor?.HttpContext?.User.HasAnyAdminRole(adminRole.ToArray()) == false)
