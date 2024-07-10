@@ -345,9 +345,6 @@ namespace TheradexPortal.Data.Services
                     .ToDictionaryAsync(Dictionary => Dictionary.Key, Dictionary => Dictionary.ToList().First()!);
             }
 
-            //// Map the source mapping Id to the target EDC Field Id and THOR Field Id 
-            //var sourceTargetFieldMapIdMap = new Dictionary<int, FieldMapping>();
-
             DataTable fieldMappings = new DataTable();
             fieldMappings.Columns.Add("Protocol_Field_Mapping_Id", typeof(int));
             fieldMappings.Columns.Add("THOR_Field_Id", typeof(string));
@@ -501,6 +498,7 @@ namespace TheradexPortal.Data.Services
             var target = await context.ProtocolMapping.Where(p => p.ProtocolMappingId == targetId).FirstOrDefaultAsync();
             target.SourceProtocolMappingId = sourceId;
             context.Update(target);
+            await context.SaveChangesAsync();
 
             return true;
         }
