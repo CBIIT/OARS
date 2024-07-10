@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Bcpg;
 
 namespace TheradexPortal.Data.Models
 {
@@ -23,5 +24,16 @@ namespace TheradexPortal.Data.Models
         [Column("Create_Date")]
         public DateTime? CreateDate { get; set; }
 
+        [NotMapped]
+        public string ThorCategoryDisplay {
+            get
+            {
+                if (ThorCategory == null)
+                {
+                    return "";
+                }
+                return ThorCategory.CategoryDisplay;
+            }
+        }
     }
 }

@@ -13,7 +13,7 @@
           Responsive
           Striped
           Sortable
-
+          SortMode="DataGridSortMode.Single"
           ShowPager
           ShowPageSizes
           Filterable
@@ -38,7 +38,7 @@
           RowUpdating="@Verify"
           RowInserting="@Verify">
      <DataGridColumns>
-         <DataGridColumn Field="ThorDataCategoryId" Caption="Data Category" Width="15%" Editable Sortable="true" SortDirection="SortDirection.Ascending">
+         <DataGridColumn Field="ThorDataCategoryId" Caption="Data Category ID" Width="15%" Editable Sortable="false" Filterable="false">
             <DisplayTemplate>
                 @(context?.ThorField?.Category?.CategoryDisplay)
             </DisplayTemplate>
@@ -59,7 +59,12 @@
                 </SelectList>
             </EditTemplate>
          </DataGridColumn>
-         <DataGridColumn Field="ThorFieldId" Caption="Field" Width="15%" Filterable="true" Editable>
+        <DataGridColumn Field="@nameof(ProtocolField.ThorDataCategoryDisplay)" Width="15%" Caption="Data Category Display" Filterable="true" Sortable="true">
+            <DisplayTemplate>
+                @(context.ThorDataCategoryDisplay)
+            </DisplayTemplate>
+         </DataGridColumn>
+        <DataGridColumn Field="ThorFieldId" Caption="Field ID" Width="15%" Filterable="false" Sortable="false" Editable>
             <DisplayTemplate>
                 @(context?.ThorField?.FieldDisplay)
             </DisplayTemplate>
@@ -78,7 +83,12 @@
                 }
             </EditTemplate>
          </DataGridColumn>
-         <DataGridColumn Field="IsEnabled" Width="15%" Caption="Enabled" Filterable="true" Sortable="true" Editable>
+        <DataGridColumn Field="@nameof(ProtocolField.ThorFieldDisplay)" Width="15%" Caption="Field Display" Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
+            <DisplayTemplate>
+                @(context.ThorFieldDisplay)
+            </DisplayTemplate>
+        </DataGridColumn>
+        <DataGridColumn Field="IsEnabled" Width="15%" Caption="Enabled" Filterable="true" Sortable="true" Editable>
             <DisplayTemplate>
                 @(context.IsEnabled ? "Enabled" : "Disabled")
             </DisplayTemplate>

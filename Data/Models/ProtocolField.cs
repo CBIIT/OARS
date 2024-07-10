@@ -33,5 +33,23 @@ namespace TheradexPortal.Data.Models
 
         [NotMapped]
         public string ThorDataCategoryId { get; set; }
+
+        [NotMapped]
+        public string ThorDataCategoryDisplay
+        {
+            get
+            {
+                return ThorField?.Category?.CategoryDisplay ?? "";
+            }
+        }
+
+        [NotMapped]
+        public string ThorFieldDisplay
+        {
+            get
+            {
+                return ThorField?.FieldDisplay ?? "";
+            }
+        }
     }
 }
