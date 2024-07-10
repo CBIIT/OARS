@@ -13,6 +13,7 @@
           Editable
           Responsive
           Sortable
+          SortMode="DataGridSortMode.Single"
           Striped
           ShowPager
           ShowPageSizes
@@ -36,7 +37,7 @@
           RowInserting="@Verify"
            RowInserted="@Save">
      <DataGridColumns>
-          <DataGridColumn Width="15%" Field="@nameof(ThorField.ThorDataCategoryId)" Caption="OARS Data Category ID" Editable Filterable="false" Sortable="false">
+        <DataGridColumn Width="15%" Field="@nameof(ThorField.ThorDataCategoryId)" Caption="OARS Data Category ID" Editable Filterable="false" Sortable="false">
               <DisplayTemplate>
                 @(context.Category?.CategoryDisplay)
             </DisplayTemplate>
@@ -44,16 +45,16 @@
                 <SelectList TItem="ThorCategory" TValue="string" Data="@categoryList" TextField="@((item)=>item.CategoryDisplay)" ValueField="@((item)=>item.ThorDataCategoryId)" SelectedValueChanged="@( v => {context.CellValue = v;})" SelectedValue="@((string?)context.CellValue)" DefaultItemText="Select A Category" DefaultItemValue="@String.Empty"></SelectList>
 			 </EditTemplate>
          </DataGridColumn>
-        <DataGridColumn Field="@nameof(ThorField.CategoryDisplay)" Width="15%" Caption="OARS Data Category" Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
+        <DataGridColumn Field="@nameof(ThorField.CategoryDisplay)" Width="15%" Caption="Data Category Display" Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
              <DisplayTemplate>
                 @context.CategoryDisplay
 			 </DisplayTemplate>
          </DataGridColumn>
-         <DataGridColumn Field="@nameof(ThorField.ThorFieldId)" Width="15%" Caption="OARS Field ID" Editable Filterable="true" Sortable="true">
-         </DataGridColumn>
-          <DataGridColumn Width="15%" Field="@nameof(ThorField.FieldLabel)" Caption="OARS Field Label" Editable Filterable="true" Sortable="true">
-         </DataGridColumn>
-         <DataGridColumn Width="10%" Caption="OARS Field Type" Field="@nameof(ThorField.ThorFieldTypeId)" Editable Filterable="false" Sortable="false">
+        <DataGridColumn Field="@nameof(ThorField.ThorFieldId)" Width="15%" Caption="OARS Field ID" Editable Filterable="true" Sortable="true">
+        </DataGridColumn>
+        <DataGridColumn Width="15%" Field="@nameof(ThorField.FieldLabel)" Caption="OARS Field Label" Editable Filterable="true" Sortable="true">
+        </DataGridColumn>
+        <DataGridColumn Width="10%" Caption="OARS Field Type" Field="@nameof(ThorField.ThorFieldTypeId)" Editable Filterable="false" Sortable="false">
              <DisplayTemplate>
                  @{
                      if(context.FieldType != null)
@@ -99,7 +100,7 @@
                  </Select>
              </EditTemplate>
          </DataGridColumn>
-         <DataGridColumn Field="@nameof(ThorField.ThorDictionaryId)" Caption="OARS Dictionary Name" Width="20%" Editable Filterable="false" Sortable="false">
+         <DataGridColumn Field="@nameof(ThorField.ThorDictionaryId)" Caption="OARS Dictionary Id" Width="20%" Editable Filterable="false" Sortable="false">
              <DisplayTemplate>
                  @{
                     if (context.Dictionary != null)
@@ -133,7 +134,7 @@
                 }
 			 </EditTemplate>
         </DataGridColumn>
-        <DataGridColumn Field="@nameof(ThorField.DictionaryName)" Width="10%" Caption="OARS Dictionary Name" Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
+        <DataGridColumn Field="@nameof(ThorField.DictionaryName)" Width="10%" Caption="Dictionary Name" Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
             <DisplayTemplate>
                 @context.DictionaryName
             </DisplayTemplate>

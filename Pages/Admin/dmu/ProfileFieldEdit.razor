@@ -16,6 +16,7 @@
           Striped
           ShowPager
           Sortable
+          SortMode="DataGridSortMode.Single"
           ShowPageSizes
           Filterable
           FilterMethod="DataGridFilterMethod.Contains"
@@ -39,7 +40,7 @@
           RowUpdating="@Verify"
           RowInserting="@Verify">
     <DataGridColumns>
-        <DataGridColumn Width="35%" Caption="OARS Data Category" Editable Filterable="true" Sortable="false">
+        <DataGridColumn Width="20%" Caption="OARS Data Category ID" Editable Filterable="false" Sortable="false">
             <DisplayTemplate>
                 @(context?.ThorField?.Category?.CategoryDisplay)
             </DisplayTemplate>
@@ -54,7 +55,12 @@
                 </SelectList>
             </EditTemplate>
         </DataGridColumn>
-        <DataGridColumn Width="35%" Field="THORFieldId" Caption="OARS Field" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
+        <DataGridColumn Width="20%" Field="@nameof(ProfileField.ThorFieldCategoryDisplay)" Caption="Data Category Display" Filterable="true" Sortable="true">
+            <DisplayTemplate>
+                @(context.ThorFieldCategoryDisplay)
+            </DisplayTemplate>
+        </DataGridColumn>
+        <DataGridColumn Width="20%" Field="THORFieldId" Caption="OARS Field ID" Editable Filterable="false" Sortable="false">
             <DisplayTemplate>
                 @context?.THORFieldId - @context?.ThorField?.FieldLabel
             </DisplayTemplate>
@@ -71,6 +77,11 @@
                             DefaultItemText="Select the THOR Field">
                 </SelectList>
             </EditTemplate>
+        </DataGridColumn>
+        <DataGridColumn Width="20%" Field="@nameof(ProfileField.ThorFieldDisplay)" Caption="Field Display" Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
+            <DisplayTemplate>
+                @(context.ThorFieldDisplay)
+            </DisplayTemplate>
         </DataGridColumn>
         <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="true">
             <EditCommandTemplate>

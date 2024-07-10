@@ -22,5 +22,30 @@ namespace TheradexPortal.Data.Models
         [Column("Create_Date")]
         public DateTime? CreateDate { get; set; }
 
+        [NotMapped]
+        public string ThorFieldDisplay
+        {
+            get
+            {
+                if (ThorField == null)
+                {
+                    return "";
+                }
+                return ThorField.FieldDisplay;
+            }
+        }
+
+        [NotMapped]
+        public string ThorFieldCategoryDisplay
+        {
+            get
+            {
+                if (ThorField == null)
+                {
+                    return "";
+                }
+                return ThorField.Category?.CategoryDisplay ?? "";
+            }
+        }
     }
 }

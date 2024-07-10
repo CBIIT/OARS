@@ -13,6 +13,7 @@
           Responsive
           Striped
           Sortable
+          SortMode="DataGridSortMode.Single"
           ShowPager
           ShowPageSizes
           Filterable
@@ -35,7 +36,7 @@
           RowUpdating="@Verify"
           RowInserting="@Verify">
      <DataGridColumns>
-         <DataGridColumn Width="35%" Field="@nameof(ProfileDataCategory.ThorDataCategoryId)" Caption="OARS Data Category" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
+         <DataGridColumn Width="35%" Field="@nameof(ProfileDataCategory.ThorDataCategoryId)" Caption="OARS Data Category ID" Editable Filterable="false" Sortable="false">
              <DisplayTemplate>
                  @{
                     if(context.ThorCategory != null)
@@ -62,6 +63,11 @@
                             DefaultItemText="Select the THOR DataCategory"></SelectList>
             </EditTemplate>
          </DataGridColumn>
+        <DataGridColumn Field="@nameof(ProfileDataCategory.ThorCategoryDisplay)" Caption="Data Category Display" Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
+            <DisplayTemplate>
+                @context.ThorCategoryDisplay
+            </DisplayTemplate>
+        </DataGridColumn>
         <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="true">
             <EditCommandTemplate>
                 <Button><Icon Name="IconName.Edit" Clicked="@(() => Edit(context, context.Item))" /></Button>
