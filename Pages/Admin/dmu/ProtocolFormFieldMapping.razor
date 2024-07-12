@@ -128,13 +128,22 @@
                         context.ThorField.ThorDictionaryId != 0 &&
                         this.protocolFieldsDict.ContainsKey(context.ThorFieldId) &&
                         this.protocolFieldsDict[context.ThorFieldId].CanBeDictionary
-                   )
-				   {
+                    )
+				    {
                         <Button Color="Color.Primary" Clicked="@((item) => EditDictionaryMapping(context))" Disabled="@GetFieldMappingStatus(context)">Edit</Button>
-				   }
-                   else{
-                       <Text>N/A</Text>
-                   }
+                    }
+                    else if (context.ThorField != null &&
+                    context.ThorField.ThorDictionaryId != null &&
+                    context.ThorField.ThorDictionaryId != 0 &&
+                    this.protocolFieldsDict.ContainsKey(context.ThorFieldId) &&
+                    this.protocolFieldsDict[context.ThorFieldId].CanBeDictionary == false)
+                    {
+                        <Text>Disabled in protocol</Text>
+                    }
+                    else
+                    {
+                        <Text>N/A</Text>
+                    }
                 </DisplayTemplate>
             </DataGridColumn>
             <DataGridColumn Field="@nameof(ProtocolFieldMapping.ThorFieldId)" Caption="Multi Form Field">
@@ -145,17 +154,15 @@
                     )
 					{
 						<Button Color="Color.Primary" Clicked="@(() => AddMultiFormField(context))">Add Form</Button>
-					}
-					else{
+                    }
+                    else
+                    {
 						<Text>N/A</Text>
 					}
                 </DisplayTemplate>
 
             </DataGridColumn>
         </DataGridColumns>
-        <ButtonRowTemplate>
-            <Button Color="Color.Primary" Clicked="@context.NewCommand.Clicked">Add</Button>
-        </ButtonRowTemplate>
         <EmptyTemplate>
             <div class="box">
                 No field mappings found.
@@ -163,7 +170,8 @@
         </EmptyTemplate>
     </DataGrid>
 }
-else{
+else
+{
     foreach(var form in multiFormList.Select((x,i) => new { Form = x, Index = i+1 })){
         <Row>
             <Column>
@@ -287,6 +295,14 @@ else{
                         )
                         {
                             <Button Color="Color.Primary" Clicked="@((item) => EditDictionaryMapping(context))" Disabled="@GetFieldMappingStatus(context)">Edit</Button>
+                        }
+                        else if (context.ThorField != null &&
+                            context.ThorField.ThorDictionaryId != null &&
+                            context.ThorField.ThorDictionaryId != 0 &&
+                            this.protocolFieldsDict.ContainsKey(context.ThorFieldId) &&
+                            this.protocolFieldsDict[context.ThorFieldId].CanBeDictionary == false)
+                        {
+                            <Text>Disabled in protocol</Text>
                         }
                         else
                         {
@@ -788,6 +804,6 @@ else{
 
     private void Back()
 	{
-		navigation.NavigateTo($"/admin/dmu/category-list-map/{protocolMappingId}");
+		navigation.NavigateTo($"/admin/dmu/category-list-map/{protocolMappingId}", true);
 	}
 }
