@@ -244,9 +244,7 @@
         await notificationService.Info("Creating protocol fields from profile...");
         await protocolFieldService.CreateProtocolFieldsFromProfile(protocolMapping.ProfileId, protocolMapping.ProtocolMappingId);
 
-        await notificationService.Info("Loading protocol Fields...");
-        this.protocolFields = await protocolFieldService.GetAllProtocolFieldsByMappingId(protocolMapping.ProtocolMappingId);
-
+        navigation.NavigateTo(navigation.Uri, forceLoad: true);
     }
 
     private string? TestContext(CellEditContext<ProtocolField> context, string? fieldValue)
