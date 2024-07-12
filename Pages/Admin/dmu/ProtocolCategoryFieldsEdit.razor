@@ -320,7 +320,10 @@
         RefreshCategoryList().Wait();
         fieldList = new List<ThorField>();
 
-        return new ProtocolField();
+        return new ProtocolField
+        {
+            IsEnabled = true,
+        };
     }
 
     public ProtocolField CreateEditItem(ProtocolField protocolField)

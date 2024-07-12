@@ -16,8 +16,7 @@ namespace TheradexPortal.Data.Services
         }
         public async Task<IList<ThorCategory>> GetCategories() {
             return await context.THORDataCategory
-                .OrderBy(c => c.SortOrder)
-                .ThenBy(c => c.CategoryName)
+                .OrderBy(c => c.CategoryName)
                 .ThenBy(c => c.ThorDataCategoryId)
                 .ToListAsync();
         }
@@ -35,8 +34,7 @@ namespace TheradexPortal.Data.Services
                 }
             }
             return categories
-                .OrderBy(c => c.SortOrder)
-                .ThenBy(c => c.CategoryName)
+                .OrderBy(c => c.CategoryName)
                 .ThenBy(c => c.ThorDataCategoryId)
                 .ToList();
         }
