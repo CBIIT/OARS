@@ -497,7 +497,15 @@ else{
 
     private void RefreshFormsDropdown()
     {
-        this.protocolEDCFormList = this.protocolEDCFormListFull.Where(x => !this.multiFormList.Any(y => y.ProtocolEDCFormId == x.ProtocolEDCFormId)).Select(x => x).ToList();
+        if (this.protocolCategory.IsMultiForm)
+        {
+            this.protocolEDCFormList = this.protocolEDCFormListFull.Where(x => !this.multiFormList.Any(y => y.ProtocolEDCFormId == x.ProtocolEDCFormId)).Select(x => x).ToList();
+        }
+        else
+        {
+            this.protocolEDCFormList = this.protocolEDCFormListFull.Select(x => x).ToList();
+        }
+        
     }
 
     public async Task GetFields(int formId)
