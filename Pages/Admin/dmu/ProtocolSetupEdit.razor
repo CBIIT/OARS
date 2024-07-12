@@ -179,9 +179,11 @@
     [Inject] IProfileService profileService { get; set; } = null!;
     [Inject] IProtocolDataSystemService protocolDataSystemService { get; set; } = null!;
     [Inject] IProtocolMappingService protocolMappingService { get; set; } = null!;
+    [Inject] IProtocolFieldMappingService protocolFieldMappingService { get; set; } = null!;
     [Inject] IProtocolPhaseService protocolPhaseService { get; set; } = null!;
     [Inject] IProtocolFieldService protocolFieldService { get; set; } = null!;
     [Inject] INotificationService notificationService { get; set; } = null!;
+    [Inject] private IMessageService messageService { get; set; } = null!;
     [Inject] private NavigationManager navigation { get; set; } = null!;
     [Inject] IUserService userService { get; set; } = null!;
 
@@ -193,6 +195,7 @@
     private string? newMappingProfile = "";
     private static int invalidId = 0;
     private ProtocolMapping currentProtocolMap = new ProtocolMapping();
+    private int initialProfileId = 0;
     private IList<ProtocolDataSystem> edcSystemList = new List<ProtocolDataSystem>();
     private IList<ProtocolMapping> protocolMappings = new List<ProtocolMapping>();
     private IList<CrossoverOption> crossoverOptions = new List<CrossoverOption>();
@@ -221,6 +224,7 @@
         var watch = System.Diagnostics.Stopwatch.StartNew();
         await notificationService.Info("Loading Protocol Setup...");
         this.currentProtocolMap = await protocolMappingService.GetProtocolMapping(protocolMappingId);
+        this.initialProfileId = currentProtocolMap?.ProfileId ?? 0;
         this.phasesSet = await protocolPhaseService.GetProtocolMappingPhases(protocolMappingId);
         this.crossoverOptions = await protocolMappingService.GetCrossoverOptions();
         applyPhases();
@@ -269,6 +273,19 @@
             await notificationService.Error("The protocol mapping object is empty.");
             return;
         }
+        
+        var currentProfileId = currentProtocolMap?.ProfileId ?? 0;
+
+        if (currentProfileId != initialProfileId)
+        {
+            var hasFieldMappings = await protocolFieldMappingService.HasProtocolFieldMappingsForProtocolMapping(currentProtocolMap.ProtocolMappingId);
+            if (hasFieldMappings)
+            {
+                await notificationService.Warning("Monitoring method cannot be changed because protocol field mappings exist. Monitoring method will not be changed.");
+                currentProtocolMap.ProfileId = initialProfileId;
+                currentProfileId = initialProfileId;
+            }
+        }
 
         if (currentProtocolMap?.THORStudyId?.Trim() == String.Empty) formValid = false;
         if (currentProtocolMap?.ProtocolDataSystemId == null) formValid = false;
@@ -303,22 +320,46 @@
                 phasesSet[3].IsRandomized = phase4IsRandomized == "Y" ? 'Y' : phase4IsRandomized == "N" ? 'N' : null;
             }
 
+            var createProtocolFields = false;
+
             await notificationService.Info("Saving the protocol mapping setup...");
             bool saveResult = await protocolMappingService.SaveProtocolMapping(currentProtocolMap, phasesSet);
             if (saveResult)
             {
-
-                if (currentProtocolMap?.ProfileId != null && currentProtocolMap?.ProfileId != 0)
+                if (currentProfileId != initialProfileId)
                 {
                     var hasProtocolFields = await protocolFieldService.HasProtocolFieldsByMappingId(currentProtocolMap.ProtocolMappingId);
-                    if (!hasProtocolFields)
+                    if (hasProtocolFields)
+                    {
+                        // Protocol fields found
+                        var result = await messageService.Confirm("Monitoring method changed. Do you want to replace the existing fields? This will reset the field list and field properties to defaults.", "Confirmation");
+                        if (result)
+                        {
+                            await notificationService.Info("Deleting existing protocol fields...");
+                            await protocolFieldService.DeleteAllFieldsForMappingId(currentProtocolMap.ProtocolMappingId);
+                            createProtocolFields = true;
+                        }
+                    }
+                    else
+                    {
+                        // Protocol fields not found 
+                        createProtocolFields = true;
+                    }
+
+                    if (createProtocolFields)
                     {
                         await notificationService.Info("Creating protocol fields from profile...");
                         await protocolFieldService.CreateProtocolFieldsFromProfile(currentProtocolMap.ProfileId, currentProtocolMap.ProtocolMappingId);
                     }
+
                 }
 
                 await notificationService.Success("The protocol mapping setup was saved!");
+                if (createProtocolFields)
+                {
+                    navigation.NavigateTo(navigation.Uri, forceLoad: true);
+                }
+                       
             }
             else
             {
