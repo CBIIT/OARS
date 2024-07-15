@@ -125,6 +125,15 @@
             .ToList();
     }
 
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        this.protocolDataCategoryList = await protocolDataCategoryService.GetCategoriesByMappingProfile(protocolMappingId);
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+
     public async void EditCategory(ProtocolDataCategory category)
     {
         if(category.ProtocolCategoryId == 0)
