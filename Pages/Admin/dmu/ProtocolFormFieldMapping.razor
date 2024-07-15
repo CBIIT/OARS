@@ -521,7 +521,7 @@ else
         {
             this.protocolEDCFormList = this.protocolEDCFormListFull.Select(x => x).ToList();
         }
-        
+
     }
 
     public async Task GetFields(int formId)
@@ -610,7 +610,7 @@ else
         {
             return $"<THORFieldId {item.ThorFieldId} Disabled In Protocol Mapping>";
         }
-        
+
         if (!this.protocolFieldsDict.ContainsKey(item.ThorFieldId))
         {
             return $"<THORFieldId {item.ThorFieldId} Not In Protocol Mapping>";
@@ -677,7 +677,7 @@ else
                 await notificationService.Error("Error deleting form");
                 return;
             }
-            
+
             await notificationService.Success("Form successfully deleted");
             await RefreshFields();
             this.RefreshFormsDropdown();
@@ -768,37 +768,41 @@ else
     }
 
     public async Task<bool> UpdateCategory(bool isMultiForm)
-	{
+    {
         this.protocolCategory.IsMultiForm = isMultiForm;
         this.protocolCategory.ProtocolCategoryStatusId = 2; // set to incomplete
         bool saved = await protocolCategoryService.SaveCategory(this.protocolCategory, this.protocolMappingId);
-		if (saved)
-		{
-			await notificationService.Success("Category successfully updated");
-			return true;
-		}
-		else
-		{
-			await notificationService.Error("Error updating category");
-			return false;
-		}
-	}
+        if (saved)
+        {
+            await notificationService.Success("Category successfully updated");
+            return true;
+        }
+        else
+        {
+            await notificationService.Error("Error updating category");
+            return false;
+        }
+    }
 
     public async void CompleteMapping()
     {
         if(this.isComplete){
             this.protocolCategory.ProtocolCategoryStatusId = 3; // set to complete
-            bool saved = await protocolCategoryService.SaveCategory(this.protocolCategory, this.protocolMappingId);
-            if (saved)
-            {
-                await notificationService.Success("Category successfully marked as complete");
-                return;
-            }
-            else
-            {
-                await notificationService.Error("Error marking category as complete");
-                return;
-            }
+        }
+        else
+        {
+            this.protocolCategory.ProtocolCategoryStatusId = 2; // set to incomplete
+        }
+        bool saved = await protocolCategoryService.SaveCategory(this.protocolCategory, this.protocolMappingId);
+        if (saved)
+        {
+            await notificationService.Success("Category successfully marked as complete");
+            return;
+        }
+        else
+        {
+            await notificationService.Error("Error marking category as complete");
+            return;
         }
     }
 
