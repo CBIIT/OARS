@@ -796,12 +796,12 @@ else
         bool saved = await protocolCategoryService.SaveCategory(this.protocolCategory, this.protocolMappingId);
         if (saved)
         {
-            await notificationService.Success("Category successfully marked as complete");
+            await notificationService.Success("Category successfully updated");
             return;
         }
         else
         {
-            await notificationService.Error("Error marking category as complete");
+            await notificationService.Error("Error updating category");
             return;
         }
     }
