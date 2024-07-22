@@ -55,7 +55,7 @@
                 </SelectList>
             </EditTemplate>
         </DataGridColumn>
-        <DataGridColumn Width="20%" Field="@nameof(ProfileField.ThorFieldCategoryDisplay)" Caption="Data Category Display" Filterable="true" Sortable="true">
+        <DataGridColumn Width="20%" Field="@nameof(ProfileField.ThorFieldCategoryDisplay)" Caption="Data Category Search" Filterable="true" Sortable="true">
             <DisplayTemplate>
                 @(context.ThorFieldCategoryDisplay)
             </DisplayTemplate>
@@ -78,7 +78,7 @@
                 </SelectList>
             </EditTemplate>
         </DataGridColumn>
-        <DataGridColumn Width="20%" Field="@nameof(ProfileField.ThorFieldDisplay)" Caption="Field Display" Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
+        <DataGridColumn Width="20%" Field="@nameof(ProfileField.ThorFieldDisplay)" Caption="Field Search" Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
             <DisplayTemplate>
                 @(context.ThorFieldDisplay)
             </DisplayTemplate>
