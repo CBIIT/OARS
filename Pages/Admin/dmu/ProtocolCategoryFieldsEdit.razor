@@ -59,7 +59,7 @@
                 </SelectList>
             </EditTemplate>
          </DataGridColumn>
-        <DataGridColumn Field="@nameof(ProtocolField.ThorDataCategoryDisplay)" Width="15%" Caption="Data Category Display" Filterable="true" Sortable="true">
+        <DataGridColumn Field="@nameof(ProtocolField.ThorDataCategoryDisplay)" Width="15%" Caption="Data Category Search" Filterable="true" Sortable="true">
             <DisplayTemplate>
                 @(context.ThorDataCategoryDisplay)
             </DisplayTemplate>
@@ -83,7 +83,7 @@
                 }
             </EditTemplate>
          </DataGridColumn>
-        <DataGridColumn Field="@nameof(ProtocolField.ThorFieldDisplay)" Width="15%" Caption="Field Display" Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
+        <DataGridColumn Field="@nameof(ProtocolField.ThorFieldDisplay)" Width="15%" Caption="Field Search" Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
             <DisplayTemplate>
                 @(context.ThorFieldDisplay)
             </DisplayTemplate>

@@ -45,7 +45,7 @@
                 <SelectList TItem="ThorCategory" TValue="string" Data="@categoryList" TextField="@((item)=>item.CategoryDisplay)" ValueField="@((item)=>item.ThorDataCategoryId)" SelectedValueChanged="@( v => {context.CellValue = v;})" SelectedValue="@((string?)context.CellValue)" DefaultItemText="Select A Category" DefaultItemValue="@String.Empty"></SelectList>
 			 </EditTemplate>
          </DataGridColumn>
-        <DataGridColumn Field="@nameof(ThorField.CategoryDisplay)" Width="15%" Caption="Data Category Display" Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
+        <DataGridColumn Field="@nameof(ThorField.CategoryDisplay)" Width="15%" Caption="Data Category Search" Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
              <DisplayTemplate>
                 @context.CategoryDisplay
 			 </DisplayTemplate>
@@ -84,7 +84,7 @@
                      DefaultItemValue="0"/>
              </EditTemplate>
         </DataGridColumn>
-        <DataGridColumn Field="@nameof(ThorField.FieldTypeName)" Width="10%" Caption="OARS Field Type" Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
+        <DataGridColumn Field="@nameof(ThorField.FieldTypeName)" Width="10%" Caption="Field Type Search" Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
             <DisplayTemplate>
                 @context.FieldTypeName
             </DisplayTemplate>
