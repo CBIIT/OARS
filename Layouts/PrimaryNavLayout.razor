@@ -256,7 +256,7 @@
     protected override async Task OnInitializedAsync()
     {
         environment = configuration.GetValue<string>("System:Environment") == "Prod" ? "" : configuration.GetValue<string>("System:Environment");
- 
+
         // Display or Hide Admin button
         bool isAdmin = Convert.ToBoolean(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.IsAdmin).Value);
         bool isDMUAdmin = Convert.ToBoolean(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.IsDMUAdmin).Value);
@@ -499,7 +499,10 @@
         {
             emailTo = string.Empty;
             emailCategory = string.Empty;
-            string siteName = "NCI Theradex Oncology Reporting-" + configuration.GetValue<string>("System:Environment");
+            bool isProd = !(configuration.GetValue<string>("System:Environment").StartsWith("Prod"));
+            string siteName = "NCI Oncology Automated Reporting System";
+            if (!isProd)
+                siteName = siteName + "-" + configuration.GetValue<string>("System:Environment");
             string baseURL = Navigation.BaseUri;
             string color = configuration.GetValue<string>("System:SystemColor");
             string dateTime = DateTime.Now.ToString("d-MMM-yyyy hh:mm tt");
