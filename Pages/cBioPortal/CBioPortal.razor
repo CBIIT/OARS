@@ -17,9 +17,6 @@
 }
 else
 {
-    <LayoutSider>
-        <SecondaryNav Actions="Actions" Reports="allReports" />
-    </LayoutSider>
     <LayoutContent>
         <Container Fluid Class="mt-2">
             <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1 mb-3"><h2>cBioPortal Gateway</h2></Div>
@@ -72,16 +69,6 @@ else
     private List<Protocol> studies;
     private Report? report;
 
-    private IList<SecondaryNavAction> Actions => new List<SecondaryNavAction>
-    {
-        new SecondaryNavAction
-        {
-            IconName = IconName.Eye,
-            Label = "Study Overview",
-            OnClick = ShowOverview
-        },
-    };
-
     protected override async Task OnParametersSetAsync()
     {
         bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(ThorClaimType.IsAdmin, "True");
@@ -108,12 +95,6 @@ else
         }
 
         userService.SaveActivityLog(userId, ThorActivityType.Navigation, "cBioPortal");
-    }
-
-    private async void ShowOverview()
-    {
-        var studies = studyService.GetSelectedStudiesForUser(userId);
-        studyOverview?.ShowStudies(studies);
     }
 
     private string cBioPortalLink()

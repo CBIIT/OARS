@@ -216,6 +216,9 @@
     [Inject] INotificationService NotificationService { get; set; }
     [Inject] private IUserService userService { get; set; } = null!;
 
+    [Parameter] public int DashboardId { get; set; }
+    [Parameter] public int ReportId { get; set; }
+
     List<MedidataDictionaryModel> trackingDestinations = new List<MedidataDictionaryModel>();
     List<MedidataDictionaryModel> assays = new List<MedidataDictionaryModel>();
     List<CRFModel> crfs = new List<CRFModel>();

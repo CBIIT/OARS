@@ -34,7 +34,7 @@ else
             {
                 if (report.CustomPagePath != null)
                 {
-                    <DynamicComponent Type="@(Type.GetType($"TheradexPortal.{report.CustomPagePath!}") ?? typeof(NotFound))" />
+                    <DynamicComponent Type="@(Type.GetType($"TheradexPortal.{report.CustomPagePath!}") ?? typeof(NotFound))" Parameters="@parameters" />
                 }
                 else
                 {
@@ -83,6 +83,7 @@ else
     private int currentDashboardId;
     private int userId;
     private int previousReport = 0;
+    IDictionary<string, object> parameters = new Dictionary<string, object>();
 
     private int? _dashboardId;
     private int? _reportId;
@@ -117,6 +118,10 @@ else
         bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(ThorClaimType.IsAdmin, "True");
         string userDashboards = httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.Dashboards).Value;
         dashboard = await dashboardService.GetDashboardByIdAsync(DashboardId, userDashboards, isAdmin);
+
+        parameters.Add("DashboardId", DashboardId);
+        parameters.Add("ReportId", ReportId);
+
         if (dashboard != null && dashboard.CustomPagePath != null)
         {
             navigation.NavigateTo($"{dashboard.CustomPagePath}/{dashboard.DashboardId}", new NavigationOptions

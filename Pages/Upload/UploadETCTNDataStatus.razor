@@ -6,7 +6,7 @@
 @using TheradexPortal.Data.Static;
 @using TheradexPortal.Data.Models.Configuration;
 
-@page "/upload/status"
+@page "/upload/status/{dashboardid:int?}/{reportid:int?}"
 @inject IHttpContextAccessor httpContextAccessor
 @inject IOptions<UploadSettings> uploadSettings;
 
@@ -105,6 +105,9 @@
 
     @inject IJSRuntime JS
     @inject IConfiguration configuration
+
+    [Parameter] public int DashboardId { get; set; }
+    [Parameter] public int ReportId { get; set; }
 
     private IList<FileIngestRequest> fileIngestRequests = new List<FileIngestRequest>();
     private int? userId = null;
