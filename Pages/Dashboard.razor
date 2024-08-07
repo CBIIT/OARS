@@ -32,9 +32,16 @@ else
         <Container Fluid Class="mt-2">
             @if(report != null && report.IsFullPage)
             {
-                <PowerBiFullReport Dashboard="dashboard" Report="report" @ref="fullReportRef" />
+                if (report.CustomPagePath != null)
+                {
+                    <DynamicComponent Type="@(Type.GetType($"TheradexPortal.{report.CustomPagePath!}") ?? typeof(NotFound))" />
+                }
+                else
+                {
+                    <PowerBiFullReport Dashboard="dashboard" Report="report" @ref="fullReportRef" />
+                }
             }
-            else if(report != null)
+            else if(report != null) /* Unused as IsFullPage will always be set */
             {
                 <PowerBiCustomLayout Dashboard="dashboard" Report="report" @ref="customReportRef" />
             }
@@ -97,7 +104,7 @@ else
             To = this.getHelpUrl(),
             ShowAction = this.helpFileFound
         },
-          new SecondaryNavAction
+        new SecondaryNavAction
         {
             IconName = IconName.Star,
             Label = "Add to Favorites",
@@ -107,6 +114,20 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(ThorClaimType.IsAdmin, "True");
+        string userDashboards = httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.Dashboards).Value;
+        dashboard = await dashboardService.GetDashboardByIdAsync(DashboardId, userDashboards, isAdmin);
+        if (dashboard != null && dashboard.CustomPagePath != null)
+        {
+            navigation.NavigateTo($"{dashboard.CustomPagePath}/{dashboard.DashboardId}", new NavigationOptions
+                {
+                    ReplaceHistoryEntry = true,
+                    ForceLoad = true
+                });
+
+            return;
+        }
+
         await PrimaryNavLayout.ClearDashboardAlerts();
 
         if (fullReportRef != null)
@@ -149,6 +170,15 @@ else
             notFound = true;
             return;
         }
+
+        // if (dashboard.CustomPagePath != null)
+        // {
+        //     navigation.NavigateTo($"{dashboard.CustomPagePath}/{dashboard.DashboardId}", new NavigationOptions
+        //         {
+        //             ReplaceHistoryEntry = true,
+        //             ForceLoad = true
+        //         });
+        // }
 
         PrimaryNavLayout.DashboardName = dashboard.Name;
 

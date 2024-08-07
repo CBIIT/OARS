@@ -1,0 +1,81 @@
+﻿@using System.Diagnostics.CodeAnalysis
+@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@inject IHttpContextAccessor httpContextAccessor
+@layout AdminLayout
+
+@page "/admin/dmu/study-admin/{protocolMappingId:int}"
+<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })" AllowedTHORRoles="@(new List<string> { "DMU Study Admin", "DMU Global Admin" })"></AdminRoleCheck>
+<div class="dmu-admin-step-container">
+    <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Protocol Setup</h2>@this.protocolNum - @this.mappingName</Div>
+    <Row Style="padding:10px"><Column ColumnSize="ColumnSize.Is1"><Button Clicked="@Back" Color="Color.Primary"><Icon Name="IconName.ArrowLeft" /> Back</Button></Column></Row>
+    <Row Class="dmu-admin-step-container">
+        <Steps @ref="stepsRef" SelectedStep="@selectedStep" NavigationAllowed="NavigationAllowed">
+            <Items>
+                <Step Name="protocolsetup" Class="dmu-admin-step-item">Protocol Setup</Step>
+                <Step Name="protocolconfig">Config Options</Step>
+                <Step Name="protocolfileupload">File Upload</Step>
+                <Step Name="edcformsedit">Edit EDC Forms</Step>
+                <Step Name="protocolfieldedit">Edit EDC Fields</Step>
+                <Step Name="protocoldictionary">EDC Dictionary</Step>
+                <Step Name="protocolcategoryfieldedit">OARS Category - Field</Step>
+                <Step Name="protocoltac">Protocol TAC</Step>
+                <Step Name="protocoldisease">Protocol Disease</Step>
+                <Step Name="protocolagentedit">Protocol Agent</Step>
+                <Step Name="protocolsubgroupedit">Protocol Sub Group</Step>
+                <Step Name="protocolpublish">
+                    <Caption>Publish Study</Caption>
+                    <Marker>
+                        <Icon Name="IconName.Flag" />
+                    </Marker>
+                </Step>
+            </Items>
+            <Content>
+                <StepPanel Name="protocolsetup"><ProtocolSetupEdit protocolMappingId="@protocolMappingId" preventEdit="@(!IsActive())"></ProtocolSetupEdit></StepPanel>
+                <StepPanel Name="protocolconfig"><ThorFieldFormat protocolMappingId="@protocolMappingId" preventEdit="@(!IsActive())"></ThorFieldFormat></StepPanel>
+                <StepPanel Name="protocolfileupload"><ProtocolFileUpload protocolMappingId="@protocolMappingId" preventEdit="@(!IsActive())"></ProtocolFileUpload></StepPanel>
+                <StepPanel Name="edcformsedit"><EDCFormsEdit protocolMappingId="@protocolMappingId" preventEdit="@(!IsActive())"></EDCFormsEdit></StepPanel>
+                <StepPanel Name="protocolfieldedit"><EditEDCFields protocolMappingId="@protocolMappingId" preventEdit="@(!IsActive())"></EditEDCFields></StepPanel>
+                <StepPanel Name="protocoldictionary"><EDCDictionaryEdit protocolMappingId="@protocolMappingId" preventEdit="@(!IsActive())"></EDCDictionaryEdit></StepPanel>
+                <StepPanel Name="protocolcategoryfieldedit"><ProtocolCategoryFieldsEdit protocolMappingId="@protocolMappingId" preventEdit="@(!IsActive())"></ProtocolCategoryFieldsEdit></StepPanel>
+                <StepPanel Name="protocoltac"><ProtocolTAC protocolMappingId="@protocolMappingId" preventEdit="@(!IsActive())"></ProtocolTAC></StepPanel>
+                <StepPanel Name="protocoldisease"><ProtocolDiseaseEdit protocolMappingId="@protocolMappingId" preventEdit="@(!IsActive())"></ProtocolDiseaseEdit></StepPanel>
+                <StepPanel Name="protocolagentedit"><ProtocolAgentEdit protocolMappingId="@protocolMappingId" preventEdit="@(!IsActive())"></ProtocolAgentEdit></StepPanel>
+                <StepPanel Name="protocolsubgroupedit"><ProtocolSubGroupEdit protocolMappingId="@protocolMappingId" preventEdit="@(!IsActive())"></ProtocolSubGroupEdit></StepPanel>
+                <StepPanel Name="protocolpublish"><ProtocolPublish protocolMappingId="@protocolMappingId" preventEdit="@(!IsActive())"></ProtocolPublish></StepPanel>
+            </Content>
+        </Steps>
+    </Row>
+</div>
+@code {
+    string selectedStep = "protocolsetup";
+    [AllowNull] private Steps stepsRef;
+    [Parameter] public int protocolMappingId { get; set; }
+    [Inject] IProtocolMappingService protocolMappingService { get; set; } = null!;
+    [Inject] NavigationManager navigation { get; set; } = null!;
+    private string mappingName;
+    private string protocolNum;
+    private ProtocolMapping protocolMapping;
+
+    protected override async Task OnInitializedAsync()
+    {
+        this.protocolMapping = await protocolMappingService.GetProtocolMapping(protocolMappingId);
+        this.mappingName = protocolMapping.ProtocolTitle;
+        this.protocolNum = protocolMapping.THORStudyId;
+    }
+
+    private bool NavigationAllowed(StepNavigationContext context)
+    {
+        return true;
+    }
+    private bool IsActive()
+    {
+        return this.protocolMapping?.Status?.StatusName == "Active";
+    }
+
+    private void Back()
+    {
+        navigation.NavigateTo("/admin/dmu/select-study");
+    }
+}

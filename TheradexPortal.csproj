@@ -1,36 +1,38 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-    <DockerfileContext>.</DockerfileContext>
-    <UserSecretsId>70f66a44-95c5-4b02-8a0b-2f12192bd93f</UserSecretsId>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+		<DockerfileContext>.</DockerfileContext>
+		<UserSecretsId>70f66a44-95c5-4b02-8a0b-2f12192bd93f</UserSecretsId>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <NoWarn>1701;1702;80001</NoWarn>
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<NoWarn>1701;1702;80001</NoWarn>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <NoWarn>1701;1702;80001</NoWarn>
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<NoWarn>1701;1702;80001</NoWarn>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <Compile Remove="SQL Scripts\**" />
-    <Content Remove="SQL Scripts\**" />
-    <EmbeddedResource Remove="SQL Scripts\**" />
-    <None Remove="SQL Scripts\**" />
-  </ItemGroup>
+	<ItemGroup>
+		<Compile Remove="SQL Scripts\**" />
+		<Content Remove="SQL Scripts\**" />
+		<EmbeddedResource Remove="SQL Scripts\**" />
+		<None Remove="SQL Scripts\**" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Content Remove="Pages\StudyGrid\StudyGridComponent.razor" />
-    <Content Remove="wwwroot\Privacy.html" />
-  </ItemGroup>
+	<ItemGroup>
+		<Content Remove="Pages\Admin\dmu\StudySelect.razor" />
+		<Content Remove="Pages\StudyGrid\StudyGridComponent.razor" />
+		<Content Remove="wwwroot\Privacy.html" />
+	</ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AWS.Logger.Log4net" Version="3.4.1" />
+    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.303.9" />
     <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.7.7" />
     <PackageReference Include="AWSSDK.S3" Version="3.7.205.9" />
     <PackageReference Include="AWSSDK.SimpleEmail" Version="3.7.200.48" />
@@ -41,6 +43,7 @@
     <PackageReference Include="Blazorise.LoadingIndicator" Version="1.2.3" />
     <PackageReference Include="Blazorise.Markdown" Version="1.2.3" />
     <PackageReference Include="Blazorise.TreeView" Version="1.2.3" />
+    <PackageReference Include="CsvHelper" Version="32.0.1" />
     <PackageReference Include="ITfoxtec.Identity.Saml2" Version="4.8.6" />
     <PackageReference Include="ITfoxtec.Identity.Saml2.MvcCore" Version="4.8.6" />
     <PackageReference Include="log4net" Version="2.0.15" />
@@ -61,8 +64,18 @@
     <PackageReference Include="System.ServiceModel.Security" Version="4.10.*" />
   </ItemGroup>
 
+	<ItemGroup>
+		<Folder Include="Migrations\" />
+	</ItemGroup>
+
   <ItemGroup>
-    <Folder Include="Migrations\" />
+    <None Include="SQL Scripts\addUserTable.sql" />
+    <None Include="SQL Scripts\DMU schema - cleaned.sql" />
+    <None Include="SQL Scripts\DMU schema - update 2024-03-05.sql" />
+    <None Include="sql scripts\DMU schema - update 2024-04-09.sql" />
+    <None Include="sql scripts\DMU schema - update 2024-04-25.sql" />
+    <None Include="sql scripts\DMU schema - update 2025-05-15.sql" />
+    <None Include="SQL Scripts\THORDictionary - Data.sql" />
   </ItemGroup>
 
 </Project>

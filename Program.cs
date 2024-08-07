@@ -1,13 +1,5 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using Newtonsoft.Json;
-using System.Text.Json;
 using System.Net.Http.Headers;
 using TheradexPortal.Data;
 using TheradexPortal.Data.PowerBI;
@@ -18,18 +10,19 @@ using Blazorise.Bootstrap5;
 using Blazorise.Icons.FontAwesome;
 using Microsoft.EntityFrameworkCore;
 using TheradexPortal.Data.Services;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using TheradexPortal.Data.Static;
-using Microsoft.AspNetCore.Identity;
-using TheradexPortal.Data.Models;
-using TheradexPortal.Data.Identity;
 using TheradexPortal.Data.Services.Abstract;
 using TheradexPortal.Data.PowerBI.Abstract;
 using ITfoxtec.Identity.Saml2;
 using ITfoxtec.Identity.Saml2.Schemas.Metadata;
 using ITfoxtec.Identity.Saml2.MvcCore.Configuration;
 using Microsoft.Extensions.Logging;
+using Amazon.DynamoDBv2;
+using Microsoft.Extensions.DependencyInjection;
+using Amazon.DynamoDBv2.DataModel;
+using Amazon.S3;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,6 +31,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<IAadService, AadService>();
 builder.Services.AddSingleton<IPbiEmbedService, PbiEmbedService>();
+builder.Services.AddScoped<IDatabaseConnectionService, DatabaseConnectionService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserRoleService, UserRoleService>();
 builder.Services.AddScoped<IStudyService, StudyService>();
@@ -47,6 +41,33 @@ builder.Services.AddScoped<IAlertService, AlertService>();
 builder.Services.AddScoped<IContactUsService, ContactUsService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IErrorLogService, ErrorLogService>();
+builder.Services.AddScoped<IUploadService, UploadService>();
+builder.Services.AddScoped<IThorCategoryService, ThorCategoryService>();
+builder.Services.AddScoped<IThorFieldService, ThorFieldService>();
+builder.Services.AddScoped<IThorDictionaryService, ThorDictionaryService>();
+builder.Services.AddScoped<IProfileService, ProfileService>();
+builder.Services.AddScoped<IProtocolMappingService, ProtocolMappingService>();
+builder.Services.AddScoped<IProfileCategoryService,  ProfileCategoryService>();
+builder.Services.AddScoped<IProtocolDataSystemService, ProtocolDataSystemService>();
+builder.Services.AddScoped<IProtocolFieldService, ProtocolFieldService>();
+builder.Services.AddScoped<IProfileFieldService, ProfileFieldService>();
+builder.Services.AddScoped<IProtocolEDCFieldService, ProtocolEDCFieldService>();
+builder.Services.AddScoped<IProtocolEDCFormService, ProtocolEDCFormService>();
+builder.Services.AddScoped<IProtocolEDCDictionaryService, ProtocolEDCDictionaryService>();
+builder.Services.AddScoped<IALSFileImportService, ALSFileImportService>();
+builder.Services.AddScoped<IXMLFileImportService, XMLFileImportService>();
+builder.Services.AddScoped<ICSVFileImportService, CSVFileImportService>();
+builder.Services.AddScoped<IProtocolPhaseService, ProtocolPhaseService>();
+builder.Services.AddScoped<IProtocolEDCFormService, ProtocolEDCFormService>();
+builder.Services.AddScoped<IProtocolAgentService, ProtocolAgentService>();
+builder.Services.AddScoped<IProtocolSubGroupService, ProtocolSubGroupService>();
+builder.Services.AddScoped<IProtocolTACService, ProtocolTACService>();
+builder.Services.AddScoped<IProtocolDiseaseService, ProtocolDiseaseService>();
+builder.Services.AddScoped<IProtocolDataCategoryService, ProtocolDataCategoryService>();
+builder.Services.AddScoped<IProtocolFieldMappingService, ProtocolFieldMappingService>();
+builder.Services.AddScoped<IProtocolDictionaryMappingService, ProtocolDictionaryMappingService>();
+builder.Services.AddScoped<IProtocolFormMappingService, ProtocolFormMappingService>();
+
 builder.Services.AddHttpClient<IOktaService, OktaService>(client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["Okta:Issuer"]);
@@ -55,6 +76,7 @@ builder.Services.AddHttpClient<IOktaService, OktaService>(client =>
 });
 
 builder.Services.AddScoped<TimeZoneService>();
+
 
 builder.Host.ConfigureLogging((context, logging) =>
 {
@@ -78,6 +100,9 @@ builder.Services
 // Load email settings
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
+// Load upload settings
+builder.Services.Configure<UploadSettings>(builder.Configuration.GetSection("UploadSettings"));
+
 // Loading appsettings.json in C# Model classes
 builder.Services.Configure<PowerBI>(builder.Configuration.GetSection("PowerBI"));
 builder.Services.Configure<AzureAd>(builder.Configuration.GetSection("PowerBICredentials"));
@@ -85,6 +110,15 @@ builder.Services.Configure<AzureAd>(builder.Configuration.GetSection("PowerBICre
 // Load DB context
 builder.Services.AddDbContextFactory<ThorDBContext>(opt =>
     opt.UseOracle(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Load DynamodB context
+builder.Services.AddAWSService<IAmazonDynamoDB>();
+builder.Services.AddSingleton<IDynamoDBContext, DynamoDBContext>(p => new DynamoDBContext(new AmazonDynamoDBClient()));
+builder.Services.AddTransient<IDynamoDbService, DynamoDbService>();
+
+// Load S3
+builder.Services.AddAWSService<IAmazonS3>();
+builder.Services.AddTransient<IAWSS3Service, AWSS3Service>();
 
 var onTokenValidated = async (TokenValidatedContext context) =>
 {
@@ -137,19 +171,33 @@ var onTokenValidated = async (TokenValidatedContext context) =>
 
     var userRoles = await userRoleService.GetUserRolesAsync(user.UserId);
     var isAdmin = false;
+    var isDMUAdmin = false;
+    var isAnyAdmin = false;
+
     foreach(var role in userRoles)
     {        
         claimsIdentity.AddClaim(new Claim(ThorClaimType.Role, role.RoleName));
         roleList += role.RoleName + ",";
-        if (role.AdminType != ThorAdminType.None)
+        if (role.AdminType == ThorAdminType.IT || role.AdminType == ThorAdminType.Biz || role.AdminType == ThorAdminType.Content)
         {
             isAdmin = true;
             if (!claimsIdentity.HasClaim(c => c.Type == "Admin-" + role.AdminType))
             {
                 claimsIdentity.AddClaim(new Claim("Admin-" + role.AdminType, "true"));
             }
-
         }
+
+        if (role.AdminType == ThorAdminType.DMUGlobal || role.AdminType == ThorAdminType.DMUStudy)
+        {
+            isDMUAdmin = true;
+            if (!claimsIdentity.HasClaim(c => c.Type == "Admin-" + role.AdminType))
+            {
+                claimsIdentity.AddClaim(new Claim("Admin-" + role.AdminType, "true"));
+            }
+        }
+
+        isAnyAdmin = isAdmin || isDMUAdmin;
+
     }
     roleList = roleList.TrimEnd(',');
 
@@ -157,6 +205,8 @@ var onTokenValidated = async (TokenValidatedContext context) =>
     var reportIds = await dashboardService.GetReportIdsForUser(user.UserId, isAdmin);
 
     claimsIdentity.AddClaim(new Claim(ThorClaimType.IsAdmin, isAdmin.ToString()));
+    claimsIdentity.AddClaim(new Claim(ThorClaimType.IsDMUAdmin, isDMUAdmin.ToString()));
+    claimsIdentity.AddClaim(new Claim(ThorClaimType.IsAnyAdmin, isAnyAdmin.ToString()));
     claimsIdentity.AddClaim(new Claim(ThorClaimType.Dashboards, dashboardIds));
     claimsIdentity.AddClaim(new Claim(ThorClaimType.Reports, reportIds));
 
@@ -173,6 +223,14 @@ var onTokenValidated = async (TokenValidatedContext context) =>
 builder.Services.AddAuthorization(options =>
       options.AddPolicy("IsAdmin",
       policy => policy.RequireClaim(ThorClaimType.IsAdmin, true.ToString())));
+
+builder.Services.AddAuthorization(options =>
+      options.AddPolicy("IsDMUAdmin",
+      policy => policy.RequireClaim(ThorClaimType.IsDMUAdmin, true.ToString())));
+
+builder.Services.AddAuthorization(options =>
+      options.AddPolicy("IsAnyAdmin",
+      policy => policy.RequireClaim(ThorClaimType.IsAnyAdmin, true.ToString())));
 
 builder.Services.AddAuthorization(options =>
       options.AddPolicy("IsRegistered",

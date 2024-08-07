@@ -1,4 +1,5 @@
-﻿@using TheradexPortal.Data.Static;
+﻿@using TheradexPortal.Data.Identity
+@using TheradexPortal.Data.Static;
 
 @layout AdminLayout
 @page "/admin"
@@ -50,25 +51,37 @@
             </Div>
         </ListGroupItem>
     }
+    @if (CheckRole(new List<string> { "IT", "DMU Global" }))
+    {
+        <ListGroupItem>
+            <Div Padding="Padding.Is2">
+                <Heading Size="HeadingSize.Is4">DMU Global Admin</Heading>
+                <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart">Create or Modify DMU Profiles.</Paragraph>
+                 <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart">Access to the DMU Global table.</Paragraph>
+            </Div>
+        </ListGroupItem>
+    }
+    @if (CheckRole(new List<string> { "IT", "DMU Global", "DMU Study" }))
+    {
+        <ListGroupItem>
+            <Div Padding="Padding.Is2">
+                <Heading Size="HeadingSize.Is4">DMU Study Admin</Heading>
+                <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart">Perform administration on DMU studies</Paragraph>
+            </Div>
+        </ListGroupItem>
+    }
 </ListGroup>
 </Div>
 
-@code {
-    public bool isContentAdmin { get; set; }
+    @code {
 
-    protected override async Task OnInitializedAsync()
-    {
-        isContentAdmin = httpContextAccessor.HttpContext.User.HasClaim(ThorClaimType.IsContentAdmin, "True");
-    }
-   
     private bool CheckRole(List<string> allowedRoles)
     {
-        bool roleFound = false;
-        foreach (string allowedRole in allowedRoles)
+        if (httpContextAccessor?.HttpContext?.User == null)
         {
-            if (httpContextAccessor.HttpContext.User.HasClaim(c => c.Type == "Admin-" + allowedRole))
-                roleFound = true;
+            return false;
         }
-        return roleFound;
+
+        return httpContextAccessor.HttpContext.User.HasAnyAdminRole(allowedRoles.ToArray());
     }
 }

@@ -58,20 +58,40 @@ function embedFullReport(reportContainer, accessToken, filterTargets, embedUrl, 
     }
 
     // Build config
-    var config = {
-        type: 'report',
-        tokenType: models.TokenType.Embed,
-        accessToken: accessToken,
-        embedUrl: embedUrl,
-        id: embedReportId,
-        permissions: models.Permissions.All,
-        background: models.BackgroundType.Transparent,
-        settings: {
-            filterPaneEnabled: filterPaneShown,
-            navContentPaneEnabled: false,
-            background: models.BackgroundType.Transparent
-        },
-        filters: [study_filter, study_filter2]
+    var config;
+
+    if (filterType == "None" || filterType == null) {
+        config = {
+            type: 'report',
+            tokenType: models.TokenType.Embed,
+            accessToken: accessToken,
+            embedUrl: embedUrl,
+            id: embedReportId,
+            permissions: models.Permissions.All,
+            background: models.BackgroundType.Transparent,
+            settings: {
+                filterPaneEnabled: filterPaneShown,
+                navContentPaneEnabled: false,
+                background: models.BackgroundType.Transparent
+            }
+        }
+    }
+    else {
+        config = {
+            type: 'report',
+            tokenType: models.TokenType.Embed,
+            accessToken: accessToken,
+            embedUrl: embedUrl,
+            id: embedReportId,
+            permissions: models.Permissions.All,
+            background: models.BackgroundType.Transparent,
+            settings: {
+                filterPaneEnabled: filterPaneShown,
+                navContentPaneEnabled: false,
+                background: models.BackgroundType.Transparent
+            },
+            filters: [study_filter, study_filter2]
+        }
     };
 
     // Embed report

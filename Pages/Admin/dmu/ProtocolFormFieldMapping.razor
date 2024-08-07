@@ -1,0 +1,813 @@
+﻿@using TheradexPortal.Data.Identity
+@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+@inject IHttpContextAccessor httpContextAccessor
+@inject IConfiguration configuration
+@layout AdminLayout
+@page "/admin/dmu/form-field-mapping/{protocolCategoryId:int}"
+<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })" AllowedTHORRoles="@(new List<string> { "DMU Study Mapping", "DMU Study Admin", "DMU Global Admin" })"></AdminRoleCheck>
+<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Mapping</h2></Div>
+<Row Background="Background.Light" Style="padding-bottom:10px;">
+    <Row style="padding-top:10px">
+        <Column ColumnSize="ColumnSize.Is1">
+            <Button Clicked="@Back" Color="Color.Primary"><Icon Name="IconName.ArrowLeft" /> Back</Button>
+        </Column>
+        <Column>
+            <Text><b>Protocol:</b> @protocol</Text>
+        </Column>
+        <Column>
+            <Switch TValue="bool" Checked="@this.isComplete" CheckedChanged="@((v) => {this.isComplete = v; CompleteMapping();})">Mapping Complete</Switch>
+        </Column>
+
+    </Row>
+    <Row>
+        <Column ColumnSize="ColumnSize.Is1"></Column>
+        <Column>
+            <Text><b>Report Category:</b> @currCategory.CategoryDisplay</Text>
+        </Column>
+        <Column>
+            <Switch TValue="bool" Checked="@protocolCategory.IsMultiForm" CheckedChanged="@(async (v) => await MultiFormChanged(v))">Multi Form</Switch>
+        </Column>
+    </Row>
+</Row>
+@if (!protocolCategory.IsMultiForm)
+{
+    <DataGrid @ref=dataGridRef
+              TItem="ProtocolFieldMapping"
+              Class="admindatagrid"
+              Data="@protocolFieldMappingList"
+              Editable
+              Responsive
+              Striped
+              ShowPager
+              ShowPageSizes
+              MaxPaginationLinks="5"
+              PagerPosition="DataGridPagerPosition.Bottom"
+              PagerOptions="new(){ButtonSize=Size.Default,
+                                PaginationPosition=PagerElementPosition.Default,
+                                TotalItemsPosition=PagerElementPosition.End,
+                                }"
+              FixedHeader
+              FixedHeaderDataGridHeight="calc(100vh - 240px)"
+              FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
+              EditMode="DataGridEditMode.Inline"
+              RowUpdated="@Save"
+              RowInserted="@Save"
+              RowRemoved="@Delete"
+              RowRemoving="@ConfirmDelete"
+              SortMode="DataGridSortMode.Multiple">
+        <DataGridColumns>
+            <DataGridColumn Field="@nameof(ProtocolFieldMapping.ThorFieldId)" Width="25%" Caption="Select OARS Field" Editable="true" SortDirection="SortDirection.Ascending" Sortable>
+                <DisplayTemplate>
+                    <Text>@GetThorFieldLabel(context)</Text>
+                </DisplayTemplate>
+                <EditTemplate>
+                    <Text>@GetThorFieldLabel(context.Item)</Text>
+                  </EditTemplate>
+            </DataGridColumn>
+            <DataGridColumn Field="@nameof(ProtocolFieldMapping.ProtocolEDCFormId)" Width="25%" Caption="Select EDC Form" Filterable="true" Editable="true" SortDirection="SortDirection.Ascending" Sortable>
+                <DisplayTemplate>
+                    @{
+                        if (context.ProtocolEDCFormId != 0)
+                        {
+                            <Text>@(context.ProtocolEDCField.ProtocolEDCForm.EDCFormDisplay)</Text>
+                            
+                        } else
+                        {
+                            <Text>Not Mapped</Text>
+                        }
+                    }
+                </DisplayTemplate>
+                <EditTemplate>
+                    <Autocomplete TItem="ProtocolEDCForm" Data="@protocolEDCFormList" TValue="int" TextField="@((item) => {return item.EDCFormDisplay;})" ValueField="@((item) => item.ProtocolEDCFormId)" SelectedValueChanged="@(e => {@GetFields(e); context.CellValue=e;})" SelectedValue="@((int?)context.CellValue ?? context.Item.ProtocolEDCFormId)" Placeholder="@(GetPlaceholder(context.Item))" Virtualize MinLength="0"></Autocomplete>
+                </EditTemplate>
+            </DataGridColumn>
+            <DataGridColumn Field="@nameof(ProtocolFieldMapping.ProtocolEDCFieldId)" Width="25%" Caption="Select EDC Field" Editable="true">
+                <DisplayTemplate>
+                    @{
+                        if (context.ProtocolEDCFieldId != 0 && context.ProtocolEDCField == null)
+                        {
+                            var currentField = protocolEDCFieldList.FirstOrDefault(x => x.ProtocolEDCFieldId == context.ProtocolEDCFieldId);
+                            <Text>@(currentField?.EDCFieldDisplay)</Text>
+                        }
+                        else if(context.ProtocolEDCField != null && context.ProtocolEDCField.ProtocolEDCFieldId != 0)
+                        {
+                            <Text>@context.ProtocolEDCField.EDCFieldDisplay</Text>
+                        } else
+                        {
+                            <Text>Not Mapped</Text>
+                        }
+                    }
+                </DisplayTemplate>
+                <EditTemplate>
+                    <SelectList TItem="ProtocolEDCField" TValue="int" Data="@protocolEDCFieldList" TextField="@((item)=>item.EDCFieldDisplay)"
+                                ValueField="@((item) => item.ProtocolEDCFieldId)"
+                                SelectedValueChanged="@( v =>{context.CellValue = v;})"
+                                SelectedValue="@((int?)context.CellValue ?? context.Item.ProtocolEDCFieldId)"
+                                DefaultItemText="Select"></SelectList>
+                </EditTemplate>
+            </DataGridColumn>
+            <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="true">
+                <SaveCommandTemplate>
+                    <Button><Icon Name="IconName.Save" Clicked="@context.Clicked" /></Button>
+                </SaveCommandTemplate>
+                <EditCommandTemplate>
+                    <Button Disabled="@(this.protocolFieldsDict.ContainsKey(context.Item.ThorFieldId) == false)"><Icon Name="IconName.Edit" Clicked="@(async () => await Edit(context, context.Item))" /></Button>
+                </EditCommandTemplate>
+                <CancelCommandTemplate>
+                    <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
+                </CancelCommandTemplate>
+                <DeleteCommandTemplate>
+                    <Button><Icon Name="IconName.Delete" Clicked="@(() => Delete(context.Item))" /></Button>
+                </DeleteCommandTemplate>
+            </DataGridCommandColumn>
+            <DataGridColumn Field="@nameof(ProtocolFieldMapping.ThorDictionaryId)" Caption="Dictionary Mapping">
+                <DisplayTemplate>
+                   @if(context.ThorField != null && 
+                        context.ThorField.ThorDictionaryId != null && 
+                        context.ThorField.ThorDictionaryId != 0 &&
+                        this.protocolFieldsDict.ContainsKey(context.ThorFieldId) &&
+                        this.protocolFieldsDict[context.ThorFieldId].CanBeDictionary
+                    )
+				    {
+                        <Button Color="Color.Primary" Clicked="@((item) => EditDictionaryMapping(context))" Disabled="@GetFieldMappingStatus(context)">Edit</Button>
+                    }
+                    else if (context.ThorField != null &&
+                    context.ThorField.ThorDictionaryId != null &&
+                    context.ThorField.ThorDictionaryId != 0 &&
+                    this.protocolFieldsDict.ContainsKey(context.ThorFieldId) &&
+                    this.protocolFieldsDict[context.ThorFieldId].CanBeDictionary == false)
+                    {
+                        <Text>Disabled in protocol</Text>
+                    }
+                    else
+                    {
+                        <Text>N/A</Text>
+                    }
+                </DisplayTemplate>
+            </DataGridColumn>
+            <DataGridColumn Field="@nameof(ProtocolFieldMapping.ThorFieldId)" Caption="Multi Form Field">
+                <DisplayTemplate>
+                    @if (context.ThorFieldId != null &&
+                        this.protocolFieldsDict.ContainsKey(context.ThorFieldId) &&
+                        this.protocolFieldsDict[context.ThorFieldId].IsMultiForm
+                    )
+					{
+						<Button Color="Color.Primary" Clicked="@(() => AddMultiFormField(context))">Add Form</Button>
+                    }
+                    else
+                    {
+						<Text>N/A</Text>
+					}
+                </DisplayTemplate>
+
+            </DataGridColumn>
+        </DataGridColumns>
+        <EmptyTemplate>
+            <div class="box">
+                No field mappings found.
+            </div>
+        </EmptyTemplate>
+    </DataGrid>
+}
+else
+{
+    foreach(var form in multiFormList.Select((x,i) => new { Form = x, Index = i+1 })){
+        <Row>
+            <Column>
+                <b>Form @form.Index: 
+                    @{
+                         
+                            if (form.Form?.ProtocolEDCFormId is null)
+                            {
+                                <Text></Text>
+                            }
+                            else
+                            {
+                                <Text>@form.Form.ProtocolEDCForm?.EDCFormDisplay</Text>
+                            }
+                     }
+                </b>
+                <Button Disabled="@DisableFormDropdown(form.Form)"><Icon Name="IconName.Delete" Clicked="@(() => DeleteForm(form.Form))" /></Button>
+                <Row>
+                    <Column ColumnSize="ColumnSize.IsAuto">
+                        @{
+                            if (form.Form?.ProtocolEDCFormId is null)
+                            {
+                                <Text>Select:</Text>
+                            }
+                            else
+                            {
+                                <Text>Change to:</Text>
+                            }
+                        } 
+                    </Column>
+                    <Column ColumnSize="ColumnSize.IsAuto">
+                        <SelectList 
+                            TItem="ProtocolEDCForm" 
+                            Data="@protocolEDCFormList" 
+                            TValue="int" 
+                            ValueField="@((item) => item.ProtocolEDCFormId)" 
+                            TextField="@((item) => item.EDCFormDisplay)" 
+                            SelectedValue="0" 
+                            SelectedValueChanged="@(async v=> { await FormSelectionChange(v, form.Form); })" 
+                            Disabled="@DisableFormDropdown(form.Form)"
+                            DefaultItemText="Select a Form" 
+                            DefaultItemValue="0">
+                        </SelectList>
+                    </Column>
+                </Row>
+            </Column>
+            <Column><Switch TValue="bool" Checked="@form.Form.IsPrimaryForm" CheckedChanged="@((v) => {UpdatePrimaryForm(v, form.Form);})">Primary Form</Switch></Column>
+        </Row>
+		<DataGrid @ref=multiFormRefs[form.Form.ProtocolFormMappingId]
+			  TItem="ProtocolFieldMapping"
+			  Class="admindatagrid"
+			  Data="@multiFormMappings[form.Form.ProtocolFormMappingId]"
+			  Editable
+			  Responsive
+			  Striped
+			  ShowPager
+			  ShowPageSizes
+			  MaxPaginationLinks="5"
+			  PagerPosition="DataGridPagerPosition.Bottom"
+			  PagerOptions="new(){ButtonSize=Size.Default,
+								PaginationPosition=PagerElementPosition.Default,
+								TotalItemsPosition=PagerElementPosition.End,
+								}"
+			  FixedHeader
+			  EditMode="DataGridEditMode.Inline"
+			  RowUpdated="@Save"
+			  RowInserted="@Save"
+			  RowRemoved="@Delete"
+			  RowRemoving="@ConfirmDelete">
+		<DataGridColumns>
+			<DataGridColumn Field="@nameof(ProtocolFieldMapping.ThorFieldId)" Width="25%" Caption="Select OARS Field" Editable="true" SortDirection="SortDirection.Ascending" Sortable>
+				<DisplayTemplate>
+					<Text>@GetThorFieldLabel(context)</Text>
+				</DisplayTemplate>
+				<EditTemplate>
+					<Text>@GetThorFieldLabel(context.Item)</Text>
+				  </EditTemplate>
+			</DataGridColumn>
+                <DataGridColumn Field="@nameof(ProtocolFieldMapping.ProtocolEDCFieldId)" Width="25%" Caption="Select EDC Field" Editable="true" Sortable>
+                    <DisplayTemplate>
+                        @{
+                            if (context.ProtocolEDCField != null && context.ProtocolEDCField.ProtocolEDCFieldId != 0)
+                            {
+                                <Text>@context.ProtocolEDCField.EDCFieldDisplay</Text>
+                            }
+                            else
+                            {
+                                <Text>Not Mapped</Text>
+                            }
+                        }
+                    </DisplayTemplate>
+                    <EditTemplate>
+                        <SelectList TItem="ProtocolEDCField" TValue="int" Data="@edcFieldsByForm[form.Form.ProtocolFormMappingId]" TextField="@((item)=>item.EDCFieldDisplay)"
+                                    ValueField="@((item) => item.ProtocolEDCFieldId)"
+                                    SelectedValueChanged="@( v =>{context.CellValue = v;})"
+                                    SelectedValue="@((int?)context.CellValue ?? context.Item.ProtocolEDCFieldId)"
+                                    DefaultItemText="Select"></SelectList>
+                    </EditTemplate>
+                </DataGridColumn>
+                <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="true">
+                    <SaveCommandTemplate>
+                        <Button><Icon Name="IconName.Save" Clicked="@context.Clicked" /></Button>
+                    </SaveCommandTemplate>
+                    <EditCommandTemplate>
+                        <Button Disabled="@(this.protocolFieldsDict.ContainsKey(context.Item.ThorFieldId) == false)"><Icon Name="IconName.Edit" Clicked="@(async () => await EditMultiForm(context, context.Item, form.Form.ProtocolFormMappingId))" /></Button>
+                    </EditCommandTemplate>
+                    <CancelCommandTemplate>
+                        <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
+                    </CancelCommandTemplate>
+                    <DeleteCommandTemplate>
+                        <Button><Icon Name="IconName.Delete" Clicked="@(() => Delete(context.Item))" /></Button>
+                    </DeleteCommandTemplate>
+                </DataGridCommandColumn>
+                <DataGridColumn Field="@nameof(ProtocolFieldMapping.ThorDictionaryId)" Caption="Dictionary Mapping">
+                    <DisplayTemplate>
+                        @if (context.ThorField != null && 
+                            context.ThorField.ThorDictionaryId != null &&
+                            context.ThorField.ThorDictionaryId != 0 &&
+                            this.protocolFieldsDict.ContainsKey(context.ThorFieldId) &&
+                            this.protocolFieldsDict[context.ThorFieldId].CanBeDictionary
+                        )
+                        {
+                            <Button Color="Color.Primary" Clicked="@((item) => EditDictionaryMapping(context))" Disabled="@GetFieldMappingStatus(context)">Edit</Button>
+                        }
+                        else if (context.ThorField != null &&
+                            context.ThorField.ThorDictionaryId != null &&
+                            context.ThorField.ThorDictionaryId != 0 &&
+                            this.protocolFieldsDict.ContainsKey(context.ThorFieldId) &&
+                            this.protocolFieldsDict[context.ThorFieldId].CanBeDictionary == false)
+                        {
+                            <Text>Disabled in protocol</Text>
+                        }
+                        else
+                        {
+                            <Text>N/A</Text>
+                        }
+                    </DisplayTemplate>
+                </DataGridColumn>
+            </DataGridColumns>
+            <EmptyTemplate>
+                <div class="box">
+                    No multi-form field mappings found.
+                </div>
+            </EmptyTemplate>
+        </DataGrid>
+    }
+    <Button Color="Color.Primary" Clicked="AddForm">Add Form</Button>
+}
+
+@code {
+    [Inject] IProtocolEDCFormService protocolEDCFormService { get; set; } = null!;
+    [Inject] IProtocolEDCFieldService protocolEDCFieldService { get; set; } = null!;
+    [Inject] IProtocolDataCategoryService protocolCategoryService { get; set; } = null!;
+    [Inject] IThorCategoryService thorCategoryService { get; set; } = null!;
+    // [Inject] IThorFieldService thorFieldService { get; set; } = null!;
+    [Inject] IProtocolFieldService protocolFieldService { get; set; } = null!;
+    [Inject] IProtocolFieldMappingService protocolFieldMappingService { get; set; } = null!;
+    [Inject] IProtocolFormMappingService protocolFormMappingService { get; set; } = null!;
+    [Inject] private NavigationManager navigation { get; set; } = null!;
+    [Inject] INotificationService notificationService { get; set; } = null!;
+    [Inject] private IMessageService messageService { get; set; } = null!;
+    [Inject] IProtocolMappingService protocolMappingService { get; set; } = null!;
+    [Inject] IUserService userService { get; set; } = null!;
+
+    [Parameter] public int protocolCategoryId { get; set; }
+
+    public string protocol { get; set; }
+    public int protocolMappingId { get; set; }
+
+    private DataGrid<ProtocolFieldMapping> dataGridRef;
+    private IList<ProtocolFieldMapping> protocolFieldMappingList;
+    private IList<ProtocolEDCForm> protocolEDCFormListFull;
+    private IList<ProtocolEDCForm> protocolEDCFormList;
+    private IList<ProtocolEDCField> protocolEDCFieldList;
+    private ProtocolDataCategory? protocolCategory;
+    // private IList<ThorField> thorFieldList;
+    private IList<ProtocolField> protocolFields;
+    private IDictionary<string, ProtocolField> protocolFieldsDict;
+    private IList<ProtocolField> protocolFieldsDisabled;
+    private HashSet<string> protocolFieldIdsDisabled;
+    private ThorCategory currCategory;
+    private bool isMultiForm;
+    private bool isComplete;
+    private int formIndex = 0;
+
+    private IList<ProtocolFormMapping> multiFormList;
+    private Dictionary<int, DataGrid<ProtocolFieldMapping>> multiFormRefs = new Dictionary<int, DataGrid<ProtocolFieldMapping>>();
+    private Dictionary<int, IList<ProtocolFieldMapping>> multiFormMappings = new Dictionary<int, IList<ProtocolFieldMapping>>();
+    private Dictionary<int, IList<ProtocolEDCField>> edcFieldsByForm = new Dictionary<int, IList<ProtocolEDCField>>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+        this.protocolCategory = await protocolCategoryService.GetCategory(protocolCategoryId);
+        if (this.protocolCategory == null)
+        {
+            await notificationService.Error("Category not found");
+            return;
+        }
+        this.protocol = this.protocolCategory.ProtocolMapping.THORStudyId;
+        this.protocolMappingId = this.protocolCategory.ProtocolMappingId;
+
+        List<string> allowed = new List<string> { "DMU Study Admin", "DMU Global Admin" };
+        List<string> adminRole = new List<string> { "IT" };
+        if (httpContextAccessor?.HttpContext?.User.HasAnyTHORRole(allowed.ToArray()) == false && httpContextAccessor?.HttpContext?.User.HasAnyAdminRole(adminRole.ToArray()) == false)
+        {
+            var studyIds = userService.GetProtocolAccessForUser(httpContextAccessor.HttpContext.User.GetUserId());
+            if (!studyIds.Contains(protocol))
+            {
+                await notificationService.Error("You do not have access to this protocol");
+                navigation.NavigateTo("/admin/dmu/study-mapping");
+            }
+        }
+
+        System.Console.WriteLine($"ProtocolFormFieldMapping - { watch.Elapsed } - GetCategory");
+
+        this.isComplete = protocolCategory.ProtocolCategoryStatusId == 3;
+        this.currCategory = this.protocolCategory.THORDataCategory;
+
+        watch = System.Diagnostics.Stopwatch.StartNew();
+        this.protocolFields = await protocolFieldService.GetAllProtocolFieldsByMappingIdForMapping(protocolMappingId, currCategory.ThorDataCategoryId);
+        System.Console.WriteLine($"ProtocolFormFieldMapping - {watch.Elapsed} - GetAllProtocolFieldsByMappingIdForMapping");
+
+        if (this.protocolFields.Count == 0)
+            await notificationService.Warning($"No fields were found associated to {currCategory.ThorDataCategoryId} for this mapping.");
+
+        // The field should only ever be added once to a protocol, but this groupby is done in case of bad data
+        this.protocolFieldsDict = this.protocolFields.GroupBy(x => x.ThorFieldId).ToDictionary(x => x.Key, x => x.First());
+
+        watch = System.Diagnostics.Stopwatch.StartNew();
+        this.protocolFieldsDisabled = await protocolFieldService.GetAllProtocolDisabledFieldsByMappingIdForMapping(protocolMappingId, currCategory.ThorDataCategoryId);
+        System.Console.WriteLine($"ProtocolFormFieldMapping - {watch.Elapsed} - GetAllProtocolDisabledFieldsByMappingIdForMapping");
+
+        this.protocolFieldIdsDisabled = new HashSet<string>(this.protocolFieldsDisabled.Select(x => x.ThorFieldId));
+
+
+        await RefreshFields();
+
+        this.RefreshFormsDropdown();
+    }
+
+    private async Task RefreshFields()
+    {
+        await UpdateFieldList();
+        await UpdateFieldListMultiForm();
+    }
+
+    private async Task UpdateFieldList()
+    {
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+        this.protocolFieldMappingList = await protocolFieldMappingService.GetProtocolFieldMappingsForCategory(protocolMappingId, currCategory.ThorDataCategoryId);
+
+        System.Console.WriteLine($"ProtocolFormFieldMapping - {watch.Elapsed} - GetProtocolFieldMappingsForCategory");
+
+        watch = System.Diagnostics.Stopwatch.StartNew();
+        this.protocolEDCFormListFull = await protocolEDCFormService.GetFormsForMappingId(protocolMappingId);
+
+        System.Console.WriteLine($"ProtocolFormFieldMapping - {watch.Elapsed} - GetFormsForMappingId");
+
+        this.protocolFieldMappingList = AddMissingFields(this.protocolFieldMappingList, 0);
+
+    }
+
+    private async Task UpdateFieldListMultiForm()
+    {
+        this.multiFormList = await protocolFormMappingService.GetProtocolFormMappingsForCategory(protocolMappingId, protocolCategoryId);
+
+        // Ensure that the form list is up to date
+        var multiFormIds = multiFormList.Select(x => x.ProtocolEDCFormId).ToList();
+        var fieldForms = protocolFieldMappingList
+            .Where(x => x.ProtocolEDCFieldId > 0 && !multiFormIds.Contains(x.ProtocolEDCField.ProtocolEDCFormId))
+            .Select(x => x.ProtocolEDCFormId)
+            .Distinct()
+            .ToList();
+
+        if (fieldForms.Count > 0)
+        {
+            foreach (var formId in fieldForms)
+            {
+                ProtocolFormMapping newForm = new ProtocolFormMapping { ProtocolEDCFormId = formId, ProtocolCategoryId = protocolCategoryId };
+                await this.protocolFormMappingService.SaveProtocolFormMapping(newForm);
+            }
+
+            this.multiFormList = await protocolFormMappingService.GetProtocolFormMappingsForCategory(protocolMappingId, protocolCategoryId);
+        }
+
+        this.multiFormList = this.multiFormList.OrderBy(x => x.ProtocolFormMappingId).ToList();
+
+        multiFormMappings = new Dictionary<int, IList<ProtocolFieldMapping>>();
+
+        foreach (var form in multiFormList)
+        {
+            if (!multiFormRefs.ContainsKey(form.ProtocolFormMappingId))
+                multiFormRefs.Add(form.ProtocolFormMappingId, new DataGrid<ProtocolFieldMapping>());
+            List<ProtocolFieldMapping> formMappings = protocolFieldMappingList.Where(x => x.ProtocolEDCFormId == form.ProtocolEDCFormId).ToList();
+
+            formMappings = AddMissingFields(formMappings, form.ProtocolEDCFormId).ToList();
+            multiFormMappings.Add(form.ProtocolFormMappingId, formMappings);
+            if (form.ProtocolEDCFormId != null && form.ProtocolEDCFormId != 0)
+            {
+                await GetFieldsMultiForm((int)form.ProtocolEDCFormId, form.ProtocolFormMappingId);
+            }
+        }
+    }
+
+    private bool DisableFormDropdown(ProtocolFormMapping? form)
+    {
+        if (form == null)
+            return false;
+
+        // Disable the dropdown to change the form if there are fields already mapped to this form
+        return multiFormMappings[form.ProtocolFormMappingId].Any(x => x.ProtocolEDCFieldId > 0);
+    }
+
+    private async Task Edit(CommandContext context, ProtocolFieldMapping item)
+    {
+        await GetFields(item.ProtocolEDCFormId);
+        await context.Clicked.InvokeAsync();
+    }
+
+    private async Task EditMultiForm(CommandContext context, ProtocolFieldMapping item, int protocolFormMappingId)
+    {
+        await GetFieldsMultiForm(item.ProtocolEDCFormId, protocolFormMappingId);
+        await context.Clicked.InvokeAsync();
+    }
+
+
+    private async Task FormSelectionChange(int protocolEDCFormId, ProtocolFormMapping? form)
+    {
+        if (form == null)
+            return;
+
+        form.ProtocolEDCFormId = protocolEDCFormId; 
+        await GetFieldsMultiForm(protocolEDCFormId, form.ProtocolFormMappingId);
+        await this.protocolFormMappingService.SaveProtocolFormMapping(form);
+        RefreshFormsDropdown();
+        await UpdateFieldListMultiForm();
+    }
+
+    private void RefreshFormsDropdown()
+    {
+        if (this.protocolCategory.IsMultiForm)
+        {
+            this.protocolEDCFormList = this.protocolEDCFormListFull.Where(x => !this.multiFormList.Any(y => y.ProtocolEDCFormId == x.ProtocolEDCFormId)).Select(x => x).ToList();
+        }
+        else
+        {
+            this.protocolEDCFormList = this.protocolEDCFormListFull.Select(x => x).ToList();
+        }
+
+    }
+
+    public async Task GetFields(int formId)
+    {
+        if(formId != 0)
+        {
+            this.protocolEDCFieldList = await protocolEDCFieldService.GetFieldsByFormIds(new List<int> { formId });
+        }
+    }
+
+    public async Task GetFieldsMultiForm(int formId, int mappingId)
+    {
+        if(formId == 0)
+        {
+            this.edcFieldsByForm[mappingId] = new List<ProtocolEDCField>();
+            return;
+        }
+
+        this.edcFieldsByForm[mappingId] = await protocolEDCFieldService.GetFieldsByFormIds(new List<int> { formId });
+    }
+
+    public IList<ProtocolFieldMapping> AddMissingFields(IList<ProtocolFieldMapping> mappings, int? formId)
+    {
+        if(formId == null)
+        {
+            formId = 0;
+        }
+        var fieldMappingIds = mappings.Select(x => x.ThorFieldId).ToList();
+        foreach (var field in protocolFields)
+        {
+            if (!fieldMappingIds.Contains(field.ThorFieldId))
+            {
+                mappings.Add(new ProtocolFieldMapping { ThorFieldId = field.ThorFieldId, ThorField = field.ThorField, ProtocolEDCFieldId = 0, ProtocolEDCFormId = (int)formId });
+            }
+        }
+
+        return mappings;
+    }
+
+    public async void Save(SavedRowItem<ProtocolFieldMapping, Dictionary<string, object>> savedRowItem)
+    {
+        var toSave = savedRowItem.Item;
+
+        bool saved = await protocolFieldMappingService.SaveProtocolFieldMapping(toSave);
+
+        if(this.protocolCategory.ProtocolCategoryStatusId != 2)
+        {
+            // when we save a mapping, we want to make sure the status is Incomplete
+            this.protocolCategory.ProtocolCategoryStatusId = 2;
+            await protocolCategoryService.SaveCategory(this.protocolCategory, this.protocolMappingId);
+        }
+
+        if (saved)
+        {
+            await notificationService.Success("Mapping successfully saved");
+            return;
+        }
+        else
+        {
+            await notificationService.Error("Error saving mapping");
+            return;
+        }
+    }
+
+    private string? GetPlaceholder(ProtocolFieldMapping item)
+    {
+        if (item.ProtocolEDCFormId == 0 && item.ProtocolEDCField == null)
+        {
+            return "Start typing to select an EDC form";
+        }
+        else if (item.ProtocolEDCFormId != 0 && item.ProtocolEDCField == null)
+        {
+            return protocolEDCFormList.FirstOrDefault(x => x.ProtocolEDCFormId == item.ProtocolEDCFormId)?.EDCFormDisplay ?? $"<ProtocolEDCFormId {item.ProtocolEDCFormId} Not in Protocol Mapping>";
+        }
+        return item.ProtocolEDCField.ProtocolEDCForm.EDCFormDisplay;
+    }
+
+    public string? GetThorFieldLabel(ProtocolFieldMapping item)
+    {
+        if (item.ThorFieldId == null || item.ThorFieldId == "")
+        {
+            return "<Not Mapped>";
+        }
+
+        if (this.protocolFieldIdsDisabled.Contains(item.ThorFieldId))
+        {
+            return $"<THORFieldId {item.ThorFieldId} Disabled In Protocol Mapping>";
+        }
+
+        if (!this.protocolFieldsDict.ContainsKey(item.ThorFieldId))
+        {
+            return $"<THORFieldId {item.ThorFieldId} Not In Protocol Mapping>";
+        }
+
+        return item.ThorField?.FieldDisplay ?? $"<Unknown THORFieldId {item.ThorFieldId}>";
+    }
+
+    public bool GetFieldMappingStatus(ProtocolFieldMapping item)
+    {
+        if(item.ProtocolEDCFormId == 0 || item.ProtocolEDCFieldId == 0)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public async Task<CancellableRowChange<ProtocolFieldMapping>> ConfirmDelete(CancellableRowChange<ProtocolFieldMapping> item)
+    {
+        if (!await messageService.Confirm("Are you sure you want to delete this mapping?", "Confirmation"))
+        {
+            item.Cancel = true;
+        }
+
+        return item;
+    }
+
+
+    public async void Delete(ProtocolFieldMapping item)
+    {
+
+        if (await messageService.Confirm("Are you sure you want to delete this mapping?", "Confirmation"))
+        {
+            if (item.ProtocolFieldMappingId == 0)
+            {
+                protocolFieldMappingList.Remove(item);
+                this.StateHasChanged();
+                return;
+            }
+
+            bool deleted = await protocolFieldMappingService.DeleteProtocolFieldMapping(item);
+            if (deleted)
+            {
+                await notificationService.Success("Mapping successfully deleted");
+                await RefreshFields();
+                this.StateHasChanged(); 
+                return;
+            }
+            else
+            {
+                await notificationService.Error("Error deleting mapping");
+                return;
+            }
+        }
+    }
+
+    public async void DeleteForm(ProtocolFormMapping form)
+    {
+        if (await messageService.Confirm("Are you sure you want to delete the form?", "Confirm"))
+        {
+            bool deleted = await protocolFormMappingService.DeleteProtocolFormMapping(form);
+            if (!deleted)
+            {
+                await notificationService.Error("Error deleting form");
+                return;
+            }
+
+            await notificationService.Success("Form successfully deleted");
+            await RefreshFields();
+            this.RefreshFormsDropdown();
+            this.StateHasChanged();
+        }
+    }
+
+    public async void UpdatePrimaryForm(bool isPrimaryForm, ProtocolFormMapping form)
+    {
+        form.IsPrimaryForm = isPrimaryForm;
+        bool saved = await protocolFormMappingService.SaveProtocolFormMapping(form);
+        if (saved)
+        {
+            foreach(var otherForm in this.multiFormList)
+            {
+                if(otherForm.ProtocolFormMappingId != form.ProtocolFormMappingId)
+                {
+                    otherForm.IsPrimaryForm = false;
+                    await this.protocolFormMappingService.SaveProtocolFormMapping(otherForm);
+                }
+            }
+            await notificationService.Success("Primary form updated");
+            return;
+        }
+        else
+        {
+            await notificationService.Error("Error updating primary form");
+            return;
+        }
+    }
+
+    public async void EditDictionaryMapping(ProtocolFieldMapping item)
+    {
+
+        var protocolFieldMappingId = item.ProtocolFieldMappingId;
+        var protocolMappingId = this.protocolMappingId;
+        var protocol = this.protocol;
+        var categoryName = this.currCategory.CategoryName;
+        var formLabel = item.ProtocolEDCField.ProtocolEDCForm.EDCFormDisplay; // protocolEDCFormList.FirstOrDefault(x => x.ProtocolEDCFormId == item.ProtocolEDCFormId)?.EDCFormIdentifier;
+        var protocolCategoryId = this.protocolCategoryId;
+        var thorDictionaryId = item.ThorField?.ThorDictionaryId;
+
+        if (item.ThorField?.ThorDictionaryId == null || item.ThorField.ThorDictionaryId == 0 || formLabel == null)
+        {
+            return;
+        }
+
+        // var url = $"/admin/dmu/dictionary-list-map/{protocolFieldMappingId}?protocolMappingId={protocolMappingId}&protocol={protocol}&categoryName={categoryName}&formLabel={formLabel}&protocolCategoryId={protocolCategoryId}&thorDictionaryId={thorDictionaryId}";
+        var url = $"/admin/dmu/dictionary-list-map/{protocolFieldMappingId}?protocolCategoryId={protocolCategoryId}";
+
+        navigation.NavigateTo(url);
+    }
+
+    public async void AddMultiFormField(ProtocolFieldMapping item)
+    {
+        this.protocolFieldMappingList.Add(new ProtocolFieldMapping { ThorFieldId = item.ThorFieldId, ThorField = item.ThorField, ProtocolEDCFieldId = 0, ProtocolEDCFormId = 0 });
+    }
+
+    public async void AddForm()
+    {
+        ProtocolFormMapping newForm = new ProtocolFormMapping { ProtocolEDCFormId = null, ProtocolCategoryId = protocolCategoryId };
+        await this.protocolFormMappingService.SaveProtocolFormMapping(newForm);
+        this.multiFormRefs.Add(newForm.ProtocolFormMappingId, new DataGrid<ProtocolFieldMapping>());
+        this.multiFormMappings.Add(newForm.ProtocolFormMappingId, new List<ProtocolFieldMapping>());
+        this.multiFormList.Add(newForm);
+        foreach(var protocolField in this.protocolFields){
+            this.multiFormMappings[newForm.ProtocolFormMappingId].Add(new ProtocolFieldMapping { ThorFieldId = protocolField.ThorFieldId, ThorField = protocolField.ThorField, ProtocolEDCFieldId = 0, ProtocolEDCFormId = 0 });
+        }
+
+        this.edcFieldsByForm.Add(newForm.ProtocolFormMappingId, new List<ProtocolEDCField>());
+        this.RefreshFormsDropdown();
+        this.StateHasChanged();
+    }
+
+    public async Task MultiFormChanged(bool isMultiForm)
+    {
+        var success = await UpdateCategory(isMultiForm);
+
+        if (!success)
+        {
+            return;
+        }
+
+        await notificationService.Info("Refreshing field list...");
+
+        await RefreshFields();
+
+    }
+
+    public async Task<bool> UpdateCategory(bool isMultiForm)
+    {
+        this.protocolCategory.IsMultiForm = isMultiForm;
+        this.protocolCategory.ProtocolCategoryStatusId = 2; // set to incomplete
+        bool saved = await protocolCategoryService.SaveCategory(this.protocolCategory, this.protocolMappingId);
+        if (saved)
+        {
+            await notificationService.Success("Category successfully updated");
+            return true;
+        }
+        else
+        {
+            await notificationService.Error("Error updating category");
+            return false;
+        }
+    }
+
+    public async void CompleteMapping()
+    {
+        if(this.isComplete){
+            this.protocolCategory.ProtocolCategoryStatusId = 3; // set to complete
+        }
+        else
+        {
+            this.protocolCategory.ProtocolCategoryStatusId = 2; // set to incomplete
+        }
+        bool saved = await protocolCategoryService.SaveCategory(this.protocolCategory, this.protocolMappingId);
+        if (saved)
+        {
+            await notificationService.Success("Category successfully updated");
+            return;
+        }
+        else
+        {
+            await notificationService.Error("Error updating category");
+            return;
+        }
+    }
+
+    private void Back()
+	{
+		navigation.NavigateTo($"/admin/dmu/category-list-map/{protocolMappingId}", true);
+	}
+}

@@ -23,13 +23,14 @@
                 </RadioGroup>
             </FieldBody>
         </Field>
-        <Validation Validator="@ValidationRule.IsNotEmpty">
+        <Validation Validator="ValidateAlertText">
             <Field Horizontal>
                 <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Alert Text Editor</FieldLabel>
                 <FieldBody ColumnSize="ColumnSize.Is9">
                     <MemoEdit @bind-Text="@alertText" Rows="5" />
                     Use HTML tags to edit text appearance <br />
                     &lt;b&gt;<b>Bold</b>&lt;/b&gt; &lt;i&gt;<i>Italics</i>&lt;/i&gt; | use &lt;br/&gt; for line break
+                    <ValidationError>Alert Text must be between 0 and @alertTextLimit characters.</ValidationError>
                 </FieldBody>
             </Field>
         </Validation>
@@ -167,6 +168,11 @@
     private bool dashboardFieldDisabled = true;
     private bool newAlert = true;
     private DateTime defaultDateTime = new DateTime(2000, 01, 01);
+
+    // Admin Limits
+    //private int pageNameLimit = 50;
+    //private int alertTypeLimit = 20;
+    private int alertTextLimit = 4000;
 
     private ThorAlert currAlert;
 
@@ -403,6 +409,14 @@
     private void Cancel()
     {
         navigation.NavigateTo("/admin/alerts");
+    }
+
+    void ValidateAlertText(ValidatorEventArgs e)
+    {
+        var alertText = Convert.ToString(e.Value);
+
+        e.Status = string.IsNullOrEmpty(alertText) ? ValidationStatus.Error :
+            alertText.Length <= this.alertTextLimit ? ValidationStatus.Success : ValidationStatus.Error;
     }
 
     private bool NavigationAllowed(StepNavigationContext context)

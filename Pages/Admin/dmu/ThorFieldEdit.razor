@@ -1,0 +1,323 @@
+﻿@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@inject IHttpContextAccessor httpContextAccessor
+@layout AdminLayout
+
+
+<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })" AllowedTHORRoles="@(new List<string> { "DMU Global Admin" })"></AdminRoleCheck>
+<DataGrid @ref=dataGridRef
+          TItem="ThorField"
+          Class="admindatagrid"
+          Data="@fieldList"
+          Editable
+          Responsive
+          Sortable
+          SortMode="DataGridSortMode.Single"
+          Striped
+          ShowPager
+          ShowPageSizes
+          NewItemDefaultSetter="@NewItemAction"
+          Filterable
+          FilterMethod="DataGridFilterMethod.Contains"
+           MaxPaginationLinks="5"
+           PagerPosition="DataGridPagerPosition.Bottom"
+           PagerOptions="new(){ButtonSize=Size.Default,
+                                PaginationPosition=PagerElementPosition.Default,
+                                TotalItemsPosition=PagerElementPosition.End,
+                                }"
+          FixedHeader
+           FixedHeaderDataGridHeight="calc(100vh - 240px)"
+           FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
+          EditMode="DataGridEditMode.Inline"
+          EditItemCreator="@CreatEditItem"
+          NewItemCreator="@CreateNewItem"
+           RowUpdated="@Save"
+           RowUpdating="@Verify"
+          RowInserting="@Verify"
+           RowInserted="@Save">
+     <DataGridColumns>
+        <DataGridColumn Width="15%" Field="@nameof(ThorField.ThorDataCategoryId)" Caption="OARS Data Category ID" Editable Filterable="false" Sortable="false">
+              <DisplayTemplate>
+                @(context.Category?.CategoryDisplay)
+            </DisplayTemplate>
+             <EditTemplate>
+                <SelectList TItem="ThorCategory" TValue="string" Data="@categoryList" TextField="@((item)=>item.CategoryDisplay)" ValueField="@((item)=>item.ThorDataCategoryId)" SelectedValueChanged="@( v => {context.CellValue = v;})" SelectedValue="@((string?)context.CellValue)" DefaultItemText="Select A Category" DefaultItemValue="@String.Empty"></SelectList>
+			 </EditTemplate>
+         </DataGridColumn>
+        <DataGridColumn Field="@nameof(ThorField.CategoryDisplay)" Width="15%" Caption="Data Category Search" Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
+             <DisplayTemplate>
+                @context.CategoryDisplay
+			 </DisplayTemplate>
+         </DataGridColumn>
+        <DataGridColumn Field="@nameof(ThorField.ThorFieldId)" Width="15%" Caption="OARS Field ID" Editable Filterable="true" Sortable="true">
+        </DataGridColumn>
+        <DataGridColumn Width="15%" Field="@nameof(ThorField.FieldLabel)" Caption="OARS Field Label" Editable Filterable="true" Sortable="true">
+        </DataGridColumn>
+        <DataGridColumn Width="10%" Caption="OARS Field Type" Field="@nameof(ThorField.ThorFieldTypeId)" Editable Filterable="false" Sortable="false">
+             <DisplayTemplate>
+                 @{
+                     if(context.FieldType != null)
+					 {
+						 @context.FieldType.FieldTypeName
+					 }
+					 else if (context.FieldType == null && context.ThorFieldTypeId != null)
+					 {
+						@this.fieldTypes.FirstOrDefault(x => x.ThorFieldTypeId == context.ThorFieldTypeId)?.FieldTypeName
+					 }
+					 else
+					 {
+						 <p></p>
+					 }
+                 }
+            </DisplayTemplate>
+             <EditTemplate>
+                 <SelectList 
+                     TItem="ThorFieldType" 
+                     TValue="int?" 
+                     Data="@fieldTypes" 
+                     TextField="@((item)=>item.FieldTypeName)" 
+                     ValueField="@((item)=>item.ThorFieldTypeId)"
+                     SelectedValue="@((int?)context.CellValue)" 
+                     SelectedValueChanged="@( async v => { await FieldTypeChanged(v, context); })" 
+                     DefaultItemText="Select A Type" 
+                     DefaultItemValue="0"/>
+             </EditTemplate>
+        </DataGridColumn>
+        <DataGridColumn Field="@nameof(ThorField.FieldTypeName)" Width="10%" Caption="Field Type Search" Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
+            <DisplayTemplate>
+                @context.FieldTypeName
+            </DisplayTemplate>
+        </DataGridColumn>
+         <DataGridColumn Field="@nameof(ThorField.Derivable)" Width="5%" Caption="Derivable" Editable Filterable="true" Sortable="true">
+             <DisplayTemplate>
+                 @((bool)context.Derivable ? "Yes" : "No")
+             </DisplayTemplate>
+             <EditTemplate>
+                 <Select TValue="bool" SelectedValueChanged="@( v => {context.CellValue = v;})" SelectedValue="@((bool)context.CellValue)">
+                     <SelectItem Value="false">No</SelectItem>
+                     <SelectItem Value="true">Yes</SelectItem>
+                 </Select>
+             </EditTemplate>
+         </DataGridColumn>
+         <DataGridColumn Field="@nameof(ThorField.ThorDictionaryId)" Caption="OARS Dictionary Id" Width="20%" Editable Filterable="false" Sortable="false">
+             <DisplayTemplate>
+                 @{
+                    if (context.Dictionary != null)
+					 {
+                        @context.Dictionary.DictionaryName
+                    }
+                    else if (context.Dictionary == null && context.ThorDictionaryId != null)
+                    {
+                        @this.dictionaryList.FirstOrDefault(x => x.ThorDictionaryId == context.ThorDictionaryId)?.DictionaryName
+                    }
+                    else
+					{
+						 <p></p>
+                    }
+                 }
+            </DisplayTemplate>
+            <EditTemplate>
+                @{
+                    int? fieldTypeId = (int?)context.ReadCell(nameof(ThorField.ThorFieldTypeId));
+                    if(fieldTypeId != null)
+                    {
+                        if (fieldTypeId == dropdownFieldTypeId)
+                        {
+                            <SelectList TItem="ThorDictionary" TValue="int?" Data="@dictionaryList" TextField="@((item) => item.DictionaryName)" ValueField="@((item)=>item.ThorDictionaryId)" SelectedValueChanged="@( v => {context.CellValue = v;})" SelectedValue="@((int?)context.CellValue)" DefaultItemText="Select a Dictionary Name" DefaultItemValue="0" />
+                        }
+                        else
+                        {
+                            <TextEdit Disabled />
+                        }
+                    }
+                }
+			 </EditTemplate>
+        </DataGridColumn>
+        <DataGridColumn Field="@nameof(ThorField.DictionaryName)" Width="10%" Caption="Dictionary Name" Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
+            <DisplayTemplate>
+                @context.DictionaryName
+            </DisplayTemplate>
+        </DataGridColumn>
+         <DataGridColumn Field="@nameof(ThorField.IsMultiForm)" Width="5%" Caption="Multi Form" Editable Filterable="true" Sortable="true">
+             <DisplayTemplate>
+                 @((bool)context.IsMultiForm ? "Yes" : "No")
+             </DisplayTemplate>
+             <EditTemplate>
+                 <Select TValue="bool" SelectedValueChanged="@( v => {context.CellValue = v;})" SelectedValue="@((bool)context.CellValue)">
+                     <SelectItem Value="false">No</SelectItem>
+                     <SelectItem Value="true">Yes</SelectItem>
+                 </Select>
+             </EditTemplate>
+         </DataGridColumn>
+         <DataGridColumn Field="@nameof(ThorField.SortOrder)" Caption="Order" Editable Filterable="true" Sortable="true" Width="5%">
+         </DataGridColumn>
+         <DataGridCheckColumn Field="@nameof(ThorField.IsActive)" Caption="Active" Filterable="true" Sortable="true" Editable Width="5%">
+             <DisplayTemplate>
+                 <Check TValue="bool" Checked="context.IsActive" Disabled="true" ReadOnly="true" />
+             </DisplayTemplate>
+         </DataGridCheckColumn>
+         <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
+             <EditCommandTemplate>
+                 <Button><Icon Name="IconName.Edit" Clicked="@context.Clicked" /></Button>
+             </EditCommandTemplate>
+             <SaveCommandTemplate>
+                 <Button><Icon Name="IconName.Save" Clicked="@context.Clicked" /></Button>
+             </SaveCommandTemplate>
+             <CancelCommandTemplate>
+                 <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
+             </CancelCommandTemplate>
+             <ClearFilterCommandTemplate>
+                 <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
+             </ClearFilterCommandTemplate>
+         </DataGridCommandColumn>
+     </DataGridColumns>
+     <ButtonRowTemplate>
+         <Button Color="Color.Primary" Clicked="context.NewCommand.Clicked">Add</Button>
+     </ButtonRowTemplate>
+     <EmptyTemplate>
+         <div class="box">
+             No OARS fields were found.
+         </div>
+     </EmptyTemplate>
+ </DataGrid>
+
+
+@code {
+    [Inject] IThorCategoryService categoryService { get; set; } = null!; 
+    [Inject] IThorFieldService fieldService { get; set; } = null!;
+    [Inject] IThorDictionaryService dictionaryService { get; set; } = null!;
+    [Inject] private NavigationManager navigation { get; set; } = null!;
+    [Inject] INotificationService notificationService { get; set; }
+
+    private DataGrid<ThorField> dataGridRef;
+    private IList<ThorCategory> categoryList;
+    private IList<ThorField> fieldList;
+    private IList<ThorFieldType> fieldTypes;
+    private int dropdownFieldTypeId;
+    private IList<ThorDictionary> dictionaryList;
+
+    private ThorField? selectedField;
+
+    protected override async Task OnInitializedAsync()
+    {
+        this.categoryList = await categoryService.GetCategories();
+        this.fieldList = await fieldService.GetFields();
+        this.fieldTypes = await fieldService.GetFieldTypes();
+        dropdownFieldTypeId = this.fieldTypes.FirstOrDefault(x => x.FieldTypeName == "Dropdown")?.ThorFieldTypeId ?? 0;
+    }
+
+    private async Task RefreshDictionaries()
+    {
+        var dictList = await dictionaryService.GetDictionaries(true);
+
+        this.dictionaryList = dictList.GroupBy(d => d.DictionaryName)
+                                   .Select(g => g.First())
+                                   .OrderBy(d => d.DictionaryName)
+                                   .ToList();
+
+    }
+
+    private async Task FieldTypeChanged(int? v, CellEditContext<ThorField> context)
+    {
+        context.CellValue = v;
+        if (v == dropdownFieldTypeId)
+        {
+            await RefreshDictionaries();
+            context.UpdateCell(nameof(ThorField.ThorDictionaryId), null);
+        }
+    }
+
+    public async void NewItemAction(ThorField item)
+    {
+        item.IsActive = true;
+        var updatedCategories = await categoryService.GetCategories();
+        this.categoryList = updatedCategories;
+    }
+
+    public ThorField CreateNewItem()
+    {
+        selectedField = null;
+        return new ThorField();
+    }
+
+    public ThorField CreatEditItem(ThorField thorField)
+    {
+        selectedField = thorField;
+        return thorField;
+    }
+
+
+    public async Task<CancellableRowChange<ThorField>> Verify(CancellableRowChange<ThorField, Dictionary<string, object>> e)
+    {
+        await notificationService.Info("Validating...");
+
+        e.Values.TryGetValue("ThorFieldId", out var id);
+        e.Values.TryGetValue("ThorDataCategoryId", out var catId);
+        e.Values.TryGetValue("SortOrder", out var order);
+        e.Values.TryGetValue("FieldLabel", out var label);
+        e.Values.TryGetValue("ThorFieldTypeId", out var fieldTypeId);
+        e.Values.TryGetValue("ThorDictionaryId", out var dictId);
+
+        List<string> missingFields = new List<string>();
+
+        if (string.IsNullOrWhiteSpace((string)id))
+        {
+            missingFields.Add("Field ID");
+        }
+        if (string.IsNullOrWhiteSpace((string)catId))
+        {
+            missingFields.Add("Category ID");
+        }
+        if(order == null){
+            missingFields.Add("Sort Order");
+        }
+        if (string.IsNullOrWhiteSpace((string)label))
+        {
+            missingFields.Add("Field Label");
+        }
+        if(fieldTypeId == null)
+        {
+            missingFields.Add("Field Type");
+        }
+        if ((fieldTypeId != null && this.fieldTypes.FirstOrDefault(x => x.ThorFieldTypeId == (int)fieldTypeId)?.FieldTypeName == "Dropdown") && dictId == null)
+        {
+            missingFields.Add("Dictionary Name");
+        }
+
+        if(missingFields.Count > 0)
+        {
+            await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
+            e.Cancel = true;
+            return e;
+        }
+
+        await notificationService.Info("Validating uniqueness...");
+        if (id != null && this.selectedField?.ThorFieldId != (string)id && fieldList.Any(x => x.ThorFieldId == (string)id))
+        {
+            await notificationService.Error($"The field {id} already exists");
+            e.Cancel = true;
+        }
+
+        return e;
+    }
+
+    public async void Save(SavedRowItem<ThorField, Dictionary<string, object>> e)
+    {
+        var toSave = e.Item;
+
+        bool saved = await fieldService.SaveField(toSave);
+
+        if (saved)
+        {
+            await notificationService.Success("Field successfully saved");
+            var updatedCategories = await categoryService.GetCategories();
+            return;
+        }
+        else
+        {
+            await notificationService.Error("Error saving field");
+            return;
+        }
+    }
+}

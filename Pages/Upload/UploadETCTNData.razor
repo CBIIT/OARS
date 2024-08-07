@@ -1,0 +1,612 @@
+﻿@using System.Diagnostics.CodeAnalysis
+@using Microsoft.Extensions.Options
+@using Newtonsoft.Json
+@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@using TheradexPortal.Data.Models.Configuration;
+
+@page "/upload/data"
+@inject IHttpContextAccessor httpContextAccessor
+@inject IOptions<UploadSettings> uploadSettings;
+
+<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1 mb-3"><h2>ETCTN Data Uploads</h2></Div>
+
+<Divider />
+
+<LoadingIndicator @ref="loadingIndicator">
+    <Div Flex="Flex.AlignItems.Start" Margin="Margin.Is3.FromBottom" Background="Background.Light">
+        <Div Padding="Padding.Is4" Style="@flexContainerStyle">
+            <Row>
+                <Column>
+                    <Validations @ref="@ValidationsRef" Mode="ValidationMode.Auto" Model="@ETCTNUploadRequestModel" ValidateOnLoad="false">
+                        <Fields>
+                            <Validation Validator="@ValidationRule.IsNotEmpty">
+                                <Field ColumnSize="ColumnSize.IsThird">
+                                    <FieldLabel>Protocol</FieldLabel>
+                                    <FieldBody>
+                                        <Select @bind-SelectedValue="SelectedProtocol">
+                                            <ChildContent>
+                                                <SelectItem TValue="string"></SelectItem>
+                                                @foreach (var item in protocols)
+                                                {
+                                                    <SelectItem TValue="string" Value="@item">@item</SelectItem>
+                                                }
+                                            </ChildContent>
+                                        </Select>
+                                    </FieldBody>
+                                </Field>
+                            </Validation>
+                            <Validation>
+                                <Field ColumnSize="ColumnSize.IsThird">
+                                    <FieldLabel>Source Site</FieldLabel>
+                                    <FieldBody>
+                                        <Select @bind-SelectedValue="@ETCTNUploadRequestModel.SourceSite">
+                                            <ChildContent>
+                                                <SelectItem TValue="string">@(trackingDestinations.Count() == 0 ? "Select a Protocol" : string.Empty)</SelectItem>
+                                                @foreach (var item in trackingDestinations)
+                                                {
+                                                    <SelectItem TValue="string" Value="@item.UserData">@item.UserData</SelectItem>
+                                                }
+                                            </ChildContent>
+                                        </Select>
+                                    </FieldBody>
+                                </Field>
+                            </Validation>
+                            <Validation>
+                                <Field ColumnSize="ColumnSize.IsThird" Visibility="CheckReceivingSiteVisibility()">
+                                    <FieldLabel>Receiving Site</FieldLabel>
+                                    <FieldBody>
+                                        <Select @bind-SelectedValue="@ETCTNUploadRequestModel.ReceivingSite">
+                                            <ChildContent>
+                                                <SelectItem TValue="string">@(trackingDestinations.Count() == 0 ? "Select a Protocol" : string.Empty)</SelectItem>
+                                                @foreach (var item in trackingDestinations)
+                                                {
+                                                    <SelectItem TValue="string" Value="@item.UserData">@item.UserData</SelectItem>
+                                                }
+                                            </ChildContent>
+                                        </Select>
+                                    </FieldBody>
+                                </Field>
+                            </Validation>
+                        </Fields>
+                        <Fields>
+                            <Validation Validator="@ValidationRule.IsNotEmpty">
+                                <Field ColumnSize="ColumnSize.IsThird">
+                                    <FieldLabel>CRF</FieldLabel>
+                                    <FieldBody>
+                                        <RadioGroup TValue="string" @bind-CheckedValue="SelectedCRF">
+                                            <ChildContent>
+                                                @foreach (var item in crfs)
+                                                {
+                                                    <Radio Value="@item.FormOID">@item.FormName</Radio>
+
+                                                    <br>
+                                                }
+                                            </ChildContent>
+                                        </RadioGroup>
+                                        <Div Visibility="@CheckDownloadAndInstructionsVisibility()">
+                                            <Icon Name="IconName.Download" IconSize="@IconSize.ExtraSmall" />&nbsp;
+                                            <Link Clicked="OnDownloadTemplate" To="#">
+                                            Download
+                                            </Link>
+                                            &nbsp;&nbsp;&nbsp;&nbsp;
+                                            <Icon Name="IconName.ListUl" IconSize="@IconSize.ExtraSmall" />&nbsp;
+                                            <Link Clicked="OnInstructionsView" To="#">
+                                            Instructions
+                                            </Link>
+                                        </Div>
+                                        <Div Visibility="@CheckExternalLinkVisibility()">
+                                            <Icon Name="IconName.ExternalLinkSquareAlt" IconSize="@IconSize.ExtraSmall" />&nbsp;
+                                            <Link Target="Target.Blank" To="@webReportingETCTNDataUploadURL">
+                                            Click here to access User Interface for this Csv Upload.
+                                            </Link>
+                                        </Div>
+                                    </FieldBody>
+                                </Field>
+                            </Validation>
+                            <Validation>
+                                <Field ColumnSize="ColumnSize.IsThird" Visibility="CheckAssayVisibility()">
+                                    <FieldLabel>Assay</FieldLabel>
+                                    <FieldBody>
+                                        <Select @bind-SelectedValue="@ETCTNUploadRequestModel.Assay">
+                                            <ChildContent>
+                                                <SelectItem TValue="string">@(assays.Count() == 0 ? "Select a Protocol" : string.Empty)</SelectItem>
+                                                @foreach (var item in assays)
+                                                {
+                                                    <SelectItem TValue="string" Value="@item.CodedData">@item.UserData</SelectItem>
+                                                }
+                                            </ChildContent>
+                                        </Select>
+                                    </FieldBody>
+                                </Field>
+                            </Validation>
+                        </Fields>
+                        <Fields>
+                            <Validation Validator="@ValidateFile">
+                                <Field>
+                                    <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Attach File</FieldLabel>
+                                    <FieldLabel>Accepted File Types: CSV</FieldLabel>
+                                    <FileEdit @ref="@fileEditRef" Changed="@OnFileUpload" MaxFileSize="4194304" Filter=".csv" AutoReset="false" DisableProgressReport="false" Disabled="@IsFileUploadDisabled()">
+                                    </FileEdit>
+                                </Field>
+                            </Validation>
+                        </Fields>
+                    </Validations>
+                    <Button Color="Color.Primary" Clicked="@OnSubmit" Disabled="@IsFileUploadDisabled()">
+                        Submit
+                    </Button>
+                    <Button Color="Color.Warning" Clicked="@OnReset">
+                        Reset
+                    </Button>
+                </Column>
+            </Row>
+        </Div>
+    </Div>
+</LoadingIndicator>
+
+<Modal @ref="UploadInstructionsModal" Closing="@OnUploadInstructionsModalClosing">
+    <ModalContent Centered Size="ModalSize.Large">
+         <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
+             <ModalTitle>@SelectedCRFDescription</ModalTitle>
+                <CloseButton />
+            </ModalHeader>
+            <ModalBody>
+                <ListGroup Flush Padding="Padding.Is2">
+                 @if (crfRule != null)
+                {
+                    foreach (var item in crfRule.Rules)
+                    {
+                        <ListGroupItem>
+                            <Div Padding="Padding.Is2">
+                                <Heading Size="HeadingSize.Is6">@item.Column</Heading>
+                                    <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>@item.Description</Small></Paragraph>
+                                </Div>
+                            </ListGroupItem>
+                    }
+                }
+                else
+                {
+                    <ListGroupItem>
+                        <Div Padding="Padding.Is2">
+                            <Heading Size="HeadingSize.Is6">Instructions not available.</Heading>
+                            <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart"><Small>Please try again later.</Small></Paragraph>
+                        </Div>
+                    </ListGroupItem>
+                }
+            </ListGroup>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Primary" Clicked="@HideUploadInstructionsModal">Close</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+<Modal @ref="SubmitConfirmationModal" Closing="@OnSubmitConfirmationModalClosing">
+    <ModalContent>
+        <ModalHeader Background="Background.Success" TextColor="TextColor.Light">
+            <ModalTitle>Confirmation</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            You've successfully submitted the upload request. <br />
+            Reference# @lastSubmittedRequestId
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Primary" Clicked="@HideSubmitConfirmationModal">Ok</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+@code {
+
+    @inject IJSRuntime JS
+    @inject IConfiguration configuration
+
+    private Modal SubmitConfirmationModal;
+    private Modal UploadInstructionsModal;
+    private bool cancelClose;
+
+    string flexContainerStyle = $"width:75%;";
+
+    [Inject] IUploadService uploadService { get; set; } = null!;
+    [Inject] IErrorLogService errorLogService { get; set; } = null!;
+    [Inject] NavigationManager Navigation { get; set; }
+    [Inject] IEmailService emailService { get; set; } = null!;
+    [Inject] INotificationService NotificationService { get; set; }
+    [Inject] private IUserService userService { get; set; } = null!;
+
+    List<MedidataDictionaryModel> trackingDestinations = new List<MedidataDictionaryModel>();
+    List<MedidataDictionaryModel> assays = new List<MedidataDictionaryModel>();
+    List<CRFModel> crfs = new List<CRFModel>();
+    List<ProtocolData> protocolData = new List<ProtocolData>();
+    List<CRFRule> crfRules = new List<CRFRule>();
+    List<string> protocols = new List<string>();
+    CRFRule crfRule = null;
+    string webReportingETCTNDataUploadURL = null;
+    string wsURL = null;
+
+    int? userId = null;
+    bool IsAdmin = false;
+    string currentEnvironment = null;
+
+    string lastSubmittedRequestId = string.Empty;
+
+    FileEdit fileEditRef;
+
+    Validations ValidationsRef { get; set; }
+
+    ETCTNUploadRequest ETCTNUploadRequestModel { get; set; } = new ETCTNUploadRequest();
+
+    UploadFileModel? UploadFile;
+
+    LoadingIndicator loadingIndicator;
+
+    public string SelectedProtocol
+    {
+        get
+        {
+            return ETCTNUploadRequestModel.Protocol;
+        }
+        set
+        {
+            ETCTNUploadRequestModel.Protocol = value;
+
+            OnProtocolChanged();
+        }
+    }
+
+    public string SelectedCRF
+    {
+        get
+        {
+            return ETCTNUploadRequestModel.CRF;
+        }
+        set
+        {
+            ETCTNUploadRequestModel.CRF = value;
+
+            if (!string.IsNullOrEmpty(ETCTNUploadRequestModel.CRF))
+            {
+                SelectedCRFDescription = crfs.First(t => t.FormOID.Equals(ETCTNUploadRequestModel.CRF)).FormName;
+
+                if (ETCTNUploadRequestModel.CRF == "IFA_RESULT_SUMMARY")
+                    webReportingETCTNDataUploadURL = wsURL + "RAIUpload.aspx";
+                else
+                    webReportingETCTNDataUploadURL = wsURL + "ETCTNDataUpload.aspx";
+
+                ValidationsRef.ValidateAll();
+            }
+            else
+                SelectedCRFDescription = string.Empty;
+
+            clearFile();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+    }
+
+    private async Task LoadUploadConfiguration()
+    {
+        try
+        {
+            await loadingIndicator.Show();
+
+            userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+
+            User curUser = await userService.GetUserAsync(userId.Value);
+
+            currentEnvironment = configuration.GetValue<string>("System:Environment");
+
+            crfs = uploadService.GetCRFs();
+
+            var uploadConfiguration = await uploadService.GetUploadConfigurationAsync(userId.Value, curUser.AllStudies);
+
+            protocolData = uploadConfiguration.ProtocolData;
+
+            crfRules = uploadConfiguration.CRFRules;
+
+            wsURL = configuration.GetValue<string>("WebReporting:WRUrl");
+
+            if (protocolData == null)
+            {
+                await NotificationService.Error("There's an error loading the studies. Please try again later.");
+            }
+            else if (currentEnvironment.IndexOf("prod", StringComparison.InvariantCultureIgnoreCase) < 0 &&
+                             protocolData.Any(t => !string.IsNullOrWhiteSpace(t.Environment) && t.Environment.IndexOf("prod", StringComparison.InvariantCultureIgnoreCase) >= 0))
+            {
+                await NotificationService.Error($"Medidata Environment is invalid in this environment. Please try again later.");
+            }
+            else
+                protocols = protocolData.Where(t => !string.IsNullOrWhiteSpace(t.Environment)).Select(t => $"{t.Protocol}({t.Environment})").ToList();
+
+            await OnReset();
+        }
+        catch (Exception ex)
+        {
+            errorLogService.SaveErrorLogAsync(userId.Value, Navigation.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+        }
+        finally
+        {
+            await loadingIndicator.Hide();
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadUploadConfiguration();
+        }
+    }
+
+    void OnProtocolChanged()
+    {
+        if (string.IsNullOrEmpty(ETCTNUploadRequestModel.Protocol))
+        {
+            trackingDestinations = new List<MedidataDictionaryModel>();
+            assays = new List<MedidataDictionaryModel>();
+            return;
+        }
+
+        var data = protocolData.First(t => ETCTNUploadRequestModel.Protocol.StartsWith(t.Protocol));
+
+        trackingDestinations = data.Sites;
+
+        assays = data.Assays;
+
+        ETCTNUploadRequestModel.ReceivingSite = null;
+        ETCTNUploadRequestModel.SourceSite = null;
+        ETCTNUploadRequestModel.Assay = null;
+
+        ValidationsRef.ValidateAll();
+
+    }
+
+    async Task OnCRFChanged()
+    {
+        await clearFile();
+    }
+
+    private string SelectedCRFDescription
+    {
+        get;
+        set;
+    }
+
+    private Task OnUploadInstructionsModalClosing(ModalClosingEventArgs e)
+    {
+        e.Cancel = cancelClose
+            || e.CloseReason != CloseReason.UserClosing;
+
+        return Task.CompletedTask;
+    }
+
+    private Task OnSubmitConfirmationModalClosing(ModalClosingEventArgs e)
+    {
+        e.Cancel = cancelClose
+            || e.CloseReason != CloseReason.UserClosing;
+
+        return Task.CompletedTask;
+    }
+
+    private Task HideUploadInstructionsModal()
+    {
+        return UploadInstructionsModal.Hide();
+    }
+
+    private Task HideSubmitConfirmationModal()
+    {
+        return SubmitConfirmationModal.Hide();
+    }
+
+    private Blazorise.Visibility CheckExternalLinkVisibility()
+    {
+        if (ETCTNUploadRequestModel.CRF != null && !(ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS" || ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP_ASSAY"))
+            return Visibility.Visible;
+        else
+            return Visibility.Invisible;
+    }
+
+    private Blazorise.Visibility CheckAssayVisibility()
+    {
+        if (ETCTNUploadRequestModel.CRF != null && ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP_ASSAY")
+            return Visibility.Visible;
+        else
+            return Visibility.Invisible;
+    }
+
+    private Blazorise.Visibility CheckReceivingSiteVisibility()
+    {
+        if (ETCTNUploadRequestModel.CRF != null && ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS")
+            return Visibility.Visible;
+        else
+            return Visibility.Invisible;
+    }
+
+    private Blazorise.Visibility CheckDownloadAndInstructionsVisibility()
+    {
+        if (!string.IsNullOrWhiteSpace(ETCTNUploadRequestModel.CRF))
+            return Visibility.Visible;
+        else
+            return Visibility.Invisible;
+    }
+
+    private bool IsFileUploadDisabled()
+    {
+        if (ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS" || ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP_ASSAY")
+            return false;
+        else
+            return true;
+    }
+
+    async Task OnDownloadTemplate()
+    {
+        var fileName = crfs.First(t => t.FormOID == ETCTNUploadRequestModel.CRF).FormName;
+
+        var preSignedUrl = await uploadService.GetCRFTemplateDownloadUrl(ETCTNUploadRequestModel.CRF, $"{fileName}.csv");
+
+        string[] values = { preSignedUrl, "_blank" };
+        CancellationToken token = new CancellationToken(false);
+        await JS.InvokeAsync<object>("open", token, values);
+    }
+
+    private Task OnInstructionsView()
+    {
+        crfRule = crfRules.FirstOrDefault(t => t.CRF == ETCTNUploadRequestModel.CRF);
+
+        return UploadInstructionsModal.Show();
+    }
+
+    async Task OnReset()
+    {
+        await ValidationsRef.ClearAll();
+
+        ETCTNUploadRequestModel = new ETCTNUploadRequest();
+
+        SelectedProtocol = null;
+
+        SelectedCRF = null;
+
+        trackingDestinations = new List<MedidataDictionaryModel>();
+
+        assays = new List<MedidataDictionaryModel>();
+
+        await clearFile();
+    }
+
+    async Task clearFile()
+    {
+        await fileEditRef.Reset().AsTask();
+
+        UploadFile = null;
+    }
+
+    async Task OnSubmit()
+    {
+        if (await ValidationsRef.ValidateAll() && UploadFile != null)
+        {
+            await UploadMetadata();
+
+            await OnReset();
+        }
+    }
+
+    async Task<bool> UploadMetadata()
+    {
+        try
+        {
+            await loadingIndicator.Show();
+
+            ETCTNUploadRequestModel.RequestId = uploadService.GetRequestId(ETCTNUploadRequestModel);
+
+            var key = uploadService.GetMetadataFileUploadKey(ETCTNUploadRequestModel);
+
+            var metadataFile = uploadService.GetMetadatafile(ETCTNUploadRequestModel, UploadFile, userId.Value, currentEnvironment);
+
+            var json = JsonConvert.SerializeObject(metadataFile);
+
+            var isSuccess = await uploadService.UploadMetatdataFileToS3(key, userId.Value, json);
+
+            if (isSuccess)
+            {
+                lastSubmittedRequestId = ETCTNUploadRequestModel.RequestId;
+
+                await SubmitConfirmationModal.Show();
+            }
+            else
+            {
+                await NotificationService.Error("There's an error submitting your Csv File. Please Reset and try again.");
+            }
+
+            return isSuccess;
+        }
+        catch (Exception ex)
+        {
+            errorLogService.SaveErrorLogAsync(userId.Value, Navigation.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+
+            return false;
+        }
+        finally
+        {
+            await loadingIndicator.Hide();
+        }
+    }
+
+    async Task OnFileUpload(FileChangedEventArgs e)
+    {
+        try
+        {
+            await loadingIndicator.Show();
+
+            IFileEntry? selectedFile = e.Files.FirstOrDefault();
+
+            if (selectedFile == null || string.IsNullOrWhiteSpace(SelectedCRF))
+            {
+                return;
+            }
+
+            try
+            {
+                var fileExtension = Path.GetExtension(selectedFile.Name);
+
+                if (fileExtension.ToLower() != ".csv")
+                {
+                    await fileEditRef.Reset().AsTask();
+
+                    return;
+                }
+
+                var originalFileName = Path.GetFileName(selectedFile.Name);
+                var key = uploadService.GetCsvUploadKey(ETCTNUploadRequestModel);
+
+                using (var stream = new MemoryStream())
+                {
+                    await selectedFile.WriteToStreamAsync(stream);
+
+                    var isSuccess = await uploadService.UploadCsvFileToS3(key, userId.Value, stream);
+
+                    if (isSuccess)
+                    {
+                        UploadFile = new UploadFileModel { OriginalFileName = originalFileName, S3Key = key };
+
+                        await NotificationService.Success("File uploaded successfully. Please Submit your request now.");
+                    }
+                    else
+                    {
+                        await NotificationService.Error("There's an error uploading the file. Please Reset and try again.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await errorLogService.SaveErrorLogAsync(userId.Value, Navigation.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+            }
+        }
+        catch (Exception ex)
+        {
+            errorLogService.SaveErrorLogAsync(userId.Value, Navigation.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+        }
+        finally
+        {
+            this.StateHasChanged();
+
+            await loadingIndicator.Hide();
+        }
+    }
+
+    private void ValidateFile(ValidatorEventArgs e)
+    {
+        if (UploadFile == null)
+        {
+            e.Status = ValidationStatus.Error;
+        }
+        else
+        {
+            e.Status = ValidationStatus.Success;
+        }
+    }
+}

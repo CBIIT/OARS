@@ -8,7 +8,7 @@ namespace TheradexPortal.Data.Services
 
     public class StudyService : BaseService, IStudyService
     {
-        public StudyService(IDbContextFactory<ThorDBContext> dbFactory) : base(dbFactory) { }
+        public StudyService(IDatabaseConnectionService databaseConnectionService) : base(databaseConnectionService) { }
         
         public async Task<IList<Protocol>> GetAllProtocolsAsync()
         {

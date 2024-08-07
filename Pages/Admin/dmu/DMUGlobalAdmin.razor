@@ -1,0 +1,45 @@
+﻿@using System.Diagnostics.CodeAnalysis
+@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@inject IHttpContextAccessor httpContextAccessor
+@layout AdminLayout
+
+@page "/admin/dmu/global-admin"
+<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })" AllowedTHORRoles="@(new List<string> { "DMU Global Admin" })"></AdminRoleCheck>
+<div class="dmu-admin-step-container">
+    <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Global Administration</h2></Div>
+    <Row Style="padding:10px"><Column ColumnSize="ColumnSize.Is1"><Button Clicked="@Back" Color="Color.Primary"><Icon Name="IconName.ArrowLeft" /> Back</Button></Column></Row>
+    <Row Class="dmu-admin-step-container">
+        <Steps @ref="stepsRef" SelectedStep="@selectedStep" NavigationAllowed="NavigationAllowed">
+            <Items>
+                <Step Name="thordatacategory">OARS Data Category</Step>
+                <Step Name="thorfields">OARS Fields</Step>
+                <Step Name="thordictionary">OARS Dictionary</Step>
+                <Step Name="protocoldatasystem">Data Systems</Step>
+            </Items>
+            <Content>
+                <StepPanel Name="thordatacategory"><ThorCategoryEdit></ThorCategoryEdit></StepPanel>
+                <StepPanel Name="thorfields"><ThorFieldEdit></ThorFieldEdit></StepPanel>
+                <StepPanel Name="thordictionary"><ThorDictionaryEdit></ThorDictionaryEdit></StepPanel>
+                <StepPanel Name="protocoldatasystem"><ProtocolDataSystemEdit></ProtocolDataSystemEdit></StepPanel>
+            </Content>
+        </Steps>
+    </Row>
+
+</div>
+@code {
+    string selectedStep = "thordatacategory";
+    [AllowNull] private Steps stepsRef;
+    [Inject] private NavigationManager navigation { get; set; } = null!;
+
+    private bool NavigationAllowed(StepNavigationContext context)
+    {
+        return true;
+    }
+
+    private void Back()
+	{
+        navigation.NavigateTo("/admin/dmu/select-profile");
+	}
+}
