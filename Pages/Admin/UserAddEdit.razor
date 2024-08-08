@@ -1103,7 +1103,7 @@
         {
             if (UserId == null)
             {
-                bool isProd = !(configuration.GetValue<string>("System:Environment").StartsWith("Prod"));
+                bool isProd = configuration.GetValue<string>("System:Environment").StartsWith("Prod");
 
                 string baseURL = navigation.BaseUri;
                 string initialSite = "NCI Oncology Automated Reporting System";

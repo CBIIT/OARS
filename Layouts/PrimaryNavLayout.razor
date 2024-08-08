@@ -320,6 +320,7 @@
         {
             await this.alertBarDropDown!.Hide();
             this.systemAlertsTooltip = this.noSystemAlertsMessage;
+            this.systemAlertsDropdownVisible = false;
         }
         else
         {
@@ -499,7 +500,7 @@
         {
             emailTo = string.Empty;
             emailCategory = string.Empty;
-            bool isProd = !(configuration.GetValue<string>("System:Environment").StartsWith("Prod"));
+            bool isProd = configuration.GetValue<string>("System:Environment").StartsWith("Prod");
             string siteName = "NCI Oncology Automated Reporting System";
             if (!isProd)
                 siteName = siteName + "-" + configuration.GetValue<string>("System:Environment");
