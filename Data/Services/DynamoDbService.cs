@@ -33,14 +33,14 @@ namespace TheradexPortal.Data.Services
                     ScanOperator.Equal,
                     userId.ToString()
                   ));
-
-                conditions.Add(new ScanCondition
-                  (
-                    nameof(FileIngestRequest.Environment),
-                    ScanOperator.Equal,
-                    environment.ToString()
-                  ));
             }
+
+            conditions.Add(new ScanCondition
+              (
+                nameof(FileIngestRequest.Environment),
+                ScanOperator.Equal,
+                environment.ToString()
+              ));
 
             var search = _dynamoDbContext.ScanAsync<FileIngestRequest>(conditions);
 
