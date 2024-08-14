@@ -259,9 +259,13 @@
     padding-left: 0;
 }
 
-.upload-Modal-Body {
+/*.upload-Modal-Body {
     height: 100vh;
     overflow: auto;
+}*/
+
+.upload-Modal-Body {
+    overflow-x: scroll;
 }
 
 .overview-Modal-Cell {

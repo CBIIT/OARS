@@ -408,7 +408,12 @@
 
     private Blazorise.Visibility CheckExternalLinkVisibility()
     {
-        if (ETCTNUploadRequestModel.CRF != null && !(ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS" || ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP_ASSAY"))
+        if (ETCTNUploadRequestModel.CRF != null 
+                && !(ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS" 
+                    || ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP_ASSAY")
+                    // || ETCTNUploadRequestModel.CRF == "LIBRARY_QC"
+                    // || ETCTNUploadRequestModel.CRF == "SEQUENCING_QC"
+                   )
             return Visibility.Visible;
         else
             return Visibility.Invisible;
@@ -440,7 +445,11 @@
 
     private bool IsFileUploadDisabled()
     {
-        if (ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS" || ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP_ASSAY")
+        if (ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS" 
+            || ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP_ASSAY"
+            // || ETCTNUploadRequestModel.CRF == "LIBRARY_QC"
+            // || ETCTNUploadRequestModel.CRF == "SEQUENCING_QC"
+            )
             return false;
         else
             return true;

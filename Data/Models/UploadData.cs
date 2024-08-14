@@ -311,7 +311,6 @@ namespace TheradexPortal.Data.Models
         public string OtherReason { get; set; }
     }
 
-
     [DynamoDBTable("BiospecimenRoadmapFileData")]
     public class BiospecimenRoadmapFileData : BaseFileData
     {
@@ -341,6 +340,195 @@ namespace TheradexPortal.Data.Models
 
         [DynamoDBProperty(AttributeName = "Active")]
         public string Active { get; set; }
+    }
+
+    [DynamoDBTable("ShippingStatusFileData")]
+    public class ShippingStatusFileData : BaseFileData
+    {
+        [DynamoDBProperty(AttributeName = "RowData")]
+        public ShippingStatusRowData RowData { get; set; }
+    }
+
+    public class ShippingStatusRowData
+    {
+        [DynamoDBProperty(AttributeName = "Protocol")]
+        public string Protocol { get; set; }
+
+        [DynamoDBProperty(AttributeName = "SubjectID")]
+        public string SubjectID { get; set; }
+
+        [DynamoDBProperty(AttributeName = "SpecimenID")]
+        public string SpecimenID { get; set; }
+
+        [DynamoDBProperty(AttributeName = "SubspecimenID")]
+        public string SubspecimenID { get; set; }
+
+        [DynamoDBProperty(AttributeName = "CourierName")]
+        public string CourierName { get; set; }
+
+        [DynamoDBProperty(AttributeName = "ShippingTrackingNumber")]
+        public string ShippingTrackingNumber { get; set; }
+
+        [DynamoDBProperty(AttributeName = "ShippingSource")]
+        public string ShippingSource { get; set; }
+
+        [DynamoDBProperty(AttributeName = "SendersName")]
+        public string SendersName { get; set; }
+
+        [DynamoDBProperty(AttributeName = "SendersTelephoneNumber")]
+        public string SendersTelephoneNumber { get; set; }
+
+        [DynamoDBProperty(AttributeName = "SendersEmailAddress")]
+        public string SendersEmailAddress { get; set; }
+
+        [DynamoDBProperty(AttributeName = "NumberOfSamplesSent")]
+        public string NumberOfSamplesSent { get; set; }
+
+        [DynamoDBProperty(AttributeName = "ShippingConditions")]
+        public string ShippingConditions { get; set; }
+
+        [DynamoDBProperty(AttributeName = "ShippedDate")]
+        public string ShippedDate { get; set; }
+
+        [DynamoDBProperty(AttributeName = "Destination")]
+        public string Destination { get; set; }
+
+        [DynamoDBProperty(AttributeName = "NoticeSentTo")]
+        public string NoticeSentTo { get; set; }
+
+        [DynamoDBProperty(AttributeName = "Active")]
+        public string Active { get; set; }
+    }
+
+    [DynamoDBTable("TSO500SequencingQCFileData")]
+    public class TSO500SequencingQCFileData : BaseFileData
+    {
+        [DynamoDBProperty(AttributeName = "RowData")]
+        public TSO500SequencingQCRowData RowData { get; set; }
+    }
+
+    public class TSO500SequencingQCRowData
+    {
+        [DynamoDBProperty(AttributeName = "Protocol")]
+        public string Protocol { get; set; }
+
+        [DynamoDBProperty(AttributeName = "SubspecimenID")]
+        public string SubspecimenID { get; set; }
+
+        [DynamoDBProperty(AttributeName = "RunID")]
+        public string RunID { get; set; }
+
+        [DynamoDBProperty(AttributeName = "SequencingID")]
+        public string SequencingID { get; set; }
+
+        [DynamoDBProperty(AttributeName = "ContaminationScore")]
+        public string ContaminationScore { get; set; }
+
+        [DynamoDBProperty(AttributeName = "ContaminationLevel")]
+        public string ContaminationLevel { get; set; }
+
+        [DynamoDBProperty(AttributeName = "MeanFamilyDepth")]
+        public string MeanFamilyDepth { get; set; }
+
+        [DynamoDBProperty(AttributeName = "PassFilterReads")]
+        public string PassFilterReads { get; set; }
+
+        [DynamoDBProperty(AttributeName = "noiseAF")]
+        public string noiseAF { get; set; }
+
+        [DynamoDBProperty(AttributeName = "MAD")]
+        public string MAD { get; set; }
+
+        [DynamoDBProperty(AttributeName = "MedianInsertSize")]
+        public string MedianInsertSize { get; set; }
+
+        [DynamoDBProperty(AttributeName = "Uniformity20Percent")]
+        public string Uniformity20Percent { get; set; }
+
+        [DynamoDBProperty(AttributeName = "PercentExonGreaterthan500X")]
+        public string PercentExonGreaterthan500X { get; set; }
+
+        [DynamoDBProperty(AttributeName = "MedianExonCoverage")]
+        public string MedianExonCoverage { get; set; }
+
+        [DynamoDBProperty(AttributeName = "TumorMutationBurden")]
+        public string TumorMutationBurden { get; set; }
+
+        [DynamoDBProperty(AttributeName = "UsableMSISites_QC")]
+        public string UsableMSISites_QC { get; set; }
+
+        [DynamoDBProperty(AttributeName = "PercentMSISitesUnstable")]
+        public string PercentMSISitesUnstable { get; set; }
+
+        [DynamoDBProperty(AttributeName = "MedianBinCount")]
+        public string MedianBinCount { get; set; }
+
+        [DynamoDBProperty(AttributeName = "QCResult")]
+        public string QCResult { get; set; }
+
+        [DynamoDBProperty(AttributeName = "Comments")]
+        public string Comments { get; set; }
+
+        [DynamoDBProperty(AttributeName = "Input_ng")]
+        public string Input_ng { get; set; }
+
+        [DynamoDBProperty(AttributeName = "PercentcfDNA")]
+        public string PercentcfDNA { get; set; }
+
+        [DynamoDBProperty(AttributeName = "Active")]
+        public string Active { get; set; }
+
+        [DynamoDBProperty(AttributeName = "SpecimenID")]
+        public string SpecimenID { get; set; }
+
+        [DynamoDBProperty(AttributeName = "SubjectKey")]
+        public string SubjectKey { get; set; }
+
+        [DynamoDBProperty(AttributeName = "StudyEventRepeatKey")]
+        public string StudyEventRepeatKey { get; set; }
+    }
+
+    [DynamoDBTable("TSO500LibraryQCFileData")]
+    public class TSO500LibraryQCFileData : BaseFileData
+    {
+        [DynamoDBProperty(AttributeName = "RowData")]
+        public TSO500LibraryQCRowData RowData { get; set; }
+    }
+
+    public class TSO500LibraryQCRowData
+    {
+        [DynamoDBProperty(AttributeName = "Protocol")]
+        public string Protocol { get; set; }
+
+        [DynamoDBProperty(AttributeName = "LibraryStartDate")]
+        public string LibraryStartDate { get; set; }
+
+        [DynamoDBProperty(AttributeName = "SubspecimenID")]
+        public string SubspecimenID { get; set; }
+
+        [DynamoDBProperty(AttributeName = "LibraryID")]
+        public string LibraryID { get; set; }
+
+        [DynamoDBProperty(AttributeName = "AverageSize_bp")]
+        public string AverageSize_bp { get; set; }
+
+        [DynamoDBProperty(AttributeName = "QCResult")]
+        public string QCResult { get; set; }
+
+        [DynamoDBProperty(AttributeName = "LibraryConc_ngul")]
+        public string LibraryConc_ngul { get; set; }
+
+        [DynamoDBProperty(AttributeName = "Active")]
+        public string Active { get; set; }
+
+        [DynamoDBProperty(AttributeName = "SpecimenID")]
+        public string SpecimenID { get; set; }
+
+        [DynamoDBProperty(AttributeName = "SubjectKey")]
+        public string SubjectKey { get; set; }
+
+        [DynamoDBProperty(AttributeName = "StudyEventRepeatKey")]
+        public string StudyEventRepeatKey { get; set; }
     }
 
     public class BaseFileData

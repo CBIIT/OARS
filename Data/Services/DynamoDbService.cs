@@ -123,5 +123,89 @@ namespace TheradexPortal.Data.Services
 
             return result?.OrderBy(p => p.RowNo).ToList();
         }
+
+        public async Task<List<ShippingStatusFileData>?> GetAllShippingStatusData(string requestId)
+        {
+            //var conditions = new List<ScanCondition>
+            //    {
+            //        new ScanCondition("RequestId", ScanOperator.Equal, new string[1] { requestId })
+            //    };
+
+            //var records = await (_dynamoDbContext.ScanAsync<ShippingStatusFileData>(conditions).GetNextSetAsync());
+
+            //return records;
+
+            var search = _dynamoDbContext.ScanAsync<ShippingStatusFileData>
+            (
+              new[] {
+                            new ScanCondition
+                              (
+                                nameof(ShippingStatusFileData.RequestId),
+                                ScanOperator.Equal,
+                                requestId
+                              )
+                    }
+            );
+
+            var result = await search.GetRemainingAsync();
+
+            return result?.OrderBy(p => p.RowNo).ToList();
+        }
+
+        public async Task<List<TSO500SequencingQCFileData>?> GetAllTSO500SequencingQCData(string requestId)
+        {
+            //var conditions = new List<ScanCondition>
+            //    {
+            //        new ScanCondition("RequestId", ScanOperator.Equal, new string[1] { requestId })
+            //    };
+
+            //var records = await (_dynamoDbContext.ScanAsync<TSO500SequencingQCFileData>(conditions).GetNextSetAsync());
+
+            //return records;
+
+            var search = _dynamoDbContext.ScanAsync<TSO500SequencingQCFileData>
+            (
+              new[] {
+                            new ScanCondition
+                              (
+                                nameof(TSO500SequencingQCFileData.RequestId),
+                                ScanOperator.Equal,
+                                requestId
+                              )
+                    }
+            );
+
+            var result = await search.GetRemainingAsync();
+
+            return result?.OrderBy(p => p.RowNo).ToList();
+        }
+
+        public async Task<List<TSO500LibraryQCFileData>?> GetAllTSO500LibraryQCData(string requestId)
+        {
+            //var conditions = new List<ScanCondition>
+            //    {
+            //        new ScanCondition("RequestId", ScanOperator.Equal, new string[1] { requestId })
+            //    };
+
+            //var records = await (_dynamoDbContext.ScanAsync<TSO500LibraryQCFileData>(conditions).GetNextSetAsync());
+
+            //return records;
+
+            var search = _dynamoDbContext.ScanAsync<TSO500LibraryQCFileData>
+            (
+              new[] {
+                            new ScanCondition
+                              (
+                                nameof(TSO500LibraryQCFileData.RequestId),
+                                ScanOperator.Equal,
+                                requestId
+                              )
+                    }
+            );
+
+            var result = await search.GetRemainingAsync();
+
+            return result?.OrderBy(p => p.RowNo).ToList();
+        }
     }
 }

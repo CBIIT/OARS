@@ -276,6 +276,103 @@ namespace TheradexPortal.Data.Services
             return requestItems;
         }
 
+        public async Task<List<ShippingStatusFileData>?> GetShippingStatusFileData(string requestId)
+        {
+            var requestItems = await _dynamoDbService.GetAllShippingStatusData(requestId);
+
+            if (requestItems != null)
+            {
+                foreach (var requestItem in requestItems)
+                {
+                    if (requestItem.Status >= 201 && requestItem.Status <= 210)
+                    {
+                        requestItem.ClientStatus = RequestItemStatusV2.Received.ToString();
+                    }
+                    else if (requestItem.Status >= 211 && requestItem.Status <= 220)
+                    {
+                        requestItem.ClientStatus = RequestItemStatusV2.InProgress.ToString();
+                    }
+                    else if (requestItem.Status >= 221 && requestItem.Status <= 230)
+                    {
+                        requestItem.ClientStatus = ((RequestItemStatusV2)requestItem.Status).ToString();
+                    }
+                    else
+                    {
+                        requestItem.ClientStatus = "UnKnown";
+                    }
+
+                    requestItem.InternalStatus = ((RequestItemStatusV2)requestItem.Status).ToString();
+                }
+            }
+
+            return requestItems;
+        }
+
+        public async Task<List<TSO500SequencingQCFileData>?> GetTSO500SequencingQCFileData(string requestId)
+        {
+            var requestItems = await _dynamoDbService.GetAllTSO500SequencingQCData(requestId);
+
+            if (requestItems != null)
+            {
+                foreach (var requestItem in requestItems)
+                {
+                    if (requestItem.Status >= 201 && requestItem.Status <= 210)
+                    {
+                        requestItem.ClientStatus = RequestItemStatusV2.Received.ToString();
+                    }
+                    else if (requestItem.Status >= 211 && requestItem.Status <= 220)
+                    {
+                        requestItem.ClientStatus = RequestItemStatusV2.InProgress.ToString();
+                    }
+                    else if (requestItem.Status >= 221 && requestItem.Status <= 230)
+                    {
+                        requestItem.ClientStatus = ((RequestItemStatusV2)requestItem.Status).ToString();
+                    }
+                    else
+                    {
+                        requestItem.ClientStatus = "UnKnown";
+                    }
+
+                    requestItem.InternalStatus = ((RequestItemStatusV2)requestItem.Status).ToString();
+                }
+            }
+
+            return requestItems;
+        }
+
+        public async Task<List<TSO500LibraryQCFileData>?> GetTSO500LibraryQCFileData(string requestId)
+        {
+            var requestItems = await _dynamoDbService.GetAllTSO500LibraryQCData(requestId);
+
+            if (requestItems != null)
+            {
+                foreach (var requestItem in requestItems)
+                {
+                    if (requestItem.Status >= 201 && requestItem.Status <= 210)
+                    {
+                        requestItem.ClientStatus = RequestItemStatusV2.Received.ToString();
+                    }
+                    else if (requestItem.Status >= 211 && requestItem.Status <= 220)
+                    {
+                        requestItem.ClientStatus = RequestItemStatusV2.InProgress.ToString();
+                    }
+                    else if (requestItem.Status >= 221 && requestItem.Status <= 230)
+                    {
+                        requestItem.ClientStatus = ((RequestItemStatusV2)requestItem.Status).ToString();
+                    }
+                    else
+                    {
+                        requestItem.ClientStatus = "UnKnown";
+                    }
+
+                    requestItem.InternalStatus = ((RequestItemStatusV2)requestItem.Status).ToString();
+                }
+            }
+
+            return requestItems;
+        }
+
+
         public string GetRequestId(ETCTNUploadRequest ETCTNUploadRequestModel)
         {
             // Generate a new GUID
