@@ -10,5 +10,11 @@ namespace TheradexPortal.Data.Services.Abstract
         Task<List<ReceivingStatusFileData>?> GetAllReceivingStatusData(string requestId);
 
         Task<List<BiospecimenRoadmapFileData>?> GetAllBiospecimenRoadmapData(string requestId);
+
+        Task<List<ShippingStatusFileData>?> GetAllShippingStatusData(string requestId);
+
+        Task<List<TSO500SequencingQCFileData>?> GetAllTSO500SequencingQCData(string requestId);
+
+        Task<List<TSO500LibraryQCFileData>?> GetAllTSO500LibraryQCData(string requestId);
     }
 }
