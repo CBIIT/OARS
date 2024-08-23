@@ -58,7 +58,15 @@ namespace TheradexPortal.Controllers
                 return LocalRedirect(redirectUri);
             }
 
-            return SignOut(new AuthenticationProperties() { RedirectUri = Url.Content("~/") },
+            Claim userId = ((ClaimsIdentity)User.Identity).Claims.Where(c => c.Type == "UserId").FirstOrDefault();
+            // Determine if user is CTEP or Theradex
+            User curUser = await _userService.GetUserAsync(Convert.ToInt32(userId.Value));
+
+            string returnType = "";
+            if (curUser != null && !curUser.IsCtepUser)
+                returnType = "internallogin";
+
+            return SignOut(new AuthenticationProperties() { RedirectUri = Url.Content("~/" + returnType) },
                 new[]
                 {
                     Okta.AspNetCore.OktaDefaults.MvcAuthenticationScheme,
@@ -73,6 +81,8 @@ namespace TheradexPortal.Controllers
             var redirectUri = Url.Content("~/timedout");
 
             Claim userId = ((ClaimsIdentity)User.Identity).Claims.Where(c => c.Type == "UserId").FirstOrDefault();
+            // Determine if user is CTEP or Theradex
+            User curUser = await _userService.GetUserAsync(Convert.ToInt32(userId.Value));
 
             if (userId != null)
                 _userService.SaveActivityLog(Convert.ToInt32(userId.Value), ThorActivityType.Logout, "Timeout");
@@ -82,7 +92,10 @@ namespace TheradexPortal.Controllers
                 return LocalRedirect(redirectUri);
             }
 
-            return SignOut(new AuthenticationProperties() { RedirectUri = Url.Content("~/timedout") },
+            string returnType = "";
+            if (!curUser.IsCtepUser)
+                returnType = "/internal";
+            return SignOut(new AuthenticationProperties() { RedirectUri = Url.Content("~/timedout" + returnType) },
                 new[]
                 {
                     Okta.AspNetCore.OktaDefaults.MvcAuthenticationScheme,
