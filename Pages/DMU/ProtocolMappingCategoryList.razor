@@ -7,7 +7,7 @@
 @page "/dmu/category-list-map/{protocolMappingId:int}"
 <AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })" AllowedTHORRoles="@(new List<string> { "DMU Study Mapping", "DMU Study Admin", "DMU Global Admin" })"></AdminRoleCheck>
 <LayoutContent>
-    <Container Fluid Class="mt-2">
+    <Container Fluid>
         <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Mapping</h2></Div>
         <LoadingIndicator @ref="loadingIndicator">
             <Row Background="Background.Light" Style="padding-bottom:10px;">
@@ -48,8 +48,8 @@
                     TotalItemsPosition=PagerElementPosition.End,
                 }"
                 FixedHeader
-                FixedHeaderDataGridHeight="calc(100vh - 300px)"
-                FixedHeaderDataGridMaxHeight="calc(100vh - 300px)">
+                FixedHeaderDataGridHeight="calc(100vh - 420px)"
+                FixedHeaderDataGridMaxHeight="calc(100vh - 420px)">
                 <DataGridColumns>
                      <DataGridColumn Field="THORDataCategory.CategoryName" Width="50%" Caption="Data Category" Filterable="true">
                      </DataGridColumn>
