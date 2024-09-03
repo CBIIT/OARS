@@ -28,7 +28,6 @@
         <DataGridColumn Width="100px" Field="RowData.SubjectID" Caption="Subject ID" />
         <DataGridColumn Width="100px" Field="RowData.SpecimenID" Caption="Specimen ID" />
         <DataGridColumn Width="100px" Field="RowData.SubspecimenID" Caption="Subspecimen ID" />
-        <DataGridColumn Width="100px" Field="RowData.ShippingSource" Caption="Shipping Source" />
         <DataGridColumn Width="100px" Field="RowData.CourierName" Caption="Courier Name" />
         <DataGridColumn Width="100px" Field="RowData.ShippingTrackingNumber" Caption="Shipping Tracking Number" />
         <DataGridColumn Width="100px" Field="RowData.SendersName" Caption="Sender's Name (as per CTEP-IAM account)" />
@@ -36,11 +35,9 @@
         <DataGridColumn Width="100px" Field="RowData.SendersEmailAddress" Caption="Sender's Email Address" />
         <DataGridColumn Width="100px" Field="RowData.NumberOfSamplesSent" Caption="Number of Samples Sent" />
         <DataGridColumn Width="100px" Field="RowData.ShippingConditions" Caption="Shipping Conditions" />
-        <DataGridColumn Width="100px" Field="RowData.ShippedDate" Caption="Shipped Date" />
-        <DataGridColumn Width="100px" Field="RowData.Destination" Caption="Destination" />
-        <DataGridColumn Width="100px" Field="RowData.NoticeSentTo" Caption="Notice sent to" />
-        <DataGridColumn Width="100px" Field="RowData.ShippingConditions" Caption="Shipping Conditions" />
-        <DataGridColumn Width="100px" Field="RowData.Active" Caption="Active" />
+        <DataGridColumn Width="100px" Field="RowData.ShippedDate" Caption="Shipped Date" />        
+        <DataGridColumn Width="100px" Field="RowData.RecipientsEmailAddress" Caption="Recipient's Email Address" />
+        <DataGridColumn Width="100px" Field="RowData.RecipientsName" Caption="Recipient's Name" />
         <DataGridColumn Width="100px" Caption="Internal Status" Editable="false" Displayable="@IsAdminDisplay" Filterable="false">
             <DisplayTemplate>
                 <Badge Color="@GetStatusColor((context as ShippingStatusFileData).ClientStatus)" Pill>

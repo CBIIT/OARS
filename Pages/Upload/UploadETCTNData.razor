@@ -411,8 +411,9 @@
         if (ETCTNUploadRequestModel.CRF != null 
                 && !(ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS" 
                     || ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP_ASSAY")
-                    // || ETCTNUploadRequestModel.CRF == "LIBRARY_QC"
-                    // || ETCTNUploadRequestModel.CRF == "SEQUENCING_QC"
+                    || ETCTNUploadRequestModel.CRF == "LIBRARY_QC"
+                    || ETCTNUploadRequestModel.CRF == "SEQUENCING_QC"
+                    || ETCTNUploadRequestModel.CRF == "SHIPPING_STATUS"
                    )
             return Visibility.Visible;
         else
@@ -429,7 +430,7 @@
 
     private Blazorise.Visibility CheckReceivingSiteVisibility()
     {
-        if (ETCTNUploadRequestModel.CRF != null && ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS")
+        if (ETCTNUploadRequestModel.CRF != null && (ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS" || ETCTNUploadRequestModel.CRF == "SHIPPING_STATUS"))
             return Visibility.Visible;
         else
             return Visibility.Invisible;
@@ -447,8 +448,9 @@
     {
         if (ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS" 
             || ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP_ASSAY"
-            // || ETCTNUploadRequestModel.CRF == "LIBRARY_QC"
-            // || ETCTNUploadRequestModel.CRF == "SEQUENCING_QC"
+            || ETCTNUploadRequestModel.CRF == "LIBRARY_QC"
+            || ETCTNUploadRequestModel.CRF == "SEQUENCING_QC"
+            || ETCTNUploadRequestModel.CRF == "SHIPPING_STATUS"
             )
             return false;
         else
