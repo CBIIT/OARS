@@ -410,10 +410,10 @@
     {
         if (ETCTNUploadRequestModel.CRF != null 
                 && !(ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS" 
-                    || ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP_ASSAY")
+                    || ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP_ASSAY"
                     || ETCTNUploadRequestModel.CRF == "LIBRARY_QC"
                     || ETCTNUploadRequestModel.CRF == "SEQUENCING_QC"
-                    || ETCTNUploadRequestModel.CRF == "SHIPPING_STATUS"
+                    || ETCTNUploadRequestModel.CRF == "SHIPPING_STATUS")
                    )
             return Visibility.Visible;
         else
