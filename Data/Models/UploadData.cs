@@ -7,6 +7,7 @@ using System.ComponentModel.DataAnnotations;
 using Amazon.DynamoDBv2.DataModel;
 using System.ComponentModel;
 using Microsoft.PowerBI.Api.Models;
+using System.Linq;
 
 namespace TheradexPortal.Data.Models
 {
@@ -18,7 +19,7 @@ namespace TheradexPortal.Data.Models
         public string Protocol { get; set; }
 
         //[Required(ErrorMessage = "Receiving Site is required")]
-        [RequiredIf(nameof(CRF), "RECEIVING_STATUS")]
+        [RequiredIf(nameof(CRF), "RECEIVING_STATUS,SHIPPING_STATUS")]
         public string ReceivingSite { get; set; }
 
         [Required(ErrorMessage = "Source Site is required")]
@@ -65,7 +66,8 @@ namespace TheradexPortal.Data.Models
                 return ValidationResult.Success;
             }
 
-            if (requiredIfTypeActualValue == null || requiredIfTypeActualValue.Equals(_isValue))
+            //if (requiredIfTypeActualValue == null || requiredIfTypeActualValue.Equals(_isValue))
+            if (requiredIfTypeActualValue == null || _isValue.ToString().Contains(requiredIfTypeActualValue.ToString()))
             {
                 return value == null
                     //? new ValidationResult(FormatErrorMessage(validationContext.DisplayName))
@@ -369,9 +371,6 @@ namespace TheradexPortal.Data.Models
         [DynamoDBProperty(AttributeName = "ShippingTrackingNumber")]
         public string ShippingTrackingNumber { get; set; }
 
-        [DynamoDBProperty(AttributeName = "ShippingSource")]
-        public string ShippingSource { get; set; }
-
         [DynamoDBProperty(AttributeName = "SendersName")]
         public string SendersName { get; set; }
 
@@ -390,14 +389,11 @@ namespace TheradexPortal.Data.Models
         [DynamoDBProperty(AttributeName = "ShippedDate")]
         public string ShippedDate { get; set; }
 
-        [DynamoDBProperty(AttributeName = "Destination")]
-        public string Destination { get; set; }
+        [DynamoDBProperty(AttributeName = "RecipientsName")]
+        public string RecipientsName { get; set; }
 
-        [DynamoDBProperty(AttributeName = "NoticeSentTo")]
-        public string NoticeSentTo { get; set; }
-
-        [DynamoDBProperty(AttributeName = "Active")]
-        public string Active { get; set; }
+        [DynamoDBProperty(AttributeName = "RecipientsEmailAddress")]
+        public string RecipientsEmailAddress { get; set; }
     }
 
     [DynamoDBTable("TSO500SequencingQCFileData")]

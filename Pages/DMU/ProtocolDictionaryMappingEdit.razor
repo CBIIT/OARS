@@ -3,95 +3,98 @@
 @using TheradexPortal.Data.Services.Abstract;
 @inject IHttpContextAccessor httpContextAccessor
 @inject IConfiguration configuration
-@layout AdminLayout
-@page "/admin/dmu/dictionary-list-map/{protocolFieldMappingId:int}"
+@layout SecondaryNavLayout
+@page "/dmu/dictionary-list-map/{protocolFieldMappingId:int}"
 <AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })" AllowedTHORRoles="@(new List<string> { "DMU Study Mapping", "DMU Study Admin", "DMU Global Admin" })"></AdminRoleCheck>
-<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Mapping</h2></Div>
-<Row Background="Background.Light" Style="padding-bottom:10px;padding-top:10px;">
-    <Row>
-        <Column ColumnSize="ColumnSize.Is1">
-            <Button Clicked="@Back" Color="Color.Primary"><Icon Name="IconName.ArrowLeft" /> Back</Button>
-        </Column>
-        <Column><Text><b>Protocol:</b> @protocol</Text></Column> <Column><Text><b>Form Label:</b> @formLabel</Text></Column>
-    </Row>
-    <Row>
-        <Column><Text><b>Report Category:</b> @categoryName</Text></Column> <Column><b>Field Label:</b> @currFieldMapping.ProtocolEDCField.EDCFieldName</Column>
-    </Row>
-    <Row>
-        <Column></Column>
-        <Column><Text><b>OARS Field:</b> @currFieldMapping.ThorField.FieldLabel</Text></Column>
-    </Row>
-</Row>
-<LoadingIndicator @ref=loading>
-<DataGrid @ref=dataGridRef
-          TItem="ProtocolDictionaryMapping"
-          Class="admindatagrid"
-          Data="@protocolDictionaryList"
-          Editable
-          Responsive
-          Striped
-              Sortable
-              SortMode="DataGridSortMode.Single"
-          ShowPager
-          ShowPageSizes
-          MaxPaginationLinks="5"
-          PagerPosition="DataGridPagerPosition.Bottom"
-          PagerOptions="new(){ButtonSize=Size.Default,
-                                PaginationPosition=PagerElementPosition.Default,
-                                TotalItemsPosition=PagerElementPosition.End,
-                                }"
-          FixedHeader
-          FixedHeaderDataGridHeight="calc(100vh - 240px)"
-          FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
-          EditMode="DataGridEditMode.Inline"
-          RowUpdated="@Save"
-          RowInserted="@Save">
-    <DataGridColumns>
-        <DataGridColumn Field="@nameof(ProtocolDictionaryMapping.ProtocolEDCDictionaryId)" Width="50%" Caption="For each EDC Dictionary Value" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
-            <DisplayTemplate>
-                @context.ProtocolEDCDictionaryDisplay
-            </DisplayTemplate>
-            <EditTemplate>
-                @context.Item.ProtocolEDCDictionaryDisplay
-            </EditTemplate>
-        </DataGridColumn>
-        <DataGridColumn Field="@nameof(ProtocolDictionaryMapping.THORDictionaryId)" Width="50%" Caption="Select OARS Dictionary Value" Editable Filterable="true" Sortable="true">
-            <DisplayTemplate>
-                @thorDictionaries.Where(d => d.ThorDictionaryId == context.THORDictionaryId).Select(d => d.ThorDictionaryDisplay).FirstOrDefault()
-            </DisplayTemplate>
-            <EditTemplate>
-                <SelectList TItem="ThorDictionary"
-                              TValue="int"
-                                TextField="@((item) => item.ThorDictionaryDisplay)"
-                              ValueField="@((item) => item.ThorDictionaryId)"
-                              Data="@thorDictionaries"
-                              SelectedValue="@((int?)context.CellValue ?? context.Item.THORDictionaryId)"
-                              SelectedValueChanged="v=>context.CellValue=v"
-                              DefaultItemText="Select OARS Dictionary Value"
-                              DefaultItemValue="0"
-                              >
-                              </SelectList>
-            </EditTemplate>
-        </DataGridColumn>
-        <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
-            <EditCommandTemplate>
-                <Button><Icon Name="IconName.Edit" Clicked="@context.Clicked" /></Button>
-            </EditCommandTemplate>
-            <SaveCommandTemplate>
-                <Button><Icon Name="IconName.Save" Clicked="@context.Clicked" /></Button>
-            </SaveCommandTemplate>
-            <CancelCommandTemplate>
-				<Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
-            </CancelCommandTemplate>
-        </DataGridCommandColumn>
-    </DataGridColumns>
-    <EmptyTemplate>
-        <div class="box">
-            No dictionary mappings found.
-        </div>
-    </EmptyTemplate>
-</DataGrid>
-</LoadingIndicator>
+<LayoutContent>
+    <Container Fluid>
+        <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Mapping</h2></Div>
+        <Row Background="Background.Light" Style="padding-bottom:10px;padding-top:10px;">
+            <Row>
+                <Column ColumnSize="ColumnSize.Is1">
+                    <Button Clicked="@Back" Color="Color.Primary"><Icon Name="IconName.ArrowLeft" /> Back</Button>
+                </Column>
+                <Column><Text><b>Protocol:</b> @protocol</Text></Column> <Column><Text><b>Form Label:</b> @formLabel</Text></Column>
+            </Row>
+            <Row>
+                <Column><Text><b>Report Category:</b> @categoryName</Text></Column> <Column><b>Field Label:</b> @currFieldMapping.ProtocolEDCField.EDCFieldName</Column>
+            </Row>
+            <Row>
+                <Column></Column>
+                <Column><Text><b>OARS Field:</b> @currFieldMapping.ThorField.FieldLabel</Text></Column>
+            </Row>
+        </Row>
+        <LoadingIndicator @ref=loading>
+            <DataGrid @ref=dataGridRef
+                TItem="ProtocolDictionaryMapping"
+                Class="admindatagrid"
+                Data="@protocolDictionaryList"
+                Editable
+                Responsive
+                Striped
+                Sortable
+                SortMode="DataGridSortMode.Single"
+                ShowPager
+                ShowPageSizes
+                MaxPaginationLinks="5"
+                PagerPosition="DataGridPagerPosition.Bottom"
+                PagerOptions="new(){ButtonSize=Size.Default,
+                PaginationPosition=PagerElementPosition.Default,
+                TotalItemsPosition=PagerElementPosition.End,
+                }"
+                FixedHeader
+                FixedHeaderDataGridHeight="calc(100vh - 380px)"
+                FixedHeaderDataGridMaxHeight="calc(100vh - 380px)"
+                EditMode="DataGridEditMode.Inline"
+                RowUpdated="@Save"
+                RowInserted="@Save">
+                <DataGridColumns>
+                    <DataGridColumn Field="@nameof(ProtocolDictionaryMapping.ProtocolEDCDictionaryId)" Width="50%" Caption="For each EDC Dictionary Value" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
+                         <DisplayTemplate>
+                             @context.ProtocolEDCDictionaryDisplay
+                        </DisplayTemplate>
+                        <EditTemplate>
+                            @context.Item.ProtocolEDCDictionaryDisplay
+                        </EditTemplate>
+                    </DataGridColumn>
+                    <DataGridColumn Field="@nameof(ProtocolDictionaryMapping.THORDictionaryId)" Width="50%" Caption="Select OARS Dictionary Value" Editable Filterable="true" Sortable="true">
+                         <DisplayTemplate>
+                             @thorDictionaries.Where(d => d.ThorDictionaryId == context.THORDictionaryId).Select(d => d.ThorDictionaryDisplay).FirstOrDefault()
+                        </DisplayTemplate>
+                        <EditTemplate>
+                            <SelectList TItem="ThorDictionary"
+                                        TValue="int"
+                                        TextField="@((item) => item.ThorDictionaryDisplay)"
+                                        ValueField="@((item) => item.ThorDictionaryId)"
+                                        Data="@thorDictionaries"
+                                        SelectedValue="@((int?)context.CellValue ?? context.Item.THORDictionaryId)"
+                                        SelectedValueChanged="v=>context.CellValue=v"
+                                        DefaultItemText="Select OARS Dictionary Value"
+                                        DefaultItemValue="0">
+                            </SelectList>
+                        </EditTemplate>
+                    </DataGridColumn>
+                    <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
+                        <EditCommandTemplate>
+                            <Button><Icon Name="IconName.Edit" Clicked="@context.Clicked" /></Button>
+                        </EditCommandTemplate>
+                        <SaveCommandTemplate>
+                            <Button><Icon Name="IconName.Save" Clicked="@context.Clicked" /></Button>
+                        </SaveCommandTemplate>
+                        <CancelCommandTemplate>
+                            <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
+                        </CancelCommandTemplate>
+                    </DataGridCommandColumn>
+                </DataGridColumns>
+                <EmptyTemplate>
+                    <div class="box">
+                        No dictionary mappings found.
+                    </div>
+                </EmptyTemplate>
+            </DataGrid>
+        </LoadingIndicator>
+    </Container>
+</LayoutContent>
 
 @code {
     [Inject] IProtocolEDCDictionaryService protocolEDCDictionaryService { get; set; } = null!;
@@ -176,7 +179,7 @@
             if (!studyIds.Contains(protocol))
             {
                 await notificationService.Error("You do not have access to this protocol");
-                navigation.NavigateTo("/admin/dmu/study-mapping");
+                navigation.NavigateTo("/dmu/study-mapping");
             }
         }
     }
@@ -194,17 +197,17 @@
                 if (!this.protocolDictionaryList.Any(x => x.ProtocolEDCDictionaryId == edcDictionary.ProtocolEDCDictionaryId))
                 {
                     this.protocolDictionaryList.Add(new ProtocolDictionaryMapping
-                    {
-                        ProtocolEDCDictionaryId = edcDictionary.ProtocolEDCDictionaryId,
-                        ProtocolEDCDictionary = edcDictionary,
-                        ProtocolFieldMappingId = protocolFieldMappingId
-                    });
-                
+                        {
+                            ProtocolEDCDictionaryId = edcDictionary.ProtocolEDCDictionaryId,
+                            ProtocolEDCDictionary = edcDictionary,
+                            ProtocolFieldMappingId = protocolFieldMappingId
+                        });
+
                 }
             }
             await notificationService.Info("Loading OARS dictionary mappings...");
             this.thorDictionaries = await thorDictionaryService.GetDictionaryEntries(thorDictionaryId);
-            
+
             StateHasChanged();
             await loading.Hide();
         }
@@ -218,20 +221,20 @@
 
         bool saved = await dictionaryMappingService.SaveProtocolDictionaryMapping(toSave);
 
-        if(saved)
+        if (saved)
         {
             await notificationService.Success("Dictionary Mapping successfully saved");
-			return;
-		}
-		else
-		{
-			await notificationService.Error("Error saving dictionary mapping");
-			return;
+            return;
+        }
+        else
+        {
+            await notificationService.Error("Error saving dictionary mapping");
+            return;
         }
     }
 
     private void Back()
     {
-        navigation.NavigateTo($"/admin/dmu/form-field-mapping/{protocolCategoryId}");
+        navigation.NavigateTo($"/dmu/form-field-mapping/{protocolCategoryId}");
     }
 }

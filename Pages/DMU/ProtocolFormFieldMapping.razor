@@ -3,323 +3,330 @@
 @using TheradexPortal.Data.Services.Abstract;
 @inject IHttpContextAccessor httpContextAccessor
 @inject IConfiguration configuration
-@layout AdminLayout
-@page "/admin/dmu/form-field-mapping/{protocolCategoryId:int}"
+@layout SecondaryNavLayout
+@page "/dmu/form-field-mapping/{protocolCategoryId:int}"
 <AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })" AllowedTHORRoles="@(new List<string> { "DMU Study Mapping", "DMU Study Admin", "DMU Global Admin" })"></AdminRoleCheck>
-<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Mapping</h2></Div>
-<Row Background="Background.Light" Style="padding-bottom:10px;">
-    <Row style="padding-top:10px">
-        <Column ColumnSize="ColumnSize.Is1">
-            <Button Clicked="@Back" Color="Color.Primary"><Icon Name="IconName.ArrowLeft" /> Back</Button>
-        </Column>
-        <Column>
-            <Text><b>Protocol:</b> @protocol</Text>
-        </Column>
-        <Column>
-            <Switch TValue="bool" Checked="@this.isComplete" CheckedChanged="@((v) => {this.isComplete = v; CompleteMapping();})">Mapping Complete</Switch>
-        </Column>
+<LayoutContent>
+    <Container Fluid>
+        <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Mapping</h2></Div>
+        <Row Background="Background.Light" Style="padding-bottom:10px;">
+            <Row style="padding-top:10px">
+                <Column ColumnSize="ColumnSize.Is1">
+                    <Button Clicked="@Back" Color="Color.Primary"><Icon Name="IconName.ArrowLeft" /> Back</Button>
+                </Column>
+                <Column>
+                    <Text><b>Protocol:</b> @protocol</Text>
+                    </Column>
+                    <Column>
+                        <Switch TValue="bool" Checked="@this.isComplete" CheckedChanged="@((v) => {this.isComplete = v; CompleteMapping();})">Mapping Complete</Switch>
+                    </Column>
 
-    </Row>
-    <Row>
-        <Column ColumnSize="ColumnSize.Is1"></Column>
-        <Column>
-            <Text><b>Report Category:</b> @currCategory.CategoryDisplay</Text>
-        </Column>
-        <Column>
-            <Switch TValue="bool" Checked="@protocolCategory.IsMultiForm" CheckedChanged="@(async (v) => await MultiFormChanged(v))">Multi Form</Switch>
-        </Column>
-    </Row>
-</Row>
-@if (!protocolCategory.IsMultiForm)
-{
-    <DataGrid @ref=dataGridRef
-              TItem="ProtocolFieldMapping"
-              Class="admindatagrid"
-              Data="@protocolFieldMappingList"
-              Editable
-              Responsive
-              Striped
-              ShowPager
-              ShowPageSizes
-              MaxPaginationLinks="5"
-              PagerPosition="DataGridPagerPosition.Bottom"
-              PagerOptions="new(){ButtonSize=Size.Default,
-                                PaginationPosition=PagerElementPosition.Default,
-                                TotalItemsPosition=PagerElementPosition.End,
-                                }"
-              FixedHeader
-              FixedHeaderDataGridHeight="calc(100vh - 240px)"
-              FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
-              EditMode="DataGridEditMode.Inline"
-              RowUpdated="@Save"
-              RowInserted="@Save"
-              RowRemoved="@Delete"
-              RowRemoving="@ConfirmDelete"
-              SortMode="DataGridSortMode.Multiple">
-        <DataGridColumns>
-            <DataGridColumn Field="@nameof(ProtocolFieldMapping.ThorFieldId)" Width="25%" Caption="Select OARS Field" Editable="true" SortDirection="SortDirection.Ascending" Sortable>
-                <DisplayTemplate>
-                    <Text>@GetThorFieldLabel(context)</Text>
-                </DisplayTemplate>
-                <EditTemplate>
-                    <Text>@GetThorFieldLabel(context.Item)</Text>
-                  </EditTemplate>
-            </DataGridColumn>
-            <DataGridColumn Field="@nameof(ProtocolFieldMapping.ProtocolEDCFormId)" Width="25%" Caption="Select EDC Form" Filterable="true" Editable="true" SortDirection="SortDirection.Ascending" Sortable>
-                <DisplayTemplate>
-                    @{
-                        if (context.ProtocolEDCFormId != 0)
-                        {
-                            <Text>@(context.ProtocolEDCField.ProtocolEDCForm.EDCFormDisplay)</Text>
-                            
-                        } else
-                        {
-                            <Text>Not Mapped</Text>
-                        }
-                    }
-                </DisplayTemplate>
-                <EditTemplate>
-                    <Autocomplete TItem="ProtocolEDCForm" Data="@protocolEDCFormList" TValue="int" TextField="@((item) => {return item.EDCFormDisplay;})" ValueField="@((item) => item.ProtocolEDCFormId)" SelectedValueChanged="@(e => {@GetFields(e); context.CellValue=e;})" SelectedValue="@((int?)context.CellValue ?? context.Item.ProtocolEDCFormId)" Placeholder="@(GetPlaceholder(context.Item))" Virtualize MinLength="0"></Autocomplete>
-                </EditTemplate>
-            </DataGridColumn>
-            <DataGridColumn Field="@nameof(ProtocolFieldMapping.ProtocolEDCFieldId)" Width="25%" Caption="Select EDC Field" Editable="true">
-                <DisplayTemplate>
-                    @{
-                        if (context.ProtocolEDCFieldId != 0 && context.ProtocolEDCField == null)
-                        {
-                            var currentField = protocolEDCFieldList.FirstOrDefault(x => x.ProtocolEDCFieldId == context.ProtocolEDCFieldId);
-                            <Text>@(currentField?.EDCFieldDisplay)</Text>
-                        }
-                        else if(context.ProtocolEDCField != null && context.ProtocolEDCField.ProtocolEDCFieldId != 0)
-                        {
-                            <Text>@context.ProtocolEDCField.EDCFieldDisplay</Text>
-                        } else
-                        {
-                            <Text>Not Mapped</Text>
-                        }
-                    }
-                </DisplayTemplate>
-                <EditTemplate>
-                    <SelectList TItem="ProtocolEDCField" TValue="int" Data="@protocolEDCFieldList" TextField="@((item)=>item.EDCFieldDisplay)"
-                                ValueField="@((item) => item.ProtocolEDCFieldId)"
-                                SelectedValueChanged="@( v =>{context.CellValue = v;})"
-                                SelectedValue="@((int?)context.CellValue ?? context.Item.ProtocolEDCFieldId)"
-                                DefaultItemText="Select"></SelectList>
-                </EditTemplate>
-            </DataGridColumn>
-            <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="true">
-                <SaveCommandTemplate>
-                    <Button><Icon Name="IconName.Save" Clicked="@context.Clicked" /></Button>
-                </SaveCommandTemplate>
-                <EditCommandTemplate>
-                    <Button Disabled="@(this.protocolFieldsDict.ContainsKey(context.Item.ThorFieldId) == false)"><Icon Name="IconName.Edit" Clicked="@(async () => await Edit(context, context.Item))" /></Button>
-                </EditCommandTemplate>
-                <CancelCommandTemplate>
-                    <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
-                </CancelCommandTemplate>
-                <DeleteCommandTemplate>
-                    <Button><Icon Name="IconName.Delete" Clicked="@(() => Delete(context.Item))" /></Button>
-                </DeleteCommandTemplate>
-            </DataGridCommandColumn>
-            <DataGridColumn Field="@nameof(ProtocolFieldMapping.ThorDictionaryId)" Caption="Dictionary Mapping">
-                <DisplayTemplate>
-                   @if(context.ThorField != null && 
-                        context.ThorField.ThorDictionaryId != null && 
+                </Row>
+                <Row>
+                    <Column ColumnSize="ColumnSize.Is1"></Column>
+                    <Column>
+                        <Text><b>Report Category:</b> @currCategory.CategoryDisplay</Text>
+                    </Column>
+                    <Column>
+                        <Switch TValue="bool" Checked="@protocolCategory.IsMultiForm" CheckedChanged="@(async (v) => await MultiFormChanged(v))">Multi Form</Switch>
+                    </Column>
+                </Row>
+            </Row>
+            @if (!protocolCategory.IsMultiForm)
+        {
+            <DataGrid @ref=dataGridRef
+                      TItem="ProtocolFieldMapping"
+                      Class="admindatagrid"
+                      Data="@protocolFieldMappingList"
+                    Editable
+                    Responsive
+                    Striped
+                    ShowPager
+                    ShowPageSizes
+                       MaxPaginationLinks="5"
+                       PagerPosition="DataGridPagerPosition.Bottom"
+                       PagerOptions="new(){ButtonSize=Size.Default,
+                                        PaginationPosition=PagerElementPosition.Default,
+                                        TotalItemsPosition=PagerElementPosition.End,
+                                        }"
+                    FixedHeader
+                       FixedHeaderDataGridHeight="calc(100vh - 340px)"
+                       FixedHeaderDataGridMaxHeight="calc(100vh - 340px)"
+                       EditMode="DataGridEditMode.Inline"
+                       RowUpdated="@Save"
+                       RowInserted="@Save"
+                       RowRemoved="@Delete"
+                       RowRemoving="@ConfirmDelete"
+                       SortMode="DataGridSortMode.Multiple">
+                 <DataGridColumns>
+                     <DataGridColumn Field="@nameof(ProtocolFieldMapping.ThorFieldId)" Width="25%" Caption="Select OARS Field" Editable="true" SortDirection="SortDirection.Ascending" Sortable>
+                     <DisplayTemplate>
+                         <Text>@GetThorFieldLabel(context)</Text>
+                            </DisplayTemplate>
+                            <EditTemplate>
+                                <Text>@GetThorFieldLabel(context.Item)</Text>
+                            </EditTemplate>
+                        </DataGridColumn>
+                        <DataGridColumn Field="@nameof(ProtocolFieldMapping.ProtocolEDCFormId)" Width="25%" Caption="Select EDC Form" Filterable="true" Editable="true" SortDirection="SortDirection.Ascending" Sortable>
+                     <DisplayTemplate>
+                         @{
+                                if (context.ProtocolEDCFormId != 0)
+                                {
+                                    <Text>@(context.ProtocolEDCField.ProtocolEDCForm.EDCFormDisplay)</Text>
+
+                                }
+                                else
+                                {
+                                    <Text>Not Mapped</Text>
+                                }
+                            }
+                        </DisplayTemplate>
+                        <EditTemplate>
+                            <Autocomplete TItem="ProtocolEDCForm" Data="@protocolEDCFormList" TValue="int" TextField="@((item) => {return item.EDCFormDisplay;})" ValueField="@((item) => item.ProtocolEDCFormId)" SelectedValueChanged="@(e => {@GetFields(e); context.CellValue=e;})" SelectedValue="@((int?)context.CellValue ?? context.Item.ProtocolEDCFormId)" Placeholder="@(GetPlaceholder(context.Item))" Virtualize MinLength="0"></Autocomplete>
+                         </EditTemplate>
+                     </DataGridColumn>
+                     <DataGridColumn Field="@nameof(ProtocolFieldMapping.ProtocolEDCFieldId)" Width="25%" Caption="Select EDC Field" Editable="true">
+                         <DisplayTemplate>
+                             @{
+                                if (context.ProtocolEDCFieldId != 0 && context.ProtocolEDCField == null)
+                                {
+                                    var currentField = protocolEDCFieldList.FirstOrDefault(x => x.ProtocolEDCFieldId == context.ProtocolEDCFieldId);
+                                    <Text>@(currentField?.EDCFieldDisplay)</Text>
+                                }
+                                else if (context.ProtocolEDCField != null && context.ProtocolEDCField.ProtocolEDCFieldId != 0)
+                                {
+                                    <Text>@context.ProtocolEDCField.EDCFieldDisplay</Text>
+                                }
+                                else
+                                {
+                                    <Text>Not Mapped</Text>
+                                }
+                            }
+                        </DisplayTemplate>
+                        <EditTemplate>
+                            <SelectList TItem="ProtocolEDCField" TValue="int" Data="@protocolEDCFieldList" TextField="@((item)=>item.EDCFieldDisplay)"
+                                        ValueField="@((item) => item.ProtocolEDCFieldId)"
+                                        SelectedValueChanged="@( v =>{context.CellValue = v;})"
+                                        SelectedValue="@((int?)context.CellValue ?? context.Item.ProtocolEDCFieldId)"
+                                        DefaultItemText="Select"></SelectList>
+                        </EditTemplate>
+                    </DataGridColumn>
+                    <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="true">
+                        <SaveCommandTemplate>
+                            <Button><Icon Name="IconName.Save" Clicked="@context.Clicked" /></Button>
+                        </SaveCommandTemplate>
+                        <EditCommandTemplate>
+                            <Button Disabled="@(this.protocolFieldsDict.ContainsKey(context.Item.ThorFieldId) == false)"><Icon Name="IconName.Edit" Clicked="@(async () => await Edit(context, context.Item))" /></Button>
+                        </EditCommandTemplate>
+                        <CancelCommandTemplate>
+                            <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
+                        </CancelCommandTemplate>
+                        <DeleteCommandTemplate>
+                            <Button><Icon Name="IconName.Delete" Clicked="@(() => Delete(context.Item))" /></Button>
+                        </DeleteCommandTemplate>
+                    </DataGridCommandColumn>
+                    <DataGridColumn Field="@nameof(ProtocolFieldMapping.ThorDictionaryId)" Caption="Dictionary Mapping">
+                        <DisplayTemplate>
+                            @if (context.ThorField != null &&
+                        context.ThorField.ThorDictionaryId != null &&
                         context.ThorField.ThorDictionaryId != 0 &&
                         this.protocolFieldsDict.ContainsKey(context.ThorFieldId) &&
                         this.protocolFieldsDict[context.ThorFieldId].CanBeDictionary
-                    )
-				    {
-                        <Button Color="Color.Primary" Clicked="@((item) => EditDictionaryMapping(context))" Disabled="@GetFieldMappingStatus(context)">Edit</Button>
-                    }
-                    else if (context.ThorField != null &&
-                    context.ThorField.ThorDictionaryId != null &&
-                    context.ThorField.ThorDictionaryId != 0 &&
-                    this.protocolFieldsDict.ContainsKey(context.ThorFieldId) &&
-                    this.protocolFieldsDict[context.ThorFieldId].CanBeDictionary == false)
-                    {
-                        <Text>Disabled in protocol</Text>
-                    }
-                    else
-                    {
-                        <Text>N/A</Text>
-                    }
-                </DisplayTemplate>
-            </DataGridColumn>
-            <DataGridColumn Field="@nameof(ProtocolFieldMapping.ThorFieldId)" Caption="Multi Form Field">
-                <DisplayTemplate>
-                    @if (context.ThorFieldId != null &&
-                        this.protocolFieldsDict.ContainsKey(context.ThorFieldId) &&
-                        this.protocolFieldsDict[context.ThorFieldId].IsMultiForm
-                    )
-					{
-						<Button Color="Color.Primary" Clicked="@(() => AddMultiFormField(context))">Add Form</Button>
-                    }
-                    else
-                    {
-						<Text>N/A</Text>
-					}
-                </DisplayTemplate>
-
-            </DataGridColumn>
-        </DataGridColumns>
-        <EmptyTemplate>
-            <div class="box">
-                No field mappings found.
-            </div>
-        </EmptyTemplate>
-    </DataGrid>
-}
-else
-{
-    foreach(var form in multiFormList.Select((x,i) => new { Form = x, Index = i+1 })){
-        <Row>
-            <Column>
-                <b>Form @form.Index: 
-                    @{
-                         
-                            if (form.Form?.ProtocolEDCFormId is null)
-                            {
-                                <Text></Text>
-                            }
-                            else
-                            {
-                                <Text>@form.Form.ProtocolEDCForm?.EDCFormDisplay</Text>
-                            }
-                     }
-                </b>
-                <Button Disabled="@DisableFormDropdown(form.Form)"><Icon Name="IconName.Delete" Clicked="@(() => DeleteForm(form.Form))" /></Button>
-                <Row>
-                    <Column ColumnSize="ColumnSize.IsAuto">
-                        @{
-                            if (form.Form?.ProtocolEDCFormId is null)
-                            {
-                                <Text>Select:</Text>
-                            }
-                            else
-                            {
-                                <Text>Change to:</Text>
-                            }
-                        } 
-                    </Column>
-                    <Column ColumnSize="ColumnSize.IsAuto">
-                        <SelectList 
-                            TItem="ProtocolEDCForm" 
-                            Data="@protocolEDCFormList" 
-                            TValue="int" 
-                            ValueField="@((item) => item.ProtocolEDCFormId)" 
-                            TextField="@((item) => item.EDCFormDisplay)" 
-                            SelectedValue="0" 
-                            SelectedValueChanged="@(async v=> { await FormSelectionChange(v, form.Form); })" 
-                            Disabled="@DisableFormDropdown(form.Form)"
-                            DefaultItemText="Select a Form" 
-                            DefaultItemValue="0">
-                        </SelectList>
-                    </Column>
-                </Row>
-            </Column>
-            <Column><Switch TValue="bool" Checked="@form.Form.IsPrimaryForm" CheckedChanged="@((v) => {UpdatePrimaryForm(v, form.Form);})">Primary Form</Switch></Column>
-        </Row>
-		<DataGrid @ref=multiFormRefs[form.Form.ProtocolFormMappingId]
-			  TItem="ProtocolFieldMapping"
-			  Class="admindatagrid"
-			  Data="@multiFormMappings[form.Form.ProtocolFormMappingId]"
-			  Editable
-			  Responsive
-			  Striped
-			  ShowPager
-			  ShowPageSizes
-			  MaxPaginationLinks="5"
-			  PagerPosition="DataGridPagerPosition.Bottom"
-			  PagerOptions="new(){ButtonSize=Size.Default,
-								PaginationPosition=PagerElementPosition.Default,
-								TotalItemsPosition=PagerElementPosition.End,
-								}"
-			  FixedHeader
-			  EditMode="DataGridEditMode.Inline"
-			  RowUpdated="@Save"
-			  RowInserted="@Save"
-			  RowRemoved="@Delete"
-			  RowRemoving="@ConfirmDelete">
-		<DataGridColumns>
-			<DataGridColumn Field="@nameof(ProtocolFieldMapping.ThorFieldId)" Width="25%" Caption="Select OARS Field" Editable="true" SortDirection="SortDirection.Ascending" Sortable>
-				<DisplayTemplate>
-					<Text>@GetThorFieldLabel(context)</Text>
-				</DisplayTemplate>
-				<EditTemplate>
-					<Text>@GetThorFieldLabel(context.Item)</Text>
-				  </EditTemplate>
-			</DataGridColumn>
-                <DataGridColumn Field="@nameof(ProtocolFieldMapping.ProtocolEDCFieldId)" Width="25%" Caption="Select EDC Field" Editable="true" Sortable>
-                    <DisplayTemplate>
-                        @{
-                            if (context.ProtocolEDCField != null && context.ProtocolEDCField.ProtocolEDCFieldId != 0)
-                            {
-                                <Text>@context.ProtocolEDCField.EDCFieldDisplay</Text>
-                            }
-                            else
-                            {
-                                <Text>Not Mapped</Text>
-                            }
-                        }
-                    </DisplayTemplate>
-                    <EditTemplate>
-                        <SelectList TItem="ProtocolEDCField" TValue="int" Data="@edcFieldsByForm[form.Form.ProtocolFormMappingId]" TextField="@((item)=>item.EDCFieldDisplay)"
-                                    ValueField="@((item) => item.ProtocolEDCFieldId)"
-                                    SelectedValueChanged="@( v =>{context.CellValue = v;})"
-                                    SelectedValue="@((int?)context.CellValue ?? context.Item.ProtocolEDCFieldId)"
-                                    DefaultItemText="Select"></SelectList>
-                    </EditTemplate>
-                </DataGridColumn>
-                <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="true">
-                    <SaveCommandTemplate>
-                        <Button><Icon Name="IconName.Save" Clicked="@context.Clicked" /></Button>
-                    </SaveCommandTemplate>
-                    <EditCommandTemplate>
-                        <Button Disabled="@(this.protocolFieldsDict.ContainsKey(context.Item.ThorFieldId) == false)"><Icon Name="IconName.Edit" Clicked="@(async () => await EditMultiForm(context, context.Item, form.Form.ProtocolFormMappingId))" /></Button>
-                    </EditCommandTemplate>
-                    <CancelCommandTemplate>
-                        <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
-                    </CancelCommandTemplate>
-                    <DeleteCommandTemplate>
-                        <Button><Icon Name="IconName.Delete" Clicked="@(() => Delete(context.Item))" /></Button>
-                    </DeleteCommandTemplate>
-                </DataGridCommandColumn>
-                <DataGridColumn Field="@nameof(ProtocolFieldMapping.ThorDictionaryId)" Caption="Dictionary Mapping">
-                    <DisplayTemplate>
-                        @if (context.ThorField != null && 
-                            context.ThorField.ThorDictionaryId != null &&
-                            context.ThorField.ThorDictionaryId != 0 &&
-                            this.protocolFieldsDict.ContainsKey(context.ThorFieldId) &&
-                            this.protocolFieldsDict[context.ThorFieldId].CanBeDictionary
                         )
-                        {
-                            <Button Color="Color.Primary" Clicked="@((item) => EditDictionaryMapping(context))" Disabled="@GetFieldMappingStatus(context)">Edit</Button>
-                        }
-                        else if (context.ThorField != null &&
+                            {
+                                <Button Color="Color.Primary" Clicked="@((item) => EditDictionaryMapping(context))" Disabled="@GetFieldMappingStatus(context)">Edit</Button>
+                            }
+                            else if (context.ThorField != null &&
                             context.ThorField.ThorDictionaryId != null &&
                             context.ThorField.ThorDictionaryId != 0 &&
                             this.protocolFieldsDict.ContainsKey(context.ThorFieldId) &&
                             this.protocolFieldsDict[context.ThorFieldId].CanBeDictionary == false)
-                        {
-                            <Text>Disabled in protocol</Text>
-                        }
-                        else
-                        {
-                            <Text>N/A</Text>
-                        }
-                    </DisplayTemplate>
-                </DataGridColumn>
-            </DataGridColumns>
-            <EmptyTemplate>
-                <div class="box">
-                    No multi-form field mappings found.
-                </div>
-            </EmptyTemplate>
-        </DataGrid>
-    }
-    <Button Color="Color.Primary" Clicked="AddForm">Add Form</Button>
-}
+                            {
+                                <Text>Disabled in protocol</Text>
+                            }
+                            else
+                            {
+                                <Text>N/A</Text>
+                            }
+                        </DisplayTemplate>
+                    </DataGridColumn>
+                    <DataGridColumn Field="@nameof(ProtocolFieldMapping.ThorFieldId)" Caption="Multi Form Field">
+                        <DisplayTemplate>
+                            @if (context.ThorFieldId != null &&
+                        this.protocolFieldsDict.ContainsKey(context.ThorFieldId) &&
+                        this.protocolFieldsDict[context.ThorFieldId].IsMultiForm
+                        )
+                            {
+                                <Button Color="Color.Primary" Clicked="@(() => AddMultiFormField(context))">Add Form</Button>
+                            }
+                            else
+                            {
+                                <Text>N/A</Text>
+                            }
+                        </DisplayTemplate>
+
+                    </DataGridColumn>
+                </DataGridColumns>
+                <EmptyTemplate>
+                    <div class="box">
+                        No field mappings found.
+                    </div>
+                </EmptyTemplate>
+            </DataGrid>
+        }
+        else
+        {
+            foreach (var form in multiFormList.Select((x, i) => new { Form = x, Index = i + 1 }))
+            {
+                <Row>
+                    <Column>
+                        <b>
+                            Form @form.Index:
+                            @{
+
+                                if (form.Form?.ProtocolEDCFormId is null)
+                                {
+                                    <Text></Text>
+                                }
+                                else
+                                {
+                                    <Text>@form.Form.ProtocolEDCForm?.EDCFormDisplay</Text>
+                                }
+                            }
+                        </b>
+                        <Button Disabled="@DisableFormDropdown(form.Form)"><Icon Name="IconName.Delete" Clicked="@(() => DeleteForm(form.Form))" /></Button>
+                        <Row>
+                            <Column ColumnSize="ColumnSize.IsAuto">
+                                @{
+                                    if (form.Form?.ProtocolEDCFormId is null)
+                                    {
+                                        <Text>Select:</Text>
+                                    }
+                                    else
+                                    {
+                                        <Text>Change to:</Text>
+                                    }
+                                }
+                            </Column>
+                            <Column ColumnSize="ColumnSize.IsAuto">
+                                <SelectList TItem="ProtocolEDCForm"
+                                            Data="@protocolEDCFormList"
+                                            TValue="int"
+                                            ValueField="@((item) => item.ProtocolEDCFormId)"
+                                            TextField="@((item) => item.EDCFormDisplay)"
+                                            SelectedValue="0"
+                                            SelectedValueChanged="@(async v=> { await FormSelectionChange(v, form.Form); })"
+                                            Disabled="@DisableFormDropdown(form.Form)"
+                                            DefaultItemText="Select a Form"
+                                            DefaultItemValue="0">
+                                </SelectList>
+                            </Column>
+                        </Row>
+                    </Column>
+                    <Column><Switch TValue="bool" Checked="@form.Form.IsPrimaryForm" CheckedChanged="@((v) => {UpdatePrimaryForm(v, form.Form);})">Primary Form</Switch></Column>
+                </Row>
+                <DataGrid @ref=multiFormRefs[form.Form.ProtocolFormMappingId]
+                          TItem="ProtocolFieldMapping"
+                          Class="admindatagrid"
+                          Data="@multiFormMappings[form.Form.ProtocolFormMappingId]"
+                        Editable
+                        Responsive
+                        Striped
+                        ShowPager
+                        ShowPageSizes
+                           MaxPaginationLinks="5"
+                           PagerPosition="DataGridPagerPosition.Bottom"
+                           PagerOptions="new(){ButtonSize=Size.Default,
+								        PaginationPosition=PagerElementPosition.Default,
+								        TotalItemsPosition=PagerElementPosition.End,
+								        }"
+                        FixedHeader
+                           EditMode="DataGridEditMode.Inline"
+                           RowUpdated="@Save"
+                           RowInserted="@Save"
+                           RowRemoved="@Delete"
+                           RowRemoving="@ConfirmDelete">
+                     <DataGridColumns>
+                         <DataGridColumn Field="@nameof(ProtocolFieldMapping.ThorFieldId)" Width="25%" Caption="Select OARS Field" Editable="true" SortDirection="SortDirection.Ascending" Sortable>
+                         <DisplayTemplate>
+                             <Text>@GetThorFieldLabel(context)</Text>
+                                </DisplayTemplate>
+                                <EditTemplate>
+                                    <Text>@GetThorFieldLabel(context.Item)</Text>
+                                </EditTemplate>
+                            </DataGridColumn>
+                            <DataGridColumn Field="@nameof(ProtocolFieldMapping.ProtocolEDCFieldId)" Width="25%" Caption="Select EDC Field" Editable="true" Sortable>
+                         <DisplayTemplate>
+                             @{
+                                    if (context.ProtocolEDCField != null && context.ProtocolEDCField.ProtocolEDCFieldId != 0)
+                                    {
+                                        <Text>@context.ProtocolEDCField.EDCFieldDisplay</Text>
+                                    }
+                                    else
+                                    {
+                                        <Text>Not Mapped</Text>
+                                    }
+                                }
+                            </DisplayTemplate>
+                            <EditTemplate>
+                                <SelectList TItem="ProtocolEDCField" TValue="int" Data="@edcFieldsByForm[form.Form.ProtocolFormMappingId]" TextField="@((item)=>item.EDCFieldDisplay)"
+                                            ValueField="@((item) => item.ProtocolEDCFieldId)"
+                                            SelectedValueChanged="@( v =>{context.CellValue = v;})"
+                                            SelectedValue="@((int?)context.CellValue ?? context.Item.ProtocolEDCFieldId)"
+                                            DefaultItemText="Select"></SelectList>
+                            </EditTemplate>
+                        </DataGridColumn>
+                        <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="true">
+                            <SaveCommandTemplate>
+                                <Button><Icon Name="IconName.Save" Clicked="@context.Clicked" /></Button>
+                            </SaveCommandTemplate>
+                            <EditCommandTemplate>
+                                <Button Disabled="@(this.protocolFieldsDict.ContainsKey(context.Item.ThorFieldId) == false)"><Icon Name="IconName.Edit" Clicked="@(async () => await EditMultiForm(context, context.Item, form.Form.ProtocolFormMappingId))" /></Button>
+                            </EditCommandTemplate>
+                            <CancelCommandTemplate>
+                                <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
+                            </CancelCommandTemplate>
+                            <DeleteCommandTemplate>
+                                <Button><Icon Name="IconName.Delete" Clicked="@(() => Delete(context.Item))" /></Button>
+                            </DeleteCommandTemplate>
+                        </DataGridCommandColumn>
+                        <DataGridColumn Field="@nameof(ProtocolFieldMapping.ThorDictionaryId)" Caption="Dictionary Mapping">
+                            <DisplayTemplate>
+                                @if (context.ThorField != null &&
+                        context.ThorField.ThorDictionaryId != null &&
+                        context.ThorField.ThorDictionaryId != 0 &&
+                        this.protocolFieldsDict.ContainsKey(context.ThorFieldId) &&
+                        this.protocolFieldsDict[context.ThorFieldId].CanBeDictionary
+                        )
+                                {
+                                    <Button Color="Color.Primary" Clicked="@((item) => EditDictionaryMapping(context))" Disabled="@GetFieldMappingStatus(context)">Edit</Button>
+                                }
+                                else if (context.ThorField != null &&
+                                context.ThorField.ThorDictionaryId != null &&
+                                context.ThorField.ThorDictionaryId != 0 &&
+                                this.protocolFieldsDict.ContainsKey(context.ThorFieldId) &&
+                                this.protocolFieldsDict[context.ThorFieldId].CanBeDictionary == false)
+                                {
+                                    <Text>Disabled in protocol</Text>
+                                }
+                                else
+                                {
+                                    <Text>N/A</Text>
+                                }
+                            </DisplayTemplate>
+                        </DataGridColumn>
+                    </DataGridColumns>
+                    <EmptyTemplate>
+                        <div class="box">
+                            No multi-form field mappings found.
+                        </div>
+                    </EmptyTemplate>
+                </DataGrid>
+            }
+            <Button Color="Color.Primary" Clicked="AddForm">Add Form</Button>
+        }
+    </Container>
+</LayoutContent>
 
 @code {
     [Inject] IProtocolEDCFormService protocolEDCFormService { get; set; } = null!;
@@ -382,11 +389,11 @@ else
             if (!studyIds.Contains(protocol))
             {
                 await notificationService.Error("You do not have access to this protocol");
-                navigation.NavigateTo("/admin/dmu/study-mapping");
+                navigation.NavigateTo("/dmu/study-mapping");
             }
         }
 
-        System.Console.WriteLine($"ProtocolFormFieldMapping - { watch.Elapsed } - GetCategory");
+        System.Console.WriteLine($"ProtocolFormFieldMapping - {watch.Elapsed} - GetCategory");
 
         this.isComplete = protocolCategory.ProtocolCategoryStatusId == 3;
         this.currCategory = this.protocolCategory.THORDataCategory;
@@ -504,7 +511,7 @@ else
         if (form == null)
             return;
 
-        form.ProtocolEDCFormId = protocolEDCFormId; 
+        form.ProtocolEDCFormId = protocolEDCFormId;
         await GetFieldsMultiForm(protocolEDCFormId, form.ProtocolFormMappingId);
         await this.protocolFormMappingService.SaveProtocolFormMapping(form);
         RefreshFormsDropdown();
@@ -526,7 +533,7 @@ else
 
     public async Task GetFields(int formId)
     {
-        if(formId != 0)
+        if (formId != 0)
         {
             this.protocolEDCFieldList = await protocolEDCFieldService.GetFieldsByFormIds(new List<int> { formId });
         }
@@ -534,7 +541,7 @@ else
 
     public async Task GetFieldsMultiForm(int formId, int mappingId)
     {
-        if(formId == 0)
+        if (formId == 0)
         {
             this.edcFieldsByForm[mappingId] = new List<ProtocolEDCField>();
             return;
@@ -545,7 +552,7 @@ else
 
     public IList<ProtocolFieldMapping> AddMissingFields(IList<ProtocolFieldMapping> mappings, int? formId)
     {
-        if(formId == null)
+        if (formId == null)
         {
             formId = 0;
         }
@@ -567,7 +574,7 @@ else
 
         bool saved = await protocolFieldMappingService.SaveProtocolFieldMapping(toSave);
 
-        if(this.protocolCategory.ProtocolCategoryStatusId != 2)
+        if (this.protocolCategory.ProtocolCategoryStatusId != 2)
         {
             // when we save a mapping, we want to make sure the status is Incomplete
             this.protocolCategory.ProtocolCategoryStatusId = 2;
@@ -621,7 +628,7 @@ else
 
     public bool GetFieldMappingStatus(ProtocolFieldMapping item)
     {
-        if(item.ProtocolEDCFormId == 0 || item.ProtocolEDCFieldId == 0)
+        if (item.ProtocolEDCFormId == 0 || item.ProtocolEDCFieldId == 0)
         {
             return true;
         }
@@ -656,7 +663,7 @@ else
             {
                 await notificationService.Success("Mapping successfully deleted");
                 await RefreshFields();
-                this.StateHasChanged(); 
+                this.StateHasChanged();
                 return;
             }
             else
@@ -691,9 +698,9 @@ else
         bool saved = await protocolFormMappingService.SaveProtocolFormMapping(form);
         if (saved)
         {
-            foreach(var otherForm in this.multiFormList)
+            foreach (var otherForm in this.multiFormList)
             {
-                if(otherForm.ProtocolFormMappingId != form.ProtocolFormMappingId)
+                if (otherForm.ProtocolFormMappingId != form.ProtocolFormMappingId)
                 {
                     otherForm.IsPrimaryForm = false;
                     await this.protocolFormMappingService.SaveProtocolFormMapping(otherForm);
@@ -726,7 +733,7 @@ else
         }
 
         // var url = $"/admin/dmu/dictionary-list-map/{protocolFieldMappingId}?protocolMappingId={protocolMappingId}&protocol={protocol}&categoryName={categoryName}&formLabel={formLabel}&protocolCategoryId={protocolCategoryId}&thorDictionaryId={thorDictionaryId}";
-        var url = $"/admin/dmu/dictionary-list-map/{protocolFieldMappingId}?protocolCategoryId={protocolCategoryId}";
+        var url = $"/dmu/dictionary-list-map/{protocolFieldMappingId}?protocolCategoryId={protocolCategoryId}";
 
         navigation.NavigateTo(url);
     }
@@ -743,7 +750,8 @@ else
         this.multiFormRefs.Add(newForm.ProtocolFormMappingId, new DataGrid<ProtocolFieldMapping>());
         this.multiFormMappings.Add(newForm.ProtocolFormMappingId, new List<ProtocolFieldMapping>());
         this.multiFormList.Add(newForm);
-        foreach(var protocolField in this.protocolFields){
+        foreach (var protocolField in this.protocolFields)
+        {
             this.multiFormMappings[newForm.ProtocolFormMappingId].Add(new ProtocolFieldMapping { ThorFieldId = protocolField.ThorFieldId, ThorField = protocolField.ThorField, ProtocolEDCFieldId = 0, ProtocolEDCFormId = 0 });
         }
 
@@ -786,7 +794,8 @@ else
 
     public async void CompleteMapping()
     {
-        if(this.isComplete){
+        if (this.isComplete)
+        {
             this.protocolCategory.ProtocolCategoryStatusId = 3; // set to complete
         }
         else
@@ -807,7 +816,7 @@ else
     }
 
     private void Back()
-	{
-		navigation.NavigateTo($"/admin/dmu/category-list-map/{protocolMappingId}", true);
-	}
+    {
+        navigation.NavigateTo($"/dmu/category-list-map/{protocolMappingId}", true);
+    }
 }

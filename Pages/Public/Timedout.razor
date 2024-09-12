@@ -1,4 +1,4 @@
-﻿@page "/timedout"
+﻿@page "/timedout/{userType?}"
 @inject IConfiguration configuration
 @layout LoginLayout
 
@@ -36,6 +36,8 @@
 </div>
 @code {
     [Inject] public NavigationManager Navigation { get; set; }
+    [Parameter] public string userType { get; set; }
+
     private int iconHeight = 24;
     public string CurrentEnvironment { get; set; }
     private string supportEmail = "";
@@ -59,13 +61,15 @@
     {
         if (firstRender)
         {
-            
+
         }
     }
 
     Task OnButtonClicked()
     {
-        Navigation.NavigateTo($"landing", true);
+        string returnPage = userType == "internal" ? "internallogin" : "landing";
+        //Navigation.NavigateTo($"landing", true);
+        Navigation.NavigateTo(returnPage, true);
 
         return Task.CompletedTask;
     }
