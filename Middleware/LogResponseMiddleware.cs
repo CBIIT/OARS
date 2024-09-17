@@ -25,7 +25,7 @@ namespace TheradexPortal.Middleware
 
             using (var responseBodyStream = new MemoryStream())
             {
-                _logger.LogInformation("Request: {Method} {Path}", context.Request.Method, context.Request.Path);
+                logger.LogInformation("Request: {Method} {Path}", context.Request.Method, context.Request.Path);
 
                 context.Response.Body = responseBodyStream;
 

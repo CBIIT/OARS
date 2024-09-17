@@ -87,7 +87,7 @@ namespace TheradexPortal.Middleware
         public Log4NetTraceIdMiddleware(RequestDelegate next, ILogger<Log4NetTraceIdMiddleware> logger)
         {
             _next = next;
-            logger = logger;
+            this.logger = logger;
         }
 
         public async Task InvokeAsync(HttpContext context)
