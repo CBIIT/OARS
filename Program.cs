@@ -225,6 +225,10 @@ var onTokenValidated = async (TokenValidatedContext context) =>
     bool saveActivity = userService.SaveActivityLog(user.UserId, ThorActivityType.Login, roleList);
     int recentCount = Convert.ToInt32(builder.Configuration["System:RecentHistoryCount"]);
     bool setStartingStudies = await userService.SetStartingStudies(user.UserId, recentCount);
+    log4net.ThreadContext.Properties["userName"] = user.UserId;
+    log4net.LogicalThreadContext.Properties["userName"] = user.UserId;
+    log4net.ThreadContext.Properties["email"] = user.EmailAddress;
+    log4net.LogicalThreadContext.Properties["email"] = user.EmailAddress;
     return Task.CompletedTask;
 
 };
