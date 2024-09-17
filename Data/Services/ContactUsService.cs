@@ -11,11 +11,12 @@ namespace TheradexPortal.Data.Services
     {
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
-
-        public ContactUsService(IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, NavigationManager navigationManager) : base(databaseConnectionService)
+        protected readonly ILogger<ContactUsService> logger;
+        public ContactUsService(ILogger<ContactUsService> logger, IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, NavigationManager navigationManager) : base(databaseConnectionService)
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;
+            this.logger = logger;
         }
 
         public List<ContactUsCategory> GetContactUsCategories()

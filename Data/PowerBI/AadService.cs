@@ -8,13 +8,16 @@
     using System.Text.Json;
     using TheradexPortal.Data.PowerBI.Abstract;
     using TheradexPortal.Data.PowerBI.Models;
+    using Microsoft.Extensions.Logging; // Add the logging namespace
+
 
     public class AadService : IAadService
     {
         private readonly IOptions<AzureAd> azureAd;
-
-        public AadService(IOptions<AzureAd> azureAd)
+        private readonly ILogger<AadService> logger; // Add logger field
+        public AadService(IOptions<AzureAd> azureAd, ILogger<AadService> logger) // Add logger to constructor
         {
+            this.logger = logger; // Initialize logger
             this.azureAd = azureAd;
         }
 
@@ -24,14 +27,21 @@
         /// <returns>AAD token</returns>
         public string GetAccessToken()
         {
+            logger.LogInformation("Entered"); // Log class and method name
             if (azureAd == null)
             {
                 throw new ArgumentNullException("Missing PowerBI credentials");
             }
 
             AuthenticationResult? authenticationResult = null;
+
+
+            // Logging the authentication mode for clarity
+            logger.LogInformation("AuthenticationMode: {AuthenticationMode}", azureAd.Value.AuthenticationMode); 
             if (azureAd.Value.AuthenticationMode.Equals("masteruser", StringComparison.InvariantCultureIgnoreCase))
             {
+                logger.LogInformation("Using masteruser authentication mode");
+
                 // Create a public client to authorize the app with the AAD app
                 IPublicClientApplication clientApp = PublicClientApplicationBuilder.Create(azureAd.Value.ClientId).WithAuthority(azureAd.Value.AuthorityUri).Build();
                 var userAccounts = clientApp.GetAccountsAsync().Result;
@@ -42,6 +52,8 @@
             // Service Principal auth is the recommended by Microsoft to achieve App Owns Data Power BI embedding
             else if (azureAd.Value.AuthenticationMode.Equals("serviceprincipal", StringComparison.InvariantCultureIgnoreCase))
             {
+                logger.LogInformation("Using serviceprincipal authentication mode");
+
                 // For app only authentication, we need the specific tenant id in the authority url
                 var tenantSpecificUrl = azureAd.Value.AuthorityUri.Replace("organizations", azureAd.Value.TenantId);
 
@@ -57,9 +69,10 @@
 
             if (authenticationResult == null)
             {
+                logger.LogError("Failed to authenticate with Power BI");
                 throw new InvalidOperationException("Failed to authenticate with Power BI");
             }
-
+            logger.LogInformation("Access token retrieved successfully");
             return authenticationResult.AccessToken;
         }
     }

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Server.IIS.Core;
 using Microsoft.EntityFrameworkCore;
 using TheradexPortal.Data.Models;
+using TheradexPortal.Data.PowerBI;
 using TheradexPortal.Data.Services.Abstract;
 
 namespace TheradexPortal.Data.Services
@@ -11,6 +12,7 @@ namespace TheradexPortal.Data.Services
     {
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
+        private readonly ILogger<AlertService> logger; // Add logger field
 
         private readonly bool active = true;
         private readonly DateTime dateTime = DateTime.Now;
@@ -58,8 +60,9 @@ namespace TheradexPortal.Data.Services
             return Task.FromResult(infoColor);
         }
 
-        public AlertService(IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, NavigationManager navigationManager) : base(databaseConnectionService)
+        public AlertService(ILogger<AlertService> logger,IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, NavigationManager navigationManager) : base(databaseConnectionService)
         {
+            logger = logger;
             _errorLogService = errorLogService;
             _navManager = navigationManager;
         }

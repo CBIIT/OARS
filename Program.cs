@@ -23,8 +23,18 @@ using Microsoft.Extensions.DependencyInjection;
 using Amazon.DynamoDBv2.DataModel;
 using Amazon.S3;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.HttpLogging;
+using TheradexPortal.Middleware;
+using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddHttpLogging(logging =>
+{
+    logging.LoggingFields = HttpLoggingFields.RequestMethod
+                                | HttpLoggingFields.ResponseStatusCode
+                                | HttpLoggingFields.RequestPath;
+});
 
 // Add services to the container.
 builder.Services.AddRazorPages();
@@ -288,7 +298,14 @@ builder.Services.AddHttpContextAccessor();
 
 
 var app = builder.Build();
-
+app.UseCorrelationIdMiddleware();
+//app.UseUserIdHeaderMiddleware();
+app.UseLog4NetTraceIdMiddleware();
+app.UseExceptionHandlingMiddleware();
+app.UseLogResponseMiddleware();
+app.UseRequestLoggingMiddleware();
+app.UseElapsedTimeMiddleware();
+app.UseHttpLogging();
 // Force HTTPS context for use behind load balancer
 
 app.Use((context, next) =>

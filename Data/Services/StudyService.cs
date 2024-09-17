@@ -8,7 +8,10 @@ namespace TheradexPortal.Data.Services
 
     public class StudyService : BaseService, IStudyService
     {
-        public StudyService(IDatabaseConnectionService databaseConnectionService) : base(databaseConnectionService) { }
+        private readonly ILogger<StudyService> logger; // Add logger field
+        public StudyService(ILogger<StudyService> logger, IDatabaseConnectionService databaseConnectionService, IHttpContextAccessor httpContextAccessor) : base(databaseConnectionService) {
+            this.logger = logger; // Initialize logger
+        }
         
         public async Task<IList<Protocol>> GetAllProtocolsAsync()
         {
