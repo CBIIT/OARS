@@ -3,24 +3,43 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System.Diagnostics;
 using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Static;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics;
+using System.Security.AccessControl;
+using TheradexPortal.Data.Models;
+using TheradexPortal.Data.Services;
+using TheradexPortal.Data.Static;
 
 namespace TheradexPortal.Data
 {
     public class ThorDBContext : DbContext
     {
-        public ThorDBContext(DbContextOptions<ThorDBContext> options) : base(options)
+        private readonly ILogger<ThorDBContext> logger; // Add logger field
+        public ThorDBContext(ILogger<ThorDBContext> logger,DbContextOptions<ThorDBContext> options) : base(options)
         {
+            this.logger = logger; // Initialize logger
             Debug.WriteLine($"{ContextId} context created.");
+            logger.LogInformation($"{ContextId} context created.");
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // Start a stopwatch to measure the time taken
+            var stopwatch = new System.Diagnostics.Stopwatch();
+            stopwatch.Start();
+
             var converter = new BoolToStringConverter("N","Y");
 
             foreach (var entity in modelBuilder.Model.GetEntityTypes())
             {
                 var schema = entity.GetSchema();
-                if (schema != null && schema == "DMU") {
+                if (schema != null && schema == "DMU")
+                {
                     foreach (var property in entity.GetProperties())
                     {
                         if (property.ClrType.Name == "bool" || property.ClrType.Name == "Boolean")
@@ -38,25 +57,46 @@ namespace TheradexPortal.Data
                 {
                     var colName = property.GetColumnName();
                     property.SetColumnName(colName.ToUpper());
-                    if(property.ClrType.Name == "bool" || property.ClrType.Name == "Boolean")
+                    if (property.ClrType.Name == "bool" || property.ClrType.Name == "Boolean")
                     {
                         property.SetValueConverter(converter);
                     }
                 }
             }
+
+            // Stop the stopwatch and log the time taken
+            stopwatch.Stop();
+            var elapsedMilliseconds = stopwatch.ElapsedMilliseconds;
+
+            logger.LogInformation("OnModelCreating executed in {ElapsedMilliseconds} ms.", elapsedMilliseconds);
         }
 
         public virtual async Task<int> SaveChangesAsync(int userId, string primaryTable)
         {
+            // Start a stopwatch to measure the time taken
+            var stopwatch = new System.Diagnostics.Stopwatch();
+            stopwatch.Start();
+
             DateTime auditDateTime = DateTime.UtcNow;
             var auditEntries = OnBeforeSaveChanges(userId, auditDateTime, primaryTable);
             var result = await base.SaveChangesAsync();
             await OnAfterSaveChanges(auditEntries);
+
+            // Stop the stopwatch and log the time taken
+            stopwatch.Stop();
+            var elapsedMilliseconds = stopwatch.ElapsedMilliseconds;
+
+            logger.LogInformation("SaveChangesAsync executed in {ElapsedMilliseconds} ms.", elapsedMilliseconds);
+
             return result;
         }
 
         private List<AuditEntry> OnBeforeSaveChanges(int userId, DateTime auditDateTime, string primaryTable)
         {
+            // Start a stopwatch to measure the time taken
+            var stopwatch = new System.Diagnostics.Stopwatch();
+            stopwatch.Start();
+
             ChangeTracker.DetectChanges();
             var auditEntries = new List<AuditEntry>();
 
@@ -116,11 +156,21 @@ namespace TheradexPortal.Data
                 Audit.Add(auditEntry.ToAudit());
             }
 
+            // Stop the stopwatch and log the time taken
+            stopwatch.Stop();
+            var elapsedMilliseconds = stopwatch.ElapsedMilliseconds;
+
+            logger.LogInformation("OnBeforeSaveChanges executed in {ElapsedMilliseconds} ms.", elapsedMilliseconds);
+
             // keep a list of entries where the value of some properties are unknown at this step
             return auditEntries.Where(_ => _.HasTemporaryProperties).ToList();
         }
         private Task OnAfterSaveChanges(List<AuditEntry> auditEntries)
         {
+            // Start a stopwatch to measure the time taken
+            var stopwatch = new System.Diagnostics.Stopwatch();
+            stopwatch.Start();
+
             if (auditEntries == null || auditEntries.Count == 0)
                 return Task.CompletedTask;
 
@@ -142,6 +192,12 @@ namespace TheradexPortal.Data
                 // Save the Audit entry
                 Audit.Add(auditEntry.ToAudit());
             }
+
+            // Stop the stopwatch and log the time taken
+            stopwatch.Stop();
+            var elapsedMilliseconds = stopwatch.ElapsedMilliseconds;
+
+            logger.LogInformation("OnAfterSaveChanges executed in {ElapsedMilliseconds} ms.", elapsedMilliseconds);
 
             return SaveChangesAsync();
         }

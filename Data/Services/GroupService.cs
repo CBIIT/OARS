@@ -12,10 +12,12 @@ namespace TheradexPortal.Data.Services
     {
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
-        public GroupService(IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, NavigationManager navigationManager) : base(databaseConnectionService)
+        private readonly ILogger<GroupService> logger; // Add logger field
+        public GroupService(ILogger<GroupService> logger, IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, NavigationManager navigationManager) : base(databaseConnectionService)
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;
+            this.logger = logger; // Initialize logger
         }
 
         public async Task<IList<Group>> GetAllGroupsAsync()

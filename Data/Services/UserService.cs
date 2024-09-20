@@ -18,9 +18,13 @@ namespace TheradexPortal.Data.Services
     {
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
+        private readonly IConfiguration configuration;
+        protected readonly ILogger<UserService> logger;
 
-        public UserService(IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, NavigationManager navigationManager) : base(databaseConnectionService)
+        public UserService(ILogger<UserService> logger, IConfiguration configuration, IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, NavigationManager navigationManager, IHttpContextAccessor httpContextAccessor) : base(databaseConnectionService)
         {
+            this.logger = logger;
+            this.configuration = configuration;
             _errorLogService = errorLogService;
             _navManager = navigationManager;
         }
@@ -31,7 +35,7 @@ namespace TheradexPortal.Data.Services
         }
         public async Task<User?> GetUserAsync(int userId)
         {
-            return await context.Users.Include(ur=>ur.UserRoles).ThenInclude(r=>r.Role).Include(up=>up.UserProtocols).Include(ug=>ug.UserGroups).ThenInclude(g=>g.Group).FirstOrDefaultAsync(u => u.UserId == userId);
+            return await context.Users.Include(ur => ur.UserRoles).ThenInclude(r => r.Role).Include(up => up.UserProtocols).Include(ug => ug.UserGroups).ThenInclude(g => g.Group).FirstOrDefaultAsync(u => u.UserId == userId);
         }
         public async Task<User?> GetUserByEmailAsync(string emailAddress)
         {
@@ -39,7 +43,7 @@ namespace TheradexPortal.Data.Services
         }
         public bool CheckEmailAddress(string emailAddress, int userId)
         {
-            User foundUser = context.Users.FirstOrDefault(u=>u.EmailAddress.ToUpper() == emailAddress.ToUpper() && u.UserId != userId);
+            User foundUser = context.Users.FirstOrDefault(u => u.EmailAddress.ToUpper() == emailAddress.ToUpper() && u.UserId != userId);
             return foundUser == null;
         }
         public bool SaveUser(User user, int loggedInUserId)
@@ -345,7 +349,7 @@ namespace TheradexPortal.Data.Services
         }
         public async Task<IList<string>> GetProtocolHistoryAsync(int userId, int count)
         {
-            return await context.User_ProtocolHistory.Where(p1=>p1.UserId == userId).OrderByDescending(p=>p.UserProtocolHistoryId).Select(p=>p.StudyId).Take(count).ToListAsync();
+            return await context.User_ProtocolHistory.Where(p1 => p1.UserId == userId).OrderByDescending(p => p.UserProtocolHistoryId).Select(p => p.StudyId).Take(count).ToListAsync();
         }
         public void SaveTimeZoneInfo(int userId, string timeZoneAbbrev, TimeSpan currentOffset)
         {
@@ -399,10 +403,10 @@ namespace TheradexPortal.Data.Services
         public bool CheckActivityLogForTimeout(int userId, int timespanMS)
         {
             // Get the lost recent non-Timeout-check record from Activity log based on the timespan
-            var mostRecentActivity = ( from ua in context.User_ActivityLog
-                                       where ua.UserId == userId && ua.Data1 != "Timeout-Check"
-                                       orderby ua.ActivityDate descending
-                                       select ua).FirstOrDefault();
+            var mostRecentActivity = (from ua in context.User_ActivityLog
+                                      where ua.UserId == userId && ua.Data1 != "Timeout-Check"
+                                      orderby ua.ActivityDate descending
+                                      select ua).FirstOrDefault();
 
             DateTime curDateTime = DateTime.UtcNow;
 
@@ -411,15 +415,16 @@ namespace TheradexPortal.Data.Services
         }
         public Tuple<bool, string> SaveFavorite(int userId, int dashboardId, int reportId, string reportName)
         {
+            logger.LogInformation("Entered"); // Log class and method name
             try
             {
                 List<UserFavorite> currentItem =
                     context.User_Favorite.Where(u => u.UserId == userId && u.DashboardId == dashboardId && u.ReportId == reportId).ToList();
                 if (currentItem.Count == 0)
                 {
-                    var configuration = new ConfigurationBuilder().AddJsonFile($"appsettings.json");
-                    var config = configuration.Build();
-                    int maxReportNumber = Convert.ToInt32(config["MyFavoriteMaxPerDashboard"]);
+                    int maxReportNumber = Convert.ToInt32(string.IsNullOrEmpty(configuration["MyFavoriteMaxPerDashboard"]) ? "25" : configuration["MyFavoriteMaxPerDashboard"]);
+                    // Log the retrieved or adjusted value
+                    logger.LogInformation("Retrieved {Count} MyFavoriteMaxPerDashboard", maxReportNumber);
 
                     int reportCount = context.User_Favorite.Where(u => u.UserId == userId && u.DashboardId == dashboardId).Count();
                     if (reportCount >= maxReportNumber)
@@ -452,8 +457,9 @@ namespace TheradexPortal.Data.Services
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Unable to Save Favorite.", userId, dashboardId, reportId, reportName);
                 _errorLogService.SaveErrorLogAsync(userId, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
-                return new Tuple<bool, string>(false,"");
+                return new Tuple<bool, string>(false, "");
             }
             return new Tuple<bool, string>(false, "");
         }
@@ -462,12 +468,12 @@ namespace TheradexPortal.Data.Services
             List<FavoriteReportItem> lstUserFavorite = new List<FavoriteReportItem>();
             FavoriteReportItem reportItem;
             string reportName = string.Empty;
-            List<UserFavorite> userSavedFavorites = (  from uf in context.User_Favorite 
-                                                       join dashboardlist  in context.Dashboards on uf.DashboardId equals dashboardlist.DashboardId
-                                                       join reportList in context.Reports on uf.ReportId equals reportList.ReportId
-                                                       where uf.UserId == userId
-                                                       orderby dashboardlist.DisplayOrder, reportList.DisplayOrder
-                                                       select uf).ToList();
+            List<UserFavorite> userSavedFavorites = (from uf in context.User_Favorite
+                                                     join dashboardlist in context.Dashboards on uf.DashboardId equals dashboardlist.DashboardId
+                                                     join reportList in context.Reports on uf.ReportId equals reportList.ReportId
+                                                     where uf.UserId == userId
+                                                     orderby dashboardlist.DisplayOrder, reportList.DisplayOrder
+                                                     select uf).ToList();
             List<Dashboard> dashboards = new List<Dashboard>();
             if (isAdmin)
             {
@@ -485,7 +491,7 @@ namespace TheradexPortal.Data.Services
             List<Report> reports = new List<Report>();
             if (isAdmin)
             {
-                reports =  context.Reports.ToList();
+                reports = context.Reports.ToList();
             }
             else
             {
@@ -555,9 +561,9 @@ namespace TheradexPortal.Data.Services
             return lstUserFavorite;
         }
 
-        public bool HasUserFavorite(int userId, bool isAdmin) 
+        public bool HasUserFavorite(int userId, bool isAdmin)
         {
-        
+
             List<UserFavorite> userSavedFavorites = (from uf in context.User_Favorite
                                                      join dashboardlist in context.Dashboards on uf.DashboardId equals dashboardlist.DashboardId
                                                      join reportList in context.Reports on uf.ReportId equals reportList.ReportId
@@ -623,7 +629,7 @@ namespace TheradexPortal.Data.Services
                 ufItem = (from uf in context.User_Favorite
                           join dashboardlist in context.Dashboards on uf.DashboardId equals dashboardlist.DashboardId
                           join reportList in context.Reports on uf.ReportId equals reportList.ReportId
-                          where uf.UserId == userId                     
+                          where uf.UserId == userId
                           orderby dashboardlist.DisplayOrder, reportList.DisplayOrder
                           select uf).FirstOrDefault();
             }
@@ -671,7 +677,7 @@ namespace TheradexPortal.Data.Services
             }
             return name;
         }
-        public bool RemoveFavorite(int userId ,int userFavoriteId)
+        public bool RemoveFavorite(int userId, int userFavoriteId)
         {
             UserFavorite currentItem =
                   context.User_Favorite.Where(u => u.UserFavoriteId == userFavoriteId).FirstOrDefault();
@@ -679,10 +685,10 @@ namespace TheradexPortal.Data.Services
             {
                 context.User_Favorite.Remove(currentItem);
                 var primaryTable = context.Model.FindEntityType(typeof(UserFavorite)).ToString().Replace("EntityType: ", "");
-                context.SaveChangesAsync(userId, primaryTable);              
+                context.SaveChangesAsync(userId, primaryTable);
                 return true;
             }
-            return false ;
+            return false;
         }
 
         public List<string> GetProtocolAccessForUser(int userId)
