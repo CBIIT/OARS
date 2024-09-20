@@ -9,9 +9,10 @@ namespace TheradexPortal.Data.Services
     {
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
-
-        public UserRoleService(IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, NavigationManager navigationManager) : base(databaseConnectionService)
+        protected readonly ILogger<UserRoleService> logger;
+        public UserRoleService(ILogger<UserRoleService> logger, IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, NavigationManager navigationManager, IHttpContextAccessor httpContextAccessor) : base(databaseConnectionService)
         {
+            this.logger = logger;
             _errorLogService = errorLogService;
             _navManager = navigationManager;
         }
@@ -23,13 +24,13 @@ namespace TheradexPortal.Data.Services
 
         public async Task<Role> GetRoleByIdAsync(int id)
         {
-            return await context.Roles.Where(r=>r.RoleId==id).Include(rd=>rd.RoleDashboards).Include(rr=>rr.RoleReports).FirstOrDefaultAsync();
+            return await context.Roles.Where(r => r.RoleId == id).Include(rd => rd.RoleDashboards).Include(rr => rr.RoleReports).FirstOrDefaultAsync();
             //return await context.Roles.Where(r => r.RoleId == id).FirstOrDefaultAsync();
         }
 
         public async Task<IList<Role>> GetRoleByLevel(bool isPrimary)
         {
-            return await context.Roles.Where(r=>r.IsPrimary==isPrimary).ToListAsync();
+            return await context.Roles.Where(r => r.IsPrimary == isPrimary).ToListAsync();
         }
 
         public async Task<List<Role>> GetUserRolesAsync(int userId)

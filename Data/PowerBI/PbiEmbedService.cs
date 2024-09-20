@@ -15,9 +15,10 @@
     {
         private readonly IAadService aadService;
         private readonly string urlPowerBiServiceApiRoot = "https://api.powerbi.com";
-
-        public PbiEmbedService(IAadService aadService)
+        private readonly ILogger<PbiEmbedService> logger;
+        public PbiEmbedService(ILogger<PbiEmbedService> logger, IAadService aadService)
         {
+            this.logger = logger;
             this.aadService = aadService;
         }
 
@@ -27,6 +28,7 @@
         /// <returns>Power BI client object</returns>
         public PowerBIClient GetPowerBIClient()
         {
+            logger.LogInformation("Entered"); // Log class and method name
             var tokenCredentials = new TokenCredentials(aadService.GetAccessToken(), "Bearer");
             return new PowerBIClient(new Uri(urlPowerBiServiceApiRoot), tokenCredentials);
         }
@@ -37,6 +39,7 @@
         /// <returns>Wrapper object containing Embed token, Embed URL, Report Id, and Report name for single report</returns>
         public EmbedParams GetEmbedParams(Guid workspaceId, Guid reportId, [Optional] Guid additionalDatasetId)
         {
+            logger.LogInformation("Entered, Parameters: workspaceId={WorkspaceId}, reportId={ReportId}, additionalDatasetId={AdditionalDatasetId}", workspaceId, reportId, additionalDatasetId);
             PowerBIClient pbiClient = this.GetPowerBIClient();
 
             // Get report info
@@ -98,6 +101,9 @@
         /// <returns>Wrapper object containing Embed token, Embed URL, Report Id, and Report name for single report</returns>
         public EmbedParams GetEmbedParams(Guid workspaceId, Guid reportId, string userEmail, string[] roles, [Optional] Guid additionalDatasetId)
         {
+            logger.LogInformation("Entered Parameters: workspaceId={WorkspaceId}, reportId={ReportId}, userEmail={UserEmail}, roles={Roles}, additionalDatasetId={AdditionalDatasetId}",
+                                 workspaceId, reportId, userEmail, string.Join(",", roles), additionalDatasetId);
+
             PowerBIClient pbiClient = this.GetPowerBIClient();
 
             // Get report info
@@ -159,6 +165,9 @@
         /// <remarks>This function is not supported for RDL Report</remakrs>
         public EmbedToken GetEmbedToken(Guid reportId, IList<Guid> datasetIds, [Optional] Guid targetWorkspaceId)
         {
+            logger.LogInformation("Entered Parameters: reportId={ReportId}, datasetIds={DatasetIds}, targetWorkspaceId={TargetWorkspaceId}",
+                      reportId, string.Join(",", datasetIds), targetWorkspaceId);
+
             PowerBIClient pbiClient = this.GetPowerBIClient();
 
             // Create a request for getting Embed token 
@@ -184,6 +193,9 @@
         /// <remarks>This function is not supported for RDL Report</remakrs>
         public EmbedToken GetEmbedToken(Guid reportId, IList<Guid> datasetIds, string userEmail, string[] roles, [Optional] Guid targetWorkspaceId)
         {
+            logger.LogInformation("Entered Parameters: reportId={ReportId}, datasetIds={DatasetIds}, userEmail={UserEmail}, roles={Roles}, targetWorkspaceId={TargetWorkspaceId}",
+                                 reportId, string.Join(",", datasetIds), userEmail, string.Join(",", roles), targetWorkspaceId);
+
             PowerBIClient pbiClient = this.GetPowerBIClient();
 
             // Create a request for getting Embed token 
@@ -220,6 +232,9 @@
         /// <returns>Embed token</returns>
         public EmbedToken GetEmbedTokenForRDLReport(Guid targetWorkspaceId, Guid reportId, string accessLevel = "view")
         {
+            logger.LogInformation("Entered Parameters: targetWorkspaceId={TargetWorkspaceId}, reportId={ReportId}, accessLevel={AccessLevel}",
+                                 targetWorkspaceId, reportId, accessLevel);
+
             PowerBIClient pbiClient = this.GetPowerBIClient();
 
             // Generate token request for RDL Report
@@ -235,6 +250,9 @@
 
         public async Task<Reports> GetPowerBIReportList(Guid targetWorkspaceId)
         {
+            logger.LogInformation("Entered Parameters: targetWorkspaceId={TargetWorkspaceId}",
+                                 targetWorkspaceId);
+
             PowerBIClient pbiClient = this.GetPowerBIClient();
 
             var pbiReports = await pbiClient.Reports.GetReportsInGroupAsync(targetWorkspaceId);
@@ -244,6 +262,8 @@
 
         public async Task<Pages> GetPowerBIReportPages(Guid targetWorkspaceId, Guid powerBIReportId)
         {
+            logger.LogInformation("Entered Parameters: targetWorkspaceId={TargetWorkspaceId}, powerBIReportId={PowerBIReportId}",
+                              targetWorkspaceId, powerBIReportId);
             PowerBIClient pbiClient = this.GetPowerBIClient();
 
             var pbiPages = await pbiClient.Reports.GetPagesInGroupAsync(targetWorkspaceId, powerBIReportId);

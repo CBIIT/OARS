@@ -12,11 +12,11 @@ namespace TheradexPortal.Data.Services
     {
         private const int BatchSize = 25;
         protected readonly IDynamoDBContext _dynamoDbContext;
-        protected readonly ILogger<DynamoDbService> _logger;
+        protected readonly ILogger<DynamoDbService> logger;
 
         public DynamoDbService(ILogger<DynamoDbService> logger, IDynamoDBContext dynamoDbContext)
         {
-            _logger = logger;
+            logger = logger;
 
             _dynamoDbContext = dynamoDbContext;
         }

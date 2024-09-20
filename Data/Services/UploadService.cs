@@ -25,14 +25,16 @@ namespace TheradexPortal.Data.Services
         private readonly IDynamoDbService _dynamoDbService;
         private readonly IAWSS3Service _awsS3Service;
         private readonly IStudyService _studyService;
+        private readonly ILogger<UploadService> logger; // Add logger field
 
-        public UploadService(IOptions<UploadSettings> uploadSettings,
+        public UploadService(ILogger<UploadService> logger, IOptions<UploadSettings> uploadSettings,
             IDatabaseConnectionService databaseConnectionService,
             IErrorLogService errorLogService,
             NavigationManager navigationManager,
             IDynamoDbService dynamoDbService,
             IStudyService studyService,
-            IAWSS3Service awsS3Service) : base(databaseConnectionService)
+            IAWSS3Service awsS3Service,
+            IHttpContextAccessor httpContextAccessor) : base(databaseConnectionService)
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;
@@ -40,6 +42,7 @@ namespace TheradexPortal.Data.Services
             _dynamoDbService = dynamoDbService;
             _awsS3Service = awsS3Service;
             _studyService = studyService;
+            this.logger = logger; // Initialize logger
         }
 
         public async Task<UploadConfiguration> GetUploadConfigurationAsync(int userId, bool allStudies)
