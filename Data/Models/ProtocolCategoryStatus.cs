@@ -1,19 +1,21 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TheradexPortal.Data.Models
 {
-    [Table("ProtocolCategoryStatus", Schema = "DMU")]
+    [Table("PROTOCOLCATEGORYSTATUS", Schema = "DMU")]
     public class ProtocolCategoryStatus
     {
-        [Column("Protocol_Category_Status_Id")]
+        [Column("PROTOCOL_CATEGORY_STATUS_ID")]
         public int ProtocolCategoryStatusId { get; set; }
-        [Column("Category_Status_Name")]
+        [Column("CATEGORY_STATUS_NAME")]
         public string CategoryStatusName { get; set; }
-        [Column("Is_Active")]
+        [Column("IS_ACTIVE")]
         public bool IsActive { get; set; }
-        [Column("Create_Date")]
+        [Column("CREATE_DATE")]
         public DateTime CreateDate { get; set; }
-        [Column("Update_Date")]
+        [Column("UPDATE_DATE")]
         public DateTime UpdateDate { get; set; }
     }
 }
+
+

@@ -1,30 +1,30 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TheradexPortal.Data.Models
 {
-    [Table("ProtocolField", Schema = "DMU")]
+    [Table("PROTOCOLFIELD", Schema = "DMU")]
     public class ProtocolField
     {
         [Key, Column("Protocol_Field_Id")]
         public int ProtocolFieldId { get; set; }
-        [Column("Protocol_Mapping_Id")]
+        [Column("PROTOCOL_MAPPING_ID")]
         public int ProtocolMappingId { get; set; }
-        [Column("THOR_Field_Id")]
+        [Column("THOR_FIELD_ID")]
         public string ThorFieldId { get; set; }
-        [Column("Format")]
+        [Column("FORMAT")]
         public string Format { get; set; }
-        [Column("Is_Required")]
+        [Column("IS_REQUIRED")]
         public bool IsRequired { get; set; }
-        [Column("Is_Enabled")]
+        [Column("IS_ENABLED")]
         public bool IsEnabled { get; set; }
-        [Column("Can_Be_Dictionary")]
+        [Column("CAN_BE_DICTIONARY")]
         public bool CanBeDictionary { get; set; }
-        [Column("Is_Multi_Form")]
+        [Column("IS_MULTI_FORM")]
         public bool IsMultiForm { get; set; }
-        [Column("Create_Date")]
+        [Column("CREATE_DATE")]
         public DateTime CreateDate { get; set; }
-        [Column("Updated_Date")]
+        [Column("UPDATED_DATE")]
         public DateTime UpdateDate { get; set; }
         [ForeignKey(nameof(ProtocolMappingId))]
         public ProtocolMapping ProtocolMapping { get; set; }
@@ -53,3 +53,5 @@ namespace TheradexPortal.Data.Models
         }
     }
 }
+
+
