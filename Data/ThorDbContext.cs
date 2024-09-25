@@ -47,6 +47,16 @@ namespace TheradexPortal.Data
                             property.SetValueConverter(converter);
                         }
                     }
+                    // This will make sure that the table name is in uppercase and the column names are in uppercase
+
+                    // Convert table names to uppercase to ignore case sensitivity
+                    entity.SetTableName(entity.GetTableName().ToUpper());
+
+                    // Convert column names to uppercase to ignore case sensitivity
+                    foreach (var property in entity.GetProperties())
+                    {
+                        property.SetColumnName(property.GetColumnName().ToUpper());
+                    }
                     continue;
                 }
 
