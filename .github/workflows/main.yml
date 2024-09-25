@@ -1,0 +1,149 @@
+name: Build and Push Docker Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      custom_version:  # Input field name
+        description: 'Enter the custom semantic version'  # Description shown in the UI
+        required: false  # Not mandatory to enter this value
+        default: ''  # Default value is empty
+
+permissions:
+  contents: write
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+        
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get install -y jq
+          echo "Dependencies installed"
+
+  build:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_DEV }}
+          aws-region: us-east-1
+
+      - name: Log in to Amazon ECR
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_URI }}
+
+      - name: Build Docker Image
+        run: |
+          echo "Building Docker image..."
+          docker build -t web-reporting:latest .
+
+      - name: Save Docker Image
+        run: |
+          echo "Saving Docker image..."
+          docker save web-reporting:latest -o web-reporting-latest.tar
+
+      - name: Upload Docker Image as Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: web-reporting-latest
+          path: web-reporting-latest.tar
+
+  push:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download Docker Image Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: web-reporting-latest
+
+      - name: Set up AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+           role-to-assume: ${{ secrets.AWS_ROLE_ARN_DEV }}
+           aws-region: us-east-1
+
+      - name: Log in to Amazon ECR
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_URI }}
+
+      - name: Load Docker Image from Artifact
+        run: |
+          echo "Loading Docker image..."
+          docker load --input web-reporting-latest.tar
+
+      - name: Get Version from Workflow Input or Semantic Release
+        id: version
+        run: |
+          # Use the manually entered version if provided, otherwise get from semantic-release
+          if [ "${{ github.event.inputs.custom_version }}" != "" ]; then
+            IMAGE_TAG="${{ github.event.inputs.custom_version }}"
+            echo "Using manually entered version: $IMAGE_TAG"
+          else
+            IMAGE_TAG=$(npx semantic-release --dry-run | grep "next release version" | sed 's/.* //')
+            if [ -z "$IMAGE_TAG" ]; then
+              IMAGE_TAG="v0.1.0"  # Fallback version if semantic-release fails
+            fi
+            echo "Using semantic-release version: $IMAGE_TAG"
+          fi
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+
+      - name: Tag Docker Image
+        run: |
+          IMAGE_TAG=${{ env.IMAGE_TAG }}
+          echo "Tagging Docker image with version: $IMAGE_TAG"
+          docker tag web-reporting:latest ${{ secrets.ECR_URI }}:latest
+          docker tag web-reporting:latest ${{ secrets.ECR_URI }}:$IMAGE_TAG
+
+      - name: Push Docker Image to ECR
+        run: |
+          IMAGE_TAG=${{ env.IMAGE_TAG }}
+          echo "Pushing Docker image to ECR with tag: $IMAGE_TAG"
+          docker push ${{ secrets.ECR_URI }}:latest
+          docker push ${{ secrets.ECR_URI }}:$IMAGE_TAG
+
+      - name: Write image definitions
+        run: |
+          IMAGE_TAG=${{ env.IMAGE_TAG }}
+          echo "Writing image definitions..."
+          printf '[{"name":"web","imageUri":"%s"}]' ${{ secrets.ECR_URI }}:$IMAGE_TAG > imagedefinitions.json
+
+      - name: Upload imagedefinitions.json
+        uses: actions/upload-artifact@v3
+        with:
+          name: imagedefinitions
+          path: imagedefinitions.json
+
+  release:
+    needs: push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Semantic Release
+        uses: cycjimmy/semantic-release-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
