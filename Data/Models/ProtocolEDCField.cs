@@ -1,14 +1,14 @@
-﻿using CsvHelper.Configuration.Attributes;
+using CsvHelper.Configuration.Attributes;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TheradexPortal.Data.Models
 {
-    [Table("ProtocolEDCField", Schema = "DMU")]
+    [Table("PROTOCOLEDCFIELD", Schema = "DMU")]
     public class ProtocolEDCField
     {
-        [Column("Protocol_EDC_Field_Id")]
+        [Column("PROTOCOL_EDC_FIELD_ID")]
         public int ProtocolEDCFieldId { get; set; }
-        [Column("Protocol_EDC_Form_Id")]
+        [Column("PROTOCOL_EDC_FORM_ID")]
         public int ProtocolEDCFormId { get; set; } = 0;
 
         [NotMapped]
@@ -33,9 +33,9 @@ namespace TheradexPortal.Data.Models
             }
         }
 
-        [Column("EDC_Field_Identifier")]
+        [Column("EDC_FIELD_IDENTIFIER")]
         public string? EDCFieldIdentifier { get; set; }
-        [Column("EDC_Field_Name")]
+        [Column("EDC_FIELD_NAME")]
         public string? EDCFieldName { get; set; }
         [NotMapped]
         public string EDCFieldDisplay
@@ -46,14 +46,16 @@ namespace TheradexPortal.Data.Models
             }
         }
 
-        [Column("EDC_Dictionary_Name")]
+        [Column("EDC_DICTIONARY_NAME")]
         public string? EDCDictionaryName { get; set; }
-        [Column("Create_Date")]
+        [Column("CREATE_DATE")]
         public DateTime CreateDate { get; set; }
-        [Column("Update_Date")]
+        [Column("UPDATE_DATE")]
         public DateTime UpdateDate { get; set; }
 
         [ForeignKey(nameof(ProtocolEDCFormId))]
         public ProtocolEDCForm ProtocolEDCForm { get; set; }
     }
 }
+
+

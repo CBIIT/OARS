@@ -1,30 +1,32 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TheradexPortal.Data.Models
 {
-    [Table("ProtocolTac", Schema = "DMU")]
+    [Table("PROTOCOLTAC", Schema = "DMU")]
     public class ProtocolTac
     {
         [Key, Column("Protocol_Tac_Id")]
         public int ProtocolTacId { get; set; }
         
-        [Column("Protocol_Mapping_Id")]
+        [Column("PROTOCOL_MAPPING_ID")]
         public int? ProtocolMappingId { get; set; }
 
-        [Column("Tac_Code")]
+        [Column("TAC_CODE")]
         public string? TacCode { get; set; }
         
-        [Column("Tac_Description")]
+        [Column("TAC_DESCRIPTION")]
         public string? TacDescription { get; set; }
         
-        [Column("Create_Date")]
+        [Column("CREATE_DATE")]
         public DateTime CreateDate { get; set; }
         
-        [Column("Update_Date")]
+        [Column("UPDATE_DATE")]
         public DateTime UpdatedDate { get; set; }
         
         [ForeignKey(nameof(ProtocolMappingId))]
         public ProtocolMapping ProtocolMapping { get; set; }
     }
 }
+
+

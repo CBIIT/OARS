@@ -1,20 +1,22 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TheradexPortal.Data.Models
 {
-    [Table("ProtocolMappingStatus", Schema = "DMU")]
+    [Table("PROTOCOLMAPPINGSTATUS", Schema = "DMU")]
     public class ProtocolMappingStatus
     {
-        [Column("Protocol_Mapping_Status_Id"), Key]
+        [Column("PROTOCOL_MAPPING_STATUS_ID"), Key]
         public int ProtocolMappingStatusId { get; set; }
-        [Column("Status_Name")]
+        [Column("STATUS_NAME")]
         public string StatusName { get; set; }
-        [Column("Is_Active")]
+        [Column("IS_ACTIVE")]
         public bool IsActive { get; set; }
-        [Column("Create_Date")]
+        [Column("CREATE_DATE")]
         public DateTime? CreateDate { get; set; }
-        [Column("Update_Date")]
+        [Column("UPDATE_DATE")]
         public DateTime? UpdateDate { get; set; }
     }
 }
+
+

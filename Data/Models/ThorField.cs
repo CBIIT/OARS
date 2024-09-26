@@ -1,13 +1,13 @@
-﻿
+
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TheradexPortal.Data.Models
 {
-    [Table("THORField", Schema = "DMU")]
+    [Table("THORFIELD", Schema = "DMU")]
     public class ThorField
     {
-        [Column("THOR_Data_Category_Id")]
+        [Column("THOR_DATA_CATEGORY_ID")]
         public string? ThorDataCategoryId { get; set; }
         [ForeignKey(nameof(ThorDataCategoryId))]
         public ThorCategory? Category { get; set; }
@@ -21,9 +21,9 @@ namespace TheradexPortal.Data.Models
                 return Category.CategoryDisplay;
             }
         }
-        [Column("THOR_Field_Id"), Key]
+        [Column("THOR_FIELD_ID"), Key]
         public string ThorFieldId { get; set; }
-        [Column("Field_Label")]
+        [Column("FIELD_LABEL")]
         public string? FieldLabel { get; set; }
         [NotMapped]
         public string FieldDisplay
@@ -36,7 +36,7 @@ namespace TheradexPortal.Data.Models
         [ForeignKey(nameof(ThorFieldTypeId))]
         public ThorFieldType? FieldType { get; set; }
 
-        [Column("THOR_Field_Type")]
+        [Column("THOR_FIELD_TYPE")]
         public int? ThorFieldTypeId { get; set; }
         public string FieldTypeName
         {
@@ -46,11 +46,11 @@ namespace TheradexPortal.Data.Models
             }
         }
 
-        [Column("Is_Derivable")]
+        [Column("IS_DERIVABLE")]
         public bool Derivable { get; set; }
         [ForeignKey(nameof(ThorDictionaryId))]
         public ThorDictionary? Dictionary { get; set; }
-        [Column("THOR_Dictionary_Id")]
+        [Column("THOR_DICTIONARY_ID")]
         public int? ThorDictionaryId { get; set; }
         public string DictionaryName
         {
@@ -60,16 +60,18 @@ namespace TheradexPortal.Data.Models
             }
         }
 
-        [Column("Sort_Order")]
+        [Column("SORT_ORDER")]
         public int? SortOrder { get; set; }
-        [Column("Is_Multi_Form")]
+        [Column("IS_MULTI_FORM")]
         public bool IsMultiForm { get; set; }
-        [Column("Is_Active")]
+        [Column("IS_ACTIVE")]
         public bool IsActive { get; set; }
-        [Column("Create_Date")]
+        [Column("CREATE_DATE")]
         public DateTime? CreateDate { get; set; }
-        [Column("Update_Date")]
+        [Column("UPDATE_DATE")]
         public DateTime? UpdateDate { get; set; }
 
     }
 }
+
+

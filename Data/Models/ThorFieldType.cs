@@ -1,20 +1,22 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TheradexPortal.Data.Models
 {
-    [Table("THORFieldType", Schema = "DMU")]
+    [Table("THORFIELDTYPE", Schema = "DMU")]
     public class ThorFieldType
     {
-        [Column("THOR_Field_Type_Id"), Key]
+        [Column("THOR_FIELD_TYPE_ID"), Key]
         public int ThorFieldTypeId { get; set; }
-        [Column("Field_Type_Name")]
+        [Column("FIELD_TYPE_NAME")]
         public string? FieldTypeName { get; set; }
-        [Column("Is_Active")]
+        [Column("IS_ACTIVE")]
         public bool IsActive { get; set; }
-        [Column("Create_Date")]
+        [Column("CREATE_DATE")]
         public DateTime? CreateDate { get; set; }
-        [Column("Update_Date")]
+        [Column("UPDATE_DATE")]
         public DateTime? UpdateDate { get; set; }
     }
 }
+
+

@@ -1,25 +1,27 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TheradexPortal.Data.Models
 {
-    [Table("ProtocolFormMapping", Schema = "DMU")]
+    [Table("PROTOCOLFORMMAPPING", Schema = "DMU")]
     public class ProtocolFormMapping
     {
-        [Column("Protocol_Form_Mapping_Id")]
+        [Column("PROTOCOL_FORM_MAPPING_ID")]
         public int ProtocolFormMappingId { get; set; }
-        [Column("Protocol_EDC_Form_Id")]
+        [Column("PROTOCOL_EDC_FORM_ID")]
         public int? ProtocolEDCFormId { get; set; }
         [ForeignKey("ProtocolEDCFormId")]
         public ProtocolEDCForm ProtocolEDCForm { get; set; }
-        [Column("Is_Primary_Form")]
+        [Column("IS_PRIMARY_FORM")]
         public bool IsPrimaryForm { get; set; } = false;
-        [Column("Create_Date")]
+        [Column("CREATE_DATE")]
         public DateTime CreateDate { get; set; }
-        [Column("Update_Date")]
+        [Column("UPDATE_DATE")]
         public DateTime UpdateDate { get; set; }
-        [Column("Protocol_Category_Id")]
+        [Column("PROTOCOL_CATEGORY_ID")]
         public int ProtocolCategoryId { get; set; }
         [ForeignKey("ProtocolCategoryId")]
         public ProtocolDataCategory ProtocolCategory { get; set; }
     }
 }
+
+

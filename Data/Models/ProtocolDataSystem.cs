@@ -1,27 +1,29 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TheradexPortal.Data.Models
 {
-    [Table("ProtocolDataSystem", Schema = "DMU")]
+    [Table("PROTOCOLDATASYSTEM", Schema = "DMU")]
     public class ProtocolDataSystem
     {
-        [Column("Protocol_Data_System_Id"), Key]
+        [Column("PROTOCOL_DATA_SYSTEM_ID"), Key]
         public int ProtocolDataSystemId { get; set; }
 
-        [Column("Data_System_Name")]
+        [Column("DATA_SYSTEM_NAME")]
         public string? DataSystemName { get; set; }
 
-        [Column("Sort_Order")]
+        [Column("SORT_ORDER")]
         public int? SortOrder { get; set; }
 
-        [Column("Is_Active")]
+        [Column("IS_ACTIVE")]
         public bool IsActive { get; set; }
 
-        [Column("Create_Date")]
+        [Column("CREATE_DATE")]
         public DateTime? CreateDate { get; set; }
 
-        [Column("Update_Date")]
+        [Column("UPDATE_DATE")]
         public DateTime? UpdateDate { get; set; }
     }
 }
+
+

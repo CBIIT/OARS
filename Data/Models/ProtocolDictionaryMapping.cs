@@ -1,28 +1,28 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TheradexPortal.Data.Models
 {
-    [Table("ProtocolDictionaryMapping", Schema = "DMU")]
+    [Table("PROTOCOLDICTIONARYMAPPING", Schema = "DMU")]
     public class ProtocolDictionaryMapping
     {
-        [Column("Protocol_Dictionary_Mapping_Id")]
+        [Column("PROTOCOL_DICTIONARY_MAPPING_ID")]
         public int ProtocolDictionaryMappingId { get; set; }
-        [Column("Protocol_Field_Mapping_Id")]
+        [Column("PROTOCOL_FIELD_MAPPING_ID")]
         public int ProtocolFieldMappingId { get; set; }
         [ForeignKey("ProtocolFieldMappingId")]
         public ProtocolFieldMapping? ProtocolFieldMapping { get; set; }
         
-        [Column("Protocol_EDC_Dictionary_Id")]
+        [Column("PROTOCOL_EDC_DICTIONARY_ID")]
         public int ProtocolEDCDictionaryId { get; set; }
         [ForeignKey("ProtocolEDCDictionaryId")]
         public ProtocolEDCDictionary? ProtocolEDCDictionary { get; set; }
 
-        [Column("THOR_Dictionary_Id")]
+        [Column("THOR_DICTIONARY_ID")]
         public int THORDictionaryId { get; set; }
         [ForeignKey("THORDictionaryId")]
         public ThorDictionary? THORDictionary { get; set; }
 
-        [Column("Create_Date")]
+        [Column("CREATE_DATE")]
         public DateTime? CreateDate { get; set; }
 
         // Display fields
@@ -40,3 +40,5 @@ namespace TheradexPortal.Data.Models
         }
     }
 }
+
+

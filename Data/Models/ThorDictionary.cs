@@ -1,33 +1,33 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TheradexPortal.Data.Models
 {
-    [Table("THORDictionary", Schema = "DMU")]
+    [Table("THORDICTIONARY", Schema = "DMU")]
     public class ThorDictionary
     {
-        [Column("THOR_Dictionary_Id"), Key]
+        [Column("THOR_DICTIONARY_ID"), Key]
         public int ThorDictionaryId { get; set; }
 
-        [Column("Dictionary_Name")]
+        [Column("DICTIONARY_NAME")]
         public string? DictionaryName { get; set; }
 
-        [Column("Dictionary_Option")]
+        [Column("DICTIONARY_OPTION")]
         public string? DictionaryOption { get; set; }
 
-        [Column("Dictonary_Value")]
+        [Column("DICTONARY_VALUE")]
         public string? DictionaryValue { get; set; }
 
-        [Column("Sort_Order")]
+        [Column("SORT_ORDER")]
         public int? SortOrder { get; set; }
 
-        [Column("Is_Active")]
+        [Column("IS_ACTIVE")]
         public bool IsActive { get; set; }
 
-        [Column("Create_Date")]
+        [Column("CREATE_DATE")]
         public DateTime? CreateDate { get; set; }
 
-        [Column("Update_Date")]
+        [Column("UPDATE_DATE")]
         public DateTime? UpdateDate { get; set; }
 
         // Display fields
@@ -41,3 +41,4 @@ namespace TheradexPortal.Data.Models
         }
     }
 }
+

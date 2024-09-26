@@ -1,43 +1,43 @@
-﻿
+
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TheradexPortal.Data.Models
 {
-    [Table("ProtocolMapping", Schema = "DMU")]
+    [Table("PROTOCOLMAPPING", Schema = "DMU")]
     public class ProtocolMapping
     {
-        [Column("Protocol_Mapping_Id"), Key]
+        [Column("PROTOCOL_MAPPING_ID"), Key]
         public int ProtocolMappingId { get; set; }
-        [Column("Profile_Id")]
+        [Column("PROFILE_ID")]
         public int? ProfileId { get; set; }
-        [Column("THOR_Study_Id")]
+        [Column("THOR_STUDY_ID")]
         public string? THORStudyId { get; set; }
         [ForeignKey(nameof(THORStudyId))]
         public virtual Protocol? Protocol { get; set; }
-        [Column("Mapping_Version")]
+        [Column("MAPPING_VERSION")]
         public int? MappingVersion { get; set; }
-        [Column("Source_Protocol_Mapping_Id")]
+        [Column("SOURCE_PROTOCOL_MAPPING_ID")]
         public int? SourceProtocolMappingId { get; set; }
-        [Column("Protocol_Mapping_Status_Id")]
+        [Column("PROTOCOL_MAPPING_STATUS_ID")]
         public int? ProtocolMappingStatusId { get; set; }
-        [Column("Billing_Code")]
+        [Column("BILLING_CODE")]
         public string? BillingCode { get; set; }
-        [Column("Title")]
+        [Column("TITLE")]
         public string? ProtocolTitle { get; set; }
-        [Column("Sponsor")]
+        [Column("SPONSOR")]
         public string? Sponsor { get; set; }
-        [Column("Protocol_Data_System_Id")]
+        [Column("PROTOCOL_DATA_SYSTEM_ID")]
         public int? ProtocolDataSystemId { get; set; }
-        [Column("Date_Format")]
+        [Column("DATE_FORMAT")]
         public string? DateFormat { get; set; }
-        [Column("Data_File_Folder")]
+        [Column("DATA_FILE_FOLDER")]
         public string? DataFileFolder { get; set; }
-        [Column("Create_Date")]
+        [Column("CREATE_DATE")]
         public DateTime? CreateDate { get; set; }
-        [Column("Is_Published")]
+        [Column("IS_PUBLISHED")]
         public bool IsPublished { get; set; }
-        [Column("Protocol_Crossover_Option_Id")]
+        [Column("PROTOCOL_CROSSOVER_OPTION_ID")]
         public int? ProtocolCrossoverOptionId { get; set; }
 
         [ForeignKey(nameof(ProtocolMappingStatusId))]
@@ -48,3 +48,5 @@ namespace TheradexPortal.Data.Models
 
     }
 }
+
+

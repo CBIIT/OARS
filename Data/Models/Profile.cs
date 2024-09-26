@@ -4,25 +4,26 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TheradexPortal.Data.Models
 {
-    [Table("Profile", Schema = "DMU")]
+    [Table("PROFILE", Schema = "DMU")]
     public class Profile
     {
-        [Column("Profile_Id"), Key]
+        [Column("PROFILE_ID"), Key]
         public int ProfileId { get; set; }
         
-        [Column("Profile_Name")]
+        [Column("PROFILE_NAME")]
         public string? ProfileName { get; set; }
 
-        [Column("Profile_Version")]
+        [Column("PROFILE_VERSION")]
         public int? ProfileVersion { get; set; }
 
-        [Column("Profile_Id_Source")]
+        [Column("PROFILE_ID_SOURCE")]
         public int? ProfileIdSource { get; set; }
 
-        [Column("Create_Date")]
+        [Column("CREATE_DATE")]
         public DateTime? CreateDate { get; set; }
 
-        [Column("Update_Date")]
+        [Column("UPDATE_DATE")]
         public DateTime? UpdateDate { get; set; }
     }
 }
+

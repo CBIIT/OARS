@@ -1,30 +1,31 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TheradexPortal.Data.Models
 {
-    [Table("ProtocolPhase", Schema = "DMU")]
+    [Table("PROTOCOLPHASE", Schema = "DMU")]
     public class ProtocolPhase
     {
-        [Column("Protocol_Phase_Id"), Key]
+        [Column("PROTOCOL_PHASE_ID"), Key]
         public int ProtocolPhaseId { get; set; }
 
-        [Column("Protocol_Mapping_Id")]
+        [Column("PROTOCOL_MAPPING_ID")]
         public int ProtocolMappingId { get; set; }
 
-        [Column("Sort_Order")]
+        [Column("SORT_ORDER")]
         public int? SortOrder { get; set; }
 
-        [Column("Is_Randomized")]
+        [Column("IS_RANDOMIZED")]
         public char? IsRandomized { get; set; }
 
-        [Column("Is_Enabled")]
+        [Column("IS_ENABLED")]
         public char? IsEnabled { get; set; }
 
-        [Column("Create_Date")]
+        [Column("CREATE_DATE")]
         public DateTime? CreateDate { get; set; }
 
-        [Column("Update_Date")]
+        [Column("UPDATE_DATE")]
         public DateTime? UpdateDate { get; set; }
     }
 }
+

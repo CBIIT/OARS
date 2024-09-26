@@ -1,27 +1,27 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using Org.BouncyCastle.Bcpg;
 
 namespace TheradexPortal.Data.Models
 {
-    [Table("Profile_DataCategory", Schema = "DMU")]
+    [Table("PROFILE_DATACATEGORY", Schema = "DMU")]
     public class ProfileDataCategory
     {
-        [Column("Profile_Data_Cateogy_Id"), Key]
+        [Column("PROFILE_DATA_CATEOGY_ID"), Key]
         public int ProfileDataCategoryId { get; set; }
-        [Column("Profile_Id")]
+        [Column("PROFILE_ID")]
         public int? ProfileId { get; set; }
 
         [ForeignKey(nameof(ProfileId))]
         public Profile? Profile { get; set; }
 
-        [Column("THOR_Data_Category_Id")]
+        [Column("THOR_DATA_CATEGORY_ID")]
         public string? ThorDataCategoryId { get; set; }
 
         [ForeignKey(nameof(ThorDataCategoryId))]
         public ThorCategory ThorCategory { get; set; }
-        [Column("Create_Date")]
+        [Column("CREATE_DATE")]
         public DateTime? CreateDate { get; set; }
 
         [NotMapped]
@@ -37,3 +37,5 @@ namespace TheradexPortal.Data.Models
         }
     }
 }
+
+

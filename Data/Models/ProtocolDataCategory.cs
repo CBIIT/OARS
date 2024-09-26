@@ -1,24 +1,24 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TheradexPortal.Data.Models
 {
-    [Table("ProtocolDataCategory", Schema = "DMU")]
+    [Table("PROTOCOLDATACATEGORY", Schema = "DMU")]
     public class ProtocolDataCategory
     {
         [Key, Column("Protocol_Category_Id")]
         public int ProtocolCategoryId { get; set; }
-        [Column("Protocol_Mapping_Id")]
+        [Column("PROTOCOL_MAPPING_ID")]
         public int ProtocolMappingId { get; set; }
-        [Column("THOR_Data_Category_Id")]
+        [Column("THOR_DATA_CATEGORY_ID")]
         public string THORDataCategoryId { get; set; }
-        [Column("Protocol_Category_Status_Id")]
+        [Column("PROTOCOL_CATEGORY_STATUS_ID")]
         public int ProtocolCategoryStatusId { get; set; }
-        [Column("Create_Date")]
+        [Column("CREATE_DATE")]
         public DateTime CreateDate { get; set; }
-        [Column("Updated_Date")]
+        [Column("UPDATED_DATE")]
         public DateTime UpdateDate { get; set; }
-        [Column("Is_Multi_Form")]
+        [Column("IS_MULTI_FORM")]
         public bool IsMultiForm { get; set; }
         [ForeignKey(nameof(ProtocolMappingId))]
         public virtual ProtocolMapping ProtocolMapping { get; set; }
@@ -28,3 +28,5 @@ namespace TheradexPortal.Data.Models
         public virtual ProtocolCategoryStatus ProtocolCategoryStatus { get; set; }
     }
 }
+
+

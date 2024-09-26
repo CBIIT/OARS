@@ -1,15 +1,15 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 
 namespace TheradexPortal.Data.Models
 {
-    [Table("THORDataCategory", Schema = "DMU")]
+    [Table("THORDATACATEGORY", Schema = "DMU")]
     public class ThorCategory
     {
-        [Column("THOR_Data_Category_Id"), Key]
+        [Column("THOR_DATA_CATEGORY_ID"), Key]
         public string ThorDataCategoryId { get; set; }
-        [Column("Category_Name")]
+        [Column("CATEGORY_NAME")]
         public string? CategoryName { get; set; }
         [NotMapped]
         public string CategoryDisplay
@@ -19,16 +19,18 @@ namespace TheradexPortal.Data.Models
                 return CategoryName + " (" + ThorDataCategoryId + ")";
             }
         }
-        [Column("Is_Multi_Form")]
+        [Column("IS_MULTI_FORM")]
         public Boolean IsMultiForm { get; set; }
-        [Column("Sort_Order")]
+        [Column("SORT_ORDER")]
         public int? SortOrder { get; set; }
-        [Column("Is_Active")]
+        [Column("IS_ACTIVE")]
         public Boolean IsActive { get; set; }
-        [Column("Create_Date")]
+        [Column("CREATE_DATE")]
         public DateTime? CreateDate { get; set; }
-        [Column("Update_Date")]
+        [Column("UPDATE_DATE")]
         public DateTime? UpdateDate { get; set;}
     }
 
 }
+
+
