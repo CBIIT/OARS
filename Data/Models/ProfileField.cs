@@ -1,25 +1,25 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 
 namespace TheradexPortal.Data.Models
 {
-    [Table("Profile_Field", Schema = "DMU")]
+    [Table("PROFILE_FIELD", Schema = "DMU")]
     public class ProfileField
     {
-        [Column("Profile_Field_Id"), Key]
+        [Column("PROFILE_FIELD_ID"), Key]
         public int ProfileFieldId { get; set; }
 
-        [Column("Profile_Id")]
+        [Column("PROFILE_ID")]
         public int? ProfileId { get; set; }
 
-        [Column("THOR_Field_Id")]
+        [Column("THOR_FIELD_ID")]
         public string THORFieldId { get; set; }
 
         [ForeignKey(nameof(THORFieldId))]
         public ThorField ThorField { get; set; }
 
-        [Column("Create_Date")]
+        [Column("CREATE_DATE")]
         public DateTime? CreateDate { get; set; }
 
         [NotMapped]
@@ -49,3 +49,5 @@ namespace TheradexPortal.Data.Models
         }
     }
 }
+
+

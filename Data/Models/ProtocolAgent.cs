@@ -1,22 +1,24 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TheradexPortal.Data.Models
 {
-    [Table("ProtocolAgent", Schema = "DMU")]
+    [Table("PROTOCOLAGENT", Schema = "DMU")]
     public class ProtocolAgent
     {
         [Key, Column("Protocol_Agent_Id")]
         public int ProtocolAgentId { get; set; }
-        [Column("Protocol_Mapping_Id")]
+        [Column("PROTOCOL_MAPPING_ID")]
         public int ProtocolMappingId { get; set; }
-        [Column("Nsc_Number")]
+        [Column("NSC_NUMBER")]
         public string NscNumber { get; set; }
-        [Column("Agent_Name")]
+        [Column("AGENT_NAME")]
         public string AgentName { get; set; }
-        [Column("Create_Date")]
+        [Column("CREATE_DATE")]
         public DateTime CreateDate { get; set; }
-        [Column("Update_Date")]
+        [Column("UPDATE_DATE")]
         public DateTime UpdateDate { get; set; }
     }
 }
+
+

@@ -1,25 +1,27 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TheradexPortal.Data.Models
 {
-    [Table("ProtocolEDCDictionary", Schema = "DMU")]
+    [Table("PROTOCOLEDCDICTIONARY", Schema = "DMU")]
     public class ProtocolEDCDictionary
     {
-        [Column("Protocol_EDC_Dictionary_Id")]
+        [Column("PROTOCOL_EDC_DICTIONARY_ID")]
         public int ProtocolEDCDictionaryId { get; set; }
-        [Column("Protocol_Mapping_Id")]
+        [Column("PROTOCOL_MAPPING_ID")]
         public int? ProtocolMappingId { get; set; }
-        [Column("EDC_Item_Id")]
+        [Column("EDC_ITEM_ID")]
         public string? EDCItemId { get; set; }
-        [Column("EDC_Item_Name")]
+        [Column("EDC_ITEM_NAME")]
         public string? EDCItemName { get; set; }
-        [Column("EDC_Dictionary_Name")]
+        [Column("EDC_DICTIONARY_NAME")]
         public string? EDCDictionaryName { get; set; }
-        [Column("Create_Date")]
+        [Column("CREATE_DATE")]
         public DateTime CreateDate { get; set; }
-        [Column("Updated_Date")]
+        [Column("UPDATED_DATE")]
         public DateTime UpdatedDate { get; set; }
         [ForeignKey(nameof(ProtocolMappingId))]
         public ProtocolMapping? ProtocolMapping { get; set; }
     }
 }
+
+
