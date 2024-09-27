@@ -11,7 +11,6 @@ on:
 permissions:
   contents: write
   id-token: write
-  actions: write
 
 jobs:
   setup:
@@ -33,6 +32,9 @@ jobs:
   build:
     needs: setup
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -68,6 +70,11 @@ jobs:
   push:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+
+      
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
