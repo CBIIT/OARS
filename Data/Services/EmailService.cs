@@ -261,6 +261,11 @@ namespace TheradexPortal.Data.Services
                         foreach (string bccAddress in bccAddresses)
                             mimeMessage.Bcc.Add(new MailboxAddress(string.Empty, bccAddress));
                     }
+                    else
+                    {
+                        foreach (string bccAddress in emailSettings.Value.BccAddresses)
+                            mimeMessage.Bcc.Add(new MailboxAddress(string.Empty, bccAddress));
+                    }
 
                     mimeMessage.Subject = subject;
                     mimeMessage.Body = bodyBuilder.ToMessageBody();

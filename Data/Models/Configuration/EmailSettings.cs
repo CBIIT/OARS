@@ -8,5 +8,10 @@
         public string UploadFolder { get; set; }
         public string FromEmail { get; set; }
         public string SupportEmail { get; set; }
+        public List<string> BccAddresses { get; set; }
+        public EmailSettings()
+        {
+            BccAddresses = new List<string>();
+        }
     }
 }

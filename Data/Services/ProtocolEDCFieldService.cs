@@ -87,7 +87,7 @@ namespace TheradexPortal.Data.Services
                 using (var bulkCopy = new OracleBulkCopy(oracleConnection))
                 {
                     bulkCopy.DestinationSchemaName = "DMU";
-                    bulkCopy.DestinationTableName = "\"ProtocolEDCField\"";
+                    bulkCopy.DestinationTableName = "\"PROTOCOLEDCFIELD\"";
                     bulkCopy.BatchSize = fields.Rows.Count;
                     bulkCopy.WriteToServer(fields);
                 }
@@ -129,11 +129,11 @@ namespace TheradexPortal.Data.Services
                         SELECT 
                             fld.*
                         FROM 
-                            DMU.""ProtocolEDCField"" fld
-                            INNER JOIN DMU.""ProtocolEDCForm"" frm 
-                                ON frm.""Protocol_EDC_Form_Id"" = fld.""Protocol_EDC_Form_Id""
+                            DMU.""PROTOCOLEDCFIELD"" fld
+                            INNER JOIN DMU.""PROTOCOLEDCFORM"" frm 
+                                ON frm.""PROTOCOL_EDC_FORM_ID"" = fld.""PROTOCOL_EDC_FORM_ID""
                         WHERE 
-                            frm.""Protocol_Mapping_Id"" = {protocolMappingId}
+                            frm.""PROTOCOL_MAPPING_ID"" = {protocolMappingId}
                       );";  
 
                 context.Database.ExecuteSqlRaw(command);

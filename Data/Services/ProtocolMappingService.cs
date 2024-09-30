@@ -279,12 +279,12 @@ namespace TheradexPortal.Data.Services
             }
 
             DataTable formMappings = new DataTable();
-            formMappings.Columns.Add("Protocol_Form_Mapping_Id", typeof(int));
-            formMappings.Columns.Add("Protocol_EDC_Form_Id", typeof(int));
-            formMappings.Columns.Add("Is_Primary_Form", typeof(char));
-            formMappings.Columns.Add("Create_Date", typeof(DateTime));
-            formMappings.Columns.Add("Update_Date", typeof(DateTime));
-            formMappings.Columns.Add("Protocol_Category_Id", typeof(int));
+            formMappings.Columns.Add("PROTOCOL_FORM_MAPPING_ID", typeof(int));
+            formMappings.Columns.Add("PROTOCOL_EDC_FORM_ID", typeof(int));
+            formMappings.Columns.Add("IS_PRIMARY_FORM", typeof(char));
+            formMappings.Columns.Add("CREATE_DATE", typeof(DateTime));
+            formMappings.Columns.Add("UPDATE_DATE", typeof(DateTime));
+            formMappings.Columns.Add("PROTOCOL_CATEGORY_ID", typeof(int));
 
 
             foreach (var sourceForm in sourceFormMappings)
@@ -319,11 +319,11 @@ namespace TheradexPortal.Data.Services
                     var targetProtocolDataCategory = targetProtocolDataCategories[srcFormMapping.ProtocolCategory.THORDataCategoryId];
 
                     DataRow targetFormMapping = formMappings.NewRow();
-                    targetFormMapping["Protocol_Category_Id"] = targetProtocolDataCategory.ProtocolCategoryId;
-                    targetFormMapping["Protocol_EDC_Form_Id"] = targetForm.ProtocolEDCFormId;
-                    targetFormMapping["Is_Primary_Form"] = srcFormMapping.IsPrimaryForm ? 'Y' : 'N';
-                    targetFormMapping["Create_Date"] = DateTime.Now;
-                    targetFormMapping["Update_Date"] = DateTime.Now;
+                    targetFormMapping["PROTOCOL_CATEGORY_ID"] = targetProtocolDataCategory.ProtocolCategoryId;
+                    targetFormMapping["PROTOCOL_EDC_FORM_ID"] = targetForm.ProtocolEDCFormId;
+                    targetFormMapping["IS_PRIMARY_FORM"] = srcFormMapping.IsPrimaryForm ? 'Y' : 'N';
+                    targetFormMapping["CREATE_DATE"] = DateTime.Now;
+                    targetFormMapping["UPDATE_DATE"] = DateTime.Now;
                     formMappings.Rows.Add(targetFormMapping);
                 }
             }
@@ -346,11 +346,11 @@ namespace TheradexPortal.Data.Services
             }
 
             DataTable fieldMappings = new DataTable();
-            fieldMappings.Columns.Add("Protocol_Field_Mapping_Id", typeof(int));
-            fieldMappings.Columns.Add("THOR_Field_Id", typeof(string));
-            fieldMappings.Columns.Add("Protocol_EDC_Field_Id", typeof(int));
-            fieldMappings.Columns.Add("Create_Date", typeof(DateTime));
-            fieldMappings.Columns.Add("Update_Date", typeof(DateTime));
+            fieldMappings.Columns.Add("PROTOCOL_FIELD_MAPPING_ID", typeof(int));
+            fieldMappings.Columns.Add("THOR_FIELD_ID", typeof(string));
+            fieldMappings.Columns.Add("PROTOCOL_EDC_FIELD_ID", typeof(int));
+            fieldMappings.Columns.Add("CREATE_DATE", typeof(DateTime));
+            fieldMappings.Columns.Add("UPDATE_DATE", typeof(DateTime));
 
             foreach(var sourceFieldMapping in sourceFieldMappings)
             {
@@ -373,10 +373,10 @@ namespace TheradexPortal.Data.Services
                     }
 
                     DataRow targetFieldMapping = fieldMappings.NewRow();
-                    targetFieldMapping["THOR_Field_Id"] = srcFieldMapping.ThorFieldId;
-                    targetFieldMapping["Protocol_EDC_Field_Id"] = targetField.ProtocolEDCFieldId;
-                    targetFieldMapping["Create_Date"] = DateTime.Now;
-                    targetFieldMapping["Update_Date"] = DateTime.Now;
+                    targetFieldMapping["THOR_FIELD_ID"] = srcFieldMapping.ThorFieldId;
+                    targetFieldMapping["PROTOCOL_EDC_FIELD_ID"] = targetField.ProtocolEDCFieldId;
+                    targetFieldMapping["CREATE_DATE"] = DateTime.Now;
+                    targetFieldMapping["UPDATE_DATE"] = DateTime.Now;
                     fieldMappings.Rows.Add(targetFieldMapping);
 
                 }
@@ -387,11 +387,11 @@ namespace TheradexPortal.Data.Services
                 using (var bulkCopy = new OracleBulkCopy(oracleConnection, OracleBulkCopyOptions.UseInternalTransaction))
                 {
                     bulkCopy.DestinationSchemaName = "DMU";
-                    bulkCopy.DestinationTableName = "\"ProtocolFormMapping\"";
+                    bulkCopy.DestinationTableName = "\"PROTOCOLFORMMAPPING\"";
                     bulkCopy.BatchSize = formMappings.Rows.Count;
                     bulkCopy.WriteToServer(formMappings);
 
-                    bulkCopy.DestinationTableName = "\"ProtocolFieldMapping\"";
+                    bulkCopy.DestinationTableName = "\"PROTOCOLFIELDMAPPING\"";
                     bulkCopy.BatchSize = fieldMappings.Rows.Count;
                     bulkCopy.WriteToServer(fieldMappings);
                 }
@@ -436,12 +436,12 @@ namespace TheradexPortal.Data.Services
             }
 
             DataTable dictionaryMappings = new DataTable();
-            dictionaryMappings.Columns.Add("Protocol_Dictionary_Mapping_Id", typeof(int));
-            dictionaryMappings.Columns.Add("Protocol_Field_Mapping_Id", typeof(int));
-            dictionaryMappings.Columns.Add("Protocol_EDC_Dictionary_Id", typeof(int));
-            dictionaryMappings.Columns.Add("THOR_Dictionary_Id", typeof(int));
-            dictionaryMappings.Columns.Add("Create_Date", typeof(DateTime));
-            dictionaryMappings.Columns.Add("Update_Date", typeof(DateTime));
+            dictionaryMappings.Columns.Add("PROTOCOL_DICTIONARY_MAPPING_ID", typeof(int));
+            dictionaryMappings.Columns.Add("PROTOCOL_FIELD_MAPPING_ID", typeof(int));
+            dictionaryMappings.Columns.Add("PROTOCOL_EDC_DICTIONARY_ID", typeof(int));
+            dictionaryMappings.Columns.Add("THOR_DICTIONARY_ID", typeof(int));
+            dictionaryMappings.Columns.Add("CREATE_DATE", typeof(DateTime));
+            dictionaryMappings.Columns.Add("UPDATE_DATE", typeof(DateTime));
 
             foreach (var dictMapDictItem in sourceDictionaryMappings)
             {
@@ -466,11 +466,11 @@ namespace TheradexPortal.Data.Services
                     var targetFieldMapping = targetFieldMappings[sourceFieldMappingKey];
 
                     DataRow targetDictionaryMapping = dictionaryMappings.NewRow();
-                    targetDictionaryMapping["Protocol_Field_Mapping_Id"] = targetFieldMapping.ProtocolFieldMappingId;
-                    targetDictionaryMapping["Protocol_EDC_Dictionary_Id"] = targetDictionary.ProtocolEDCDictionaryId;
-                    targetDictionaryMapping["THOR_Dictionary_Id"] = sourceDictionaryMapping.THORDictionaryId;
-                    targetDictionaryMapping["Create_Date"] = DateTime.Now;
-                    targetDictionaryMapping["Update_Date"] = DateTime.Now;
+                    targetDictionaryMapping["PROTOCOL_FIELD_MAPPING_ID"] = targetFieldMapping.ProtocolFieldMappingId;
+                    targetDictionaryMapping["PROTOCOL_EDC_DICTIONARY_ID"] = targetDictionary.ProtocolEDCDictionaryId;
+                    targetDictionaryMapping["THOR_DICTIONARY_ID"] = sourceDictionaryMapping.THORDictionaryId;
+                    targetDictionaryMapping["CREATE_DATE"] = DateTime.Now;
+                    targetDictionaryMapping["UPDATE_DATE"] = DateTime.Now;
                     dictionaryMappings.Rows.Add(targetDictionaryMapping);
                 }
 
@@ -481,7 +481,7 @@ namespace TheradexPortal.Data.Services
                 using (var bulkCopy = new OracleBulkCopy(oracleConnection, OracleBulkCopyOptions.UseInternalTransaction))
                 {
                     bulkCopy.DestinationSchemaName = "DMU";
-                    bulkCopy.DestinationTableName = "\"ProtocolDictionaryMapping\"";
+                    bulkCopy.DestinationTableName = "\"PROTOCOLDICTIONARYMAPPING\"";
                     bulkCopy.BatchSize = dictionaryMappings.Rows.Count;
                     bulkCopy.WriteToServer(dictionaryMappings);
                 }

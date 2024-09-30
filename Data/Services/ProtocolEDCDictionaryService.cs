@@ -101,7 +101,7 @@ namespace TheradexPortal.Data.Services
                 using (var bulkCopy = new OracleBulkCopy(oracleConnection))
                 {
                     bulkCopy.DestinationSchemaName = "DMU";
-                    bulkCopy.DestinationTableName = "\"ProtocolEDCDictionary\"";
+                    bulkCopy.DestinationTableName = "\"PROTOCOLEDCDICTIONARY\"";
                     bulkCopy.BatchSize = dictionaries.Rows.Count;
                     bulkCopy.WriteToServer(dictionaries);
                 }
@@ -136,7 +136,7 @@ namespace TheradexPortal.Data.Services
             try
             {
                 // Similar to above, this version of EF doesn't support bulk deletes and RemoveRange is too slow, so we have to do it this way
-                context.Database.ExecuteSqlRaw("DELETE FROM DMU.\"ProtocolEDCDictionary\" WHERE \"Protocol_Mapping_Id\" = :protocolMappingId", new OracleParameter("protocolMappingId", protocolMappingId));
+                context.Database.ExecuteSqlRaw("DELETE FROM DMU.\"PROTOCOLEDCDICTIONARY\" WHERE \"PROTOCOL_MAPPING_ID\" = :protocolMappingId", new OracleParameter("protocolMappingId", protocolMappingId));
                 return true;
             }
             catch (Exception ex)
