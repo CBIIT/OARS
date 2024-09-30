@@ -104,9 +104,9 @@ namespace TheradexPortal.Data.Services
                         SELECT 
                             frm.*
                         FROM 
-                            DMU.""ProtocolEDCForm"" frm 
+                            DMU.""PROTOCOLEDCFORM"" frm 
                         WHERE 
-                            frm.""Protocol_Mapping_Id"" = {mappingId}
+                            frm.""PROTOCOL_MAPPING_ID"" = {mappingId}
                     )";
 
                 context.Database.ExecuteSqlRaw(command);
