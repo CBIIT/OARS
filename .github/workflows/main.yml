@@ -158,5 +158,7 @@ jobs:
 
       - name: Semantic Release
         uses: cycjimmy/semantic-release-action@v3
+        with: 
+          branches: main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
