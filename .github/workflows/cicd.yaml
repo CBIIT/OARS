@@ -38,7 +38,7 @@ jobs:
       # Generate Semantic Version
       - name: Generate Semantic Version
         id: semver
-        uses: paulhatch/semantic-version@latest
+        uses: paulhatch/semantic-version@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           major-bump-message: '!major'
