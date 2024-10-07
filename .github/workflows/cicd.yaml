@@ -1,0 +1,85 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_test_and_push:
+    name: Build, Test, and Deploy
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      # Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Setup .NET
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '6.0.x'
+
+      # Install dependencies
+      - name: Install dependencies
+        run: dotnet restore
+
+      # Build the application
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      # Run unit tests
+      - name: Run Unit Tests
+        run: dotnet test --no-build --verbosity normal
+
+      # Generate Semantic Version
+      - name: Generate Semantic Version
+        id: semver
+        uses: paulhatch/semantic-version@latest
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          major-bump-message: '!major'
+          minor-bump-message: '!minor'
+          default-bump: patch
+
+      # Configure AWS Credentials
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_SANDBOX }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      # Log in to Amazon ECR
+      - name: Log in to Amazon ECR
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_DEFAULT_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_URI }}
+
+      # Build Docker Image
+      - name: Build Docker Image
+        run: |
+          docker build -t ${{ secrets.ECR_URI }}:${{ steps.semver.outputs.version }} .
+
+      # Push Docker Image to ECR
+      - name: Push Docker Image to ECR
+        run: |
+          docker push ${{ secrets.ECR_URI }}:${{ steps.semver.outputs.version }}
+
+      # Trigger Approval Workflow for Next Environment
+      - name: Trigger Approval for Next Environment
+        if: ${{ always() }}
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'deploy.yml',
+              ref: 'main',
+              inputs: {
+                environment: 'UAT',
+                version: '${{ steps.semver.outputs.version }}'
+              }
+            })
