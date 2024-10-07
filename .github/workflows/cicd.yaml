@@ -9,6 +9,9 @@ jobs:
   build_test_and_push:
     name: Build, Test, and Deploy
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
     environment: dev
     steps:
       # Checkout code
