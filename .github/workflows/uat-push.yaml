@@ -1,0 +1,52 @@
+name: Promote Image to UAT
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to promote'
+        required: true
+
+jobs:
+  promote_to_uat:
+    name: Promote Image to UAT ECR
+    runs-on: ubuntu-latest
+    environment:
+      name: uat
+    steps:
+      # Manual Approval
+      - name: Wait for Approval to Promote to UAT
+        uses: danysk/wait-for-approval@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          message: 'Approve promotion of image version ${{ github.event.inputs.version }} to UAT.'
+
+      # Configure AWS Credentials for UAT
+      - name: Configure AWS Credentials for UAT
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_UAT }}
+          aws-region: ${{ secrets.AWS_REGION_UAT }}
+
+      # Log in to Amazon ECR (UAT)
+      - name: Log in to Amazon ECR (UAT)
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION_UAT }} | docker login --username AWS --password-stdin ${{ secrets.ECR_URI_UAT }}
+
+      # Pull Docker Image from Dev ECR
+      - name: Pull Docker Image from Dev ECR
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION_DEV }} | docker login --username AWS --password-stdin ${{ secrets.ECR_URI_DEV }}
+          docker pull ${{ secrets.ECR_URI_DEV }}:${{ github.event.inputs.version }}
+
+      # Tag and Push Docker Image to ECR (UAT)
+      - name: Tag and Push Docker Image to ECR (UAT)
+        run: |
+          docker tag ${{ secrets.ECR_URI_DEV }}:${{ github.event.inputs.version }} ${{ secrets.ECR_URI_UAT }}:${{ github.event.inputs.version }}
+          docker tag ${{ secrets.ECR_URI_DEV }}:${{ github.event.inputs.version }} ${{ secrets.ECR_URI_UAT }}:latest
+          docker push ${{ secrets.ECR_URI_UAT }}:${{ github.event.inputs.version }}
+          docker push ${{ secrets.ECR_URI_UAT }}:latest
+
+      # Output Success Message
+      - name: Promotion Successful
+        run: echo "Image version ${{ github.event.inputs.version }} has been promoted to UAT ECR."
