@@ -91,7 +91,7 @@ jobs:
               workflow_id: 'uat-push.yaml',
               ref: 'main',
               inputs: {
-                environment: 'UAT',
+                environment: 'uat',
                 version: '${{ steps.semver.outputs.version }}'
               }
             })
