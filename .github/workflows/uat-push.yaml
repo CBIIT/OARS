@@ -10,6 +10,7 @@ on:
 jobs:
   promote_to_uat:
     name: Promote Image to UAT ECR
+    permissions: write-all
     runs-on: ubuntu-latest
     environment:
       name: uat
