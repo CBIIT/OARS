@@ -15,11 +15,15 @@ jobs:
       name: uat
     steps:
       # Manual Approval
-      - name: Wait for Approval to Promote to UAT
-        uses: danysk/wait-for-approval@v1
+      - name: Wait_for_approval Action
+        uses: arun291091/wait_for_approval_gha@v1
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          message: 'Approve promotion of image version ${{ github.event.inputs.version }} to UAT.'
+          base_repository_branch: main
+          github_org: Theradex
+          repository_name: nci-web-reporting
+          pr_reviewer: gtheradex,mgrathi
+          time_limit: 400
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       # Configure AWS Credentials for UAT
       - name: Configure AWS Credentials for UAT
