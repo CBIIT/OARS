@@ -74,11 +74,30 @@
     }
     public async void SaveNewProfile()
     {
-        int? newProfileId = await profileService.SaveProfile(new Profile { ProfileName = newMappingProfile });
-        if(newProfileId != null)
+        if (!String.IsNullOrEmpty(newMappingProfile))
         {
-            NavigateToProfileNew(newProfileId.Value);
+            // Check profilelist for existing profile name
+            var foundProfile = profileList.Where(p => p.ProfileName == newMappingProfile).FirstOrDefault();
+            if (foundProfile == null)
+            {
+                int? newProfileId = await profileService.SaveProfile(new Profile { ProfileName = newMappingProfile });
+                if (newProfileId != null)
+                {
+                    NavigateToProfileNew(newProfileId.Value);
+                }
+            }
+            else
+            {
+                await messageService.Warning("A profile with that name already exists.");
+                return;
+            }
         }
+        else
+        {
+            await messageService.Warning("You must enter a new profile name.");
+            return;
+        }
+
     }
     private void NavigateToGlobalDMU()
     {
