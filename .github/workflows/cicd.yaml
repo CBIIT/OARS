@@ -41,7 +41,6 @@ jobs:
         id: semver
         uses: paulhatch/semantic-version@v5.4.0
         with:
-          tag_prefix: "v"
           major_pattern: "major"
           minor_pattern: "minor"
       - name: Create GitHub Release
@@ -50,7 +49,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.semver.outputs.version }}
+          tag_name: v${{ steps.semver.outputs.version }}
           release_name: Release ${{ steps.semver.outputs.version }}
           draft: false
           prerelease: false
