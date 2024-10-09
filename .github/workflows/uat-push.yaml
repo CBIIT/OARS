@@ -22,7 +22,7 @@ jobs:
           base_repository_branch: main
           github_org: Theradex
           repository_name: nci-web-reporting
-          pr_reviewer: gtheradex,mgrathi
+          pr_reviewer: gtheradex,mgrathi,wfarbman
           time_limit: 400
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -31,17 +31,17 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN_UAT }}
-          aws-region: ${{ secrets.AWS_REGION_UAT }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
 
       # Log in to Amazon ECR (UAT)
       - name: Log in to Amazon ECR (UAT)
         run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION_UAT }} | docker login --username AWS --password-stdin ${{ secrets.ECR_URI_UAT }}
+          aws ecr get-login-password --region ${{ secrets.AWS_DEFAULT_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_URI_UAT }}
 
       # Pull Docker Image from Dev ECR
       - name: Pull Docker Image from Dev ECR
         run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION_DEV }} | docker login --username AWS --password-stdin ${{ secrets.ECR_URI_DEV }}
+          aws ecr get-login-password --region ${{ secrets.AWS_DEFAULT_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_URI_DEV }}
           docker pull ${{ secrets.ECR_URI_DEV }}:${{ github.event.inputs.version }}
 
       # Tag and Push Docker Image to ECR (UAT)
@@ -55,3 +55,19 @@ jobs:
       # Output Success Message
       - name: Promotion Successful
         run: echo "Image version ${{ github.event.inputs.version }} has been promoted to UAT ECR."
+
+      # Trigger Approval Workflow for Next Environment
+      - name: Trigger Approval for Next Environment
+        if: ${{ always() }}
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'prod-push.yaml',
+              ref: 'main',
+              inputs: {
+                version: '${{ steps.semver.outputs.version }}'
+              }
+            })

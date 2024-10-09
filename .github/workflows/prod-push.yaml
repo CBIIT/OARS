@@ -1,0 +1,57 @@
+name: Promote Image to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to promote'
+        required: true
+
+jobs:
+  promote_to_prod:
+    name: Promote Image to Production ECR
+    permissions: write-all
+    runs-on: ubuntu-latest
+    environment:
+      name: prod
+    steps:
+      # Manual Approval
+      - name: Wait_for_approval Action
+        uses: arun291091/wait_for_approval_gha@v1
+        with:
+          base_repository_branch: main
+          github_org: Theradex
+          repository_name: nci-web-reporting
+          pr_reviewer: gtheradex,mgrathi,wfarbman  # Update reviewers if necessary
+          time_limit: 300
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Configure AWS Credentials for Production
+      - name: Configure AWS Credentials for Production
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_PROD }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      # Log in to Amazon ECR (Production)
+      - name: Log in to Amazon ECR (Production)
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_DEFAULT_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_URI_PROD }}
+
+      # Pull Docker Image from UAT ECR
+      - name: Pull Docker Image from UAT ECR
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_DEFAULT_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_URI_UAT }}
+          docker pull ${{ secrets.ECR_URI_UAT }}:${{ github.event.inputs.version }}
+
+      # Tag and Push Docker Image to ECR (Production)
+      - name: Tag and Push Docker Image to ECR (Production)
+        run: |
+          docker tag ${{ secrets.ECR_URI_UAT }}:${{ github.event.inputs.version }} ${{ secrets.ECR_URI_PROD }}:${{ github.event.inputs.version }}
+          docker tag ${{ secrets.ECR_URI_UAT }}:${{ github.event.inputs.version }} ${{ secrets.ECR_URI_PROD }}:latest
+          docker push ${{ secrets.ECR_URI_PROD }}:${{ github.event.inputs.version }}
+          docker push ${{ secrets.ECR_URI_PROD }}:latest
+
+      # Output Success Message
+      - name: Promotion Successful
+        run: echo "Image version ${{ github.event.inputs.version }} has been promoted to Production ECR."
