@@ -26,6 +26,17 @@ jobs:
           time_limit: 300
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
+      # Download Docker Image Artifact
+      - name: Download Docker Image Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: docker-image-${{ github.event.inputs.version }}
+
+      # Load Docker Image from Artifact
+      - name: Load Docker Image from Artifact
+        run: |
+          docker load -i web-reporting_${{ github.event.inputs.version }}.tar.gz
+
       # Configure AWS Credentials for Production
       - name: Configure AWS Credentials for Production
         uses: aws-actions/configure-aws-credentials@v4
@@ -38,17 +49,11 @@ jobs:
         run: |
           aws ecr get-login-password --region ${{ secrets.AWS_DEFAULT_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_URI_PROD }}
 
-      # Pull Docker Image from UAT ECR
-      - name: Pull Docker Image from UAT ECR
-        run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_DEFAULT_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_URI_UAT }}
-          docker pull ${{ secrets.ECR_URI_UAT }}:${{ github.event.inputs.version }}
-
       # Tag and Push Docker Image to ECR (Production)
       - name: Tag and Push Docker Image to ECR (Production)
         run: |
-          docker tag ${{ secrets.ECR_URI_UAT }}:${{ github.event.inputs.version }} ${{ secrets.ECR_URI_PROD }}:${{ github.event.inputs.version }}
-          docker tag ${{ secrets.ECR_URI_UAT }}:${{ github.event.inputs.version }} ${{ secrets.ECR_URI_PROD }}:latest
+          docker tag web-reporting:${{ github.event.inputs.version }} ${{ secrets.ECR_URI_PROD }}:${{ github.event.inputs.version }}
+          docker tag web-reporting:${{ github.event.inputs.version }} ${{ secrets.ECR_URI_PROD }}:latest
           docker push ${{ secrets.ECR_URI_PROD }}:${{ github.event.inputs.version }}
           docker push ${{ secrets.ECR_URI_PROD }}:latest
 

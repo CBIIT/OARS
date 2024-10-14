@@ -25,7 +25,18 @@ jobs:
           pr_reviewer: gtheradex,mgrathi,wfarbman
           time_limit: 400
           github_token: ${{ secrets.GITHUB_TOKEN }}
+      
+     # Download Docker Image Artifact
+     - name: Download Docker Image Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: docker-image-${{ github.event.inputs.version }}
 
+      # Load Docker Image from Artifact
+      - name: Load Docker Image from Artifact
+        run: |
+          docker load -i web-reporting_${{ github.event.inputs.version }}.tar.gz
+     
       # Configure AWS Credentials for UAT
       - name: Configure AWS Credentials for UAT
         uses: aws-actions/configure-aws-credentials@v4
@@ -38,17 +49,11 @@ jobs:
         run: |
           aws ecr get-login-password --region ${{ secrets.AWS_DEFAULT_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_URI_UAT }}
 
-      # Pull Docker Image from Dev ECR
-      - name: Pull Docker Image from Dev ECR
-        run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_DEFAULT_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_URI_DEV }}
-          docker pull ${{ secrets.ECR_URI_DEV }}:${{ github.event.inputs.version }}
-
       # Tag and Push Docker Image to ECR (UAT)
       - name: Tag and Push Docker Image to ECR (UAT)
         run: |
-          docker tag ${{ secrets.ECR_URI_DEV }}:${{ github.event.inputs.version }} ${{ secrets.ECR_URI_UAT }}:${{ github.event.inputs.version }}
-          docker tag ${{ secrets.ECR_URI_DEV }}:${{ github.event.inputs.version }} ${{ secrets.ECR_URI_UAT }}:latest
+          docker tag web-reporting:${{ github.event.inputs.version }} ${{ secrets.ECR_URI_UAT }}:${{ github.event.inputs.version }}
+          docker tag web-reporting:${{ github.event.inputs.version }} ${{ secrets.ECR_URI_UAT }}:latest
           docker push ${{ secrets.ECR_URI_UAT }}:${{ github.event.inputs.version }}
           docker push ${{ secrets.ECR_URI_UAT }}:latest
 
