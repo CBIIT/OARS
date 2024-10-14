@@ -27,7 +27,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
       
      # Download Docker Image Artifact
-     - name: Download Docker Image Artifact
+      - name: Download Docker Image Artifact
         uses: actions/download-artifact@v3
         with:
           name: docker-image-${{ github.event.inputs.version }}
