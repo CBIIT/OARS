@@ -124,7 +124,14 @@
                     {
                         if (fieldTypeId == dropdownFieldTypeId)
                         {
-                            <SelectList TItem="ThorDictionary" TValue="int?" Data="@dictionaryList" TextField="@((item) => item.DictionaryName)" ValueField="@((item)=>item.ThorDictionaryId)" SelectedValueChanged="@( v => {context.CellValue = v;})" SelectedValue="@((int?)context.CellValue)" DefaultItemText="Select a Dictionary Name" DefaultItemValue="0" />
+                            <SelectList TItem="ThorDictionary" TValue="int?" 
+                                        Data="@dictionaryList" 
+                                        TextField="@((item) => item.DictionaryName)" 
+                                        ValueField="@((item)=>item.ThorDictionaryId)" 
+                                        SelectedValueChanged="@( v => {context.CellValue = v;})" 
+                                        SelectedValue="@((int?)context.CellValue)" 
+                                        DefaultItemText="Select a Dictionary Name" 
+                                        DefaultItemValue="0" />
                         }
                         else
                         {

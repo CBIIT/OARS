@@ -76,8 +76,9 @@
     {
         if (!String.IsNullOrEmpty(newMappingProfile))
         {
-            // Check profilelist for existing profile name
-            var foundProfile = profileList.Where(p => p.ProfileName == newMappingProfile).FirstOrDefault();
+            // Check profile list for existing profile name
+            newMappingProfile = newMappingProfile.Trim();
+            var foundProfile = profileList.Where(p => p.ProfileName.ToUpper() == newMappingProfile.ToUpper()).FirstOrDefault();
             if (foundProfile == null)
             {
                 int? newProfileId = await profileService.SaveProfile(new Profile { ProfileName = newMappingProfile });

@@ -114,11 +114,11 @@
     </Row> 
     <Row Padding="Padding.Is2" Class="dmu-row-white">
         <Column ColumnSize="ColumnSize.Is2" Class="dmu-admin-label-field-container">
-            <Text>*Monitoring Method:</Text>
+            <Text>*Profile:</Text>
         </Column>
         <Column ColumnSize="ColumnSize.Is4">
             <Select TValue="int?" @bind-SelectedValue="@currentProtocolMap.ProfileId" Disabled="@preventEdit">
-                <SelectItem Value="@invalidId">Select Monitoring Method</SelectItem>
+                <SelectItem Value="@invalidId">Select Profile</SelectItem>
                 @foreach (var profile in profileList)
                 {
                     <SelectItem Value="@profile.ProfileId">@profile.ProfileName</SelectItem>
@@ -175,7 +175,7 @@
         </Column>
     </Row>
 </Div>
-@code {
+ @code {
     [Inject] IProfileService profileService { get; set; } = null!;
     [Inject] IProtocolDataSystemService protocolDataSystemService { get; set; } = null!;
     [Inject] IProtocolMappingService protocolMappingService { get; set; } = null!;
@@ -267,13 +267,32 @@
     public async void SaveNewProtocolMapping()
     {
         bool formValid = true;
+        bool duplicateName = false;
+        IList<ProtocolMapping> mappingList;
 
         if (currentProtocolMap == null)
         {
             await notificationService.Error("The protocol mapping object is empty.");
             return;
         }
-        
+
+        currentProtocolMap.THORStudyId = currentProtocolMap.THORStudyId.Trim();
+        if (currentProtocolMap.THORStudyId == "")
+        {
+            await notificationService.Error("Missing Protocol name!");
+            return;
+        }
+        else
+        {
+            mappingList = await protocolMappingService.GetProtocolMappings(true);
+            ProtocolMapping foundMapping = mappingList.Where(ml => ml.THORStudyId.ToUpper() == currentProtocolMap.THORStudyId.ToUpper() && ml.ProtocolMappingId != currentProtocolMap.ProtocolMappingId).SingleOrDefault();
+            if (foundMapping != null)
+            {
+                await notificationService.Error("The protocol name already exists.");
+                return;
+            }
+        }
+
         var currentProfileId = currentProtocolMap?.ProfileId ?? 0;
 
         if (currentProfileId != initialProfileId)
