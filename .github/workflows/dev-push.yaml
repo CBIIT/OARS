@@ -58,40 +58,60 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN_SANDBOX }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_DEV }}
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
 
       # Log in to Amazon ECR
       - name: Log in to Amazon ECR
         run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_DEFAULT_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_URI }}
+          aws ecr get-login-password --region ${{ secrets.AWS_DEFAULT_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_URI_DEV }}
 
       # Build Docker Image
       - name: Build Docker Image
         run: |
-          docker build -t ${{ secrets.ECR_URI }}:${{ steps.semver.outputs.version }} .
-          docker build -t ${{ secrets.ECR_URI }}:latest .
+          docker build -t ${{ secrets.ECR_URI_DEV }}:${{ steps.semver.outputs.version }} .
+          docker build -t ${{ secrets.ECR_URI_DEV }}:latest .
 
       # Push Docker Image to ECR
       - name: Push Docker Image to ECR
         run: |
-          docker push ${{ secrets.ECR_URI }}:${{ steps.semver.outputs.version }}
-          docker push ${{ secrets.ECR_URI }}:latest
+          docker push ${{ secrets.ECR_URI_DEV }}:${{ steps.semver.outputs.version }}
+          docker push ${{ secrets.ECR_URI_DEV }}:latest
      
       # Save Docker Image as Artifact
       - name: Save Docker Image as Artifact
         env:
             VERSION: ${{ steps.semver.outputs.version }}
-            ECR_URI: ${{ secrets.ECR_URI }}
+            ECR_URI_DEV: ${{ secrets.ECR_URI_DEV }}
         run: |
-          echo "Saving Docker image $ECR_URI:$VERSION as an artifact"
-          docker save $ECR_URI:$VERSION | gzip > web-reporting_$VERSION.tar.gz
+          echo "Saving Docker image $ECR_URI_DEV:$VERSION as an artifact"
+          docker save $ECR_URI_DEV:$VERSION | gzip > web-reporting_$VERSION.tar.gz
 
       - name: Upload Docker Image Artifact
         uses: actions/upload-artifact@v3
         with:
           name: docker-image-${{ steps.semver.outputs.version }}
           path: web-reporting_${{ steps.semver.outputs.version }}.tar.gz
+
+      - name: Download task definition
+        run: |
+            aws ecs describe-task-definition --task-definition my-task-definition-family --query taskDefinition > task-definition.json
+            
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: web
+          image: ${{ secrets.ECR_URI_DEV }}:latest
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: nci-oars-dev-service
+          cluster: nci-oars-dev-cluster
+          wait-for-service-stability: true
 
 
       # Trigger Approval Workflow for Next Environment
