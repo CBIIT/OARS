@@ -418,3 +418,13 @@
 ul.steps > li.step {
     cursor: pointer;
 }
+
+.table.addr-data-grid td {
+    font-size:.9rem;
+}
+.table.addr-data-grid th {
+    font-size: .9rem;
+    padding: 2px 2px; /* Adjust the padding to reduce gaps */
+    margin: 0; /* Ensure no margin is added */
+    line-height: 1; /* Optional: Adjust line-height to make the text more compact */
+}

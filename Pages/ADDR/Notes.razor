@@ -1,0 +1,139 @@
+﻿@typeparam T
+@using System.Diagnostics.CodeAnalysis
+@using Microsoft.Extensions.Options
+@using Newtonsoft.Json
+@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Models.ADDR
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Services.Abstract.ADDR
+@using TheradexPortal.Data.Static;
+@using TheradexPortal.Data.Models.Configuration;
+
+@inject IHttpContextAccessor httpContextAccessor
+@inject INotesService<T> service
+
+<PageTitle>Notes for @data?.GetType().Name</PageTitle>
+
+<div class="container">
+    <h3>Notes for @data?.GetType().Name</h3>
+
+    <div class="mb-3">
+        <label for="source" class="form-label">Source:</label>
+        <input type="text" class="form-control" id="source" @bind="Source" readonly />
+    </div>
+
+    <div class="mb-3">
+        <label for="subjectKey" class="form-label">Subject Key:</label>
+        <input type="text" class="form-control" id="subjectKey" @bind="SubjectKey" readonly />
+    </div>
+
+    <div class="mb-3">
+        <label for="specimenId" class="form-label">Specimen ID:</label>
+        <input type="text" class="form-control" id="specimenId" @bind="SpecimenId" readonly />
+    </div>
+
+    <div class="mb-3">
+        <label for="subSpecimenId" class="form-label">Sub Specimen ID:</label>
+        <input type="text" class="form-control" id="subSpecimenId" @bind="SubSpecimenId" readonly />
+    </div>
+
+    <div class="mb-3">
+        <label for="notes" class="form-label">Add/Edit Notes:</label>
+        <textarea class="form-control" id="notes" rows="4" @bind="CurrentNotes"></textarea>
+    </div>
+
+    <button class="btn btn-primary" @onclick="SaveNotes">Save Notes</button>
+    <button class="btn btn-secondary" @onclick="ClearNotes">Clear</button>
+
+    @if (IsSuccessMessageVisible)
+    {
+        <div class="alert alert-success mt-3">
+            Notes updated successfully!
+        </div>
+    }
+
+    @if (IsErrorMessageVisible)
+    {
+        <div class="alert alert-danger mt-3">
+            Error updating notes. Please try again.
+        </div>
+    }
+
+    <div class="mt-4">
+        <h4>Previous Notes</h4>
+        <ul>
+            @foreach (var note in PreviousNotes)
+            {
+                <li>@note.CreateDate.ToString("g"): @note.Text</li>
+            }
+        </ul>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    [Parameter]
+    public string Source { get; set; }
+    [Parameter]
+    public string SubjectKey { get; set; }
+    [Parameter]
+    public string SpecimenId { get; set; }
+    [Parameter]
+    public string SubSpecimenId { get; set; }
+
+    public T data { get; set; }
+    public List<Note<T>> PreviousNotes { get; set; } = new List<Note<T>>();
+    public string CurrentNotes { get; set; }
+
+
+    public bool IsSuccessMessageVisible { get; set; } = false;
+    public bool IsErrorMessageVisible { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        //Fetch the status by ID (generic)
+        data = await service.GetNoteByIdAsync(Id);
+
+        //Load previous notes (generic)
+        PreviousNotes = await service.GetNotesByStatusIdAsync(Id);
+
+        // Assuming the status contains these fields, bind them to the UI
+        SetAdditionalFields();
+    }
+
+    private void SetAdditionalFields()
+    {
+    }
+
+    private async Task SaveNotes()
+    {
+        try
+        {
+            // Save new notes to the system (generic)
+            var newNote = new Note<T>
+                {
+                    Text = CurrentNotes,
+                    CreateDate = DateTime.Now
+                };
+
+            await service.SaveNotesAsync(Id, newNote);
+
+            // Reload notes after saving (generic)
+            PreviousNotes = await service.GetNotesByStatusIdAsync(Id);
+            CurrentNotes = string.Empty;
+
+            // Show success message
+            IsSuccessMessageVisible = true;
+        }
+        catch (Exception)
+        {
+            IsErrorMessageVisible = true;
+        }
+    }
+
+    private void ClearNotes()
+    {
+        CurrentNotes = string.Empty;
+    }
+}
