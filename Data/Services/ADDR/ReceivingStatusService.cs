@@ -21,6 +21,7 @@ using DocumentFormat.OpenXml.Wordprocessing;
 using DocumentFormat.OpenXml.ExtendedProperties;
 using TheradexPortal.Data.Services.Abstract.ADDR;
 using TheradexPortal.Pages.ADDR;
+using Microsoft.Extensions.Hosting.Internal;
 
 namespace TheradexPortal.Data.Services
 {
@@ -32,6 +33,7 @@ namespace TheradexPortal.Data.Services
         private readonly IAWSS3Service _awsS3Service;
         private readonly IStudyService _studyService;
         private readonly ILogger<ReceivingStatusService> logger; // Add logger field
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
         public ReceivingStatusService(ILogger<ReceivingStatusService> logger,
             IDatabaseConnectionService databaseConnectionService,
@@ -40,6 +42,7 @@ namespace TheradexPortal.Data.Services
             IDynamoDbService dynamoDbService,
             IStudyService studyService,
             IAWSS3Service awsS3Service,
+            IWebHostEnvironment webHostEnvironment,
             IHttpContextAccessor httpContextAccessor) : base(databaseConnectionService)
         {
             _errorLogService = errorLogService;
@@ -47,6 +50,7 @@ namespace TheradexPortal.Data.Services
             _dynamoDbService = dynamoDbService;
             _awsS3Service = awsS3Service;
             _studyService = studyService;
+            _webHostEnvironment = webHostEnvironment;
             this.logger = logger; // Initialize logger
         }
         public async Task<List<ReceivingStatus>?> GetReceivingStatus(string protocalNumber)
@@ -94,7 +98,7 @@ namespace TheradexPortal.Data.Services
         };
         }
 
-        public async Task<List<ReceivingStatus>?> GetReceivingStatusExcel(string filePath = "C:\\ManishRathi\\repos\\TheradexGit\\nci-web-reporting\\Pages\\ADDR\\DummyData\\DifferenceReport.xlsx")
+        public async Task<List<ReceivingStatus>?> GetReceivingStatusExcel(string filePath = "~/addr/difference_report.xlsx")
         {
             var receivingStatusList = new List<ReceivingStatus>();
             //using (var workbook = new XLWorkbook(filePath))
@@ -154,7 +158,8 @@ namespace TheradexPortal.Data.Services
             //return receivingStatusList;
 
             // Read the JSON from the file
-            string jsonString = File.ReadAllText("C:\\ManishRathi\\repos\\TheradexGit\\nci-web-reporting\\Pages\\ADDR\\DummyData\\Receiving_Status.json");
+            string excelFilePath = Path.Combine(_webHostEnvironment.WebRootPath, "addr", "Receiving_Status.json");
+            string jsonString = File.ReadAllText(excelFilePath);
             receivingStatusList = JsonConvert.DeserializeObject<List<ReceivingStatus>>(jsonString);
 
             return receivingStatusList;
