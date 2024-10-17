@@ -1,0 +1,78 @@
+name: Promote Image to UAT
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to promote'
+        required: true
+
+jobs:
+  promote_to_uat:
+    name: Promote Image to UAT ECR
+    permissions: write-all
+    runs-on: ubuntu-latest
+    environment:
+      name: uat
+    steps:
+      # Manual Approval
+      - name: Wait_for_approval Action
+        uses: arun291091/wait_for_approval_gha@v1
+        with:
+          base_repository_branch: main
+          github_org: Theradex
+          repository_name: nci-web-reporting
+          pr_reviewer: gtheradex,mgrathi,wfarbman
+          time_limit: 400
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      
+     # Download Docker Image Artifact
+      - name: Download Docker Image Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: docker-image-${{ github.event.inputs.version }}
+
+      # Load Docker Image from Artifact
+      - name: Load Docker Image from Artifact
+        run: |
+          docker load -i web-reporting_${{ github.event.inputs.version }}.tar.gz
+     
+      # Configure AWS Credentials for UAT
+      - name: Configure AWS Credentials for UAT
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_UAT }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      # Log in to Amazon ECR (UAT)
+      - name: Log in to Amazon ECR (UAT)
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_DEFAULT_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_URI_UAT }}
+
+      # Tag and Push Docker Image to ECR (UAT)
+      - name: Tag and Push Docker Image to ECR (UAT)
+        run: |
+          docker tag web-reporting:${{ github.event.inputs.version }} ${{ secrets.ECR_URI_UAT }}:${{ github.event.inputs.version }}
+          docker tag web-reporting:${{ github.event.inputs.version }} ${{ secrets.ECR_URI_UAT }}:latest
+          docker push ${{ secrets.ECR_URI_UAT }}:${{ github.event.inputs.version }}
+          docker push ${{ secrets.ECR_URI_UAT }}:latest
+
+      # Output Success Message
+      - name: Promotion Successful
+        run: echo "Image version ${{ github.event.inputs.version }} has been promoted to UAT ECR."
+
+      # Trigger Approval Workflow for Next Environment
+      - name: Trigger Approval for Next Environment
+        if: ${{ always() }}
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'prod-push.yaml',
+              ref: 'main',
+              inputs: {
+                version: '${{ steps.semver.outputs.version }}'
+              }
+            })

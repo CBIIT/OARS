@@ -1,0 +1,222 @@
+﻿@using System.Diagnostics.CodeAnalysis
+@using Microsoft.Extensions.Options
+@using Newtonsoft.Json
+@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Models.ADDR;
+@using TheradexPortal.Data.Services
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@using TheradexPortal.Data.Models.Configuration;
+@using TheradexPortal.Data.Services.Abstract.ADDR;
+
+@page "/addr/receivingstatus"
+
+@inject IHttpContextAccessor httpContextAccessor;
+@inject IConfiguration configuration;
+@inject IOptions<EmailSettings> emailSettings;
+@inject IJSRuntime JS;
+
+<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>Automated Data Discrepancy Report - Receiving Status</h2></Div>
+<Row Background="Background.Light">
+    <Column ColumnSize="ColumnSize.IsFull">
+        <DataGrid Class="addr-data-grid" @ref="dataGridRef"
+                  TItem="ReceivingStatus"
+                  Data="@data"
+                  Responsive
+                  Groupable
+                  ShowGrouping
+                  Hoverable
+                  Narrow
+                  Filterable
+                  RowStyling="@OnRowStyling"
+                  ShowPager
+                  ShowPageSizes
+                  ShowColumnChooser
+                  MaxPaginationLinks="5"
+                  PagerPosition="DataGridPagerPosition.Bottom"
+                  PagerOptions="new(){ButtonSize=Blazorise.Size.Default,
+                                PaginationPosition=PagerElementPosition.Default,
+                                TotalItemsPosition=PagerElementPosition.End,
+                                }"
+                  FixedHeader
+                  FixedHeaderDataGridHeight="calc(100vh - 240px)"
+                  FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
+                  FilterMode="DataGridFilterMode.Menu"
+                  Resizable
+                  SortMode="DataGridSortMode.Multiple"
+                  ResizeMode="TableResizeMode.Columns"
+                  SelectedRowStyling="@OnSelectedRowStyling"
+                  CommandMode="DataGridCommandMode.ButtonRow">
+            <DataGridColumns>
+                <DataGridColumn Sortable="false" Filterable="false" Width="45px">
+                    <DisplayTemplate>
+                        <Div Flex="Flex.Column.JustifyContent.Center">
+                            <Span Flex="Flex.JustifyContent.Center.AlignItems.Center">
+                                <Button Size="Size.ExtraSmall" Clicked="@(()=>OnViewClicked(context as ReceivingStatus))">
+                                    <Figure Size="FigureSize.Is32x32" Class="mx-auto">
+                                        <FigureImage Source="img/notes.png" Class="mx-auto" AlternateText="Recently Selected" />
+                                    </Figure>
+                                </Button>
+                            </Span>
+                        </Div>
+                    </DisplayTemplate>
+                </DataGridColumn>
+                <DataGridColumn Field="@nameof(ReceivingStatus.Id)" Caption="#" Displayable="false" />
+                <DataGridColumn Field="DataSource" Caption="Data Source" />
+                <DataGridColumn Field="SystemComments" Caption="System Comments" Groupable>
+                    <DisplayTemplate>
+                        @foreach (var comment in ((context as ReceivingStatus).SystemComments.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)))
+                        {
+                            <Badge Color="@GetStatusColor(comment)" Pill class="m-1">
+                                <Tooltip Text="@comment">
+                                    @comment
+                                </Tooltip>
+                            </Badge>
+                        }
+                    </DisplayTemplate>
+                </DataGridColumn>
+                <DataGridColumn Field="VariCount" Caption="Vari Count" />
+                <DataGridColumn Field="RaveCount" Caption="Rave Count" />
+                <DataGridColumn Field="SubjectKey" Caption="Subject Key" Groupable />
+                <DataGridColumn Field="SiteId" Caption="Site Id" Displayable="false" />
+                <DataGridColumn Field="SpecimenId" Caption="Specimen Id" Groupable />
+                <DataGridColumn Field="SubSpecimenId" Caption="Sub Specimen Id" Groupable />
+                <DataGridDateColumn Field="ShippedDate" Caption="Shipped Date">
+                    <DisplayTemplate Context="context">
+                        @{
+                            var status = context as ReceivingStatus; // Cast context to ReceivingStatus
+                            DateTime date;
+                            if (DateTime.TryParse(status?.ShippedDate, out date))
+                            {
+                                // Apply time offset and display the time zone abbreviation
+                                @(date.Add(timeOffset).ToString("dd-MMM-yyyy hh:mm:ss tt ") + timeZoneAbbrev)
+                            }
+                        }
+                    </DisplayTemplate>
+                </DataGridDateColumn>
+                <DataGridColumn Field="CarrierName" Caption="Carrier Name" />
+                <DataGridColumn Field="CarrierTrackingNo" Caption="Carrier Tracking No" />
+                <DataGridColumn Field="ReceivingSite" Caption="Receiving Site" />
+                <DataGridColumn Field="PackagingCondition" Caption="Packaging Condition" />
+                <DataGridDateColumn Field="ReceivedDateTime" Caption="Received Date">
+                    <DisplayTemplate Context="context">
+                        @{
+                            var status = context as ReceivingStatus; // Cast context to ReceivingStatus
+                            DateTime date;
+                            if (DateTime.TryParse(status?.ReceivedDateTime, out date))
+                            {
+                                // Apply time offset and display the time zone abbreviation
+                                @(date.Add(timeOffset).ToString("dd-MMM-yyyy hh:mm:ss tt ") + timeZoneAbbrev)
+                            }
+                        }
+                    </DisplayTemplate>
+                </DataGridDateColumn>
+                <DataGridColumn Field="PackagingDetailCondition" Caption="Packaging Detail Condition" />
+                <DataGridColumn Field="Inadreas" Caption="Inadreas" />
+                <DataGridColumn Field="Notes" Caption="Notes" Displayable="false" />
+                <DataGridColumn Field="Action" Caption="Action" Displayable="false" />
+                <DataGridColumn Field="StudyEventRepeatKey" Caption="Study Event repeat Key" />
+                <DataGridColumn Field="ItemGroupRepeatKey" Caption="Item Group Repeat Key" />
+                <DataGridColumn Field="TransactionType" Caption="Transaction Type" Displayable="false" />
+                <DataGridColumn Field="Active" Caption="Active" Displayable="false" />
+            </DataGridColumns>
+            <ButtonRowTemplate>
+                <Button Color="Blazorise.Color.Primary" Clicked="@OnRefresh">Refresh</Button>
+                <Button Color="Blazorise.Color.Primary" Clicked="@(() => dataGridRef.ExpandAllGroups())">Expand All</Button>
+                <Button Color="Blazorise.Color.Secondary" Clicked="@(() => dataGridRef.CollapseAllGroups())">Collapse All</Button>
+                <Button Color="Blazorise.Color.Link" Clicked="context.ClearFilterCommand.Clicked">Clear Filter</Button>
+
+            </ButtonRowTemplate>
+            <EmptyTemplate>
+                <div class="box">
+                    No Rows were found!
+                </div>
+            </EmptyTemplate>
+        </DataGrid>
+    </Column>
+</Row>
+<NotesModel @ref="NotesModelDataModal" />
+
+@code {
+
+    [Inject] IReceivingStatusService service { get; set; } = null!;
+    [Inject] private NavigationManager navigation { get; set; } = null!;
+    [Inject] IUserService userService { get; set; } = null!;
+    [Inject] INotificationService NotificationService { get; set; }
+    [Inject] TimeZoneService timeZoneService { get; set; } = null!;
+    [Inject] IOktaService oktaService { get; set; } = null!;
+    [Inject] IEmailService emailService { get; set; } = null;
+
+    [Parameter] public bool IsAdminDisplay { get; set; } = false;
+    [Parameter] public string ProtocolNumber { get; set; } = string.Empty;
+
+    private List<ReceivingStatus> data { get; set; } = new List<ReceivingStatus>();
+    private TimeSpan timeOffset;
+    private string timeZoneAbbrev = "";
+    private DataGrid<ReceivingStatus> dataGridRef;
+    private ReceivingStatus SelectedItem { get; set; }
+    private string NewNote { get; set; }
+    private NotesModel? NotesModelDataModal;
+
+    protected override async Task OnInitializedAsync()
+    {
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+        User curUser = await userService.GetUserAsync(userId);
+        timeZoneAbbrev = curUser.TimeZoneAbbreviation;
+        timeOffset = TimeSpan.FromMinutes((double)curUser.TimeOffset);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // if (ProtocolNumber != string.Empty)
+        data = await service.GetReceivingStatus(ProtocolNumber);
+    }
+
+    // Method to style rows conditionally
+    private void OnRowStyling(ReceivingStatus receivingStatus, DataGridRowStyling styling)
+    {
+        // Set the background color to red if SystemComments are not "Match Found"
+        if (receivingStatus.SystemComments.Trim().ToLower() != "match found")
+        {
+            styling.Style = "background-color:#e39696; color:black; font-weight:bold;";
+        }
+        else
+        {
+            styling.Style = "background-color:#ade396; color:black;";
+        }
+    }
+
+    // Adjust the method to accept both parameters: ReceivingStatus and DataGridRowStyling
+    private void OnSelectedRowStyling(ReceivingStatus receivingStatus, DataGridRowStyling styling)
+    {
+        styling.Background = Background.Info;
+    }
+    
+    private Blazorise.Color GetStatusColor(string status)
+    {
+        if (status.Trim().ToLower() == "match found")
+        {
+            return Blazorise.Color.Success;
+        }
+        else return Blazorise.Color.Danger;
+    }
+    
+    private async Task OnRefresh()
+    {
+        this.data = await service.GetReceivingStatus(ProtocolNumber);
+    }
+
+    private Task OnViewClicked(ReceivingStatus request)
+    {
+        return NotesModelDataModal.Show("", request.DataSource, request.SubjectKey, request.SpecimenId, request.SubSpecimenId, "RECEIVING_STATUS", "", IsAdminDisplay);
+    }
+
+    private async Task OnDownloadClicked(ReceivingStatus request)
+    {
+        var preSignedUrl = "";
+
+        string[] values = { preSignedUrl, "_blank" };
+        CancellationToken token = new CancellationToken(false);
+        await JS.InvokeAsync<object>("open", token, values);
+    }
+}

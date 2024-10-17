@@ -27,126 +27,129 @@ public class CSVFileImportService : ICSVFileImportService
 
     public class CSVForm
     {
-        [Name("Study Revision")]
+        [Name("REVNUM", "Study Revision")]
         public int studyRevision { get; set; }
 
-        [Name("Visit Id")]
+        [Name("VISITID", "Visit Id")]
         public int VisitId { get; set; }
 
-        [Name("Visit Name")]
+        [Name("VISNAME", "Visit Name")]
         public string visitName { get; set; }
 
-        [Name("Visit Abbreviation")]
+        [Name("VABBREV", "Visit Abbreviation")]
         public string visitAbbr { get; set; }
 
-        [Name("Visit Add When")]
+        [Name("VADDWHEN", "Visit Add When")]
         public string visitAddWhen { get; set; }
 
-        [Name("Visit Repeats")]
+        [Name("VREPEATS", "Visit Repeats")]
         public string visitRepeats { get; set; }
 
-        [Name("Visit Max Repeats")]
+        [Name("VREPEATSMAX", "Visit Max Repeats")]
         public string visitMaxRepeats { get; set; }
 
-        [Name("Visit Object Name")]
+        [Name("VOBJNAME", "Visit Object Name")]
         public string visitObjectName { get; set; }
 
-        [Name("Order of Visit in Revision Visit Schedule")]
+        [Name("VORDER", "Order of Visit in Revision Visit Schedule")]
         public int visitOrderRevision { get; set; }
 
-        [Name("Page Id")]
+        [Name("PAGEID", "Page Id")]
         public int pageId { get; set; }
 
-        [Name("Page Name")]
+        [Name("PAGENAME", "Page Name")]
         public string pageName { get; set; }
 
-        [Name("Page Repeats")]
+        [Name("PREPEATS", "Page Repeats")]
         public string pageRepeats { get; set; }
 
-        [Name("Page Max Repeats")]
+        [Name("PREPEATSMAX", "Page Max Repeats")]
         public string pageMaxRepeats { get; set; }
 
-        [Name("Page Object Name")]
+        [Name("POBJNAME", "Page Object Name")]
         public string pageObjectName { get; set; }
 
-        [Name("Page Added By Rule")]
+        [Name("PADDBYRULE", "Page Added By Rule")]
         public string pageAddedByRule { get; set; }
 
-        [Name("Order of Page in Visit Definition")]
+        [Name("PORDER", "Order of Page in Visit Definition")]
         public int OrderPageVisitDef { get; set; }
+
+        [Name("Table Name")]
+        public string tableName { get; set; }
 
     }
 
     public class CSVField
     {
-        [Name("Page Object Id")]
+        [Name("PAGEOBJECTID", "Page Object Id")]
         public int pageObjectId { get; set; }
 
-        [Name("Page Name")]
+        [Name("PAGENAME", "Page Name")]
         public string pageName { get; set; }
 
-        [Name("Display Order on Page")]
+        [Name("DORDER", "Display Order on Page")]
         public int displayOrderOnPage { get; set; }
 
-        [Name("Control Id")]
+        [Name("CONTROLID", "Control Id")]
         public string controlId { get; set; }
 
-        [Name("Control Type")]
+        [Name("CONTROLTYPE", "Control Type")]
         public string controlType { get; set; }
 
-        [Name("Question Text")]
+        [Name("QUESTEXT", "Question Text")]
         public string questionText { get; set; }
 
-        [Name("Codelist Name")]
+        [Name("CODELISTNAME", "Codelist Name")]
         public string codelistName { get; set; }
 
-        [Name("Digits Before Decimal")]
+        [Name("BEFOREDEC", "Digits Before Decimal")]
         public string digitsBeforeDecimal { get; set; }
 
-        [Name("Digits After Decimal")]
+        [Name("AFTERDEC", "Digits After Decimal")]
         public string digitsAfterDecimal { get; set; }
 
-        [Name("Maximum Text Length")]
+        [Name("MAXLENGTH", "Maximum Text Length")]
         public string maxTextLength { get; set; }
 
         [Name("SDV")]
         public string sdv { get; set; }
 
-        [Name("Export Table")]
+        [Name("REPORTINGT", "Export Table")]
         public string exportTable { get; set; }
 
-        [Name("Export Column")]
+        [Name("REPORTINGC", "Export Column")]
         public string exportColumn { get; set; }
 
-        [Name("Field Requires Medical Coding")]
+        [Name("MEDCODING", "Field Requires Medical Coding")]
         public string fieldRequiresMedicalCoding { get; set; }
 
-        [Name("Medical Coding Dictionary Name")]
+        [Name("DICTIONARYNAME", "Medical Coding Dictionary Name")]
         public string medicalCodingDictionaryName { get; set; }
 
-        [Name("Field Supports Empty State")]
+        [Name("EMPTYSTATE", "Field Supports Empty State")]
         public string fieldSupportsEmptyState { get; set; }
 
     }
 
     public class CSVDictionary
     {
-        [Name("Codelist name")]
+        [Name("NAME ", "Codelist name")]
         public string codeListName { get; set; }
 
-        [Name("Codelist description")]
+        [Name("DESCRIPTION", "Codelist description")]
         public string codelistDescription { get; set; }
 
-        [Name("Coded value")]
+        [Name("CODENAME", "Coded value")]
         public string codedValue { get; set; }
 
-        [Name("Displayed value")]
+        [Name("DISPLAYNAME", "Displayed value")]
         public string displayedValue { get; set; }
 
-        [Name("Indicates that a value is hidden")]
+        [Name("HIDDEN", "Indicates that a value is hidden")]
         public string indicatesValueHidden { get; set; }
 
-        [Name("Display order within codelist")]
+        [Name("DORDER", "Display order within codelist")]
         public string displayOrder { get; set; }
 
     }
@@ -184,21 +187,23 @@ public class CSVFileImportService : ICSVFileImportService
                 foreach (var record in records)
                 {
 
-                    if ((!string.IsNullOrEmpty(record.pageName) || !string.IsNullOrEmpty(record.exportColumn)))
+                    if ((!string.IsNullOrEmpty(record.exportTable) || !string.IsNullOrEmpty(record.exportColumn)))
                     {
                         var EDCForm = formMap.GetValueOrDefault(record.pageName);
-                        if (EDCForm == null)
-                            throw new Exception($"The form identifier {record.pageName} was not found in the list of forms");
+                        //if (EDCForm == null)
+                        //    throw new Exception($"The form identifier {record.exportTable} was not found in the list of forms");
+                        if (EDCForm != null)
+                        {
+                            DataRow field = fields.NewRow();
+                            field["Update_Date"] = DateTime.Now;
+                            field["Create_Date"] = DateTime.Now;
+                            field["Protocol_EDC_Form_Id"] = EDCForm.ProtocolEDCFormId;
+                            field["EDC_Field_Identifier"] = record.exportColumn;
+                            field["EDC_Field_Name"] = record.questionText;
+                            field["EDC_Dictionary_Name"] = record.codelistName;
 
-                        DataRow field = fields.NewRow();
-                        field["Update_Date"] = DateTime.Now;
-                        field["Create_Date"] = DateTime.Now;
-                        field["Protocol_EDC_Form_Id"] = EDCForm.ProtocolEDCFormId;
-                        field["EDC_Field_Identifier"] = record.pageName;
-                        field["EDC_Field_Name"] = record.questionText;
-                        field["EDC_Dictionary_Name"] = record.codelistName;
-
-                        fields.Rows.Add(field);
+                            fields.Rows.Add(field);
+                        }
                     }
                     else
                     {
@@ -249,16 +254,22 @@ public class CSVFileImportService : ICSVFileImportService
 
             foreach (var record in records)
                 {
-                ProtocolEDCForm form = new ProtocolEDCForm
+                    // Find if the combindation of the pageobjectname and pagename already exist in the forms collection
+                    var foundForm = forms.Where(f => (f.EDCFormIdentifier == record.pageObjectName) && (f.EDCFormName == record.pageName)).SingleOrDefault();
+                    if (foundForm == null)
                     {
-                        ProtocolMappingId = protocolMappingId,
-                        EDCFormIdentifier = record.pageObjectName,
-                        EDCFormName = record.pageName,
-                        CreateDate = DateTime.Now,
-                        UpdatedDate = DateTime.Now
-                    };
-            
-                forms.Add(form);
+                        ProtocolEDCForm form = new ProtocolEDCForm
+                        {
+                            ProtocolMappingId = protocolMappingId,
+                            EDCFormIdentifier = record.pageObjectName,
+                            EDCFormName = record.pageName,
+                            EDCFormTable = record.tableName,
+                            CreateDate = DateTime.Now,
+                            UpdatedDate = DateTime.Now
+                        };
+
+                        forms.Add(form);
+                    }
                 }
         }
 

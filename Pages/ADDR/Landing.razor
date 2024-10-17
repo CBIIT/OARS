@@ -1,0 +1,21 @@
+﻿@using System.Diagnostics.CodeAnalysis
+@using Microsoft.Extensions.Options
+@using Newtonsoft.Json
+
+@page "/addr/{dashboardid:int}/{reportid:int?}"
+
+<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>Welcome to the ADDR in OARS!</h2></Div>
+<Div Padding="Padding.Is2" Background="Background.Light">
+    <ListGroup Flush Padding="Padding.Is2">
+         <ListGroupItem>
+             <Div Padding="Padding.Is2">
+                 <Heading Size="HeadingSize.Is4">Instructions</Heading>
+             </Div>
+         </ListGroupItem>
+     </ListGroup>
+ </Div>
+
+ @code {
+    [Parameter] public int DashboardId { get; set; }
+    [Parameter] public int ReportId { get; set; }
+ }

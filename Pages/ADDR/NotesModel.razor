@@ -1,0 +1,60 @@
+﻿@using System.Diagnostics.CodeAnalysis
+@using Microsoft.Extensions.Options
+@using Newtonsoft.Json
+@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Models.ADDR
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@using TheradexPortal.Data.Models.Configuration;
+
+@inject IHttpContextAccessor httpContextAccessor
+
+<Modal @ref="notesModel">
+    <ModalContent Size="ModalSize.ExtraLarge">
+        <ModalHeader Background="Background.Primary">
+            <ModalTitle TextColor="TextColor.White">@crfDescription - @requestIdToFetch</ModalTitle>
+            <CloseButton TextColor="TextColor.White" />
+        </ModalHeader>
+        <ModalBody Class="upload-Modal-Body">
+            <Div Display="@receivingStatusVisible">
+                <Notes T=ReceivingStatus Id=-1 Source="@source" SubjectKey="@subjectKey" SpecimenId="@specimenId" SubSpecimenId="@subSpecimenId"></Notes>
+            </Div>
+        </ModalBody>
+        <ModalFooter>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+@code {
+    private Modal notesModel;
+    private string source = string.Empty;
+    private string subjectKey = string.Empty;
+    private string specimenId = string.Empty;
+    private string subSpecimenId = string.Empty;
+
+    private string requestIdToFetch = string.Empty;
+    private bool isAdminDisplay = false;
+    private IFluentDisplay receivingStatusVisible = Display.None;
+    private IFluentDisplay shippingStatusVisible = Display.None;
+    private string crfDescription = string.Empty;
+    public int Id { get; set; }
+
+    public async Task Show(string requestId, string Source, string SubjectKey, string SpecimenId, string SubSpecimenId, string crf, string crfDescription, bool isAdmin)
+    {
+        this.requestIdToFetch = requestId;
+        this.source = Source;
+        this.subjectKey = SubjectKey;
+        this.specimenId = SpecimenId;
+        this.subSpecimenId = SubSpecimenId;
+
+        this.isAdminDisplay = isAdmin;
+        this.crfDescription = crfDescription;
+        this.receivingStatusVisible = (crf == "RECEIVING_STATUS") ? Display.Block : Display.None;
+        this.shippingStatusVisible = (crf == "SHIPPING_STATUS") ? Display.Block : Display.None;
+        this.Id = 2222;
+        StateHasChanged();
+
+        notesModel!.Show();
+    }
+
+}

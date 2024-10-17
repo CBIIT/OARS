@@ -27,6 +27,8 @@ namespace TheradexPortal.Data.Models
         public DateTime CreateDate { get; set; }
         [Column("UPDATE_DATE")]
         public DateTime UpdatedDate { get; set; }
+        [Column("EDC_FORM_TABLE")]
+        public string? EDCFormTable { get; set; }
         [ForeignKey(nameof(ProtocolMappingId))]
         public ProtocolMapping ProtocolMapping { get; set; }
     }

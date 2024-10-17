@@ -26,6 +26,9 @@ using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.HttpLogging;
 using TheradexPortal.Middleware;
 using System.Diagnostics;
+using TheradexPortal.Data.Services.Abstract.ADDR;
+using TheradexPortal.Pages.ADDR;
+using TheradexPortal.Data.Models.ADDR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -57,7 +60,7 @@ builder.Services.AddScoped<IThorFieldService, ThorFieldService>();
 builder.Services.AddScoped<IThorDictionaryService, ThorDictionaryService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IProtocolMappingService, ProtocolMappingService>();
-builder.Services.AddScoped<IProfileCategoryService,  ProfileCategoryService>();
+builder.Services.AddScoped<IProfileCategoryService, ProfileCategoryService>();
 builder.Services.AddScoped<IProtocolDataSystemService, ProtocolDataSystemService>();
 builder.Services.AddScoped<IProtocolFieldService, ProtocolFieldService>();
 builder.Services.AddScoped<IProfileFieldService, ProfileFieldService>();
@@ -77,6 +80,16 @@ builder.Services.AddScoped<IProtocolDataCategoryService, ProtocolDataCategorySer
 builder.Services.AddScoped<IProtocolFieldMappingService, ProtocolFieldMappingService>();
 builder.Services.AddScoped<IProtocolDictionaryMappingService, ProtocolDictionaryMappingService>();
 builder.Services.AddScoped<IProtocolFormMappingService, ProtocolFormMappingService>();
+
+#region Automated Data Discrepancy Report (ADDR)
+//builder.Services.AddScoped<IADDRService, ADDRService>();
+
+builder.Services.AddScoped<IReceivingStatusService, ReceivingStatusService>(); // Register with IReceivingStatusService interface
+builder.Services.AddScoped<INotesService<ReceivingStatus>, ReceivingStatusService>(); // Register with INotesService interface
+
+//builder.Services.AddScoped<IReceivingStatusService, ReceivingStatusService>();
+//builder.Services.AddScoped<IShippingStatusService, ShippingStatusService>();
+#endregion
 
 builder.Services.AddHttpClient<IOktaService, OktaService>(client =>
 {
@@ -172,7 +185,7 @@ var onTokenValidated = async (TokenValidatedContext context) =>
     }
     userIsRegistered = true;
 
-    if(user.IsActive)
+    if (user.IsActive)
     {
         claimsIdentity.AddClaim(new Claim(ThorClaimType.Registered, userIsRegistered.ToString()));
     }
@@ -184,8 +197,8 @@ var onTokenValidated = async (TokenValidatedContext context) =>
     var isDMUAdmin = false;
     var isAnyAdmin = false;
 
-    foreach(var role in userRoles)
-    {        
+    foreach (var role in userRoles)
+    {
         claimsIdentity.AddClaim(new Claim(ThorClaimType.Role, role.RoleName));
         roleList += role.RoleName + ",";
         if (role.AdminType == ThorAdminType.IT || role.AdminType == ThorAdminType.Biz || role.AdminType == ThorAdminType.Content)
@@ -272,7 +285,7 @@ builder.Services.AddAuthentication(authOptions =>
     oidcOptions.TokenValidationParameters.ValidateIssuer = false;
     oidcOptions.TokenValidationParameters.NameClaimType = "name";
     oidcOptions.Events = new OpenIdConnectEvents
-    {        
+    {
         OnTokenValidated = onTokenValidated
     };
 })
@@ -307,7 +320,7 @@ app.UseCorrelationIdMiddleware();
 app.UseLog4NetTraceIdMiddleware();
 app.UseExceptionHandlingMiddleware();
 app.UseLogResponseMiddleware();
-app.UseRequestLoggingMiddleware();
+//app.UseRequestLoggingMiddleware();
 app.UseElapsedTimeMiddleware();
 app.UseHttpLogging();
 // Force HTTPS context for use behind load balancer
