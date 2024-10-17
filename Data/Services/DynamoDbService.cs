@@ -207,5 +207,90 @@ namespace TheradexPortal.Data.Services
 
             return result?.OrderBy(p => p.RowNo).ToList();
         }
+
+        public async Task<List<IFAFileData>?> GetAllIFAData(string requestId)
+        {
+            //var conditions = new List<ScanCondition>
+            //    {
+            //        new ScanCondition("RequestId", ScanOperator.Equal, new string[1] { requestId })
+            //    };
+
+            //var records = await (_dynamoDbContext.ScanAsync<IFAFileData>(conditions).GetNextSetAsync());
+
+            //return records;
+
+            var search = _dynamoDbContext.ScanAsync<IFAFileData>
+            (
+              new[] {
+                            new ScanCondition
+                              (
+                                nameof(IFAFileData.RequestId),
+                                ScanOperator.Equal,
+                                requestId
+                              )
+                    }
+            );
+
+            var result = await search.GetRemainingAsync();
+
+            return result?.OrderBy(p => p.RowNo).ToList();
+        }
+
+        public async Task<List<IFAResultSummaryFileData>?> GetAllIFAResultSummaryData(string requestId)
+        {
+            //var conditions = new List<ScanCondition>
+            //    {
+            //        new ScanCondition("RequestId", ScanOperator.Equal, new string[1] { requestId })
+            //    };
+
+            //var records = await (_dynamoDbContext.ScanAsync<IFAResultSummaryFileData>(conditions).GetNextSetAsync());
+
+            //return records;
+
+            var search = _dynamoDbContext.ScanAsync<IFAResultSummaryFileData>
+            (
+              new[] {
+                            new ScanCondition
+                              (
+                                nameof(IFAResultSummaryFileData.RequestId),
+                                ScanOperator.Equal,
+                                requestId
+                              )
+                    }
+            );
+
+            var result = await search.GetRemainingAsync();
+
+            return result?.OrderBy(p => p.RowNo).ToList();
+        }
+
+        public async Task<List<PathologyEvaluationReportFileData>?> GetAllPathologyEvaluationReportData(string requestId)
+        {
+            //var conditions = new List<ScanCondition>
+            //    {
+            //        new ScanCondition("RequestId", ScanOperator.Equal, new string[1] { requestId })
+            //    };
+
+            //var records = await (_dynamoDbContext.ScanAsync<PathologyEvaluationReportFileData>(conditions).GetNextSetAsync());
+
+            //return records;
+
+            var search = _dynamoDbContext.ScanAsync<PathologyEvaluationReportFileData>
+            (
+              new[] {
+                            new ScanCondition
+                              (
+                                nameof(PathologyEvaluationReportFileData.RequestId),
+                                ScanOperator.Equal,
+                                requestId
+                              )
+                    }
+            );
+
+            var result = await search.GetRemainingAsync();
+
+            return result?.OrderBy(p => p.RowNo).ToList();
+        }
+
     }
 }

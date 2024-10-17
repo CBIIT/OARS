@@ -30,6 +30,11 @@ namespace TheradexPortal.Data.Services.Abstract
 
         public Task<List<TSO500LibraryQCFileData>?> GetTSO500LibraryQCFileData(string requestId);
 
+        public Task<List<IFAFileData>?> GetIFAFileData(string requestId);
+        public Task<List<IFAResultSummaryFileData>?> GetIFAResultSummaryFileData(string requestId);
+        public Task<List<PathologyEvaluationReportFileData>?> GetPathologyEvaluationReportFileData(string requestId);
+
+
         public Task<string> GetCsvFileDownloadUrl(FileIngestRequest request);
 
         public Task<string> GetCRFTemplateDownloadUrl(string crf, string fileName);

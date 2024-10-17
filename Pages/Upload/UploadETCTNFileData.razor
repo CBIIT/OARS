@@ -29,6 +29,15 @@
             <Div Display="@shippingStatusVisible">
                 <ShippingStatusData IsAdminDisplay="@isAdminDisplay" RequestId="@requestIdToFetch"></ShippingStatusData>
             </Div>
+            <Div Display="@ifaVisible">
+                <ShippingStatusData IsAdminDisplay="@isAdminDisplay" RequestId="@requestIdToFetch"></ShippingStatusData>
+            </Div>
+            <Div Display="@ifaResultSummaryVisible">
+                <ShippingStatusData IsAdminDisplay="@isAdminDisplay" RequestId="@requestIdToFetch"></ShippingStatusData>
+            </Div>
+            <Div Display="@pathologyEvaluationReportVisible">
+                <ShippingStatusData IsAdminDisplay="@isAdminDisplay" RequestId="@requestIdToFetch"></ShippingStatusData>
+            </Div>
         </ModalBody>
         <ModalFooter>
         </ModalFooter>
@@ -45,6 +54,11 @@
     private IFluentDisplay tso500LibraryQCVisible = Display.None;
     private IFluentDisplay tso500SequencingQCVisible = Display.None;
     private IFluentDisplay shippingStatusVisible = Display.None;
+
+    private IFluentDisplay ifaVisible = Display.None;
+    private IFluentDisplay ifaResultSummaryVisible = Display.None;
+    private IFluentDisplay pathologyEvaluationReportVisible = Display.None;
+
     private string crfDescription = string.Empty;
 
     public async Task Show(string requestId, string crf, string crfDescription, bool isAdmin)
@@ -57,6 +71,9 @@
         this.tso500LibraryQCVisible = (crf == "LIBRARY_QC") ? Display.Block : Display.None;
         this.tso500SequencingQCVisible = (crf == "SEQUENCING_QC") ? Display.Block : Display.None;
         this.shippingStatusVisible = (crf == "SHIPPING_STATUS") ? Display.Block : Display.None;
+        this.ifaVisible = (crf == "IFA") ? Display.Block : Display.None;
+        this.ifaResultSummaryVisible = (crf == "IFA_RESULT_SUMMARY") ? Display.Block : Display.None;
+        this.pathologyEvaluationReportVisible = (crf == "PATHOLOGY_EVALUATION_REPORT") ? Display.Block : Display.None;
 
         StateHasChanged();
 

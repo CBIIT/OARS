@@ -1,0 +1,109 @@
+﻿@using System.Diagnostics.CodeAnalysis
+@using Microsoft.Extensions.Options
+@using Newtonsoft.Json
+@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@using TheradexPortal.Data.Models.Configuration;
+
+@inject IHttpContextAccessor httpContextAccessor
+
+<DataGrid TItem="IFAFileData"
+          Class="admindatagrid"
+          Data="@fileData"
+          Responsive
+          ShowPager
+          ShowPageSizes
+          MaxPaginationLinks="5"
+          PageSize="100"
+          FixedHeader
+          Filterable
+          FilterMode="DataGridFilterMode.Menu"
+          RowStyling="@OnRowStyling"
+          SelectedRowStyling="@OnSelectedRowStyling"
+          CommandMode="DataGridCommandMode.ButtonRow">
+    <DataGridColumns>
+        <DataGridColumn Width="100px" Field="@nameof(IFAFileData.RowNo)" Caption="#" />
+        <DataGridColumn Width="100px" Field="RowData.Protocol" Caption="Protocol" />
+       
+        <DataGridColumn Width="100px" Field="RowData.Active" Caption="Active" />
+        <DataGridColumn Width="100px" Caption="Internal Status" Editable="false" Displayable="@IsAdminDisplay" Filterable="false">
+            <DisplayTemplate>
+                <Badge Color="@GetStatusColor((context as IFAFileData).ClientStatus)" Pill>
+                    <Tooltip Text="@((context as IFAFileData).Error)">
+                        @{
+                            if ((context as IFAFileData).RetryCount > 0)
+                                @((context as IFAFileData).InternalStatus + " (" + (context as IFAFileData).RetryCount + ")")
+                            else
+                                @((context as IFAFileData).InternalStatus)
+                        }
+                    </Tooltip>
+                </Badge>
+            </DisplayTemplate>
+        </DataGridColumn>
+        <DataGridColumn Width="100px" Caption="Status" Editable="false" Filterable="false">
+            <DisplayTemplate>
+                <Badge Color="@GetStatusColor((context as IFAFileData).ClientStatus)" Pill>
+                    <Tooltip Text="@((context as IFAFileData).ClientError)">
+                        @((context as IFAFileData).ClientStatus)
+                    </Tooltip>
+                </Badge>
+            </DisplayTemplate>
+        </DataGridColumn>
+    </DataGridColumns>
+    <ButtonRowTemplate>
+        <Button Color="Color.Primary" Clicked="@OnRefresh">Refresh</Button>
+    </ButtonRowTemplate>
+    <EmptyTemplate>
+        <div class="box">
+            No Rows were found!
+        </div>
+    </EmptyTemplate>
+</DataGrid>
+
+@code {
+
+    [Inject] IUploadService uploadService { get; set; } = null!;
+
+    [Parameter] public bool IsAdminDisplay { get; set; } = false;
+    [Parameter] public string RequestId { get; set; } = string.Empty;
+
+    private List<IFAFileData> fileData { get; set; } = new List<IFAFileData>();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (RequestId != string.Empty)
+            fileData = await uploadService.GetIFAFileData(RequestId);
+    }
+
+    private void OnRowStyling(IFAFileData fileData, DataGridRowStyling styling)
+    {
+        if (fileData.ClientStatus == RequestItemStatusV2.Failed.ToString())
+            styling.Style = "color:red;";
+        else if (fileData.ClientStatus == RequestItemStatusV2.Success.ToString())
+            styling.Style = "color:#0f880f;";
+        else
+            styling.Style = "color:#0755d4;";
+    }
+
+    private void OnSelectedRowStyling(IFAFileData fileData, DataGridRowStyling styling)
+    {
+        styling.Background = Background.Info;
+    }
+
+    private Blazorise.Color GetStatusColor(string status)
+    {
+        if (status == RequestStatusV2.Failed.ToString() || status == RequestStatusV2.PartialSuccess.ToString())
+            return Color.Danger;
+        else if (status == RequestStatusV2.Success.ToString())
+            return Color.Success;
+        else
+            return Color.Secondary;
+    }
+
+    private async Task OnRefresh()
+    {
+        this.fileData = await uploadService.GetIFAFileData(RequestId);
+    }
+
+}

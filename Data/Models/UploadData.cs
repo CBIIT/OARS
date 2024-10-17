@@ -527,6 +527,124 @@ namespace TheradexPortal.Data.Models
         public string StudyEventRepeatKey { get; set; }
     }
 
+
+    [DynamoDBTable("IFAFileData")]
+    public class IFAFileData : BaseFileData
+    {
+        [DynamoDBProperty(AttributeName = "RowData")]
+        public IFARowData RowData { get; set; }
+    }
+
+    public class IFARowData
+    {
+        [DynamoDBProperty(AttributeName = "Protocol")]
+        public string Protocol { get; set; }
+
+        [DynamoDBProperty(AttributeName = "SubjectID")]
+        public string SubjectID { get; set; }
+
+        [DynamoDBProperty(AttributeName = "Date")]
+        public string Date { get; set; }
+
+        [DynamoDBProperty(AttributeName = "LabTestName")]
+        public string LabTestName { get; set; }
+
+        [DynamoDBProperty(AttributeName = "ResultType")]
+        public string ResultType { get; set; }
+
+        [DynamoDBProperty(AttributeName = "TheradexSpecimenID")]
+        public string TheradexSpecimenID { get; set; }
+
+        [DynamoDBProperty(AttributeName = "PADISSpecimenID")]
+        public string PADISSpecimenID { get; set; }
+
+        [DynamoDBProperty(AttributeName = "SubspecimenID")]
+        public string SubspecimenID { get; set; }
+
+        [DynamoDBProperty(AttributeName = "SlideNo")]
+        public string SlideNo { get; set; }
+
+        [DynamoDBProperty(AttributeName = "AssessmentTimepoint")]
+        public string AssessmentTimepoint { get; set; }
+
+        [DynamoDBProperty(AttributeName = "PassNo")]
+        public string PassNo { get; set; }
+
+        [DynamoDBProperty(AttributeName = "ROINo")]
+        public string ROINo { get; set; }
+
+        [DynamoDBProperty(AttributeName = "Result")]
+        public string Result { get; set; }
+
+        [DynamoDBProperty(AttributeName = "NucleiNumber")]
+        public string NucleiNumber { get; set; }
+
+        [DynamoDBProperty(AttributeName = "OperatorName")]
+        public string OperatorName { get; set; }
+
+        [DynamoDBProperty(AttributeName = "RunDataFileName")]
+        public string RunDataFileName { get; set; }
+
+        [DynamoDBProperty(AttributeName = "Active")]
+        public string Active { get; set; }
+    }
+
+    [DynamoDBTable("IFAResultSummaryFileData")]
+    public class IFAResultSummaryFileData : BaseFileData
+    {
+        [DynamoDBProperty(AttributeName = "RowData")]
+        public IFAResultSummaryRowData RowData { get; set; }
+    }
+
+    public class IFAResultSummaryRowData
+    {
+        [DynamoDBProperty(AttributeName = "Protocol")]
+        public string Protocol { get; set; }
+
+        [DynamoDBProperty(AttributeName = "SubjectID")]
+        public string SubjectID { get; set; }
+
+        [DynamoDBProperty(AttributeName = "LabTestName")]
+        public string LabTestName { get; set; }
+
+        [DynamoDBProperty(AttributeName = "TheradexSpecimenID")]
+        public string TheradexSpecimenID { get; set; }
+
+        [DynamoDBProperty(AttributeName = "PADISSpecimenID")]
+        public string PADISSpecimenID { get; set; }
+
+        [DynamoDBProperty(AttributeName = "SubspecimenID")]
+        public string SubspecimenID { get; set; }
+
+        [DynamoDBProperty(AttributeName = "PassNo")]
+        public string PassNo { get; set; }
+
+        [DynamoDBProperty(AttributeName = "AssessmentTimepoint")]
+        public string AssessmentTimepoint { get; set; }
+
+        [DynamoDBProperty(AttributeName = "ResultType")]
+        public string ResultType { get; set; }
+
+        [DynamoDBProperty(AttributeName = "Result")]
+        public string Result { get; set; }
+
+        [DynamoDBProperty(AttributeName = "StandardDeviation")]
+        public string StandardDeviation { get; set; }
+
+        [DynamoDBProperty(AttributeName = "TotalNuclei")]
+        public string TotalNuclei { get; set; }
+
+        [DynamoDBProperty(AttributeName = "OperatorName")]
+        public string OperatorName { get; set; }
+
+        [DynamoDBProperty(AttributeName = "RunDataFileName")]
+        public string RunDataFileName { get; set; }
+
+        [DynamoDBProperty(AttributeName = "Active")]
+        public string Active { get; set; }
+    }
+
+
     public class BaseFileData
     {
         [DynamoDBHashKey]
@@ -565,5 +683,63 @@ namespace TheradexPortal.Data.Models
 
         [DynamoDBProperty(AttributeName = "RetryCount")]
         public int RetryCount { get; set; }
+    }
+
+    [DynamoDBTable("PathologyEvaluationReportFileData")]
+    public class PathologyEvaluationReportFileData : BaseFileData
+    {
+        [DynamoDBProperty(AttributeName = "RowData")]
+        public PathologyEvaluationReportRowData RowData { get; set; }
+    }
+
+    public class PathologyEvaluationReportRowData
+    {
+        [DynamoDBProperty(AttributeName = "Protocol")]
+        public string Protocol { get; set; }
+
+        [DynamoDBProperty(AttributeName = "SubjectID")]
+        public string SubjectID { get; set; }
+
+        [DynamoDBProperty(AttributeName = "BlockID")]
+        public string BlockID { get; set; }
+
+        [DynamoDBProperty(AttributeName = "TheradexSpecimenID")]
+        public string TheradexSpecimenID { get; set; }
+
+        [DynamoDBProperty(AttributeName = "PADISSpecimenID")]
+        public string PADISSpecimenID { get; set; }
+
+        [DynamoDBProperty(AttributeName = "SubspecimenID")]
+        public string SubspecimenID { get; set; }
+
+        [DynamoDBProperty(AttributeName = "AssessmentTimepoint")]
+        public string AssessmentTimepoint { get; set; }
+
+        [DynamoDBProperty(AttributeName = "PassNo")]
+        public string PassNo { get; set; }
+
+        [DynamoDBProperty(AttributeName = "SlideNo")]
+        public string SlideNo { get; set; }
+
+        [DynamoDBProperty(AttributeName = "TumorPercentage")]
+        public string TumorPercentage { get; set; }
+
+        [DynamoDBProperty(AttributeName = "StromaPercentage")]
+        public string StromaPercentage { get; set; }
+
+        [DynamoDBProperty(AttributeName = "NormalPercentage")]
+        public string NormalPercentage { get; set; }
+
+        [DynamoDBProperty(AttributeName = "NecrosisPercentage")]
+        public string NecrosisPercentage { get; set; }
+
+        [DynamoDBProperty(AttributeName = "OtherFindings")]
+        public string OtherFindings { get; set; }
+
+        [DynamoDBProperty(AttributeName = "Analyzable")]
+        public string Analyzable { get; set; }
+
+        [DynamoDBProperty(AttributeName = "Active")]
+        public string Active { get; set; }
     }
 }
