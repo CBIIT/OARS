@@ -109,7 +109,7 @@ namespace TheradexPortal.Data.Services
                 new CRFModel{FormName = "Shipping Status", FormOID = "SHIPPING_STATUS" },
                 new CRFModel{FormName = "IFA", FormOID = "IFA" },
                 new CRFModel{FormName = "IFA Result Summary", FormOID = "IFA_RESULT_SUMMARY" },
-                new CRFModel{FormName = "Pathology Evaluation Report", FormOID = "PATHOLOGY_EVALUATION_REPORT" },
+                new CRFModel{FormName = "IFA Pathology Evaluation Report", FormOID = "PATHOLOGY_EVALUATION_REPORT" },
                 new CRFModel{FormName = "TSO500 Library QC", FormOID = "LIBRARY_QC" },
                 new CRFModel{FormName = "TSO500 Sequencing QC", FormOID = "SEQUENCING_QC" }
             };
@@ -504,8 +504,12 @@ namespace TheradexPortal.Data.Services
                 prefix = "SQ";
             else if (ETCTNUploadRequestModel.CRF == "SHIPPING_STATUS")
                 prefix = "SS";
-            else if (ETCTNUploadRequestModel.CRF == "IFA_RESULT_SUMMARY")
+            else if (ETCTNUploadRequestModel.CRF == "IFA")
                 prefix = "IF";
+            else if (ETCTNUploadRequestModel.CRF == "IFA_RESULT_SUMMARY")
+                prefix = "IR";
+            else if (ETCTNUploadRequestModel.CRF == "PATHOLOGY_EVALUATION_REPORT")
+                prefix = "IP";
 
             // Prefix the unique code
             string uniqueCode = prefix + base64String;
