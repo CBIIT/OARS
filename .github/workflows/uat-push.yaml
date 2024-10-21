@@ -57,6 +57,26 @@ jobs:
           docker push ${{ secrets.ECR_URI_UAT }}:${{ github.event.inputs.version }}
           docker push ${{ secrets.ECR_URI_UAT }}:latest
 
+      - name: Download task definition
+        run: |
+            aws ecs describe-task-definition --task-definition nci-oars-staging-taskdefinition --query taskDefinition > task-definition.json
+            
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: web
+          image: ${{ secrets.ECR_URI_UAT }}:latest
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: nci-oars-staging-service
+          cluster: nci-oars-staging-cluster
+          wait-for-service-stability: true
+
       # Output Success Message
       - name: Promotion Successful
         run: echo "Image version ${{ github.event.inputs.version }} has been promoted to UAT ECR."
