@@ -131,8 +131,12 @@ builder.Services.Configure<PowerBI>(builder.Configuration.GetSection("PowerBI"))
 builder.Services.Configure<AzureAd>(builder.Configuration.GetSection("PowerBICredentials"));
 
 // Load DB context
-builder.Services.AddDbContextFactory<ThorDBContext>(opt =>
-    opt.UseOracle(builder.Configuration.GetConnectionString("DefaultConnection")));
+//builder.Services.AddDbContextFactory<ThorDBContext>(opt =>
+//    opt.UseOracle(builder.Configuration.GetConnectionString("DefaultConnection"), oracleOptions => oracleOptions.CommandTimeout(600)));
+
+builder.Services.AddDbContextFactory<ThorDBContext>(options =>
+    options.UseOracle(builder.Configuration.GetConnectionString("DefaultConnection"), oracleOptions => oracleOptions.CommandTimeout(600)));
+
 
 // Load DynamodB context
 builder.Services.AddAWSService<IAmazonDynamoDB>();

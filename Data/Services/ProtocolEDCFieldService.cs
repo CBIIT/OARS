@@ -3,7 +3,6 @@ using Oracle.ManagedDataAccess.Client;
 using System.Data;
 using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Services.Abstract;
-using YamlDotNet.Core.Events;
 
 namespace TheradexPortal.Data.Services
 {

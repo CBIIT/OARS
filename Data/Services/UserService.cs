@@ -1,15 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Components;
+using Microsoft.EntityFrameworkCore;
 using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Services.Abstract;
 using TheradexPortal.Data.Static;
-using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.Json;
-using TheradexPortal.Data.Models.Configuration;
-using Blazorise;
-using System.Collections.Generic;
-using System.Reflection.Metadata.Ecma335;
-using Polly;
 
 
 namespace TheradexPortal.Data.Services

@@ -3,17 +3,6 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System.Diagnostics;
 using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Static;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using System;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Diagnostics;
-using System.Security.AccessControl;
-using TheradexPortal.Data.Models;
-using TheradexPortal.Data.Services;
-using TheradexPortal.Data.Static;
 
 namespace TheradexPortal.Data
 {

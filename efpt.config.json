@@ -1,0 +1,138 @@
+﻿{
+   "CodeGenerationMode": 4,
+   "ContextClassName": "172.16.32.210:1521\/THORDEVContext",
+   "ContextNamespace": null,
+   "FilterSchemas": false,
+   "IncludeConnectionString": false,
+   "ModelNamespace": null,
+   "OutputContextPath": null,
+   "OutputPath": "Models_NEW",
+   "PreserveCasingWithRegex": true,
+   "ProjectRootNamespace": "TheradexPortal",
+   "Schemas": null,
+   "SelectedHandlebarsLanguage": 2,
+   "SelectedToBeGenerated": 0,
+   "T4TemplatePath": null,
+   "Tables": [
+      {
+         "Name": "THOR_USER.ALERT",
+         "ObjectType": 0
+      },
+      {
+         "Name": "THOR_USER.AUDIT",
+         "ObjectType": 0
+      },
+      {
+         "Name": "THOR_USER.CONTACTUS",
+         "ObjectType": 0
+      },
+      {
+         "Name": "THOR_USER.CONTACTUSCATEGORY",
+         "ObjectType": 0
+      },
+      {
+         "Name": "THOR_USER.DASHBOARD",
+         "ObjectType": 0
+      },
+      {
+         "Name": "THOR_USER.ERRORLOG",
+         "ObjectType": 0
+      },
+      {
+         "Name": "THOR_USER.GROUP",
+         "ObjectType": 0
+      },
+      {
+         "Name": "THOR_USER.GROUP_PROTOCOL",
+         "ObjectType": 0
+      },
+      {
+         "Name": "THOR_USER.GROUP_SITE",
+         "ObjectType": 0
+      },
+      {
+         "Name": "THOR_USER.PROTOCOL_SITE",
+         "ObjectType": 0
+      },
+      {
+         "Name": "THOR_USER.REPORT",
+         "ObjectType": 0
+      },
+      {
+         "Name": "THOR_USER.ROLE",
+         "ObjectType": 0
+      },
+      {
+         "Name": "THOR_USER.ROLE_DASHBOARD",
+         "ObjectType": 0
+      },
+      {
+         "Name": "THOR_USER.ROLE_REPORT",
+         "ObjectType": 0
+      },
+      {
+         "Name": "THOR_USER.ROLE_VISUAL",
+         "ObjectType": 0
+      },
+      {
+         "Name": "THOR_USER.SELECTED_PROTOCOLS",
+         "ObjectType": 0
+      },
+      {
+         "Name": "THOR_USER.USER",
+         "ObjectType": 0
+      },
+      {
+         "Name": "THOR_USER.USER_ACTIVITY_LOG",
+         "ObjectType": 0
+      },
+      {
+         "Name": "THOR_USER.USER_FAVORITE",
+         "ObjectType": 0
+      },
+      {
+         "Name": "THOR_USER.USER_GROUP",
+         "ObjectType": 0
+      },
+      {
+         "Name": "THOR_USER.USER_PROTOCOL",
+         "ObjectType": 0
+      },
+      {
+         "Name": "THOR_USER.USER_PROTOCOLHISTORY",
+         "ObjectType": 0
+      },
+      {
+         "Name": "THOR_USER.USER_ROLE",
+         "ObjectType": 0
+      },
+      {
+         "Name": "THOR_USER.VISUAL",
+         "ObjectType": 0
+      }
+   ],
+   "UiHint": null,
+   "UncountableWords": null,
+   "UseAsyncStoredProcedureCalls": true,
+   "UseBoolPropertiesWithoutDefaultSql": false,
+   "UseDatabaseNames": false,
+   "UseDateOnlyTimeOnly": true,
+   "UseDbContextSplitting": false,
+   "UseDecimalDataAnnotationForSprocResult": true,
+   "UseFluentApiOnly": true,
+   "UseHandleBars": false,
+   "UseHierarchyId": false,
+   "UseInflector": true,
+   "UseLegacyPluralizer": false,
+   "UseManyToManyEntity": false,
+   "UseNoDefaultConstructor": false,
+   "UseNoNavigations": false,
+   "UseNoObjectFilter": false,
+   "UseNodaTime": false,
+   "UseNullableReferences": false,
+   "UsePrefixNavigationNaming": false,
+   "UseSchemaFolders": false,
+   "UseSchemaNamespaces": false,
+   "UseSpatial": false,
+   "UseT4": false
+}
