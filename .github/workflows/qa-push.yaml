@@ -39,7 +39,7 @@ jobs:
       - name: Configure AWS Credentials for QA
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN_DEV }}
+          role-to-assume: ${{ secrets.AWS_ARN_DEV }}
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
 
       # Log in to Amazon ECR (QA)
@@ -54,6 +54,26 @@ jobs:
           docker tag web-reporting:${{ github.event.inputs.version }} ${{ secrets.ECR_URI_QA }}:latest
           docker push ${{ secrets.ECR_URI_QA }}:${{ github.event.inputs.version }}
           docker push ${{ secrets.ECR_URI_QA }}:latest
+
+      - name: Download task definition
+        run: |
+            aws ecs describe-task-definition --task-definition nci-oars-qa1-taskdefinition --query taskDefinition > task-definition.json
+            
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: web
+          image: ${{ secrets.ECR_URI_QA }}:latest
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: nci-oars-qa1-service
+          cluster: nci-oars-qa1-cluster
+          wait-for-service-stability: true
 
       # Output Success Message
       - name: Promotion Successful
