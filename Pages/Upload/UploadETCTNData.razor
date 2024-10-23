@@ -127,13 +127,13 @@
                                 <Field>
                                     <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Attach File</FieldLabel>
                                     <FieldLabel>Accepted File Types: CSV</FieldLabel>
-                                    <FileEdit @ref="@fileEditRef" Changed="@OnFileUpload" MaxFileSize="4194304" Filter=".csv" AutoReset="false" DisableProgressReport="false" Disabled="@IsFileUploadDisabled()">
+                                    <FileEdit @ref="@fileEditRef" Changed="@OnFileUpload" MaxFileSize="4194304" Filter=".csv" AutoReset="false" DisableProgressReport="false">
                                     </FileEdit>
                                 </Field>
                             </Validation>
                         </Fields>
                     </Validations>
-                    <Button Color="Color.Primary" Clicked="@OnSubmit" Disabled="@IsFileUploadDisabled()">
+                    <Button Color="Color.Primary" Clicked="@OnSubmit">
                         Submit
                     </Button>
                     <Button Color="Color.Warning" Clicked="@OnReset">
@@ -226,8 +226,6 @@
     List<CRFRule> crfRules = new List<CRFRule>();
     List<string> protocols = new List<string>();
     CRFRule crfRule = null;
-    //string webReportingETCTNDataUploadURL = null;
-    //string wsURL = null;
 
     int? userId = null;
     bool IsAdmin = false;
@@ -273,11 +271,6 @@
             {
                 SelectedCRFDescription = crfs.First(t => t.FormOID.Equals(ETCTNUploadRequestModel.CRF)).FormName;
 
-                // if (ETCTNUploadRequestModel.CRF == "IFA_RESULT_SUMMARY")
-                //     webReportingETCTNDataUploadURL = wsURL + "RAIUpload.aspx";
-                // else
-                //     webReportingETCTNDataUploadURL = wsURL + "ETCTNDataUpload.aspx";
-
                 ValidationsRef.ValidateAll();
             }
             else
@@ -311,8 +304,6 @@
             protocolData = uploadConfiguration.ProtocolData;
 
             crfRules = uploadConfiguration.CRFRules;
-
-            //wsURL = configuration.GetValue<string>("WebReporting:WRUrl");
 
             if (protocolData == null)
             {
@@ -366,7 +357,6 @@
         ETCTNUploadRequestModel.Assay = null;
 
         ValidationsRef.ValidateAll();
-
     }
 
     async Task OnCRFChanged()
@@ -406,20 +396,6 @@
         return SubmitConfirmationModal.Hide();
     }
 
-    // private Blazorise.Visibility CheckExternalLinkVisibility()
-    // {
-    //     if (ETCTNUploadRequestModel.CRF != null 
-    //             && !(ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS" 
-    //                 || ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP_ASSAY"
-    //                 || ETCTNUploadRequestModel.CRF == "LIBRARY_QC"
-    //                 || ETCTNUploadRequestModel.CRF == "SEQUENCING_QC"
-    //                 || ETCTNUploadRequestModel.CRF == "SHIPPING_STATUS")
-    //                )
-    //         return Visibility.Visible;
-    //     else
-    //         return Visibility.Invisible;
-    // }
-
     private Blazorise.Visibility CheckAssayVisibility()
     {
         if (ETCTNUploadRequestModel.CRF != null && ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP_ASSAY")
@@ -442,19 +418,6 @@
             return Visibility.Visible;
         else
             return Visibility.Invisible;
-    }
-
-    private bool IsFileUploadDisabled()
-    {
-        // if (ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS" 
-        //     || ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP_ASSAY"
-        //     || ETCTNUploadRequestModel.CRF == "LIBRARY_QC"
-        //     || ETCTNUploadRequestModel.CRF == "SEQUENCING_QC"
-        //     || ETCTNUploadRequestModel.CRF == "SHIPPING_STATUS"
-        //     )
-        //     return false;
-        // else
-            return false;
     }
 
     async Task OnDownloadTemplate()
