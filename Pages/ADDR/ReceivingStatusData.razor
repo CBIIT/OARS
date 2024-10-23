@@ -20,9 +20,26 @@
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>Automated Data Discrepancy Report - Receiving Status</h2></Div>
 <Row Background="Background.Light">
     <Column ColumnSize="ColumnSize.IsFull">
+        <!-- Protocol Selection Dropdown -->
+        <Autocomplete TItem="Protocol"
+                      TValue="string"
+                      Data="@Protocols"
+                      TextField="@(( item ) => item.StudyId)"
+                      ValueField="@(( item ) => item.StudyId)"
+                      SelectedValueChanged="@(async (v) => await OnProtocolChanged(v))"
+                      Placeholder="Select Protocol..."
+                      Filter="AutocompleteFilter.StartsWith"
+                      FreeTyping
+                      CustomFilter="@(( item, searchValue ) => item.StudyId.IndexOf( searchValue, 0, StringComparison.CurrentCultureIgnoreCase ) >= 0 )">
+            <NotFoundContent> Sorry... @context was not found! :( </NotFoundContent>
+        </Autocomplete>
+    </Column>
+</Row>
+<Row Background="Background.Light">
+    <Column ColumnSize="ColumnSize.IsFull">
         <DataGrid Class="addr-data-grid" @ref="dataGridRef"
                   TItem="ReceivingStatus"
-                  Data="@data"
+                  Data="@filteredData"
                   Responsive
                   Groupable
                   ShowGrouping
@@ -147,6 +164,8 @@
     [Inject] TimeZoneService timeZoneService { get; set; } = null!;
     [Inject] IOktaService oktaService { get; set; } = null!;
     [Inject] IEmailService emailService { get; set; } = null;
+    [Inject] IStudyService studyService { get; set; }
+    [Inject] IProfileService profileService { get; set; } = null!;
 
     [Parameter] public bool IsAdminDisplay { get; set; } = false;
     [Parameter] public string ProtocolNumber { get; set; } = string.Empty;
@@ -154,6 +173,9 @@
     [Parameter] public int ReportId { get; set; }
 
     private List<ReceivingStatus> data { get; set; } = new List<ReceivingStatus>();
+    private List<ReceivingStatus> filteredData => data.Where(d => string.IsNullOrEmpty(SelectedProtocol) || d.ProtocolNumber == SelectedProtocol).ToList();
+    private IList<Protocol> Protocols { get; set; } = new List<Protocol>();
+    private string SelectedProtocol { get; set; } = string.Empty;
     private TimeSpan timeOffset;
     private string timeZoneAbbrev = "";
     private DataGrid<ReceivingStatus> dataGridRef;
@@ -168,6 +190,11 @@
         User curUser = await userService.GetUserAsync(userId);
         timeZoneAbbrev = curUser.TimeZoneAbbreviation;
         timeOffset = TimeSpan.FromMinutes((double)curUser.TimeOffset);
+
+        // Fetch protocols
+        //Protocols = await service.GetProtocols();
+        Protocols = studyService.GetProtocolsForUserAsync(userId, true);
+
     }
 
     // Fetch data when parameters are set
@@ -227,4 +254,17 @@
         CancellationToken token = new CancellationToken(false);
         await JS.InvokeAsync<object>("open", token, values);
     }
+
+
+    // Handle protocol change
+    public async Task OnProtocolChanged(string selectedProtocol)
+    {
+        if (!string.IsNullOrEmpty(selectedProtocol))
+        {
+            data = await service.GetReceivingStatus(selectedProtocol);
+        }
+    }
+
+    public string selectedSearchValue { get; set; }
+    public string selectedAutoCompleteText { get; set; }
 }
