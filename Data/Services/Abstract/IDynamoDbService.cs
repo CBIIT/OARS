@@ -16,5 +16,12 @@ namespace TheradexPortal.Data.Services.Abstract
         Task<List<TSO500SequencingQCFileData>?> GetAllTSO500SequencingQCData(string requestId);
 
         Task<List<TSO500LibraryQCFileData>?> GetAllTSO500LibraryQCData(string requestId);
+
+        Task<List<IFAFileData>?> GetAllIFAData(string requestId);
+
+        Task<List<IFAResultSummaryFileData>?> GetAllIFAResultSummaryData(string requestId);
+
+        Task<List<PathologyEvaluationReportFileData>?> GetAllPathologyEvaluationReportData(string requestId);
+
     }
 }

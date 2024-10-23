@@ -107,7 +107,9 @@ namespace TheradexPortal.Data.Services
                 new CRFModel{FormName = "Biospecimen Roadmap", FormOID = "BIOSPECIMEN_ROADMAP_ASSAY" },
                 new CRFModel{FormName = "Receiving Status", FormOID = "RECEIVING_STATUS" },
                 new CRFModel{FormName = "Shipping Status", FormOID = "SHIPPING_STATUS" },
-                new CRFModel{FormName = "IFA", FormOID = "IFA_RESULT_SUMMARY" },
+                new CRFModel{FormName = "IFA", FormOID = "IFA" },
+                new CRFModel{FormName = "IFA Result Summary", FormOID = "IFA_RESULT_SUMMARY" },
+                new CRFModel{FormName = "IFA Pathology Evaluation Report", FormOID = "PATHOLOGY_EVALUATION_REPORT" },
                 new CRFModel{FormName = "TSO500 Library QC", FormOID = "LIBRARY_QC" },
                 new CRFModel{FormName = "TSO500 Sequencing QC", FormOID = "SEQUENCING_QC" }
             };
@@ -376,6 +378,103 @@ namespace TheradexPortal.Data.Services
         }
 
 
+        public async Task<List<IFAFileData>?> GetIFAFileData(string requestId)
+        {
+            var requestItems = await _dynamoDbService.GetAllIFAData(requestId);
+
+            if (requestItems != null)
+            {
+                foreach (var requestItem in requestItems)
+                {
+                    if (requestItem.Status >= 201 && requestItem.Status <= 210)
+                    {
+                        requestItem.ClientStatus = RequestItemStatusV2.Received.ToString();
+                    }
+                    else if (requestItem.Status >= 211 && requestItem.Status <= 220)
+                    {
+                        requestItem.ClientStatus = RequestItemStatusV2.InProgress.ToString();
+                    }
+                    else if (requestItem.Status >= 221 && requestItem.Status <= 230)
+                    {
+                        requestItem.ClientStatus = ((RequestItemStatusV2)requestItem.Status).ToString();
+                    }
+                    else
+                    {
+                        requestItem.ClientStatus = "UnKnown";
+                    }
+
+                    requestItem.InternalStatus = ((RequestItemStatusV2)requestItem.Status).ToString();
+                }
+            }
+
+            return requestItems;
+        }
+
+        public async Task<List<IFAResultSummaryFileData>?> GetIFAResultSummaryFileData(string requestId)
+        {
+            var requestItems = await _dynamoDbService.GetAllIFAResultSummaryData(requestId);
+
+            if (requestItems != null)
+            {
+                foreach (var requestItem in requestItems)
+                {
+                    if (requestItem.Status >= 201 && requestItem.Status <= 210)
+                    {
+                        requestItem.ClientStatus = RequestItemStatusV2.Received.ToString();
+                    }
+                    else if (requestItem.Status >= 211 && requestItem.Status <= 220)
+                    {
+                        requestItem.ClientStatus = RequestItemStatusV2.InProgress.ToString();
+                    }
+                    else if (requestItem.Status >= 221 && requestItem.Status <= 230)
+                    {
+                        requestItem.ClientStatus = ((RequestItemStatusV2)requestItem.Status).ToString();
+                    }
+                    else
+                    {
+                        requestItem.ClientStatus = "UnKnown";
+                    }
+
+                    requestItem.InternalStatus = ((RequestItemStatusV2)requestItem.Status).ToString();
+                }
+            }
+
+            return requestItems;
+        }
+
+        public async Task<List<PathologyEvaluationReportFileData>?> GetPathologyEvaluationReportFileData(string requestId)
+        {
+            var requestItems = await _dynamoDbService.GetAllPathologyEvaluationReportData(requestId);
+
+            if (requestItems != null)
+            {
+                foreach (var requestItem in requestItems)
+                {
+                    if (requestItem.Status >= 201 && requestItem.Status <= 210)
+                    {
+                        requestItem.ClientStatus = RequestItemStatusV2.Received.ToString();
+                    }
+                    else if (requestItem.Status >= 211 && requestItem.Status <= 220)
+                    {
+                        requestItem.ClientStatus = RequestItemStatusV2.InProgress.ToString();
+                    }
+                    else if (requestItem.Status >= 221 && requestItem.Status <= 230)
+                    {
+                        requestItem.ClientStatus = ((RequestItemStatusV2)requestItem.Status).ToString();
+                    }
+                    else
+                    {
+                        requestItem.ClientStatus = "UnKnown";
+                    }
+
+                    requestItem.InternalStatus = ((RequestItemStatusV2)requestItem.Status).ToString();
+                }
+            }
+
+            return requestItems;
+        }
+
+
         public string GetRequestId(ETCTNUploadRequest ETCTNUploadRequestModel)
         {
             // Generate a new GUID
@@ -405,8 +504,12 @@ namespace TheradexPortal.Data.Services
                 prefix = "SQ";
             else if (ETCTNUploadRequestModel.CRF == "SHIPPING_STATUS")
                 prefix = "SS";
-            else if (ETCTNUploadRequestModel.CRF == "IFA_RESULT_SUMMARY")
+            else if (ETCTNUploadRequestModel.CRF == "IFA")
                 prefix = "IF";
+            else if (ETCTNUploadRequestModel.CRF == "IFA_RESULT_SUMMARY")
+                prefix = "IR";
+            else if (ETCTNUploadRequestModel.CRF == "PATHOLOGY_EVALUATION_REPORT")
+                prefix = "IP";
 
             // Prefix the unique code
             string uniqueCode = prefix + base64String;

@@ -96,12 +96,12 @@
                                             Instructions
                                             </Link>
                                         </Div>
-                                        <Div Visibility="@CheckExternalLinkVisibility()">
+                                       @*  <Div Visibility="@CheckExternalLinkVisibility()">
                                             <Icon Name="IconName.ExternalLinkSquareAlt" IconSize="@IconSize.ExtraSmall" />&nbsp;
                                             <Link Target="Target.Blank" To="@webReportingETCTNDataUploadURL">
                                             Click here to access User Interface for this Csv Upload.
                                             </Link>
-                                        </Div>
+                                        </Div> *@
                                     </FieldBody>
                                 </Field>
                             </Validation>
@@ -226,8 +226,8 @@
     List<CRFRule> crfRules = new List<CRFRule>();
     List<string> protocols = new List<string>();
     CRFRule crfRule = null;
-    string webReportingETCTNDataUploadURL = null;
-    string wsURL = null;
+    //string webReportingETCTNDataUploadURL = null;
+    //string wsURL = null;
 
     int? userId = null;
     bool IsAdmin = false;
@@ -273,10 +273,10 @@
             {
                 SelectedCRFDescription = crfs.First(t => t.FormOID.Equals(ETCTNUploadRequestModel.CRF)).FormName;
 
-                if (ETCTNUploadRequestModel.CRF == "IFA_RESULT_SUMMARY")
-                    webReportingETCTNDataUploadURL = wsURL + "RAIUpload.aspx";
-                else
-                    webReportingETCTNDataUploadURL = wsURL + "ETCTNDataUpload.aspx";
+                // if (ETCTNUploadRequestModel.CRF == "IFA_RESULT_SUMMARY")
+                //     webReportingETCTNDataUploadURL = wsURL + "RAIUpload.aspx";
+                // else
+                //     webReportingETCTNDataUploadURL = wsURL + "ETCTNDataUpload.aspx";
 
                 ValidationsRef.ValidateAll();
             }
@@ -312,7 +312,7 @@
 
             crfRules = uploadConfiguration.CRFRules;
 
-            wsURL = configuration.GetValue<string>("WebReporting:WRUrl");
+            //wsURL = configuration.GetValue<string>("WebReporting:WRUrl");
 
             if (protocolData == null)
             {
@@ -406,19 +406,19 @@
         return SubmitConfirmationModal.Hide();
     }
 
-    private Blazorise.Visibility CheckExternalLinkVisibility()
-    {
-        if (ETCTNUploadRequestModel.CRF != null 
-                && !(ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS" 
-                    || ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP_ASSAY"
-                    || ETCTNUploadRequestModel.CRF == "LIBRARY_QC"
-                    || ETCTNUploadRequestModel.CRF == "SEQUENCING_QC"
-                    || ETCTNUploadRequestModel.CRF == "SHIPPING_STATUS")
-                   )
-            return Visibility.Visible;
-        else
-            return Visibility.Invisible;
-    }
+    // private Blazorise.Visibility CheckExternalLinkVisibility()
+    // {
+    //     if (ETCTNUploadRequestModel.CRF != null 
+    //             && !(ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS" 
+    //                 || ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP_ASSAY"
+    //                 || ETCTNUploadRequestModel.CRF == "LIBRARY_QC"
+    //                 || ETCTNUploadRequestModel.CRF == "SEQUENCING_QC"
+    //                 || ETCTNUploadRequestModel.CRF == "SHIPPING_STATUS")
+    //                )
+    //         return Visibility.Visible;
+    //     else
+    //         return Visibility.Invisible;
+    // }
 
     private Blazorise.Visibility CheckAssayVisibility()
     {
@@ -446,15 +446,15 @@
 
     private bool IsFileUploadDisabled()
     {
-        if (ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS" 
-            || ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP_ASSAY"
-            || ETCTNUploadRequestModel.CRF == "LIBRARY_QC"
-            || ETCTNUploadRequestModel.CRF == "SEQUENCING_QC"
-            || ETCTNUploadRequestModel.CRF == "SHIPPING_STATUS"
-            )
+        // if (ETCTNUploadRequestModel.CRF == "RECEIVING_STATUS" 
+        //     || ETCTNUploadRequestModel.CRF == "BIOSPECIMEN_ROADMAP_ASSAY"
+        //     || ETCTNUploadRequestModel.CRF == "LIBRARY_QC"
+        //     || ETCTNUploadRequestModel.CRF == "SEQUENCING_QC"
+        //     || ETCTNUploadRequestModel.CRF == "SHIPPING_STATUS"
+        //     )
+        //     return false;
+        // else
             return false;
-        else
-            return true;
     }
 
     async Task OnDownloadTemplate()

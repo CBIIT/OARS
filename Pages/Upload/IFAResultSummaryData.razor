@@ -1,0 +1,124 @@
+﻿@using System.Diagnostics.CodeAnalysis
+@using Microsoft.Extensions.Options
+@using Newtonsoft.Json
+@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@using TheradexPortal.Data.Models.Configuration;
+
+@inject IHttpContextAccessor httpContextAccessor
+
+<DataGrid TItem="IFAResultSummaryFileData"
+          Class="admindatagrid"
+          Data="@fileData"
+          Responsive
+          ShowPager
+          ShowPageSizes
+          MaxPaginationLinks="5"
+          PageSize="100"
+          FixedHeader
+          Filterable
+          FilterMode="DataGridFilterMode.Menu"
+          RowStyling="@OnRowStyling"
+          SelectedRowStyling="@OnSelectedRowStyling"
+          CommandMode="DataGridCommandMode.ButtonRow">
+    <DataGridColumns>
+        <DataGridColumn Width="100px" Field="@nameof(IFAResultSummaryFileData.RowNo)" Caption="#" />
+        <DataGridColumn Width="100px" Field="RowData.Protocol" Caption="Protocol" />
+
+        <DataGridColumn Width="100px" Field="RowData.SubjectID" Caption="Subject ID" />
+        <DataGridColumn Width="100px" Field="RowData.LabTestName" Caption="Lab Test Name" />
+        <DataGridColumn Width="100px" Field="RowData.TheradexSpecimenID" Caption="Theradex Specimen ID" />
+        <DataGridColumn Width="100px" Field="RowData.PADISSpecimenID" Caption="PADIS Specimen ID" />
+        <DataGridColumn Width="100px" Field="RowData.SubspecimenID" Caption="Subspecimen ID (EET Biobank or Internal ID)" />
+        <DataGridColumn Width="100px" Field="RowData.PassNo" Caption="Pass#" />
+        <DataGridColumn Width="100px" Field="RowData.AssessmentTimepoint" Caption="Assessment Timepoint" />
+        <DataGridColumn Width="100px" Field="RowData.ResultType" Caption="Result Type" />
+        <DataGridColumn Width="100px" Field="RowData.Result" Caption="Result" />
+        <DataGridColumn Width="100px" Field="RowData.StandardDeviation" Caption="Standard Deviation" />
+        <DataGridColumn Width="100px" Field="RowData.TotalNuclei" Caption="Total Nuclei" />
+        <DataGridColumn Width="100px" Field="RowData.OperatorName" Caption="Operator Name" />
+        <DataGridColumn Width="100px" Field="RowData.RunDataFileName" Caption="Run data file name" />
+
+
+        <DataGridColumn Width="100px" Field="RowData.Active" Caption="Active" />
+        <DataGridColumn Width="100px" Caption="Internal Status" Editable="false" Displayable="@IsAdminDisplay" Filterable="false">
+            <DisplayTemplate>
+                <Badge Color="@GetStatusColor((context as IFAResultSummaryFileData).ClientStatus)" Pill>
+                    <Tooltip Text="@((context as IFAResultSummaryFileData).Error)">
+                        @{
+                            if ((context as IFAResultSummaryFileData).RetryCount > 0)
+                                @((context as IFAResultSummaryFileData).InternalStatus + " (" + (context as IFAResultSummaryFileData).RetryCount + ")")
+                            else
+                                @((context as IFAResultSummaryFileData).InternalStatus)
+                        }
+                    </Tooltip>
+                </Badge>
+            </DisplayTemplate>
+        </DataGridColumn>
+        <DataGridColumn Width="100px" Caption="Status" Editable="false" Filterable="false">
+            <DisplayTemplate>
+                <Badge Color="@GetStatusColor((context as IFAResultSummaryFileData).ClientStatus)" Pill>
+                    <Tooltip Text="@((context as IFAResultSummaryFileData).ClientError)">
+                        @((context as IFAResultSummaryFileData).ClientStatus)
+                    </Tooltip>
+                </Badge>
+            </DisplayTemplate>
+        </DataGridColumn>
+    </DataGridColumns>
+    <ButtonRowTemplate>
+        <Button Color="Color.Primary" Clicked="@OnRefresh">Refresh</Button>
+    </ButtonRowTemplate>
+    <EmptyTemplate>
+        <div class="box">
+            No Rows were found!
+        </div>
+    </EmptyTemplate>
+</DataGrid>
+
+@code {
+
+    [Inject] IUploadService uploadService { get; set; } = null!;
+
+    [Parameter] public bool IsAdminDisplay { get; set; } = false;
+    [Parameter] public string RequestId { get; set; } = string.Empty;
+
+    private List<IFAResultSummaryFileData> fileData { get; set; } = new List<IFAResultSummaryFileData>();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (RequestId != string.Empty)
+            fileData = await uploadService.GetIFAResultSummaryFileData(RequestId);
+    }
+
+    private void OnRowStyling(IFAResultSummaryFileData fileData, DataGridRowStyling styling)
+    {
+        if (fileData.ClientStatus == RequestItemStatusV2.Failed.ToString())
+            styling.Style = "color:red;";
+        else if (fileData.ClientStatus == RequestItemStatusV2.Success.ToString())
+            styling.Style = "color:#0f880f;";
+        else
+            styling.Style = "color:#0755d4;";
+    }
+
+    private void OnSelectedRowStyling(IFAResultSummaryFileData fileData, DataGridRowStyling styling)
+    {
+        styling.Background = Background.Info;
+    }
+
+    private Blazorise.Color GetStatusColor(string status)
+    {
+        if (status == RequestStatusV2.Failed.ToString() || status == RequestStatusV2.PartialSuccess.ToString())
+            return Color.Danger;
+        else if (status == RequestStatusV2.Success.ToString())
+            return Color.Success;
+        else
+            return Color.Secondary;
+    }
+
+    private async Task OnRefresh()
+    {
+        this.fileData = await uploadService.GetIFAResultSummaryFileData(RequestId);
+    }
+
+}
