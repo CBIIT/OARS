@@ -26,6 +26,17 @@ jobs:
           time_limit: 300
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
+      # Download Docker Image Artifact
+      - name: Download Docker Image Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: docker-image-${{ github.event.inputs.version }}
+
+      # Load Docker Image from Artifact
+      - name: Load Docker Image from Artifact
+        run: |
+          docker load -i web-reporting_${{ github.event.inputs.version }}.tar.gz
+
       # Configure AWS Credentials for Production
       - name: Configure AWS Credentials for Production
         uses: aws-actions/configure-aws-credentials@v4
@@ -38,19 +49,33 @@ jobs:
         run: |
           aws ecr get-login-password --region ${{ secrets.AWS_DEFAULT_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_URI_PROD }}
 
-      # Pull Docker Image from UAT ECR
-      - name: Pull Docker Image from UAT ECR
-        run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_DEFAULT_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_URI_UAT }}
-          docker pull ${{ secrets.ECR_URI_UAT }}:${{ github.event.inputs.version }}
-
       # Tag and Push Docker Image to ECR (Production)
       - name: Tag and Push Docker Image to ECR (Production)
         run: |
-          docker tag ${{ secrets.ECR_URI_UAT }}:${{ github.event.inputs.version }} ${{ secrets.ECR_URI_PROD }}:${{ github.event.inputs.version }}
-          docker tag ${{ secrets.ECR_URI_UAT }}:${{ github.event.inputs.version }} ${{ secrets.ECR_URI_PROD }}:latest
+          docker tag web-reporting:${{ github.event.inputs.version }} ${{ secrets.ECR_URI_PROD }}:${{ github.event.inputs.version }}
+          docker tag web-reporting:${{ github.event.inputs.version }} ${{ secrets.ECR_URI_PROD }}:latest
           docker push ${{ secrets.ECR_URI_PROD }}:${{ github.event.inputs.version }}
           docker push ${{ secrets.ECR_URI_PROD }}:latest
+      
+      - name: Download task definition
+        run: |
+            aws ecs describe-task-definition --task-definition nci-oars-production-taskdefinition --query taskDefinition > task-definition.json
+            
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: web
+          image: ${{ secrets.ECR_URI_PROD }}:latest
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: nci-oars-production-service
+          cluster: nci-oars-production-cluster
+          wait-for-service-stability: true
 
       # Output Success Message
       - name: Promotion Successful

@@ -1,14 +1,9 @@
 ﻿using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
-using MimeKit;
-using Okta.Sdk.Model;
 using System.Data;
 using System.Globalization;
-using System.IO;
-using System.Reflection.PortableExecutable;
 using System.Text;
-using System.Xml;
 using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Services.Abstract;
 
@@ -74,6 +69,9 @@ public class CSVFileImportService : ICSVFileImportService
 
         [Name("PORDER", "Order of Page in Visit Definition")]
         public int OrderPageVisitDef { get; set; }
+
+        [Name("Table Name")]
+        public string tableName { get; set; }
 
     }
 
@@ -184,21 +182,23 @@ public class CSVFileImportService : ICSVFileImportService
                 foreach (var record in records)
                 {
 
-                    if ((!string.IsNullOrEmpty(record.pageName) || !string.IsNullOrEmpty(record.exportColumn)))
+                    if ((!string.IsNullOrEmpty(record.exportTable) || !string.IsNullOrEmpty(record.exportColumn)))
                     {
                         var EDCForm = formMap.GetValueOrDefault(record.pageName);
-                        if (EDCForm == null)
-                            throw new Exception($"The form identifier {record.pageName} was not found in the list of forms");
+                        //if (EDCForm == null)
+                        //    throw new Exception($"The form identifier {record.exportTable} was not found in the list of forms");
+                        if (EDCForm != null)
+                        {
+                            DataRow field = fields.NewRow();
+                            field["Update_Date"] = DateTime.Now;
+                            field["Create_Date"] = DateTime.Now;
+                            field["Protocol_EDC_Form_Id"] = EDCForm.ProtocolEDCFormId;
+                            field["EDC_Field_Identifier"] = record.exportColumn;
+                            field["EDC_Field_Name"] = record.questionText;
+                            field["EDC_Dictionary_Name"] = record.codelistName;
 
-                        DataRow field = fields.NewRow();
-                        field["Update_Date"] = DateTime.Now;
-                        field["Create_Date"] = DateTime.Now;
-                        field["Protocol_EDC_Form_Id"] = EDCForm.ProtocolEDCFormId;
-                        field["EDC_Field_Identifier"] = record.exportColumn;
-                        field["EDC_Field_Name"] = record.questionText;
-                        field["EDC_Dictionary_Name"] = record.codelistName;
-
-                        fields.Rows.Add(field);
+                            fields.Rows.Add(field);
+                        }
                     }
                     else
                     {
@@ -258,6 +258,7 @@ public class CSVFileImportService : ICSVFileImportService
                             ProtocolMappingId = protocolMappingId,
                             EDCFormIdentifier = record.pageObjectName,
                             EDCFormName = record.pageName,
+                            EDCFormTable = record.tableName,
                             CreateDate = DateTime.Now,
                             UpdatedDate = DateTime.Now
                         };

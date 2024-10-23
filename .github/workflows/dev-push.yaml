@@ -1,0 +1,131 @@
+name: CI/CD Pipeline(DEV)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_test_and_push:
+    name: Build, Test, and Deploy
+    runs-on: ubuntu-latest
+    permissions: write-all
+    environment: dev
+    steps:
+      # Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Setup .NET
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '6.0.x'
+
+      # Install dependencies
+      - name: Install dependencies
+        run: dotnet restore
+
+      # Build the application
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      # Run unit tests
+      - name: Run Unit Tests
+        run: dotnet test --no-build --verbosity normal
+
+      # Generate Semantic Version
+      - name: Generate Semantic Version
+        id: semver
+        uses: paulhatch/semantic-version@v5.4.0
+        with:
+          major_pattern: "major"
+          minor_pattern: "minor"
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.semver.outputs.version }}
+          release_name: v${{ steps.semver.outputs.version }}
+          draft: false
+          prerelease: false
+
+      # Configure AWS Credentials
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ARN_DEV }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      # Log in to Amazon ECR
+      - name: Log in to Amazon ECR
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_DEFAULT_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_URI_DEV }}
+
+      # Build Docker Image
+      - name: Build Docker Image
+        run: |
+          docker build -t ${{ secrets.ECR_URI_DEV }}:${{ steps.semver.outputs.version }} .
+          docker build -t ${{ secrets.ECR_URI_DEV }}:latest .
+
+      # Push Docker Image to ECR
+      - name: Push Docker Image to ECR
+        run: |
+          docker push ${{ secrets.ECR_URI_DEV }}:${{ steps.semver.outputs.version }}
+          docker push ${{ secrets.ECR_URI_DEV }}:latest
+     
+      # Save Docker Image as Artifact
+      - name: Save Docker Image as Artifact
+        env:
+            VERSION: ${{ steps.semver.outputs.version }}
+            ECR_URI_DEV: ${{ secrets.ECR_URI_DEV }}
+        run: |
+          echo "Saving Docker image $ECR_URI_DEV:$VERSION as an artifact"
+          docker save $ECR_URI_DEV:$VERSION | gzip > web-reporting_$VERSION.tar.gz
+
+      - name: Upload Docker Image Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: docker-image-${{ steps.semver.outputs.version }}
+          path: web-reporting_${{ steps.semver.outputs.version }}.tar.gz
+
+      - name: Download task definition
+        run: |
+            aws ecs describe-task-definition --task-definition nci-oars-dev-taskdefinition --query taskDefinition > task-definition.json
+            
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: web
+          image: ${{ secrets.ECR_URI_DEV }}:latest
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: nci-oars-dev-service
+          cluster: nci-oars-dev-cluster
+          wait-for-service-stability: true
+
+
+      # Trigger Approval Workflow for Next Environment
+      - name: Trigger Approval for Next Environment
+        if: ${{ always() }}
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'qa-push.yaml',
+              ref: 'main',
+              inputs: {
+                version: '${{ steps.semver.outputs.version }}'
+              }
+            })

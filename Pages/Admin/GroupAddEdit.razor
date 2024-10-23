@@ -44,7 +44,7 @@
         <Field>
             <FieldLabel TextWeight="TextWeight.Bold">Assigned Studies</FieldLabel>
             <FieldBody>
-                <DataGrid TItem="GroupProtocol"
+                <DataGrid TItem="GroupProtocol" @ref="grid"
                             Class="admindataeditgrid"
                             Data="@selectedGroupProtocolList"
                             @bind-SelectedRow="@selectedGroupProtocol"
@@ -110,6 +110,7 @@
     [Inject] IUserService userService { get; set; } = null!;
 
     [Parameter] public int? GroupId { get; set; }
+    DataGrid<GroupProtocol> grid { get; set; }
 
     public string AddOrEdit { get; set; }
     string groupName = "";
@@ -184,13 +185,13 @@
                     GroupProtocol newGP = new GroupProtocol();
                     newGP.StudyId = foundProtocol.StudyId;
                     newGP.IsActive = true;
-                    selectedGroupProtocolList.Add(newGP);
+                    selectedGroupProtocolList.Add(newGP);                    
                 }
             }
-            selectedGroupProtocolList = selectedGroupProtocolList.OrderBy(sup => sup.StudyId).ToList();
-
+            selectedGroupProtocolList.OrderBy(sup => sup.StudyId).ToList();            
         }
-        availableSelected = null;        
+        availableSelected = null;
+        grid.Reload();
     }
 
     private async void RemoveFromGroup()
@@ -209,8 +210,10 @@
                 protocolsAvailable.Add(newP);
             }
             protocolsAvailable = protocolsAvailable.OrderBy(pa => pa.StudyId).ToList();
+            StateHasChanged();
         }
-        selectedGroupProtocols = null;        
+        selectedGroupProtocols = null;
+        grid.Reload();
     }
 
     private async void Save()

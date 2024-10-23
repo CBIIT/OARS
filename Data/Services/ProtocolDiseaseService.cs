@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Services.Abstract;
-using YamlDotNet.Core.Events;
 
 namespace TheradexPortal.Data.Services
 {

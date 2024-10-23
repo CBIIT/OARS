@@ -1,13 +1,9 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using Oracle.ManagedDataAccess.Client;
-using Polly;
-using System.ComponentModel.Design;
 using System.Data;
 using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Services.Abstract;
-using YamlDotNet.Core.Tokens;
 
 namespace TheradexPortal.Data.Services
 {
