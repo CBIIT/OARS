@@ -113,7 +113,13 @@ jobs:
           cluster: nci-oars-dev-cluster
           wait-for-service-stability: true
 
-
+      - name: Capture Workflow Run ID
+        id: get_run_id
+        uses: actions/github-script@v6
+        with:
+          script: |
+            core.setOutput('run_id', context.runId);
+            
       # Trigger Approval Workflow for Next Environment
       - name: Trigger Approval for Next Environment
         if: ${{ always() }}
@@ -127,5 +133,6 @@ jobs:
               ref: 'main',
               inputs: {
                 version: '${{ steps.semver.outputs.version }}'
+                run_id: '${{ steps.get_run_id.outputs.run_id }}'
               }
             })
