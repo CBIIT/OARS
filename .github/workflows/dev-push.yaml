@@ -119,7 +119,8 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            core.setOutput('run_id', context.runId);
+            const runId = context.runId;
+            core.setOutput('run_id', runId);
             
       # Trigger Approval Workflow for Next Environment
       - name: Trigger Approval for Next Environment
