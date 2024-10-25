@@ -56,8 +56,8 @@ jobs:
       # Tag and Push Docker Image to ECR (QA)
       - name: Tag and Push Docker Image to ECR (QA)
         run: |
-          docker tag web-reporting:${{ github.event.inputs.version }} ${{ secrets.ECR_URI_QA }}:${{ github.event.inputs.version }}
-          docker tag web-reporting:${{ github.event.inputs.version }} ${{ secrets.ECR_URI_QA }}:latest
+          docker tag ${{ secrets.ECR_URI_DEV }}:${{ github.event.inputs.version }} ${{ secrets.ECR_URI_QA }}:${{ github.event.inputs.version }}
+          docker tag ${{ secrets.ECR_URI_DEV }}:${{ github.event.inputs.version }} ${{ secrets.ECR_URI_QA }}:latest
           docker push ${{ secrets.ECR_URI_QA }}:${{ github.event.inputs.version }}
           docker push ${{ secrets.ECR_URI_QA }}:latest
 
