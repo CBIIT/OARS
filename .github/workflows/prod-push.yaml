@@ -58,8 +58,8 @@ jobs:
       # Tag and Push Docker Image to ECR (Production)
       - name: Tag and Push Docker Image to ECR (Production)
         run: |
-          docker tag web-reporting:${{ github.event.inputs.version }} ${{ secrets.ECR_URI_PROD }}:${{ github.event.inputs.version }}
-          docker tag web-reporting:${{ github.event.inputs.version }} ${{ secrets.ECR_URI_PROD }}:latest
+          docker tag ${{ secrets.ECR_URI_DEV }}:${{ github.event.inputs.version }} ${{ secrets.ECR_URI_PROD }}:${{ github.event.inputs.version }}
+          docker tag ${{ secrets.ECR_URI_DEV }}:${{ github.event.inputs.version }} ${{ secrets.ECR_URI_PROD }}:latest
           docker push ${{ secrets.ECR_URI_PROD }}:${{ github.event.inputs.version }}
           docker push ${{ secrets.ECR_URI_PROD }}:latest
       
