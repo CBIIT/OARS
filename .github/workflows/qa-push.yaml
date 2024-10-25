@@ -104,7 +104,7 @@ jobs:
               workflow_id: 'uat-push.yaml',
               ref: 'main',
               inputs: {
-                version: '${{ steps.semver.outputs.version }}'
+                version: '${{ github.event.inputs.version }}'
                 run_id: '${{ steps.get_run_id.outputs.run_id }}'
               }
             })
