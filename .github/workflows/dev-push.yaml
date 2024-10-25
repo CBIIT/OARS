@@ -53,6 +53,7 @@ jobs:
           release_name: v${{ steps.semver.outputs.version }}
           draft: false
           prerelease: false
+        continue-on-error: true
 
       # Configure AWS Credentials
       - name: Configure AWS Credentials
