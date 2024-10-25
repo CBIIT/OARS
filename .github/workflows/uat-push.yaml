@@ -6,6 +6,9 @@ on:
       version:
         description: 'Version to promote'
         required: true
+      run_id:
+        description: 'Workflow Run ID to download artifact from'
+        required: true
 
 jobs:
   promote_to_uat:
@@ -28,9 +31,12 @@ jobs:
       
      # Download Docker Image Artifact
       - name: Download Docker Image Artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: docker-image-${{ github.event.inputs.version }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.inputs.run_id }}
 
       # Load Docker Image from Artifact
       - name: Load Docker Image from Artifact
@@ -81,6 +87,13 @@ jobs:
       - name: Promotion Successful
         run: echo "Image version ${{ github.event.inputs.version }} has been promoted to UAT ECR."
 
+      - name: Capture Workflow Run ID
+        id: get_run_id
+        uses: actions/github-script@v6
+        with:
+          script: |
+            core.setOutput('run_id', context.runId);
+            
       # Trigger Approval Workflow for Next Environment
       - name: Trigger Approval for Next Environment
         if: ${{ always() }}
@@ -94,5 +107,6 @@ jobs:
               ref: 'main',
               inputs: {
                 version: '${{ steps.semver.outputs.version }}'
+                run_id: '${{ steps.get_run_id.outputs.run_id }}'
               }
             })
