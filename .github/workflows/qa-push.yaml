@@ -99,7 +99,7 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const version = '${{ steps.semver.outputs.version }}';
+            const version = '${{ github.event.inputs.version }}';
             const runId = '${{ steps.get_run_id.outputs.run_id }}';
             console.log(`Version: ${version}, Run ID: ${runId}`);
             github.rest.actions.createWorkflowDispatch({
