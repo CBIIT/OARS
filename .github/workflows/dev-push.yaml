@@ -128,13 +128,16 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
+            const version = '${{ steps.semver.outputs.version }}';
+            const runId = '${{ steps.get_run_id.outputs.run_id }}';
+            console.log(`Version: ${version}, Run ID: ${runId}`);
             github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: 'qa-push.yaml',
               ref: 'main',
               inputs: {
-                version: '${{ steps.semver.outputs.version }}'
-                run_id: '${{ steps.get_run_id.outputs.run_id }}'
+                version: version,
+                run_id: runId
               }
-            })
+            });
