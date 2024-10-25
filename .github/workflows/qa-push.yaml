@@ -90,7 +90,8 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            core.setOutput('run_id', context.runId);
+            const runId = context.runId;
+            core.setOutput('run_id', runId);
 
       # Trigger Approval Workflow for Next Environment
       - name: Trigger Approval for Next Environment
@@ -98,13 +99,16 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
+            const version = '${{ steps.semver.outputs.version }}';
+            const runId = '${{ steps.get_run_id.outputs.run_id }}';
+            console.log(`Version: ${version}, Run ID: ${runId}`);
             github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: 'uat-push.yaml',
               ref: 'main',
               inputs: {
-                version: '${{ github.event.inputs.version }}'
-                run_id: '${{ steps.get_run_id.outputs.run_id }}'
+                version: version,
+                run_id: runId
               }
-            })
+            });
