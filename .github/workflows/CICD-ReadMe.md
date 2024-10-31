@@ -75,6 +75,9 @@ Note: Only users specified as approvers can approve the deployment.
 2. Select the **"Promote Image to QA"** workflow.
 3. Click **"Run workflow"**.
 4. Enter the version number you wish to deploy (e.g., `1.0.0`).
+5. Enter the RunID of the Dev workflow located at the 'Trigger Approval for Next Environment' step in the workflow.
+   ![image](https://github.com/user-attachments/assets/7bfed5a7-b052-4cc1-9dad-904dd86fa63c)
+
 
 ### 3. Promoting to UAT
 
