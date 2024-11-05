@@ -13,6 +13,7 @@
           Data="@fileData"
           Responsive
           ShowPager
+          ShowColumnChooser
           ShowPageSizes
            MaxPaginationLinks="5"
            PageSize="100"
@@ -23,7 +24,7 @@
            SelectedRowStyling="@OnSelectedRowStyling"
            CommandMode="DataGridCommandMode.ButtonRow">
      <DataGridColumns>
-         <DataGridColumn Width="100px" Field="@nameof(BiospecimenRoadmapFileData.RowNo)" Caption="#" />
+        <DataGridColumn Width="100px" Field="@nameof(BiospecimenRoadmapFileData.RowNo)" FixedPosition="TableColumnFixedPosition.Start"  Caption="#" />
          <DataGridColumn Width="100px" Field="RowData.Protocol" Caption="Protocol" />
          <DataGridColumn Width="100px" Field="RowData.SubspecimenID" Caption="Subspecimen ID" />
          <DataGridColumn Width="100px" Field="RowData.Outcome" Caption="Outcome" />
