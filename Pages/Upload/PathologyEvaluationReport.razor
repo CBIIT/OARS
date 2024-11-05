@@ -12,6 +12,7 @@
           Class="admindatagrid"
           Data="@fileData"
           Responsive
+          ShowColumnChooser
           ShowPager
           ShowPageSizes
           MaxPaginationLinks="5"
@@ -25,8 +26,6 @@
     <DataGridColumns>
         <DataGridColumn Width="100px" Field="@nameof(PathologyEvaluationReportFileData.RowNo)" Caption="#" />
         <DataGridColumn Width="100px" Field="RowData.Protocol" Caption="Protocol" />
-
-
         <DataGridColumn Width="100px" Field="RowData.SubjectID" Caption="Subject ID" />
         <DataGridColumn Width="100px" Field="RowData.BlockID" Caption="BlockID" />
         <DataGridColumn Width="100px" Field="RowData.TheradexSpecimenID" Caption="Theradex Specimen ID" />

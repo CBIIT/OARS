@@ -12,6 +12,7 @@
           Class="admindatagrid"
           Data="@fileData"
           Responsive
+          ShowColumnChooser
           ShowPager
           ShowPageSizes
           MaxPaginationLinks="5"
@@ -25,7 +26,6 @@
     <DataGridColumns>
         <DataGridColumn Width="100px" Field="@nameof(IFAFileData.RowNo)" Caption="#" />
         <DataGridColumn Width="100px" Field="RowData.Protocol" Caption="Protocol" />
-
         <DataGridColumn Width="100px" Field="RowData.SubjectID" Caption="Subject ID" />
         <DataGridColumn Width="100px" Field="RowData.Date" Caption="Date" />
         <DataGridColumn Width="100px" Field="RowData.LabTestName" Caption="Lab Test Name" />
