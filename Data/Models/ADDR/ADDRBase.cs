@@ -9,7 +9,8 @@ namespace TheradexPortal.Data.Models.ADDR
     {
         [DynamoDBHashKey]
         public string Id { get; set; }
-
+        [DynamoDBProperty]
+        public string? ProtocolNumber { get; set; }
         [DynamoDBProperty]
         public string? DataSource { get; set; }
 

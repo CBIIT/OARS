@@ -6,6 +6,9 @@ on:
       version:
         description: 'Version to promote'
         required: true
+      run_id:
+        description: 'Workflow Run ID to download artifact from'
+        required: true
 
 jobs:
   promote_to_prod:
@@ -28,9 +31,12 @@ jobs:
 
       # Download Docker Image Artifact
       - name: Download Docker Image Artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: docker-image-${{ github.event.inputs.version }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.inputs.run_id }}
 
       # Load Docker Image from Artifact
       - name: Load Docker Image from Artifact
@@ -52,8 +58,8 @@ jobs:
       # Tag and Push Docker Image to ECR (Production)
       - name: Tag and Push Docker Image to ECR (Production)
         run: |
-          docker tag web-reporting:${{ github.event.inputs.version }} ${{ secrets.ECR_URI_PROD }}:${{ github.event.inputs.version }}
-          docker tag web-reporting:${{ github.event.inputs.version }} ${{ secrets.ECR_URI_PROD }}:latest
+          docker tag ${{ secrets.ECR_URI_DEV }}:${{ github.event.inputs.version }} ${{ secrets.ECR_URI_PROD }}:${{ github.event.inputs.version }}
+          docker tag ${{ secrets.ECR_URI_DEV }}:${{ github.event.inputs.version }} ${{ secrets.ECR_URI_PROD }}:latest
           docker push ${{ secrets.ECR_URI_PROD }}:${{ github.event.inputs.version }}
           docker push ${{ secrets.ECR_URI_PROD }}:latest
       

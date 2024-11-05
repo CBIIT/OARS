@@ -53,6 +53,7 @@ jobs:
           release_name: v${{ steps.semver.outputs.version }}
           draft: false
           prerelease: false
+        continue-on-error: true
 
       # Configure AWS Credentials
       - name: Configure AWS Credentials
@@ -113,19 +114,30 @@ jobs:
           cluster: nci-oars-dev-cluster
           wait-for-service-stability: true
 
-
+      - name: Capture Workflow Run ID
+        id: get_run_id
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const runId = context.runId;
+            core.setOutput('run_id', runId);
+            
       # Trigger Approval Workflow for Next Environment
       - name: Trigger Approval for Next Environment
         if: ${{ always() }}
         uses: actions/github-script@v6
         with:
           script: |
+            const version = '${{ steps.semver.outputs.version }}';
+            const runId = '${{ steps.get_run_id.outputs.run_id }}';
+            console.log(`Version: ${version}, Run ID: ${runId}`);
             github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: 'qa-push.yaml',
               ref: 'main',
               inputs: {
-                version: '${{ steps.semver.outputs.version }}'
+                version: version,
+                run_id: runId
               }
-            })
+            });
