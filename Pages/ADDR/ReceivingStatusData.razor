@@ -9,6 +9,8 @@
 @using TheradexPortal.Data.Models.Configuration;
 @using TheradexPortal.Data.Services.Abstract.ADDR;
 @using Microsoft.AspNetCore.Mvc;
+@using System.Collections.Generic;
+@using System.Linq;
 
 @page "/addr/receivingstatus/{dashboardid:int?}/{reportid:int?}"
 
@@ -30,8 +32,15 @@
                       Placeholder="Select Protocol..."
                       Filter="AutocompleteFilter.StartsWith"
                       FreeTyping
+                      HighlightSearch
                       CustomFilter="@(( item, searchValue ) => item.StudyId.IndexOf( searchValue, 0, StringComparison.CurrentCultureIgnoreCase ) >= 0 )">
             <NotFoundContent> Sorry... @context was not found! :( </NotFoundContent>
+            <ItemContent>
+                <Div Flex="Flex.InlineFlex.JustifyContent.Between" Width="Width.Is100">
+                    <Heading Margin="Margin.Is2.FromBottom">@context.Value</Heading>
+                </Div>
+                <Paragraph Margin="Margin.Is2.FromBottom"><Small>@context.Item.Institution</Small></Paragraph>
+            </ItemContent>
         </Autocomplete>
     </Column>
 </Row>
@@ -193,7 +202,7 @@
 
         // Fetch protocols
         //Protocols = await service.GetProtocols();
-        Protocols = studyService.GetProtocolsForUserAsync(userId, true);
+        Protocols = studyService.GetProtocolsForUserAsync(userId, true).ToList().Where(i => i.STS.ToLower() == "yes" && i.CDASH.ToLower() == "yes").ToList();
 
     }
 
@@ -264,7 +273,4 @@
             data = await service.GetReceivingStatus(selectedProtocol);
         }
     }
-
-    public string selectedSearchValue { get; set; }
-    public string selectedAutoCompleteText { get; set; }
 }
