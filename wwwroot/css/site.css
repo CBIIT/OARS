@@ -133,6 +133,12 @@
 
 .nci-alert-icon {
     padding-right: 5px;
+    height: 24px;
+}
+
+.nci-alert-icon-lg {
+    padding-right: 5px;
+    height: 30px;
 }
 
 .nci-alert-closebutton {
