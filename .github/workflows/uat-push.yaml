@@ -19,15 +19,15 @@ jobs:
       name: uat
     steps:
       # Manual Approval
-      - name: Wait_for_approval Action
-        uses: arun291091/wait_for_approval_gha@v1
-        with:
-          base_repository_branch: main
-          github_org: Theradex
-          repository_name: nci-web-reporting
-          pr_reviewer: gtheradex,mgrathi,wfarbman
-          time_limit: 400
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Wait_for_approval Action
+      #   uses: arun291091/wait_for_approval_gha@v1
+      #   with:
+      #     base_repository_branch: main
+      #     github_org: Theradex
+      #     repository_name: nci-web-reporting
+      #     pr_reviewer: gtheradex,mgrathi,wfarbman
+      #     time_limit: 400
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
       
      # Download Docker Image Artifact
       - name: Download Docker Image Artifact
