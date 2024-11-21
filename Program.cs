@@ -86,6 +86,7 @@ builder.Services.AddScoped<IProtocolFormMappingService, ProtocolFormMappingServi
 
 builder.Services.AddScoped<IReceivingStatusService, ReceivingStatusService>(); // Register with IReceivingStatusService interface
 builder.Services.AddScoped<INotesService<ReceivingStatus>, ReceivingStatusService>(); // Register with INotesService interface
+builder.Services.AddScoped<INotesService<ShippingStatus>, ShippingStatusService>(); // Register with INotesService interface
 builder.Services.AddScoped<IShippingStatusService, ShippingStatusService>(); // Register with IReceivingStatusService interface
 
 //builder.Services.AddScoped<IReceivingStatusService, ReceivingStatusService>();
