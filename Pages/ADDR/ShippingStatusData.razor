@@ -89,7 +89,7 @@
                     </DisplayTemplate>
                 </DataGridColumn>
                 <DataGridColumn Field="@nameof(ShippingStatus.Id)" Caption="#" Displayable="false" />
-                <DataGridColumn Field="DataSource" Caption="Data Source" />π
+                <DataGridColumn Field="DataSource" Caption="Data Source" />
                 <DataGridColumn Field="SystemComments" Caption="Vari Comments" Groupable>
                     <DisplayTemplate >
                         @foreach (var comment in ((context as ShippingStatus).SystemComments.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)))
