@@ -104,18 +104,33 @@
                 </DataGridColumn>
                 <DataGridColumn Field="Varicount" Caption="Vari Count" />
                 <DataGridColumn Field="Ravecount" Caption="Rave Count" />
-                <DataGridColumn Caption="Subject Key" Groupable>
+                <DataGridColumn Caption="Subject Key">
                     <DisplayTemplate Context="context">
-                        <a href="@(string.Format("{0}", context.SubjectUrl))" target="_blank">
-                            @context.Subjectkey
-                        </a>
+                        @{
+                            if (context.DataSource=="RAVE")
+                            {
+                            <a href="@(string.Format("{0}", context.SubjectUrl))" target="_blank">
+                                @context.Subjectkey
+                            </a>
+
+                            }
+                            else {<span>@context.Subjectkey</span>}
+                        }
                     </DisplayTemplate>
                 </DataGridColumn>
-                <DataGridColumn Caption="Form Url" Groupable>
+                <DataGridColumn Caption="Form Url">
                     <DisplayTemplate Context="context">
-                        <a href="@(string.Format("{0}", context.ReceivingStatusUrl))" target="_blank">
-                          "Click Here"
-                        </a>
+                        @{
+                            if (context.DataSource=="RAVE")
+                            {
+                            <a href="@(string.Format("{0}", context.ReceivingStatusUrl))" target="_blank">
+                                Click Here
+                            </a>
+
+                            }
+                            else {<span>Not Available</span>}
+                        }
+
                     </DisplayTemplate>
                 </DataGridColumn>
                 <DataGridColumn Field="Siteid" Caption="Site Id" Displayable="false" />
