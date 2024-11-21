@@ -56,11 +56,6 @@ namespace TheradexPortal.Data.Services
         public async Task<List<ReceivingStatus>?> GetReceivingStatus(string protocalNumber)
         {
             return await GetReceivingStatusExcel();
-            return new List<ReceivingStatus>
-        {
-
-
-        };
         }
 
         public async Task<List<ReceivingStatus>?> GetReceivingStatusExcel(string filePath = "~/addr/difference_report.xlsx")
