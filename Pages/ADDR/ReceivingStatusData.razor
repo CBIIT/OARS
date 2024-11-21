@@ -104,7 +104,7 @@
                 </DataGridColumn>
                 <DataGridColumn Field="Varicount" Caption="Vari Count" />
                 <DataGridColumn Field="Ravecount" Caption="Rave Count" />
-                <DataGridColumn Caption="Subject Key">
+                <DataGridColumn Caption="Subject Key" Groupable>
                     <DisplayTemplate Context="context">
                         @{
                             if (context.DataSource=="RAVE")
@@ -150,7 +150,23 @@
                     </DisplayTemplate>
                 </DataGridDateColumn>
                 <DataGridColumn Field="SubmissionCarrierName" Caption="Carrier Name" />
-                <DataGridColumn Field="SubmissionCarrierTrackingNo" Caption="Carrier Tracking No" />
+                <DataGridColumn Field="SubmissionCarrierTrackingNo" Caption="Carrier Tracking No">
+                    <DisplayTemplate Context="context">
+                        @{
+                            if (context.SubmissionCarrierName?.ToUpper() == "FEDEX")
+                            {
+                                <a href="@(string.Format("https://www.fedex.com/fedextrack/?trknbr={0}",context.SubmissionCarrierTrackingNo))" target="_blank">
+                                    context.SubmissionCarrierTrackingNo
+                                </a>
+
+                            }
+                            else
+                            {
+                                <span>context.SubmissionCarrierTrackingNo</span>
+                            }
+                        }
+                    </DisplayTemplate>
+                </DataGridColumn>
                 <DataGridColumn Field="ReceivingSite" Caption="Receiving Site" />
                 <DataGridColumn Field="SubmissionConditionPackaging" Caption="Packaging Condition" />
                 <DataGridDateColumn Field="SubmissionReceivedDatetime" Caption="Received Date">
