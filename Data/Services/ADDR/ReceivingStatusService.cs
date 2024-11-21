@@ -59,41 +59,6 @@ namespace TheradexPortal.Data.Services
             return new List<ReceivingStatus>
         {
 
-            new ReceivingStatus
-            {
-                Id = Guid.NewGuid().ToString(),
-                CarrierName = "SHP_CMPY_ID_NM_1",
-                PackagingCondition = "Dry ice",
-                ReceivingSite = "SITEID",
-                ReceivedDateTime = "SPEC_LAB_RECD_DT",
-                PackagingDetailCondition = "Sealed",
-                Inadreas = "nan",
-                Notes = "nan"
-            },
-
-            new ReceivingStatus
-            {
-                Id = Guid.NewGuid().ToString(),
-                CarrierName = "FedEx",
-                PackagingCondition = "Dry ice",
-                ReceivingSite = "AL030",
-                ReceivedDateTime = "2024-07-17 00:00:00",
-                PackagingDetailCondition = "Sealed",
-                Inadreas = "nan",
-                Notes = "nan"
-            },
-
-            new ReceivingStatus
-            {
-                Id = Guid.NewGuid().ToString(),
-                CarrierName = "FedEx",
-                PackagingCondition = "Dry ice",
-                ReceivingSite = "AL030",
-                ReceivedDateTime = "2024-07-17 00:00:00",
-                PackagingDetailCondition = "Sealed",
-                Inadreas = "nan",
-                Notes = "nan"
-            }
 
         };
         }
@@ -158,7 +123,7 @@ namespace TheradexPortal.Data.Services
             //return receivingStatusList;
 
             // Read the JSON from the file
-            string excelFilePath = Path.Combine(_webHostEnvironment.WebRootPath, "addr", "Receiving_Status.json");
+            string excelFilePath = Path.Combine(_webHostEnvironment.WebRootPath, "addr", "I-RECEIVING_STATUS.json");
             string jsonString = File.ReadAllText(excelFilePath);
             receivingStatusList = JsonConvert.DeserializeObject<List<ReceivingStatus>>(jsonString);
 

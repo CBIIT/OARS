@@ -90,8 +90,8 @@
                 </DataGridColumn>
                 <DataGridColumn Field="@nameof(ReceivingStatus.Id)" Caption="#" Displayable="false" />
                 <DataGridColumn Field="DataSource" Caption="Data Source" />
-                <DataGridColumn Field="SystemComments" Caption="System Comments" Groupable>
-                    <DisplayTemplate>
+                <DataGridColumn Field="VariComments" Caption="Vari Comments" Groupable>
+                    <DisplayTemplate >
                         @foreach (var comment in ((context as ReceivingStatus).SystemComments.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)))
                         {
                             <Badge Color="@GetStatusColor(comment)" Pill class="m-1">
@@ -104,7 +104,20 @@
                 </DataGridColumn>
                 <DataGridColumn Field="VariCount" Caption="Vari Count" />
                 <DataGridColumn Field="RaveCount" Caption="Rave Count" />
-                <DataGridColumn Field="SubjectKey" Caption="Subject Key" Groupable />
+                <DataGridColumn Caption="Subject Key" Groupable>
+                    <DisplayTemplate Context="context">
+                        <a href="@(string.Format("{0}", context.SubjectUrl))" target="_blank">
+                            @context.SubjectKey
+                        </a>
+                    </DisplayTemplate>
+                </DataGridColumn>
+                <DataGridColumn Caption="Form Url" Groupable>
+                    <DisplayTemplate Context="context">
+                        <a href="@(string.Format("{0}", context.ReceivingStatusUrl))" target="_blank">
+                          "Click Here"
+                        </a>
+                    </DisplayTemplate>
+                </DataGridColumn>
                 <DataGridColumn Field="SiteId" Caption="Site Id" Displayable="false" />
                 <DataGridColumn Field="SpecimenId" Caption="Specimen Id" Groupable />
                 <DataGridColumn Field="SubSpecimenId" Caption="Sub Specimen Id" Groupable />
@@ -121,16 +134,16 @@
                         }
                     </DisplayTemplate>
                 </DataGridDateColumn>
-                <DataGridColumn Field="CarrierName" Caption="Carrier Name" />
+                <DataGridColumn Field="SubmissionCarrierName" Caption="Carrier Name" />
                 <DataGridColumn Field="CarrierTrackingNo" Caption="Carrier Tracking No" />
                 <DataGridColumn Field="ReceivingSite" Caption="Receiving Site" />
-                <DataGridColumn Field="PackagingCondition" Caption="Packaging Condition" />
-                <DataGridDateColumn Field="ReceivedDateTime" Caption="Received Date">
+                <DataGridColumn Field="SubmissionConditionPackaging" Caption="Packaging Condition" />
+                <DataGridDateColumn Field="SubmissionReceivedDatetime" Caption="Received Date">
                     <DisplayTemplate Context="context">
                         @{
                             var status = context as ReceivingStatus; // Cast context to ReceivingStatus
                             DateTime date;
-                            if (DateTime.TryParse(status?.ReceivedDateTime, out date))
+                            if (DateTime.TryParse(status?.SubmissionReceivedDatetime, out date))
                             {
                                 // Apply time offset and display the time zone abbreviation
                                 @(date.Add(timeOffset).ToString("dd-MMM-yyyy hh:mm:ss tt ") + timeZoneAbbrev)
@@ -138,7 +151,7 @@
                         }
                     </DisplayTemplate>
                 </DataGridDateColumn>
-                <DataGridColumn Field="PackagingDetailCondition" Caption="Packaging Detail Condition" />
+                <DataGridColumn Field="SubmissionConditionPackagingDetail" Caption="Packaging Detail Condition" />
                 <DataGridColumn Field="Inadreas" Caption="Inadreas" />
                 <DataGridColumn Field="Notes" Caption="Notes" Displayable="false" />
                 <DataGridColumn Field="Action" Caption="Action" Displayable="false" />
