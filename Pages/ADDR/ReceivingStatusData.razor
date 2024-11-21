@@ -89,7 +89,7 @@
                     </DisplayTemplate>
                 </DataGridColumn>
                 <DataGridColumn Field="@nameof(ReceivingStatus.Id)" Caption="#" Displayable="false" />
-                <DataGridColumn Field="Datasource" Caption="Data Source" />
+                <DataGridColumn Field="DataSource" Caption="Data Source" />
                 <DataGridColumn Field="VariComments" Caption="Vari Comments" Groupable>
                     <DisplayTemplate >
                         @foreach (var comment in ((context as ReceivingStatus).VariComments.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)))
