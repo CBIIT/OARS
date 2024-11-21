@@ -15,27 +15,9 @@
 <PageTitle>Notes for @data?.GetType().Name</PageTitle>
 
 <div class="container">
-    <h3>Notes for @data?.GetType().Name</h3>
+    <h3>Notes for @data?.GetType().Name </h3>
+    <p><strong>Details:</strong> Source - @Source, Subject Key - @SubjectKey, Specimen ID - @SpecimenId, Sub Specimen ID - @SubSpecimenId</p>
 
-    <div class="mb-3">
-        <label for="source" class="form-label">Source:</label>
-        <input type="text" class="form-control" id="source" @bind="Source" readonly />
-    </div>
-
-    <div class="mb-3">
-        <label for="subjectKey" class="form-label">Subject Key:</label>
-        <input type="text" class="form-control" id="subjectKey" @bind="SubjectKey" readonly />
-    </div>
-
-    <div class="mb-3">
-        <label for="specimenId" class="form-label">Specimen ID:</label>
-        <input type="text" class="form-control" id="specimenId" @bind="SpecimenId" readonly />
-    </div>
-
-    <div class="mb-3">
-        <label for="subSpecimenId" class="form-label">Sub Specimen ID:</label>
-        <input type="text" class="form-control" id="subSpecimenId" @bind="SubSpecimenId" readonly />
-    </div>
 
     <div class="mb-3">
         <label for="notes" class="form-label">Add/Edit Notes:</label>
