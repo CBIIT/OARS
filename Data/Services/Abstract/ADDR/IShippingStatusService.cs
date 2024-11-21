@@ -6,5 +6,6 @@ namespace TheradexPortal.Data.Services.Abstract.ADDR
     public interface IShippingStatusService
     {
         Task<List<ShippingStatus>?> GetShippingStatus(string protocalNumber);
+        
     }
 }

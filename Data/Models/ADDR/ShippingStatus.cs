@@ -9,26 +9,13 @@ namespace TheradexPortal.Data.Models.ADDR
     public class ShippingStatus : ADDRBase
     {
         [DynamoDBProperty]
-        public string? CarrierTrackingNo { get; set; }
+        public string? SubjectUrl { get; set; }
 
         [DynamoDBProperty]
-        public string? ShippedDate { get; set; }
-
-
-        [DynamoDBProperty]
-        public string? TrackingNumber { get; set; }
-
-        [DynamoDBProperty]
-        public string? SpecimenReturnedToSourceSite { get; set; }
-
-        [DynamoDBProperty]
-        public string? NoticeSentName { get; set; }
+        public string? PageUrl { get; set; }
 
         [DynamoDBProperty]
         public string? Source { get; set; }
-
-        [DynamoDBProperty]
-        public string? SubjectId { get; set; }
 
         [DynamoDBProperty]
         public string? SenderEmail { get; set; }
@@ -37,7 +24,7 @@ namespace TheradexPortal.Data.Models.ADDR
         public string? Destination { get; set; }
 
         [DynamoDBProperty]
-        public string? NumberOfSamples { get; set; }
+        public double? NumberOfSamples { get; set; }
 
         [DynamoDBProperty]
         public string? CourierName { get; set; }
@@ -46,10 +33,7 @@ namespace TheradexPortal.Data.Models.ADDR
         public string? SenderPhone { get; set; }
 
         [DynamoDBProperty]
-        public string? DataSnapshotDate { get; set; }
-
-        [DynamoDBProperty]
-        public string? DateModified { get; set; }
+        public string? ShippedDate { get; set; }
 
         [DynamoDBProperty]
         public string? NoticeSentTo { get; set; }
@@ -61,13 +45,16 @@ namespace TheradexPortal.Data.Models.ADDR
         public string? SenderName { get; set; }
 
         [DynamoDBProperty]
+        public string? DataSnapshotDate { get; set; }
+
+        [DynamoDBProperty]
         public string? DataSnapshotTime { get; set; }
 
         [DynamoDBProperty]
-        public string? VariCount { get; set; }
+        public string? TrackingNumber { get; set; }
 
         [DynamoDBProperty]
-        public string? RaveCount { get; set; }
+        public string? DateModified { get; set; }
 
     }
 }

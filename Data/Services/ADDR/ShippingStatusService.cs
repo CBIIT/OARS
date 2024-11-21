@@ -20,10 +20,12 @@ using System.Text.Json;
 using DocumentFormat.OpenXml.Wordprocessing;
 using DocumentFormat.OpenXml.ExtendedProperties;
 using TheradexPortal.Data.Services.Abstract.ADDR;
+using TheradexPortal.Pages.ADDR;
+using Microsoft.Extensions.Hosting.Internal;
 
 namespace TheradexPortal.Data.Services
 {
-    public class ShippingStatusService : BaseService, IShippingStatusService
+    public class ShippingStatusService : BaseService, IShippingStatusService, INotesService<ShippingStatus>
     {
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
@@ -31,6 +33,7 @@ namespace TheradexPortal.Data.Services
         private readonly IAWSS3Service _awsS3Service;
         private readonly IStudyService _studyService;
         private readonly ILogger<ShippingStatusService> logger; // Add logger field
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
         public ShippingStatusService(ILogger<ShippingStatusService> logger,
             IDatabaseConnectionService databaseConnectionService,
@@ -39,6 +42,7 @@ namespace TheradexPortal.Data.Services
             IDynamoDbService dynamoDbService,
             IStudyService studyService,
             IAWSS3Service awsS3Service,
+            IWebHostEnvironment webHostEnvironment,
             IHttpContextAccessor httpContextAccessor) : base(databaseConnectionService)
         {
             _errorLogService = errorLogService;
@@ -46,17 +50,17 @@ namespace TheradexPortal.Data.Services
             _dynamoDbService = dynamoDbService;
             _awsS3Service = awsS3Service;
             _studyService = studyService;
+            _webHostEnvironment = webHostEnvironment;
             this.logger = logger; // Initialize logger
         }
-
         public async Task<List<ShippingStatus>?> GetShippingStatus(string protocalNumber)
         {
-            throw new NotImplementedException();
+            return await GeShippingStatusExcel();
         }
 
-        public async Task<List<ReceivingStatus>?> GetShippingStatusExcel(string filePath = "C:\\ManishRathi\\repos\\TheradexGit\\nci-web-reporting\\Pages\\ADDR\\DummyData\\DifferenceReport.xlsx")
+        public async Task<List<ShippingStatus>?> GeShippingStatusExcel(string filePath = "~/addr/difference_report.xlsx")
         {
-            var receivingStatusList = new List<ReceivingStatus>();
+            var shippingStatusList = new List<ShippingStatus>();
             //using (var workbook = new XLWorkbook(filePath))
             //{
             //    try
@@ -114,11 +118,36 @@ namespace TheradexPortal.Data.Services
             //return receivingStatusList;
 
             // Read the JSON from the file
-            string jsonString = File.ReadAllText("C:\\ManishRathi\\repos\\TheradexGit\\nci-web-reporting\\Pages\\ADDR\\DummyData\\Receiving_Status.json");
-            receivingStatusList = JsonConvert.DeserializeObject<List<ReceivingStatus>>(jsonString);
+            string excelFilePath = Path.Combine(_webHostEnvironment.WebRootPath, "addr", "IV-SHIPPING_STATUS.json");
+            string jsonString = File.ReadAllText(excelFilePath);
+            var settings = new JsonSerializerSettings
+                {
+                    ContractResolver = new Newtonsoft.Json.Serialization.DefaultContractResolver
+                    {
+                        NamingStrategy = new Newtonsoft.Json.Serialization.DefaultNamingStrategy()
+                    }
+                };
+            shippingStatusList = JsonConvert.DeserializeObject<List<ShippingStatus>>(jsonString,settings);
 
-            return receivingStatusList;
+            return shippingStatusList;
 
         }
+
+        public Task SaveNotesAsync(int statusId, Note<ShippingStatus> note)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ShippingStatus> GetNoteByIdAsync(int id)
+        {
+            return Task.FromResult(new ShippingStatus());
+        }
+
+        public Task<List<Note<ShippingStatus>>> GetNotesByStatusIdAsync(int statusId)
+        {
+            return Task.FromResult(new List<Note<ShippingStatus>>());
+        }
+
+
     }
 }
