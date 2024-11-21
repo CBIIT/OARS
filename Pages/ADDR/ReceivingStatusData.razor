@@ -92,7 +92,7 @@
                 <DataGridColumn Field="DataSource" Caption="Data Source" />
                 <DataGridColumn Field="VariComments" Caption="Vari Comments" Groupable>
                     <DisplayTemplate >
-                        @foreach (var comment in ((context as ReceivingStatus).SystemComments.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)))
+                        @foreach (var comment in ((context as ReceivingStatus).VariComments.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)))
                         {
                             <Badge Color="@GetStatusColor(comment)" Pill class="m-1">
                                 <Tooltip Text="@comment">
