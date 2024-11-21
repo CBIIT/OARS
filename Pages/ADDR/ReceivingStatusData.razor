@@ -89,7 +89,7 @@
                     </DisplayTemplate>
                 </DataGridColumn>
                 <DataGridColumn Field="@nameof(ReceivingStatus.Id)" Caption="#" Displayable="false" />
-                <DataGridColumn Field="DataSource" Caption="Data Source" />
+                <DataGridColumn Field="Datasource" Caption="Data Source" />
                 <DataGridColumn Field="VariComments" Caption="Vari Comments" Groupable>
                     <DisplayTemplate >
                         @foreach (var comment in ((context as ReceivingStatus).VariComments.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)))
@@ -102,12 +102,12 @@
                         }
                     </DisplayTemplate>
                 </DataGridColumn>
-                <DataGridColumn Field="VariCount" Caption="Vari Count" />
-                <DataGridColumn Field="RaveCount" Caption="Rave Count" />
+                <DataGridColumn Field="Varicount" Caption="Vari Count" />
+                <DataGridColumn Field="Ravecount" Caption="Rave Count" />
                 <DataGridColumn Caption="Subject Key" Groupable>
                     <DisplayTemplate Context="context">
                         <a href="@(string.Format("{0}", context.SubjectUrl))" target="_blank">
-                            @context.SubjectKey
+                            @context.Subjectkey
                         </a>
                     </DisplayTemplate>
                 </DataGridColumn>
@@ -118,8 +118,8 @@
                         </a>
                     </DisplayTemplate>
                 </DataGridColumn>
-                <DataGridColumn Field="SiteId" Caption="Site Id" Displayable="false" />
-                <DataGridColumn Field="SpecimenId" Caption="Specimen Id" Groupable />
+                <DataGridColumn Field="Siteid" Caption="Site Id" Displayable="false" />
+                <DataGridColumn Field="SpecimenSponsorGroupSpecimenId" Caption="Specimen Id" Groupable />
                 <DataGridColumn Field="SubSpecimenId" Caption="Sub Specimen Id" Groupable />
                 <DataGridDateColumn Field="ShippedDate" Caption="Shipped Date">
                     <DisplayTemplate Context="context">
