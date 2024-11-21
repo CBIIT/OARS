@@ -1,0 +1,67 @@
+﻿@page "/moreview"
+<html>
+    <head>
+        <title>My Mo Page</title>
+    </head>
+    <body>
+    <Row>
+        <p>Review Data for Study 10556</p>
+    </Row>
+    <Row HorizontalGutter="32" VerticalGutter="16">
+        <Column>
+            <Check Checked="true" TValue="bool">Review stage one</Check>
+            <Check TValue="bool">Review second step</Check>
+            <Check TValue="bool">Finalize review</Check>
+        </Column>
+        <Column>
+            <Row>
+                <MemoEdit Rows="5" @bind-Text="@savedNoteText" ReadOnly />
+            </Row>
+            <Row>
+                <TextEdit @bind-Text="@noteText" Placeholder="Enter new notes..." />
+            </Row>
+            <Row>
+                <Button Color="Color.Primary" Clicked="@OnSaveNotesClicked">Save Notes</Button>
+            </Row>
+        </Column>
+        <Column>
+            <Row>
+                <MemoEdit Rows="5" ReadOnly />
+            </Row>
+            <Row>
+                <TextEdit Placeholder="Enter email address..." />
+            </Row>
+            <Row>
+                <MemoEdit Rows="5" Placeholder="Enter email contents..." />
+            </Row>
+            <Row>
+                <Button Color="Color.Primary" Clicked="@OnSendEmailClicked">Send Email</Button>
+            </Row>
+        </Column>
+    </Row>
+    <Row>
+        <Column>
+            <Button Color="Color.Primary">Save Changes</Button>
+            <Button Color="Color.Primary">Discard Changes</Button>
+        </Column>
+    </Row>
+    @code {
+        private bool isSelected { get; set; }
+        private string? noteText { get; set; }
+        private string? savedNoteText { get; set; }
+
+        Task OnSaveNotesClicked()
+        {
+            savedNoteText = savedNoteText + Environment.NewLine + noteText;
+            noteText = "";
+            return Task.CompletedTask;
+        }
+
+        Task OnSendEmailClicked()
+        {
+
+            return Task.CompletedTask;
+        }
+    }
+    </body>
+</html>

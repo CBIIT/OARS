@@ -1,0 +1,474 @@
+﻿@using Amazon;
+@using Amazon.Auth;
+@using Amazon.SimpleEmail;
+@using Amazon.SimpleEmail.Model;
+@using Amazon.S3;
+@using Amazon.S3.Transfer;
+@using System.Text.RegularExpressions;
+@using System.Web;
+@using TheradexPortal.Data;
+@using TheradexPortal.Data.Identity;
+@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Models.DTO;
+@using TheradexPortal.Data.Services;
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inherits LayoutComponentBase
+@inject IConfiguration configuration
+@inject IHttpContextAccessor httpContextAccessor
+@inject ProtectedSessionStorage SessionData
+
+
+@page "/pireview/{protocolid:int?}"
+
+<html>
+<head>
+    <title>Pi Review Dashboard</title>
+</head>
+<body>
+    <Row>
+        <Column Style="background-image: Review-Bar.png" ColumnSize="ColumnSize.Is12">
+            <Div Background="Background.Primary" TextColor="TextColor.Light" Class="d-flex justify-content-between w-100">
+                <span><h3>Review for Study @ProtocolId</h3></span>
+                <span><h3>Status: @GetReviewStatus()</h3></span>
+            </Div>
+        </Column>
+    </Row>
+    <Row HorizontalGutter="32" VerticalGutter="16">
+        <Column ColumnSize="ColumnSize.Is4">
+            @foreach (var item in lstReviewItems)
+            {
+                <Check CheckedChanged="@((bool value) => checkboxChanged(item.ReviewItemName, value))" TValue="bool">@item.ReviewItemName</Check>
+            }
+        </Column>
+        <Column ColumnSize="ColumnSize.Is8">
+            <Row>
+                <MemoEdit Rows="10" @bind-Text="@noteText" Placeholder="Enter new notes..." />
+            </Row>
+        </Column>
+    </Row>
+    <Row>
+        <Column>
+            <Button Color="Color.Primary">Save Changes</Button>
+            <Button  Color="Color.Primary">Discard Changes</Button>
+            <Button Color="Color.Primary" Disabled="@submitIsDisabled">Submit</Button>
+            <Button Color="Color.Primary" Clicked="@ShowContactUsModal" >Send Email</Button>
+        </Column>
+    </Row>
+    <Row>
+        <Div><br /></Div>
+        <Div><br /></Div>
+        <Div><br /></Div>
+    </Row>
+    <Row>
+        <Column>
+            <Tabs SelectedTab="@selectedTab" SelectedTabChanged="@OnSelectedTabChanged">
+                <Items>
+                    <Tab Name="notehistory">Note History</Tab>
+                    <Tab Name="emailhistory">Email History</Tab>
+                </Items>
+                <Content>
+                    <TabPanel Name="notehistory">
+                        <DataGrid 
+                        Class="admindatagrid" 
+                        TItem="TextNotes" 
+                        Data="@lstTextNotes" 
+                        AltBordered="true"
+                        Responsive
+                        Filterable
+                        Striped
+                        ShowPager
+                        ShowPageSizes
+                        MaxPaginationLinks="5"
+                        PagerPosition="DataGridPagerPosition.Bottom"
+                        PagerOptions="new(){ButtonSize=Size.Default,
+                                PaginationPosition=PagerElementPosition.Default,
+                                TotalItemsPosition=PagerElementPosition.End,
+                                }"
+                        FixedHeader
+                        FixedHeaderDataGridHeight="calc(100vh - 240px)"
+                        FixedHeaderDataGridMaxHeight="calc(100vh - 240px)">
+                            <DataGridCommandColumn />
+                            <DataGridColumn TItem="TextNotes" Field="@nameof(TextNotes.Name)" Caption="User" />
+                            <DataGridColumn TItem="TextNotes" Field="@nameof(TextNotes.CreationDate)" Caption="Creation Date" />
+                            <DataGridColumn TItem="TextNotes" Field="@nameof(TextNotes.Note)" Caption="Note Text" />
+                        </DataGrid>
+                    </TabPanel>
+                    <TabPanel Name="emailhistory">
+                        <DataGrid 
+                        TItem="EmailDetails" 
+                        Class="admindatagrid" 
+                        Data="@lstEmailDetails" 
+                        Bordered="true"
+                        AltBordered="true"
+                        Responsive
+                        Filterable
+                        Striped
+                        ShowPager
+                        ShowPageSizes
+                        MaxPaginationLinks="5"
+                        PagerPosition="DataGridPagerPosition.Bottom"
+                        PagerOptions="new(){ButtonSize=Size.Default,
+                                PaginationPosition=PagerElementPosition.Default,
+                                TotalItemsPosition=PagerElementPosition.End,
+                                }"
+                        FixedHeader
+                        FixedHeaderDataGridHeight="calc(100vh - 240px)"
+                        FixedHeaderDataGridMaxHeight="calc(100vh - 240px)">
+                            <DataGridCommandColumn />
+                            <DataGridColumn TItem="EmailDetails" Field="@nameof(EmailDetails.EmailTo)" Caption="Recipient" />
+                            <DataGridColumn TItem="EmailDetails" Field="@nameof(EmailDetails.Body)" Caption="Email Body" />
+                            <DataGridColumn TItem="EmailDetails" Field="@nameof(EmailDetails.CreationDate)" Caption="Email Sent Date" />
+                        </DataGrid>
+                    </TabPanel>
+                </Content>
+            </Tabs>
+        </Column>
+    </Row>
+
+    <Modal @ref="modalContactUs" Closing="@OnModalClosing">
+        <ModalContent Centered Size="ModalSize.Large">
+            <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
+                <ModalTitle>Email</ModalTitle>
+                <CloseButton />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="validations" Mode="ValidationMode.Manual">
+                    <Validation Validator="@ValidationRule.IsNotEmpty">
+                        <Field>
+                            <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">To</FieldLabel>
+                            <TextEdit Placeholder="Enter recipient" @bind-Text="@emailTo">
+                                <Feedback>
+                                    <ValidationError>Recipient can't be empty</ValidationError>
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation Validator="@ValidationRule.IsNotEmpty">
+                        <Field>
+                            <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Subject</FieldLabel>
+                            <TextEdit Placeholder="Enter subject" @bind-Text="@emailTitle">
+                                <Feedback>
+                                    <ValidationError>Subject can't be empty</ValidationError>
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation Validator="@ValidationRule.IsNotEmpty">
+                        <Field>
+                            <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Description</FieldLabel>
+                            <FieldBody>
+                                <MemoEdit @bind-Text="@emailDescription" MaxLength="250" Rows="3" Placeholder="Email body"
+                                onkeydown="@OnDescriptionChanged">
+                                    <Feedback>
+                                        <ValidationError>Email body can't be empty</ValidationError>
+                                    </Feedback>
+                                </MemoEdit>
+                                <FieldLabel ColumnSize="ColumnSize.Is5">@emailDescriptionLabel</FieldLabel>
+                            </FieldBody>
+                        </Field>
+                    </Validation>
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Primary" Clicked="@HideContactUsModal">Cancel</Button>
+                <Button Color="Color.Primary" Clicked="@SendContactUsEmail">Send Request</Button>
+            </ModalFooter>
+        </ModalContent>
+    </Modal>
+
+    @code {
+        private bool isSelected { get; set; }
+        private string? noteText { get; set; }
+        private string? savedNoteText { get; set; }
+        private bool submitIsDisabled = true;
+
+        public class TextNotes
+        {
+            public string Name { get; set; }
+            public string Note { get; set; }
+            public string CreationDate { get; set; }
+        }
+
+        public class EmailDetails
+        {
+            public string Body { get; set; }
+            public string EmailTo { get; set; }
+            public string CreationDate { get; set;}
+        }
+
+        public class CheckBoxManager
+        {
+            public string BoxName { get; set; }
+            public bool IsChecked { get; set; }
+        }
+
+        private List<TextNotes> lstTextNotes = new List<TextNotes>();
+        private List<EmailDetails> lstEmailDetails = new List<EmailDetails>();
+        private List<CheckBoxManager> lstManagers = new List<CheckBoxManager>();
+
+        [Parameter]
+        public int ProtocolId { get; set; } = 0;
+
+        string selectedTab = "notehistory";
+
+        public void checkboxChanged(string checkboxName, bool value)
+        {
+            bool allCheckd = true;
+            foreach(var item in lstManagers)
+            {
+                if (checkboxName == item.BoxName)
+                    item.IsChecked = value;
+                if (item.IsChecked == false)
+                    allCheckd = false;
+            }
+            if (allCheckd)
+                submitIsDisabled = false;
+            else
+                submitIsDisabled = true;
+        }
+
+        public void OnDescriptionChanged(KeyboardEventArgs e)
+        {
+            if (emailDescription.Trim().Length == 0)
+            {
+                emailDescriptionLabel = "Max 250 characters.";
+            }
+            else
+            {
+                emailDescriptionLabel = "Max 250 characters. Currently " + emailDescription.Trim().Length + " characters";
+            }
+        }
+
+        private Task OnSelectedTabChanged(string name)
+        {
+            selectedTab = name;
+
+            return Task.CompletedTask;
+        }
+
+        Task OnSendEmailClicked()
+        {
+
+            return Task.CompletedTask;
+        }
+
+        Validations validations;
+        private int iconHeight = 30;
+        private int systemAlertsCount;
+        private int systemNotesCount;
+        private bool systemAlertsDropdownVisible = false;
+        private bool systemNotesDropdownVisible = false;
+        private string systemAlertsTooltip = string.Empty;
+        private string systemNotesTooltip = string.Empty;
+        private readonly string noSystemAlertsMessage = "No current System Alerts";
+        private readonly string noSystemNotesMessage = "No current System Notes";
+        private readonly string currentSystemAlertsMessage = "System Alerts: ";
+        private readonly string currentSystemNotesMessage = "System Notes: ";
+        private readonly string dismissed = "dismissed";
+        private readonly string visible = "visible";
+        public string DashboardName { get; set; }
+        public string ReportName { get; set; }
+
+        IFluentDisplay adminDisplay = Display.None;
+
+        [Inject] IContactUsService contactUsCategoryService { get; set; } = null!;
+        [Inject] IErrorLogService errorLogService { get; set; } = null!;
+        [Inject] IReviewItemService reviewItemService { get; set; } = null!;
+        [Inject] IReviewHistoryService reviewHistoryService { get; set; } = null!;
+        [Inject] IReviewHistoryNoteService historyNoteService { get; set; } = null!;
+        [Inject] IReviewHistoryEmailService historyEmailService { get; set; } = null!;
+        [Inject] public NavigationManager Navigation { get; set; }
+        [Inject] private IUserService userService { get; set; } = null!;
+        [Inject] private IAlertService alertService { get; set; } = null!;
+        [Inject] INotificationService notificationService { get; set; }
+        [Inject] IEmailService emailService { get; set; } = null!;
+
+        private Modal modalContactUs;
+        private bool cancelClose;
+
+        private string contactUsCategoryID = "", emailTo = "", emailCategory = "", emailDescription = "", emailTitle = "", emailDescriptionLabel = "";
+        private List<ContactUsCategory> lstContactUsCategory;
+        private List<ContactUsCategorySelectItemList> lstContactUsItems;
+        private IList<ReviewItem> lstReviewItems;
+        private IList<int> lstReviewHistories;
+        private int daysLate;
+        private List<string> reviewNote = new List<string> { "No previous notes." };
+        private List<string> reviewEmail = new List<string> { "No previous emails." };
+        FileEdit fileEditRef;
+        string uploadFileName = "";
+        List<string> lstAttachments = new List<string>();
+        IFileEntry selectedFile;
+
+        protected override async Task OnInitializedAsync()
+        {
+            lstReviewItems = await reviewItemService.GetActiveReviewItemsAsync();
+            foreach(var item in lstReviewItems)
+            {
+                lstManagers.Add(new CheckBoxManager { BoxName = item.ReviewItemName, IsChecked = false });
+            }
+            daysLate = await reviewHistoryService.GetDaysLateAsync(ProtocolId);
+            lstReviewHistories = await reviewHistoryService.GetHistoryRecordsByProtocolAsync(ProtocolId);
+            if (lstReviewHistories != null && lstReviewHistories.Count() > 0)
+            {
+                for (int i = 0; i < lstReviewHistories.Count(); i++)
+                {
+                    var tmp = await historyNoteService.GetSingleNoteAsync(lstReviewHistories[i]);
+                    if (tmp != null && !String.IsNullOrEmpty(tmp.Notes))
+                    {
+                        if (reviewNote.Contains("No previous notes."))
+                            reviewNote.Remove("No previous notes.");
+                        reviewNote.Add(tmp.Notes);
+                        lstTextNotes.Add(new TextNotes { Name = tmp.UserName, Note = tmp.Notes, CreationDate = tmp.CreationDate.ToString() });
+                    }
+                }
+                for (int i = 0; i < lstReviewHistories.Count(); i++)
+                {
+                    var tmp = await historyEmailService.GetSingleEmailAsync(lstReviewHistories[i]);
+                    if (tmp != null && !String.IsNullOrEmpty(tmp.Body))
+                    {
+                        if (reviewEmail.Contains("No previous emails."))
+                            reviewEmail.Remove("No previous emails.");
+                        reviewEmail.Add(tmp.Body);
+                        lstEmailDetails.Add(new EmailDetails { Body = tmp.Body, EmailTo = tmp.Recipient, CreationDate = tmp.CreationDate.ToString() });
+                    }
+                }
+            }            
+        }
+
+        private Task OnModalClosing(ModalClosingEventArgs e)
+        {
+            e.Cancel = cancelClose
+            || e.CloseReason != CloseReason.UserClosing;
+
+            return Task.CompletedTask;
+        }
+
+        private Task ShowContactUsModal()
+        {
+            emailTitle = string.Empty;
+            emailDescription = string.Empty;
+            lstAttachments = new List<string>();
+            uploadFileName = string.Empty;
+            selectedFile = null;
+            validations.ClearAll();
+            return modalContactUs.Show();
+        }
+
+        private string GetReviewStatus()
+        {
+            return daysLate > 0 ? "Late" : "On Time";
+        }
+
+        private Task HideContactUsModal()
+        {
+            cancelClose = false;
+            return modalContactUs.Hide();
+        }
+
+        private async void SendContactUsEmail()
+        {
+            bool uploadResult = true;
+            bool s3TagResult = true;
+            List<string> unattachedFiles = new List<string>();
+
+            if (await validations.ValidateAll())
+            {
+                emailTo = string.Empty;
+                emailCategory = string.Empty;
+                string siteName = "NCI Theradex Oncology Reporting-" + configuration.GetValue<string>("System:Environment");
+                string baseURL = Navigation.BaseUri;
+                string color = configuration.GetValue<string>("System:SystemColor");
+                string dateTime = DateTime.Now.ToString("d-MMM-yyyy hh:mm tt");
+                int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+                User curUser = await userService.GetUserAsync(userId);
+                string userName = curUser.FirstName + " " + curUser.LastName;
+
+                ContactUsCategory category = lstContactUsCategory.Where(l => l.ContactUsCategoryID == Convert.ToInt32(contactUsCategoryID)).FirstOrDefault();
+                if (category != null)
+                {
+                    if (category.ParentCategoryId != null)
+                    {
+                        ContactUsCategory parentCategory = lstContactUsCategory.Where(l => l.ContactUsCategoryID == Convert.ToInt32(category.ParentCategoryId)).FirstOrDefault();
+                        if (parentCategory != null)
+                        {
+                            emailCategory = parentCategory.Name + "-";
+                        }
+                    }
+                    emailCategory += category.Name;
+                    emailTo = category.EmailTo;
+                }
+
+                if (selectedFile != null)
+                {
+                    try
+                    {
+                        var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(selectedFile.Name);
+                        string allowedFileExtension = ".jpeg, .jpg, .gif, .pdf, .pdc, .docx, .odt, .rtf, .txt, .csv, .png, .bmp, .tiff, .xls, .xlsx";
+                        var fileExtension = Path.GetExtension(selectedFile.Name);
+                        if (allowedFileExtension.IndexOf(fileExtension) >= 0)
+                        {
+                            uploadFileName = fileNameWithoutExtension + "_" + Guid.NewGuid() + fileExtension;
+                            lstAttachments.Add(uploadFileName);
+                            using (var stream = new MemoryStream())
+                            {
+                                await selectedFile.WriteToStreamAsync(stream);
+                                uploadResult = await emailService.UploadFileToS3(uploadFileName, stream);
+                                //if (!uploadResult)
+                                //{
+                                //    unattachedFiles.Add(selectedFile.Name);
+                                //    lstAttachments.Remove(uploadFileName);
+                                //}
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        await errorLogService.SaveErrorLogAsync(userId, Navigation.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+                    }
+                }
+
+                ContactUs contactUsLog = new ContactUs();
+                contactUsLog.ContactUsID = 0;
+                contactUsLog.Subject = emailTitle;
+                contactUsLog.Description = emailDescription; ;
+                contactUsLog.CategoryID = Convert.ToInt32(contactUsCategoryID);
+                contactUsLog.UserID = userId;
+                contactUsLog.AttachmentName = uploadFileName;
+                //if (string.IsNullOrEmpty(DashboardName))
+                if (!Navigation.Uri.Contains("dashboard"))
+                    contactUsLog.Location = Navigation.ToBaseRelativePath(Navigation.Uri);
+                else
+                    contactUsLog.Location = "dashboard/" + DashboardName + "/" + ReportName;
+
+                contactUsCategoryService.SaveContactUs(userId, contactUsLog);
+
+                if (selectedFile != null)
+                {
+                    s3TagResult = await emailService.CheckS3FileTag(uploadFileName);
+                    if (!s3TagResult)
+                    {
+                        unattachedFiles.Add(selectedFile.Name);
+                        lstAttachments.Remove(uploadFileName);
+                    }
+                }
+
+                bool sendEmailResult = await emailService.SendContactUsEmail(siteName, baseURL, color, emailTo, emailTitle, emailCategory, emailDescription,
+                userName, dateTime, contactUsLog.Location, lstAttachments, unattachedFiles);
+                if (sendEmailResult)
+                {
+                    await notificationService.Success("An email to support has been sent.");
+                }
+                else
+                {
+                    await notificationService.Error("Error sending the email to support.");
+                }
+
+                cancelClose = false;
+                modalContactUs.Hide();
+            }
+        }
+}
+    </body>
+</html>

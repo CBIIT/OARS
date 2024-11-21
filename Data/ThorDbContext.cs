@@ -252,5 +252,11 @@ namespace TheradexPortal.Data
 
         public DbSet<ProtocolFormMapping> ProtocolFormMappings { get; set; }
         public DbSet<CrossoverOption> CrossoverOptions { get; set; }
+        public DbSet<Review> Reviews { get; set; }
+        public DbSet<ReviewHistory> ReviewHistories { get; set; }
+        public DbSet<ReviewHistoryEmail> ReviewHistoryEmails { get; set; }
+        public DbSet<ReviewHistoryItem> ReviewHistoryItems { get; set; }
+        public DbSet<ReviewHistoryNote> ReviewHistoryNotes { get; set; }
+        public DbSet<ReviewItem> ReviewItems { get; set; }
     }
 }

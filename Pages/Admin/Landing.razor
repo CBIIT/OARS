@@ -70,6 +70,15 @@
             </Div>
         </ListGroupItem>
     }
+    @if (CheckRole(new List<string> { "IT" }))
+    {
+        <ListGroupItem>
+            <Div Padding="Padding.Is2">
+                <Heading Size="HeadingSize.Is4">Edit Review Items</Heading>
+                <Paragraph Margin="Margin.Is1.FromBottom.Is3.FromStart">Add or Edit items for PI and MO reviews</Paragraph>
+            </Div>
+        </ListGroupItem>
+    }
 </ListGroup>
 </Div>
 

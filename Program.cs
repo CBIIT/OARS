@@ -80,6 +80,10 @@ builder.Services.AddScoped<IProtocolDataCategoryService, ProtocolDataCategorySer
 builder.Services.AddScoped<IProtocolFieldMappingService, ProtocolFieldMappingService>();
 builder.Services.AddScoped<IProtocolDictionaryMappingService, ProtocolDictionaryMappingService>();
 builder.Services.AddScoped<IProtocolFormMappingService, ProtocolFormMappingService>();
+builder.Services.AddScoped<IReviewItemService, ReviewItemService>();
+builder.Services.AddScoped<IReviewHistoryService, ReviewHistoryService>();
+builder.Services.AddScoped<IReviewHistoryNoteService, ReviewHistoryNoteService>();
+builder.Services.AddScoped<IReviewHistoryEmailService, ReviewHistoryEmailService>();
 
 #region Automated Data Discrepancy Report (ADDR)
 //builder.Services.AddScoped<IADDRService, ADDRService>();

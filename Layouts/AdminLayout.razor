@@ -116,6 +116,24 @@
                                             </BarLink>
                                         </BarItem>
                                         }
+                                        @if (CheckRole(new List<string> { "IT", "DMU Global" }))
+                                        {
+                                        <BarItem>
+                                            <BarLink To="/admin/dmu/study-mapping">
+                                                <BarIcon IconName="IconName.Pen" />
+                                                DMU Study Mapping
+                                            </BarLink>
+                                        </BarItem>
+                                        }
+                                        @if (CheckRole(new List<string> { "IT" }))
+                                        {
+                                            <BarItem>
+                                                <BarLink To="/admin/review-item">
+                                                    <BarIcon IconName="IconName.List" />
+                                                    Add/Edit Review Items
+                                                </BarLink>
+                                            </BarItem>
+                                        }
                                     </BarStart>
                                 </BarMenu>
                             </Bar>
