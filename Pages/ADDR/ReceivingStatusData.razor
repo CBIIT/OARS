@@ -1,4 +1,4 @@
-﻿@using System.Diagnostics.CodeAnalysis
+@using System.Diagnostics.CodeAnalysis
 @using Microsoft.Extensions.Options
 @using Newtonsoft.Json
 @using TheradexPortal.Data.Models;
@@ -110,11 +110,11 @@
                             if (context.DataSource=="RAVE")
                             {
                             <a href="@(string.Format("{0}", context.SubjectUrl))" target="_blank">
-                                @context.Subjectkey
+                                @context.SubjectKey
                             </a>
 
                             }
-                            else {<span>@context.Subjectkey</span>}
+                            else {<span>@context.SubjectKey</span>}
                         }
                     </DisplayTemplate>
                 </DataGridColumn>

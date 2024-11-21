@@ -120,7 +120,14 @@ namespace TheradexPortal.Data.Services
             // Read the JSON from the file
             string excelFilePath = Path.Combine(_webHostEnvironment.WebRootPath, "addr", "I-RECEIVING_STATUS.json");
             string jsonString = File.ReadAllText(excelFilePath);
-            receivingStatusList = JsonConvert.DeserializeObject<List<ReceivingStatus>>(jsonString);
+            var settings = new JsonSerializerSettings
+                {
+                    ContractResolver = new Newtonsoft.Json.Serialization.DefaultContractResolver
+                    {
+                        NamingStrategy = new Newtonsoft.Json.Serialization.DefaultNamingStrategy()
+                    }
+                };
+            receivingStatusList = JsonConvert.DeserializeObject<List<ReceivingStatus>>(jsonString,settings);
 
             return receivingStatusList;
 
