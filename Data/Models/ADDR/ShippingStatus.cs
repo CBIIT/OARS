@@ -42,6 +42,9 @@ namespace TheradexPortal.Data.Models.ADDR
         public string? ShippingConditions { get; set; }
 
         [DynamoDBProperty]
+        public string? SpecimenReturnedToSourceSite { get; set; }
+
+        [DynamoDBProperty]
         public string? SenderName { get; set; }
 
         [DynamoDBProperty]

@@ -89,8 +89,8 @@
                     </DisplayTemplate>
                 </DataGridColumn>
                 <DataGridColumn Field="@nameof(ShippingStatus.Id)" Caption="#" Displayable="false" />
-                <DataGridColumn Field="DataSource" Caption="Data Source" />
-                <DataGridColumn Field="VariComments" Caption="Vari Comments" Groupable>
+                <DataGridColumn Field="DataSource" Caption="Data Source" />π
+                <DataGridColumn Field="SystemComments" Caption="Vari Comments" Groupable>
                     <DisplayTemplate >
                         @foreach (var comment in ((context as ShippingStatus).SystemComments.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)))
                         {
@@ -172,6 +172,7 @@
                 <DataGridColumn Field="NoticeSentTo" Caption="Notice Sent To" />
                 <DataGridColumn Field="ShippingConditions" Caption="Shipping Conditions" />
                 <DataGridColumn Field="SenderName" Caption="SenderName" />
+                <DataGridColumn Field="SpecimenReturnedToSourceSite" Caption="Specimen Returned To Source Site" />
                 <DataGridColumn Field="Notes" Caption="Notes" Displayable="false" />
                 <DataGridColumn Field="Action" Caption="Action" Displayable="false" />
                 <DataGridColumn Field="StudyEventRepeatKey" Caption="Study Event repeat Key" />
