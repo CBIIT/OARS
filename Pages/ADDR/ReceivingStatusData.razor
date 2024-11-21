@@ -153,16 +153,16 @@
                 <DataGridColumn Field="SubmissionCarrierTrackingNo" Caption="Carrier Tracking No">
                     <DisplayTemplate Context="context">
                         @{
-                            if (context.SubmissionCarrierName?.ToUpper() == "FEDEX")
+                            if (context.SubmissionCarrierName?.ToUpper() == "FEDEX" || context.SubmissionCarrierName?.ToUpper() == "FEDEX EXPEDITED")
                             {
                                 <a href="@(string.Format("https://www.fedex.com/fedextrack/?trknbr={0}",context.SubmissionCarrierTrackingNo))" target="_blank">
-                                    context.SubmissionCarrierTrackingNo
+                                    @context.SubmissionCarrierTrackingNo
                                 </a>
 
                             }
                             else
                             {
-                                <span>context.SubmissionCarrierTrackingNo</span>
+                                <span>@context.SubmissionCarrierTrackingNo</span>
                             }
                         }
                     </DisplayTemplate>
