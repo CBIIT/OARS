@@ -228,8 +228,22 @@
     // Method to style rows conditionally
     private void OnRowStyling(ReceivingStatus receivingStatus, DataGridRowStyling styling)
     {
+        if (receivingStatus == null)
+        {
+            // Log the issue or set a default styling
+            Console.WriteLine("receivingStatus is null");
+            return;
+        }
+
+        if (styling == null)
+        {
+            // Handle or initialize default styling
+            Console.WriteLine("styling is null");
+            return;
+        }
+        
         // Set the background color to red if SystemComments are not "Match Found"
-        if (receivingStatus.SystemComments.Trim().ToLower() != "match found")
+        if (receivingStatus.VariComments.Trim().ToLower() != "match found")
         {
             styling.Style = "background-color:#e39696; color:black; font-weight:bold;";
         }
