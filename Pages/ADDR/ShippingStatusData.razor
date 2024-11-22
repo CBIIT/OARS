@@ -297,7 +297,7 @@
     // Handle view button click
     private Task OnViewClicked(ShippingStatus request)
     {
-        string titleData = $"DataSource: {request.DataSource}| SubjectKey: {request.SubjectKey}| SpecimenID: {request.SpecimenSponsorGroupSpecimenId}| SubSpecimenID: {request.SubSpecimenId}| Status: RECEIVING_STATUS";
+        string titleData = $"DataSource: {request.DataSource}| SubjectKey: {request.SubjectKey}| SpecimenID: {request.SpecimenId}| SubSpecimenID: {request.SubSpecimenId}| Status: RECEIVING_STATUS";
         return NotesModelDataModal.Show(titleData, request.DataSource, request.SubjectKey, request.SpecimenId, request.SubSpecimenId, "SHIPPING_STATUS", "", IsAdminDisplay);
     }
 
