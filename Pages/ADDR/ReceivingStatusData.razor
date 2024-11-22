@@ -309,7 +309,7 @@
     // Handle view button click
     private Task OnViewClicked(ReceivingStatus request)
     {
-        return NotesModelDataModal.Show("", request.DataSource, request.SubjectKey, request.SpecimenId, request.SubSpecimenId, "RECEIVING_STATUS", "", IsAdminDisplay);
+        return NotesModelDataModal.Show("", request.DataSource, request.SubjectKey, request.SpecimenSponsorGroupSpecimenId, request.SubSpecimenId, "RECEIVING_STATUS", "", IsAdminDisplay);
     }
 
     // Handle download button click
