@@ -20,101 +20,102 @@
             </Items>
             <Content>
                 <TabPanel Name="piReview">
-                     <DataGrid TItem="ReviewItem"
-                      Class="admindatagrid"
-                      Data="@lstReviewItems"
-                      Responsive
-                      Filterable
-                      Striped
-                      ShowPager
-                      ShowPageSizes
-                      MaxPaginationLinks="5"
-                      PagerPosition="DataGridPagerPosition.Bottom"
-                      PagerOptions="new(){ButtonSize=Size.Default, 
+                    <DataGrid TItem="ReviewItem"
+                    Class="admindatagrid"
+                    Data="@lstReviewItems"
+                    Responsive
+                    Filterable
+                    Striped
+                    ShowPager
+                    ShowPageSizes
+                    MaxPaginationLinks="5"
+                    PagerPosition="DataGridPagerPosition.Bottom"
+                    PagerOptions="new(){ButtonSize=Size.Default, 
                                     PaginationPosition=PagerElementPosition.Default,
                                     TotalItemsPosition=PagerElementPosition.End,
                                     }"
-                      FixedHeader
-                      FixedHeaderDataGridHeight="calc(100vh - 240px)"
-                      FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
-                      CommandMode="DataGridCommandMode.ButtonRow">
-                    <DataGridColumns>
-                        <DataGridMultiSelectColumn Width="30px"> </DataGridMultiSelectColumn>
-                        <DataGridCommandColumn />
-                        <DataGridColumn Field="@nameof(ReviewItem.ReviewItemName)" Caption="Review Item" />
-                        <DataGridColumn Field="@nameof(ReviewItem.IsActive)" Filterable="false" Caption="Active" Width="125px">
-                            <DisplayTemplate>
-                                @{
-                                    var isActive = (context as ReviewItem)?.IsActive;
+                    FixedHeader
+                    FixedHeaderDataGridHeight="calc(100vh - 240px)"
+                    FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
+                    CommandMode="DataGridCommandMode.ButtonRow">
+                        <DataGridColumns>
+                            <DataGridMultiSelectColumn Width="30px"> </DataGridMultiSelectColumn>
+                            <DataGridCommandColumn />
+                            <DataGridColumn Field="@nameof(ReviewItem.ReviewItemId)" Caption="Review Item #" />
+                            <DataGridColumn Field="@nameof(ReviewItem.ReviewItemName)" Caption="Review Item" />
+                            <DataGridColumn Field="@nameof(ReviewItem.IsActive)" Filterable="false" Caption="Active" Width="125px">
+                                <DisplayTemplate>
+                                    @{
+                                        var isActive = (context as ReviewItem)?.IsActive;
 
-                                    if(isActive == 'T')
-                                    {
-                                        @("Yes")
-                                    }
-                                    else
-                                    {
-                                        @("No")
-                                    }
+                                        if(isActive == 'T')
+                                        {
+                                            @("Yes")
+                                        }
+                                        else
+                                        {
+                                            @("No")
+                                        }
 
-                                }
-                            </DisplayTemplate>
-                        </DataGridColumn>
-                        <DataGridDateColumn Field="@nameof(ReviewItem.UpdateDate)" Filterable="false" Caption="Modified Date" Width="250px">
-                            <DisplayTemplate>
-                                @{
-                                    var date = (context as ReviewItem)?.UpdateDate;
+                                    }
+                                </DisplayTemplate>
+                            </DataGridColumn>
+                            <DataGridDateColumn Field="@nameof(ReviewItem.UpdateDate)" Filterable="false" Caption="Modified Date" Width="250px">
+                                <DisplayTemplate>
+                                    @{
+                                        var date = (context as ReviewItem)?.UpdateDate;
 
-                                    if (date != null)
-                                    {
-                                        @(date.Value.Add(timeOffset).ToString("dd-MMM-yyyy hh:mm:ss tt ") + timeZoneAbbrev)
+                                        if (date != null)
+                                        {
+                                            @(date.Value.Add(timeOffset).ToString("dd-MMM-yyyy hh:mm:ss tt ") + timeZoneAbbrev)
+                                        }
                                     }
-                                }
-                            </DisplayTemplate>
-                        </DataGridDateColumn>
-                        <DataGridColumn Sortable="false" Filterable="false" Width="65px">
-                            <DisplayTemplate>
-                                <Button Color="Color.Info" Clicked="@(()=>EditUserClick(context as ReviewItem))">
-                                    Edit
-                                </Button>
-                            </DisplayTemplate>
-                        </DataGridColumn>
-                        <DataGridColumn Sortable="false" Filterable="false" Width="115px">
-                            <DisplayTemplate>
-                                @{
-                                    var isActive = (context as ReviewItem)?.IsActive;
-                                    
-                                    if(isActive == 'T')
-                                    {
-                                        <Button Color="Color.Danger" Clicked="@(()=>ShowDeactivateModal(context as ReviewItem))" Visibility="@IsDeactivatable(context as ReviewItem)">
-                                            Deactivate
-                                        </Button>
+                                </DisplayTemplate>
+                            </DataGridDateColumn>
+                            <DataGridColumn Sortable="false" Filterable="false" Width="65px">
+                                <DisplayTemplate>
+                                    <Button Color="Color.Info" Clicked="@(()=>EditReviewItemClick(context as ReviewItem))">
+                                        Edit
+                                    </Button>
+                                </DisplayTemplate>
+                            </DataGridColumn>
+                            <DataGridColumn Sortable="false" Filterable="false" Width="115px">
+                                <DisplayTemplate>
+                                    @{
+                                        var isActive = (context as ReviewItem)?.IsActive;
+
+                                        if(isActive == 'T')
+                                        {
+                                            <Button Color="Color.Danger" Clicked="@(()=>ShowDeactivateModal(context as ReviewItem))" Visibility="@IsDeactivatable(context as ReviewItem)">
+                                                Deactivate
+                                            </Button>
+                                        }
                                     }
-                                }
-                            </DisplayTemplate>
-                        </DataGridColumn>
+                                </DisplayTemplate>
+                            </DataGridColumn>
                         </DataGridColumns>
                         <ButtonRowTemplate>
-                            <Button Color="Color.Primary"  Clicked="@NewUserClick">New PI Review Item</Button>
+                            <Button Color="Color.Primary"  Clicked="@NewReviewItemClick">New PI Review Item</Button>
                         </ButtonRowTemplate>
                     </DataGrid>
                 </TabPanel>
                 <TabPanel Name="moReview">
                     <DataGrid TItem="ReviewItem"
-                              Class="admindatagrid"
-                              Data="@lstMOReviewItems"
-                              Responsive
-                              Filterable
-                              Striped
-                              ShowPager
-                              ShowPageSizes
-                              MaxPaginationLinks="5"
-                              PagerPosition="DataGridPagerPosition.Bottom"
-                              PagerOptions="new(){ButtonSize=Size.Default,
+                    Class="admindatagrid"
+                    Data="@lstMOReviewItems"
+                    Responsive
+                    Filterable
+                    Striped
+                    ShowPager
+                    ShowPageSizes
+                    MaxPaginationLinks="5"
+                    PagerPosition="DataGridPagerPosition.Bottom"
+                    PagerOptions="new(){ButtonSize=Size.Default,
                                 PaginationPosition=PagerElementPosition.Default,
                                 TotalItemsPosition=PagerElementPosition.End,
                                 }"
-                              FixedHeader
-                              CommandMode="DataGridCommandMode.ButtonRow">
+                    FixedHeader
+                    CommandMode="DataGridCommandMode.ButtonRow">
                         <DataGridColumns>
                             <DataGridMultiSelectColumn Width="30px"> </DataGridMultiSelectColumn>
                             <DataGridCommandColumn />
@@ -150,7 +151,7 @@
                             </DataGridDateColumn>
                             <DataGridColumn Sortable="false" Filterable="false" Width="65px">
                                 <DisplayTemplate>
-                                    <Button Color="Color.Info" Clicked="@(()=>EditUserClick(context as ReviewItem))">
+                                    <Button Color="Color.Info" Clicked="@(()=>EditReviewItemClick(context as ReviewItem))">
                                         Edit
                                     </Button>
                                 </DisplayTemplate>
@@ -164,7 +165,7 @@
                             </DataGridColumn>
                         </DataGridColumns>
                         <ButtonRowTemplate>
-                            <Button Color="Color.Primary" Clicked="@NewUserClick">New MO Review Item</Button>
+                            <Button Color="Color.Primary" Clicked="@NewReviewItemClick">New MO Review Item</Button>
                         </ButtonRowTemplate>
                     </DataGrid>
                 </TabPanel>
@@ -176,14 +177,14 @@
 <Modal @ref="deactivateModalRef">
     <ModalContent Centered>
         <ModalHeader Background="Background.Primary">
-            <ModalTitle>Deactivate User: @userToDeactivate</ModalTitle>
+            <ModalTitle>Deactivate Review Item: @reviewItemToDeactivate</ModalTitle>
             <CloseButton />
         </ModalHeader>
         <ModalBody>
-            Warning:  Continuing will deactivate this user.
+            Warning:  Continuing will deactivate this review item.
         </ModalBody>
         <ModalFooter>
-            <Button Color="Color.Danger" Clicked="@DeactivateUserClick">Deactivate</Button>
+            <Button Color="Color.Danger" Clicked="@DeactivateReviewItemClick">Deactivate</Button>
             <Button Color="Color.Light" Clicked="@HideModal">Cancel</Button>
         </ModalFooter>
     </ModalContent>
@@ -200,8 +201,8 @@
 
     private IList<User> userList = new List<User>();
     private Modal deactivateModalRef;
-    private string userToDeactivate;
-    private int userToDeactivateId;
+    private string reviewItemToDeactivate;
+    private int reviewItemToDeactivateId;
     private string timeZoneAbbrev = "";
     private TimeSpan timeOffset;
     private string[] allowedRoleList;
@@ -238,28 +239,28 @@
         allowedRoleList = new string[2] { "IT", "Biz" };
     }
 
-    private Visibility IsDeactivatable(ReviewItem u)
+    private Visibility IsDeactivatable(ReviewItem r)
     {
-        //if (u.IsActive)
+        if (r.IsActive == 'T')
             return Visibility.Visible;
-        //else
-        //    return Visibility.Invisible;
+        else
+            return Visibility.Invisible;
     }
 
-    private async void NewUserClick()
+    private async void NewReviewItemClick()
     {
-        navigation.NavigateTo("/admin/user");
+        navigation.NavigateTo("/admin/reviewitem");
     }
 
-    private async void EditUserClick(ReviewItem u)
+    private async void EditReviewItemClick(ReviewItem r)
     {
-        //navigation.NavigateTo($"/admin/user/{u.UserId}");
+        navigation.NavigateTo($"/admin/reviewitem/{r.ReviewItemId}");
     }
 
-    private Task ShowDeactivateModal(ReviewItem u)
+    private Task ShowDeactivateModal(ReviewItem r)
     {
-        /*userToDeactivate = u.FirstName + " " + u.LastName;
-        userToDeactivateId = u.UserId;*/
+        reviewItemToDeactivate = r.ReviewItemName;
+        reviewItemToDeactivateId = r.ReviewItemId;
         return deactivateModalRef.Show();
     }
 
@@ -268,18 +269,19 @@
         return deactivateModalRef.Hide();
     }
 
-    private async void DeactivateUserClick()
+    private async void DeactivateReviewItemClick()
     {
         deactivateModalRef.Hide();
+
         int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
-        bool success = userService.DeactivateUser(userToDeactivateId, userId);
+        bool success = await reviewItemService.DeactivateReviewItemsAsync(reviewItemToDeactivateId);
         if (success)
         {
-            await NotificationService.Success( "User deactivated");
+            await NotificationService.Success( "Review Item deactivated");
         }
         else
         {
-            await NotificationService.Error( "Error deactivating user");
+            await NotificationService.Error( "Error deactivating review item");
         }
     }
 }
