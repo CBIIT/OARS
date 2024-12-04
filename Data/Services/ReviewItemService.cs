@@ -51,22 +51,32 @@ namespace TheradexPortal.Data.Services
             return await context.ReviewItems.Where(p => p.ReviewItemId == reviewItemId).FirstOrDefaultAsync();
         }
 
-        public async void SaveReviewItemAsync(ReviewItem item)
+        public async Task<bool> SaveReviewItemAsync(ReviewItem item)
         {
-            var itemToUpdate = await context.ReviewItems.FirstOrDefaultAsync(ri => ri.ReviewItemId == item.ReviewItemId);
-            if (itemToUpdate != null)
+            if (item.ReviewItemId > 0)
             {
-                itemToUpdate.ReviewType = item.ReviewType;
-                itemToUpdate.IsActive = item.IsActive;
-                itemToUpdate.ReviewItemName = item.ReviewItemName;
-                itemToUpdate.UpdateDate = item.UpdateDate;
+                var itemToUpdate = await context.ReviewItems.FirstOrDefaultAsync(ri => ri.ReviewItemId == item.ReviewItemId);
+                if (itemToUpdate != null)
+                {
+                    itemToUpdate.ReviewType = item.ReviewType;
+                    itemToUpdate.IsActive = item.IsActive;
+                    itemToUpdate.ReviewItemName = item.ReviewItemName;
+                    itemToUpdate.UpdateDate = item.UpdateDate;
+                }
+                else
+                {
+                    return false;
+                }
             }
             else
             {
+                int maxValue = context.ReviewItems.Max(ri => ri.ReviewItemId);
+                item.ReviewItemId = maxValue + 1;
                 context.ReviewItems.Add(item);
             }
-            await context.SaveChangesAsync();
-            return;
+            if( await context.SaveChangesAsync() > 0)
+                return true;
+            return false;
         }
 
     }
