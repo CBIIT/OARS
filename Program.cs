@@ -84,6 +84,7 @@ builder.Services.AddScoped<IReviewItemService, ReviewItemService>();
 builder.Services.AddScoped<IReviewHistoryService, ReviewHistoryService>();
 builder.Services.AddScoped<IReviewHistoryNoteService, ReviewHistoryNoteService>();
 builder.Services.AddScoped<IReviewHistoryEmailService, ReviewHistoryEmailService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
 
 #region Automated Data Discrepancy Report (ADDR)
 //builder.Services.AddScoped<IADDRService, ADDRService>();
