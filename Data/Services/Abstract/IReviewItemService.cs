@@ -14,6 +14,6 @@ namespace TheradexPortal.Data.Services.Abstract
 
         public Task<ReviewItem> GetReviewItemByIdAsync(int? reviewItemId);
 
-        public void SaveReviewItemAsync(ReviewItem item);
+        public Task<bool> SaveReviewItemAsync(ReviewItem item);
     }
 }

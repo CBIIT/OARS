@@ -139,7 +139,7 @@
     // Step 1 vars (User Info)
     string itemName = "";
     string itemType = "PI";
-    bool isActive = false;
+    bool isActive = true;
     bool activeChanged = false;
     bool isAdmin = false;
     bool userInfoChanged = false;
@@ -161,12 +161,14 @@
     List<UserGroup> selectedUserGroups { get; set; }
     User loggedinUser;
     bool loggedinUserIsITAdmin = false;
+    bool newItem = false;
 
     protected override async Task OnInitializedAsync()
     {
         if (ReviewItemId == null )
         {
             AddOrEdit = "Create Review Item";
+            newItem = true;
         }
         else
         {
@@ -251,32 +253,24 @@
         saveItem.IsActive = (isActive == true) ? 'T' : 'F';
         saveItem.ReviewType = itemType;
         saveItem.UpdateDate = currentDateTime;
+        if (!newItem)
+        {
+            saveItem.ReviewItemId = (int)ReviewItemId!;
+        }
+        else
+        {
+            saveItem.ReviewItemId = -1;
+            saveItem.CreateDate = currentDateTime;
+        }
 
-        reviewItemService.SaveReviewItemAsync(saveItem);
+        saved = await reviewItemService.SaveReviewItemAsync(saveItem);
 
         // Try to create or update the OKTA user
         bool oktaSuccess = true;
         bool oktaGroupSuccess = true;
         bool emailSuccess = true;
+
         if (saved)
-        {
-            if (ReviewItemId == null)
-            {
-                bool isProd = configuration.GetValue<string>("System:Environment").StartsWith("Prod");
-
-                string baseURL = navigation.BaseUri;
-                string initialSite = "NCI Oncology Automated Reporting System";
-                string siteAcronym = "NCI Oncology Automated Reporting System";
-
-                if (!isProd)
-                {
-                    initialSite = initialSite + "-" + configuration.GetValue<string>("System:Environment");
-                    siteAcronym = siteAcronym + "-" + configuration.GetValue<string>("System:Environment");
-                }
-            }
-        }
-
-        if (saved && oktaSuccess && oktaGroupSuccess)
         {
             await NotificationService.Success( "Review Item successfully saved");
             navigation.NavigateTo("/admin/review-item");
