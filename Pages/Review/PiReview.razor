@@ -374,100 +374,16 @@
 
         private async void SendContactUsEmail()
         {
-            bool uploadResult = true;
-            bool s3TagResult = true;
-            List<string> unattachedFiles = new List<string>();
-
             if (await validations.ValidateAll())
             {
-                emailTo = string.Empty;
-                emailCategory = string.Empty;
-                string siteName = "NCI Theradex Oncology Reporting-" + configuration.GetValue<string>("System:Environment");
-                string baseURL = Navigation.BaseUri;
-                string color = configuration.GetValue<string>("System:SystemColor");
-                string dateTime = DateTime.Now.ToString("d-MMM-yyyy hh:mm tt");
-                int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
-                User curUser = await userService.GetUserAsync(userId);
-                string userName = curUser.FirstName + " " + curUser.LastName;
-
-                ContactUsCategory category = lstContactUsCategory.Where(l => l.ContactUsCategoryID == Convert.ToInt32(contactUsCategoryID)).FirstOrDefault();
-                if (category != null)
-                {
-                    if (category.ParentCategoryId != null)
-                    {
-                        ContactUsCategory parentCategory = lstContactUsCategory.Where(l => l.ContactUsCategoryID == Convert.ToInt32(category.ParentCategoryId)).FirstOrDefault();
-                        if (parentCategory != null)
-                        {
-                            emailCategory = parentCategory.Name + "-";
-                        }
-                    }
-                    emailCategory += category.Name;
-                    emailTo = category.EmailTo;
-                }
-
-                if (selectedFile != null)
-                {
-                    try
-                    {
-                        var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(selectedFile.Name);
-                        string allowedFileExtension = ".jpeg, .jpg, .gif, .pdf, .pdc, .docx, .odt, .rtf, .txt, .csv, .png, .bmp, .tiff, .xls, .xlsx";
-                        var fileExtension = Path.GetExtension(selectedFile.Name);
-                        if (allowedFileExtension.IndexOf(fileExtension) >= 0)
-                        {
-                            uploadFileName = fileNameWithoutExtension + "_" + Guid.NewGuid() + fileExtension;
-                            lstAttachments.Add(uploadFileName);
-                            using (var stream = new MemoryStream())
-                            {
-                                await selectedFile.WriteToStreamAsync(stream);
-                                uploadResult = await emailService.UploadFileToS3(uploadFileName, stream);
-                                //if (!uploadResult)
-                                //{
-                                //    unattachedFiles.Add(selectedFile.Name);
-                                //    lstAttachments.Remove(uploadFileName);
-                                //}
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        await errorLogService.SaveErrorLogAsync(userId, Navigation.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
-                    }
-                }
-
-                ContactUs contactUsLog = new ContactUs();
-                contactUsLog.ContactUsID = 0;
-                contactUsLog.Subject = emailTitle;
-                contactUsLog.Description = emailDescription; ;
-                contactUsLog.CategoryID = Convert.ToInt32(contactUsCategoryID);
-                contactUsLog.UserID = userId;
-                contactUsLog.AttachmentName = uploadFileName;
-                //if (string.IsNullOrEmpty(DashboardName))
-                if (!Navigation.Uri.Contains("dashboard"))
-                    contactUsLog.Location = Navigation.ToBaseRelativePath(Navigation.Uri);
-                else
-                    contactUsLog.Location = "dashboard/" + DashboardName + "/" + ReportName;
-
-                contactUsCategoryService.SaveContactUs(userId, contactUsLog);
-
-                if (selectedFile != null)
-                {
-                    s3TagResult = await emailService.CheckS3FileTag(uploadFileName);
-                    if (!s3TagResult)
-                    {
-                        unattachedFiles.Add(selectedFile.Name);
-                        lstAttachments.Remove(uploadFileName);
-                    }
-                }
-
-                bool sendEmailResult = await emailService.SendContactUsEmail(siteName, baseURL, color, emailTo, emailTitle, emailCategory, emailDescription,
-                userName, dateTime, contactUsLog.Location, lstAttachments, unattachedFiles);
+                bool sendEmailResult = await emailService.SendEmail(emailTo, emailTitle, emailDescription);
                 if (sendEmailResult)
                 {
-                    await notificationService.Success("An email to support has been sent.");
+                    await notificationService.Success("An email has been sent.");
                 }
                 else
                 {
-                    await notificationService.Error("Error sending the email to support.");
+                    await notificationService.Error("Error sending the email.");
                 }
 
                 cancelClose = false;
