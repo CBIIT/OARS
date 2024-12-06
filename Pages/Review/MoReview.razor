@@ -358,6 +358,7 @@
         private List<ContactUsCategorySelectItemList> lstContactUsItems;
         private IList<ReviewItem> lstReviewItems;
         private IList<int> lstReviewHistories;
+        private ReviewHistory latestReviewHistory;
         private int daysLate;
         private List<string> reviewNote = new List<string> { "No previous notes." };
         private List<string> reviewEmail = new List<string> { "No previous emails." };
@@ -373,7 +374,8 @@
             {
                 lstManagers.Add(new CheckBoxManager { BoxName = item.ReviewItemName, IsChecked = false });
             }
-            daysLate = await reviewHistoryService.GetDaysLateAsync(AgentId);
+            latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(ProtocolId);
+            daysLate = latestReviewHistory.DaysLate ?? 0;
             lstReviewHistories = await reviewHistoryService.GetHistoryRecordsByProtocolAsync(AgentId);
             if (lstReviewHistories != null && lstReviewHistories.Count() > 0)
             {
