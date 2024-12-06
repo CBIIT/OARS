@@ -14,18 +14,19 @@ namespace TheradexPortal.Data.Services
             _errorLogService = errorLogService;
             _navManager = navigationManager;
         }
-        public async Task<ReviewHistoryNoteDTO> GetSingleNoteAsync(int historyId)
+        public async Task<List<ReviewHistoryNoteDTO>> GetNotesAsync(int historyId)
         {
-            var result =  await context.ReviewHistoryNotes
+            var result = await context.ReviewHistoryNotes
                 .Where(rhn => rhn.ReviewHistoryId == historyId)
                 .OrderBy(rhn => rhn.CreateDate)
                 .Join(context.ReviewHistories,
                       rhn => rhn.ReviewHistoryId,
                       rh => rh.ReviewHistoryId,
-                      (rhn, rh) => new {
-                        Id = rh.UserId,
-                        Notes = rhn.NoteText!,
-                        CreationDate = rhn.CreateDate
+                      (rhn, rh) => new
+                      {
+                          Id = rh.UserId,
+                          Notes = rhn.NoteText!,
+                          CreationDate = rhn.CreateDate
                       })
                 .Join(context.Users,
                     temp => temp.Id,
@@ -37,7 +38,7 @@ namespace TheradexPortal.Data.Services
                         CreationDate = temp.CreationDate,
                     }
                 )
-                .FirstOrDefaultAsync();
+                .ToListAsync<ReviewHistoryNoteDTO>();
             return result;
         }
 

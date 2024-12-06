@@ -54,9 +54,14 @@
     <Row>
         <Column>
             <Button Color="Color.Primary">Save Changes</Button>
-            <Button  Color="Color.Primary">Discard Changes</Button>
-            <Button Color="Color.Primary" Disabled="@submitIsDisabled">Submit</Button>
+            <Button Color="Color.Primary">Discard Changes</Button>
             <Button Color="Color.Primary" Clicked="@ShowContactUsModal" >Send Email</Button>
+        </Column>
+    </Row>
+    <Row>
+        <Div><br /></Div>
+        <Column>
+            <Button Color="Color.Warning" Disabled="@submitIsDisabled">Submit</Button>
         </Column>
     </Row>
     <Row>
@@ -319,13 +324,15 @@
             {
                 for (int i = 0; i < lstReviewHistories.Count(); i++)
                 {
-                    var tmp = await historyNoteService.GetSingleNoteAsync(lstReviewHistories[i]);
-                    if (tmp != null && !String.IsNullOrEmpty(tmp.Notes))
+                    var tmpLst = await historyNoteService.GetNotesAsync(lstReviewHistories[i]);
+                    if (tmpLst != null)
                     {
                         if (reviewNote.Contains("No previous notes."))
                             reviewNote.Remove("No previous notes.");
-                        reviewNote.Add(tmp.Notes);
-                        lstTextNotes.Add(new TextNotes { Name = tmp.UserName, Note = tmp.Notes, CreationDate = tmp.CreationDate.ToString() });
+                        //reviewNote.Add(tmp.Notes);
+                        foreach(var tmp in tmpLst) {
+                            lstTextNotes.Add(new TextNotes { Name = tmp.UserName, Note = tmp.Notes, CreationDate = tmp.CreationDate.ToString() });
+                        }
                     }
                 }
                 for (int i = 0; i < lstReviewHistories.Count(); i++)
