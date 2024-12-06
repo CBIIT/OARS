@@ -54,7 +54,7 @@
     <Row>
         <Column>
             <Button Color="Color.Primary">Save Changes</Button>
-            <Button Color="Color.Primary">Discard Changes</Button>
+            <Button Color="Color.Primary" Clicked="@DiscardChanges">Discard Changes</Button>
             <Button Color="Color.Primary" Clicked="@ShowContactUsModal" >Send Email</Button>
         </Column>
     </Row>
@@ -253,6 +253,11 @@
             selectedTab = name;
 
             return Task.CompletedTask;
+        }
+
+        private void DiscardChanges()
+        {
+            noteText = "Enter new notes...";
         }
 
         Task OnSendEmailClicked()

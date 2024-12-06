@@ -53,7 +53,7 @@
     <Row>
         <Column>
             <Button Color="Color.Primary">Save Changes</Button>
-            <Button Color="Color.Primary">Discard Changes</Button>
+            <Button Color="Color.Primary" Clicked="@DiscardChanges">Discard Changes</Button>
             <Button Color="Color.Primary" Clicked="@ShowContactUsModal">Send Email</Button>
         </Column>
     </Row>
@@ -79,23 +79,23 @@
                 <Content>
                     <TabPanel Name="notehistory">
                         <DataGrid Class="admindatagrid"
-                                  TItem="TextNotes"
-                                  Data="@lstTextNotes"
-                                  AltBordered="true"
-                                  Responsive
-                                  Filterable
-                                  Striped
-                                  ShowPager
-                                  ShowPageSizes
-                                  MaxPaginationLinks="5"
-                                  PagerPosition="DataGridPagerPosition.Bottom"
-                                  PagerOptions="new(){ButtonSize=Size.Default,
+                        TItem="TextNotes"
+                        Data="@lstTextNotes"
+                        AltBordered="true"
+                        Responsive
+                        Filterable
+                        Striped
+                        ShowPager
+                        ShowPageSizes
+                        MaxPaginationLinks="5"
+                        PagerPosition="DataGridPagerPosition.Bottom"
+                        PagerOptions="new(){ButtonSize=Size.Default,
                                 PaginationPosition=PagerElementPosition.Default,
                                 TotalItemsPosition=PagerElementPosition.End,
                                 }"
-                                  FixedHeader
-                                  FixedHeaderDataGridHeight="calc(100vh - 240px)"
-                                  FixedHeaderDataGridMaxHeight="calc(100vh - 240px)">
+                        FixedHeader
+                        FixedHeaderDataGridHeight="calc(100vh - 240px)"
+                        FixedHeaderDataGridMaxHeight="calc(100vh - 240px)">
                             <DataGridCommandColumn />
                             <DataGridColumn TItem="TextNotes" Field="@nameof(TextNotes.Name)" Caption="User" />
                             <DataGridColumn TItem="TextNotes" Field="@nameof(TextNotes.CreationDate)" Caption="Creation Date" />
@@ -104,24 +104,24 @@
                     </TabPanel>
                     <TabPanel Name="emailhistory">
                         <DataGrid TItem="EmailDetails"
-                                  Class="admindatagrid"
-                                  Data="@lstEmailDetails"
-                                  Bordered="true"
-                                  AltBordered="true"
-                                  Responsive
-                                  Filterable
-                                  Striped
-                                  ShowPager
-                                  ShowPageSizes
-                                  MaxPaginationLinks="5"
-                                  PagerPosition="DataGridPagerPosition.Bottom"
-                                  PagerOptions="new(){ButtonSize=Size.Default,
+                        Class="admindatagrid"
+                        Data="@lstEmailDetails"
+                        Bordered="true"
+                        AltBordered="true"
+                        Responsive
+                        Filterable
+                        Striped
+                        ShowPager
+                        ShowPageSizes
+                        MaxPaginationLinks="5"
+                        PagerPosition="DataGridPagerPosition.Bottom"
+                        PagerOptions="new(){ButtonSize=Size.Default,
                                 PaginationPosition=PagerElementPosition.Default,
                                 TotalItemsPosition=PagerElementPosition.End,
                                 }"
-                                  FixedHeader
-                                  FixedHeaderDataGridHeight="calc(100vh - 240px)"
-                                  FixedHeaderDataGridMaxHeight="calc(100vh - 240px)">
+                        FixedHeader
+                        FixedHeaderDataGridHeight="calc(100vh - 240px)"
+                        FixedHeaderDataGridMaxHeight="calc(100vh - 240px)">
                             <DataGridCommandColumn />
                             <DataGridColumn TItem="EmailDetails" Field="@nameof(EmailDetails.EmailTo)" Caption="Recipient" />
                             <DataGridColumn TItem="EmailDetails" Field="@nameof(EmailDetails.Body)" Caption="Email Body" />
@@ -130,24 +130,24 @@
                     </TabPanel>
                     <TabPanel Name="piDetails">
                         <DataGrid TItem="EmailDetails"
-                                  Class="admindatagrid"
-                                  Data="@lstEmailDetails"
-                                  Bordered="true"
-                                  AltBordered="true"
-                                  Responsive
-                                  Filterable
-                                  Striped
-                                  ShowPager
-                                  ShowPageSizes
-                                  MaxPaginationLinks="5"
-                                  PagerPosition="DataGridPagerPosition.Bottom"
-                                  PagerOptions="new(){ButtonSize=Size.Default,
+                        Class="admindatagrid"
+                        Data="@lstEmailDetails"
+                        Bordered="true"
+                        AltBordered="true"
+                        Responsive
+                        Filterable
+                        Striped
+                        ShowPager
+                        ShowPageSizes
+                        MaxPaginationLinks="5"
+                        PagerPosition="DataGridPagerPosition.Bottom"
+                        PagerOptions="new(){ButtonSize=Size.Default,
                                 PaginationPosition=PagerElementPosition.Default,
                                 TotalItemsPosition=PagerElementPosition.End,
                                 }"
-                                  FixedHeader
-                                  FixedHeaderDataGridHeight="calc(100vh - 240px)"
-                                  FixedHeaderDataGridMaxHeight="calc(100vh - 240px)">
+                        FixedHeader
+                        FixedHeaderDataGridHeight="calc(100vh - 240px)"
+                        FixedHeaderDataGridMaxHeight="calc(100vh - 240px)">
                             <DataGridCommandColumn />
                             <DataGridColumn TItem="EmailDetails" Field="@nameof(EmailDetails.EmailTo)" Caption="Recipient" />
                             <DataGridColumn TItem="EmailDetails" Field="@nameof(EmailDetails.Body)" Caption="Email Body" />
@@ -192,7 +192,7 @@
                             <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Description</FieldLabel>
                             <FieldBody>
                                 <MemoEdit @bind-Text="@emailDescription" MaxLength="250" Rows="3" Placeholder="Email body"
-                                          onkeydown="@OnDescriptionChanged">
+                                onkeydown="@OnDescriptionChanged">
                                     <Feedback>
                                         <ValidationError>Email body can't be empty</ValidationError>
                                     </Feedback>
@@ -209,7 +209,7 @@
             </ModalFooter>
         </ModalContent>
     </Modal>
-        @code {
+    @code {
         private bool isSelected { get; set; }
         private string? noteText { get; set; }
         private string? savedNoteText { get; set; }
@@ -242,7 +242,7 @@
         [Parameter]
         public int AgentId { get; set; } = 0;
 
-                string selectedTab = "notehistory";
+        string selectedTab = "notehistory";
 
         public void checkboxChanged(string checkboxName, bool value)
         {
@@ -277,6 +277,11 @@
             selectedTab = name;
 
             return Task.CompletedTask;
+        }
+
+        private void DiscardChanges()
+        {
+            noteText = "Enter new notes...";
         }
 
         Task OnSendEmailClicked()
