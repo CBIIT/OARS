@@ -53,7 +53,7 @@
     </Row>
     <Row>
         <Column>
-            <Button Color="Color.Primary">Save Changes</Button>
+            <Button Color="Color.Primary" Clicked="@SaveChanges">Save Changes</Button>
             <Button Color="Color.Primary" Clicked="@DiscardChanges">Discard Changes</Button>
             <Button Color="Color.Primary" Clicked="@ShowContactUsModal" >Send Email</Button>
         </Column>
@@ -260,6 +260,35 @@
             noteText = "Enter new notes...";
         }
 
+        private async void SaveChanges()
+        {
+            var newHistory = new ReviewHistory();
+            newHistory.DaysLate = daysLate;
+            newHistory.EmailAddress = latestReviewHistory.EmailAddress;
+            newHistory.ReviewHistoryId = reviewHistoryService.GetNextReviewHistoryId();
+            newHistory.UserId = httpContextAccessor?.HttpContext?.User.GetUserId() ?? 0;
+            newHistory.ReviewLate = latestReviewHistory.ReviewLate;
+            newHistory.CreateDate = latestReviewHistory.CreateDate;
+            newHistory.UpdateDate = DateTime.Now;
+            newHistory.ReviewType = latestReviewHistory.ReviewType;
+            newHistory.DueDate = latestReviewHistory.DueDate;
+            newHistory.ReviewCompleteDate = latestReviewHistory.ReviewCompleteDate;
+            newHistory.ReviewStatus = latestReviewHistory.ReviewStatus;
+            newHistory.ProtocolId = latestReviewHistory.ProtocolId;
+            var complete = await reviewHistoryService.SaveNewReviewHistoryAsync(newHistory);
+            if(complete == true && !string.IsNullOrWhiteSpace(noteText))
+            {
+                var newNote = new ReviewHistoryNote();
+                newNote.NoteText = noteText;
+                newNote.CreateDate = DateTime.Now;
+                newNote.ReviewHistoryId = newHistory.ReviewHistoryId;
+                newNote.ReviewHistoryNoteId = historyNoteService.GetNextReviewHistoryNoteId();
+                await historyNoteService.SaveNoteAsync(newNote);
+            }
+            noteText = "Enter new notes...";
+            await notificationService.Success("Changes have been saved.");
+        }
+
         Task OnSendEmailClicked()
         {
 
@@ -307,6 +336,7 @@
         private List<ContactUsCategorySelectItemList> lstContactUsItems;
         private IList<ReviewItem> lstReviewItems;
         private IList<int> lstReviewHistories;
+        private ReviewHistory latestReviewHistory;
         private int daysLate;
         private List<string> reviewNote = new List<string> { "No previous notes." };
         private List<string> reviewEmail = new List<string> { "No previous emails." };
@@ -322,7 +352,8 @@
             {
                 lstManagers.Add(new CheckBoxManager { BoxName = item.ReviewItemName, IsChecked = false });
             }
-            daysLate = await reviewHistoryService.GetDaysLateAsync(ProtocolId);
+            latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(ProtocolId);
+            daysLate = latestReviewHistory.DaysLate ?? 0;
             leadAgentName = await reviewService.GetLeadAgentByIdAsync(ProtocolId);
             lstReviewHistories = await reviewHistoryService.GetHistoryRecordsByProtocolAsync(ProtocolId);
             if (lstReviewHistories != null && lstReviewHistories.Count() > 0)

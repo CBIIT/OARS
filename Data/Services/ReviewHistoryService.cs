@@ -30,5 +30,26 @@ namespace TheradexPortal.Data.Services
                 .Select(r => r.ReviewHistoryId)
                 .ToListAsync();
         }
+
+        public async Task<ReviewHistory> GetLatestReviewHistoryByProtocolAsync(int protocolId)
+        {
+            return await context.ReviewHistories
+                .AsNoTracking()
+                .Where(p => p.ProtocolId == protocolId)
+                .OrderByDescending(p => p.ReviewHistoryId)
+                .FirstOrDefaultAsync();
+        }
+
+        public int GetNextReviewHistoryId()
+        {
+            return context.ReviewHistories.Max(p => p.ReviewHistoryId) + 1;
+        }
+
+        public Task<bool> SaveNewReviewHistoryAsync(ReviewHistory reviewHistory)
+        {
+            context.AddAsync(reviewHistory);
+            var status = context.SaveChangesAsync();
+            return Task.FromResult(true);
+        }
     }
 }

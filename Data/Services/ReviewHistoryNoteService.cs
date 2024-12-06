@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using TheradexPortal.Data.Models.DTO;
 using TheradexPortal.Data.Services.Abstract;
+using TheradexPortal.Data.Models;
 
 namespace TheradexPortal.Data.Services
 {
@@ -45,6 +46,18 @@ namespace TheradexPortal.Data.Services
         public async Task<string> GetAllNotesAsync(int historyId)
         {
             return "";
+        }
+
+        public Task<bool> SaveNoteAsync(ReviewHistoryNote note)
+        {
+            context.AddAsync(note);
+            var status = context.SaveChangesAsync();
+            return Task.FromResult(true);
+        }
+
+        public int GetNextReviewHistoryNoteId()
+        {
+            return context.ReviewHistoryNotes.Max(p => p.ReviewHistoryNoteId) + 1;
         }
     }
 }

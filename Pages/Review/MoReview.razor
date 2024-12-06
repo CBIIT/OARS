@@ -52,7 +52,7 @@
     </Row>
     <Row>
         <Column>
-            <Button Color="Color.Primary">Save Changes</Button>
+            <Button Color="Color.Primary" Clicked="@SaveChanges">Save Changes</Button>
             <Button Color="Color.Primary" Clicked="@DiscardChanges">Discard Changes</Button>
             <Button Color="Color.Primary" Clicked="@ShowContactUsModal">Send Email</Button>
         </Column>
@@ -282,6 +282,35 @@
         private void DiscardChanges()
         {
             noteText = "Enter new notes...";
+        }
+
+        private async void SaveChanges()
+        {
+            var newHistory = new ReviewHistory();
+            newHistory.DaysLate = daysLate;
+            newHistory.EmailAddress = latestReviewHistory.EmailAddress;
+            newHistory.ReviewHistoryId = reviewHistoryService.GetNextReviewHistoryId();
+            newHistory.UserId = httpContextAccessor?.HttpContext?.User.GetUserId() ?? 0;
+            newHistory.ReviewLate = latestReviewHistory.ReviewLate;
+            newHistory.CreateDate = latestReviewHistory.CreateDate;
+            newHistory.UpdateDate = DateTime.Now;
+            newHistory.ReviewType = latestReviewHistory.ReviewType;
+            newHistory.DueDate = latestReviewHistory.DueDate;
+            newHistory.ReviewCompleteDate = latestReviewHistory.ReviewCompleteDate;
+            newHistory.ReviewStatus = latestReviewHistory.ReviewStatus;
+            newHistory.ProtocolId = latestReviewHistory.ProtocolId;
+            var complete = await reviewHistoryService.SaveNewReviewHistoryAsync(newHistory);
+            if (complete == true && !string.IsNullOrWhiteSpace(noteText))
+            {
+                var newNote = new ReviewHistoryNote();
+                newNote.NoteText = noteText;
+                newNote.CreateDate = DateTime.Now;
+                newNote.ReviewHistoryId = newHistory.ReviewHistoryId;
+                newNote.ReviewHistoryNoteId = historyNoteService.GetNextReviewHistoryNoteId();
+                await historyNoteService.SaveNoteAsync(newNote);
+            }
+            noteText = "Enter new notes...";
+            await notificationService.Success("Changes have been saved.");
         }
 
         Task OnSendEmailClicked()
