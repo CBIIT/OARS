@@ -241,7 +241,7 @@
 
         [Parameter]
         public int AgentId { get; set; } = 0;
-
+        public bool changesSaved = true;
         string selectedTab = "notehistory";
 
         public void checkboxChanged(string checkboxName, bool value)
@@ -281,7 +281,7 @@
 
         private void DiscardChanges()
         {
-            noteText = "Enter new notes...";
+            noteText = "";
         }
 
         private async void SaveChanges()
@@ -289,7 +289,7 @@
             var newHistory = new ReviewHistory();
             newHistory.DaysLate = daysLate;
             newHistory.EmailAddress = latestReviewHistory.EmailAddress;
-            newHistory.ReviewHistoryId = reviewHistoryService.GetNextReviewHistoryId();
+            newHistory.ReviewHistoryId = latestReviewHistory.ReviewHistoryId;
             newHistory.UserId = httpContextAccessor?.HttpContext?.User.GetUserId() ?? 0;
             newHistory.ReviewLate = latestReviewHistory.ReviewLate;
             newHistory.CreateDate = latestReviewHistory.CreateDate;
@@ -299,8 +299,8 @@
             newHistory.ReviewCompleteDate = latestReviewHistory.ReviewCompleteDate;
             newHistory.ReviewStatus = latestReviewHistory.ReviewStatus;
             newHistory.ProtocolId = latestReviewHistory.ProtocolId;
-            var complete = await reviewHistoryService.SaveNewReviewHistoryAsync(newHistory);
-            if (complete == true && !string.IsNullOrWhiteSpace(noteText))
+            
+            if (changesSaved == true && !string.IsNullOrWhiteSpace(noteText))
             {
                 var newNote = new ReviewHistoryNote();
                 newNote.NoteText = noteText;
@@ -309,7 +309,7 @@
                 newNote.ReviewHistoryNoteId = historyNoteService.GetNextReviewHistoryNoteId();
                 await historyNoteService.SaveNoteAsync(newNote);
             }
-            noteText = "Enter new notes...";
+            noteText = "";
             await notificationService.Success("Changes have been saved.");
         }
 
@@ -374,7 +374,7 @@
             {
                 lstManagers.Add(new CheckBoxManager { BoxName = item.ReviewItemName, IsChecked = false });
             }
-            latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(ProtocolId);
+            latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(AgentId);
             daysLate = latestReviewHistory.DaysLate ?? 0;
             lstReviewHistories = await reviewHistoryService.GetHistoryRecordsByProtocolAsync(AgentId);
             if (lstReviewHistories != null && lstReviewHistories.Count() > 0)
