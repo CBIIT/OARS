@@ -61,7 +61,7 @@
     <Row>
         <Div><br /></Div>
         <Column>
-            <Button Color="Color.Warning" Disabled="@submitIsDisabled">Submit</Button>
+            <Button Color="Color.Warning" Disabled="@submitIsDisabled" Clicked="@ShowSubmitReviewModal">Submit</Button>
         </Column>
     </Row>
     <Row>
@@ -135,7 +135,7 @@
         </Column>
     </Row>
 
-    <Modal @ref="modalContactUs" Closing="@OnModalClosing">
+    <Modal @ref="modalSubmitEmail" Closing="@OnModalClosing">
         <ModalContent Centered Size="ModalSize.Large">
             <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
                 <ModalTitle>Email</ModalTitle>
@@ -182,6 +182,39 @@
             <ModalFooter>
                 <Button Color="Color.Primary" Clicked="@HideContactUsModal">Cancel</Button>
                 <Button Color="Color.Primary" Clicked="@SendContactUsEmail">Send Request</Button>
+            </ModalFooter>
+        </ModalContent>
+    </Modal>
+
+    <Modal @ref="modalSubmitReview" Closing="@OnModalClosing">
+        <ModalContent Centered Size="ModalSize.Large">
+            <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
+                <ModalTitle>Email</ModalTitle>
+                <CloseButton />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="validations" Mode="ValidationMode.Manual">
+                    <Field>
+                        <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Completed Review Tasks:</FieldLabel>
+                        @foreach (var item in lstReviewItems)
+                        {
+                            <Check Checked="true" Disabled="true" TValue="bool">
+                                @($"{item.ReviewItemName}")
+                            </Check>
+                        }
+                    </Field>
+                    <Field>
+                        <FieldBody>
+                            <Div Class="rounded p-4 border border-primary">
+                                <Check @bind-Checked="eSig">I attest that I have completed all the about Review Tasks.</Check>
+                            </Div>
+                        </FieldBody>
+                    </Field>
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Primary" Clicked="@HideSubmitReviewModal">Cancel</Button>
+                <Button Color="Color.Primary" Clicked="@CompleteReview">Submit Review</Button>
             </ModalFooter>
         </ModalContent>
     </Modal>
@@ -318,6 +351,7 @@
         private readonly string visible = "visible";
         public string DashboardName { get; set; }
         public string ReportName { get; set; }
+        private bool eSig = false;
 
         IFluentDisplay adminDisplay = Display.None;
 
@@ -334,7 +368,8 @@
         [Inject] IEmailService emailService { get; set; } = null!;
         [Inject] IReviewService reviewService { get; set; } = null!;
 
-        private Modal modalContactUs;
+        private Modal modalSubmitEmail;
+        private Modal modalSubmitReview;
         private bool cancelClose;
 
         private string contactUsCategoryID = "", emailTo = "", emailCategory = "", emailDescription = "", emailTitle = "", emailDescriptionLabel = "";
@@ -417,7 +452,12 @@
             uploadFileName = string.Empty;
             selectedFile = null;
             validations.ClearAll();
-            return modalContactUs.Show();
+            return modalSubmitEmail.Show();
+        }
+
+        private Task ShowSubmitReviewModal()
+        {
+            return modalSubmitReview.Show(); 
         }
 
         private string GetReviewStatus()
@@ -428,7 +468,14 @@
         private Task HideContactUsModal()
         {
             cancelClose = false;
-            return modalContactUs.Hide();
+            return modalSubmitEmail.Hide();
+        }
+
+        private Task HideSubmitReviewModal()
+        {
+            cancelClose = false;
+            eSig = false;
+            return modalSubmitReview.Hide();
         }
 
         private async void SendContactUsEmail()
@@ -446,8 +493,14 @@
                 }
 
                 cancelClose = false;
-                modalContactUs.Hide();
+                modalSubmitEmail.Hide();
             }
+        }
+        private async void CompleteReview()
+        {
+            eSig = false;
+            // Add DB record for next review
+            modalSubmitReview.Hide();
         }
 }
     </body>

@@ -159,7 +159,7 @@
         </Column>
     </Row>
 
-    <Modal @ref="modalContactUs" Closing="@OnModalClosing">
+    <Modal @ref="modalSubmitEmail" Closing="@OnModalClosing">
         <ModalContent Centered Size="ModalSize.Large">
             <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
                 <ModalTitle>Email</ModalTitle>
@@ -350,7 +350,7 @@
         [Inject] INotificationService notificationService { get; set; }
         [Inject] IEmailService emailService { get; set; } = null!;
 
-        private Modal modalContactUs;
+        private Modal modalSubmitEmail;
         private bool cancelClose;
 
         private string contactUsCategoryID = "", emailTo = "", emailCategory = "", emailDescription = "", emailTitle = "", emailDescriptionLabel = "";
@@ -423,7 +423,7 @@
             uploadFileName = string.Empty;
             selectedFile = null;
             validations.ClearAll();
-            return modalContactUs.Show();
+            return modalSubmitEmail.Show();
         }
 
         private string GetReviewStatus()
@@ -434,7 +434,7 @@
         private Task HideContactUsModal()
         {
             cancelClose = false;
-            return modalContactUs.Hide();
+            return modalSubmitEmail.Hide();
         }
 
         private async void SendContactUsEmail()
@@ -536,7 +536,7 @@
                 }
 
                 cancelClose = false;
-                modalContactUs.Hide();
+                modalSubmitEmail.Hide();
             }
         }
 }
