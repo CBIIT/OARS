@@ -143,12 +143,12 @@
             </ModalHeader>
             <ModalBody>
                 <Validations @ref="validations" Mode="ValidationMode.Manual">
-                    <Validation Validator="@ValidationRule.IsNotEmpty">
+                    <Validation Validator="@ValidationRule.IsEmail">
                         <Field>
                             <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">To</FieldLabel>
                             <TextEdit Placeholder="Enter recipient" @bind-Text="@emailTo">
                                 <Feedback>
-                                    <ValidationError>Recipient can't be empty</ValidationError>
+                                    <ValidationError>Invalid Email</ValidationError>
                                 </Feedback>
                             </TextEdit>
                         </Field>
