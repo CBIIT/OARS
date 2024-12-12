@@ -38,10 +38,10 @@
     </Row>
     <Row HorizontalGutter="32" VerticalGutter="16">
         <Column ColumnSize="ColumnSize.Is4">
-            @foreach (var item in lstReviewItems)
+            @foreach (var item in lstManagers)
             {
-                <Check CheckedChanged="@((bool value) => checkboxChanged(item.ReviewItemName, value))" TValue="bool">
-                    @($"{item.ReviewItemName}") 
+                <Check CheckedChanged="@((bool value) => checkboxChanged(item.BoxName, value))" TValue="bool" Checked="@item.IsChecked">
+                    @($"{item.BoxName}") 
                 </Check>
             }
         </Column>
@@ -242,6 +242,7 @@
         public class CheckBoxManager
         {
             public string BoxName { get; set; }
+            public int ReviewItemNumber { get; set; }
             public bool IsChecked { get; set; }
         }
 
@@ -297,34 +298,41 @@
         {
             if (ProtocolId > 0)
             {
-                var newHistory = new ReviewHistory();
-                newHistory.DaysLate = daysLate;
-                newHistory.EmailAddress = latestReviewHistory.EmailAddress;
-                newHistory.ReviewHistoryId = latestReviewHistory.ReviewHistoryId;
-                newHistory.UserId = httpContextAccessor?.HttpContext?.User.GetUserId() ?? 0;
-                newHistory.ReviewLate = latestReviewHistory.ReviewLate;
-                newHistory.CreateDate = latestReviewHistory.CreateDate;
-                newHistory.UpdateDate = DateTime.Now;
-                newHistory.ReviewType = latestReviewHistory.ReviewType;
-                newHistory.DueDate = latestReviewHistory.DueDate;
-                newHistory.ReviewCompleteDate = latestReviewHistory.ReviewCompleteDate;
-                newHistory.ReviewStatus = latestReviewHistory.ReviewStatus;
-                newHistory.ProtocolId = latestReviewHistory.ProtocolId;
+                foreach (var box in lstManagers)
+                {
+                    // if the box's Number doesn't exist, in the dictionary, then we need to add a new record to the table
+                    if (!dctReviewItemSettings.TryGetValue(box.ReviewItemNumber, out checkedStatus))
+                    {
+                        reviewHistoryItemService.SaveReviewHistoryItemAsync(latestReviewHistory.ReviewHistoryId, box.ReviewItemNumber, box.IsChecked);
+                    }
+                    else if (box.IsChecked != checkedStatus)
+                    {//forgot update date
+                        await reviewHistoryItemService.UpdateReviewHistoryItemAsync(latestReviewHistory.ReviewHistoryId, box.ReviewItemNumber, box.IsChecked);
+                    }
+                }
 
                 if (changesSaved == true && !string.IsNullOrWhiteSpace(noteText))
                 {
                     var newNote = new ReviewHistoryNote();
                     newNote.NoteText = noteText;
                     newNote.CreateDate = DateTime.Now;
-                    newNote.ReviewHistoryId = newHistory.ReviewHistoryId;
+                    newNote.ReviewHistoryId = latestReviewHistory.ReviewHistoryId;
                     newNote.ReviewHistoryNoteId = historyNoteService.GetNextReviewHistoryNoteId();
-                    await historyNoteService.SaveNoteAsync(newNote);
+                    var noteAdded = await historyNoteService.SaveNoteAsync(newNote);
+                    var user = await userService.GetUserAsync(latestReviewHistory.UserId);
+                    var userName = user.FirstName + " " + user.LastName;
+                    if(noteAdded) {
+                        lstTextNotes.Add(new TextNotes { Name = userName, Note = noteText, CreationDate = newNote.CreateDate.ToString() });
+                    }
                 }
                 noteText = "";
+                lstTextNotes = lstTextNotes.ToList();
+                StateHasChanged();
+
                 await notificationService.Success("Changes have been saved.");
             }
             else{
-                await notificationService.Success("UI Demo mode. No changes to save.");
+                await notificationService.Error("UI Demo mode. No changes to save.");
             }
         }
 
@@ -361,6 +369,7 @@
         [Inject] IReviewHistoryService reviewHistoryService { get; set; } = null!;
         [Inject] IReviewHistoryNoteService historyNoteService { get; set; } = null!;
         [Inject] IReviewHistoryEmailService historyEmailService { get; set; } = null!;
+        [Inject] IReviewHistoryItemService reviewHistoryItemService { get; set; } = null!;
         [Inject] public NavigationManager Navigation { get; set; }
         [Inject] private IUserService userService { get; set; } = null!;
         [Inject] private IAlertService alertService { get; set; } = null!;
@@ -384,20 +393,26 @@
         FileEdit fileEditRef;
         string uploadFileName = "";
         List<string> lstAttachments = new List<string>();
+        Dictionary<int, bool> dctReviewItemSettings = new Dictionary<int, bool>();
         IFileEntry selectedFile;
+        private bool checkedStatus;
 
         protected override async Task OnInitializedAsync()
         {
             lstReviewItems = await reviewItemService.GetActiveReviewItemsAsync();
-            foreach(var item in lstReviewItems)
-            {
-                lstManagers.Add(new CheckBoxManager { BoxName = item.ReviewItemName, IsChecked = false });
-            }
+
             if (ProtocolId > 0)
             {
                 latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(ProtocolId);
                 if (latestReviewHistory != null)
                 {
+                    dctReviewItemSettings = await reviewHistoryItemService.GetCurrentReviewHistoryItemStatusAsync(latestReviewHistory.ReviewHistoryId);
+                    foreach (var item in lstReviewItems)
+                    {
+                        dctReviewItemSettings.TryGetValue(item.ReviewItemId, out checkedStatus);
+
+                        lstManagers.Add(new CheckBoxManager { BoxName = item.ReviewItemName, ReviewItemNumber = item.ReviewItemId, IsChecked = checkedStatus });
+                    }
                     daysLate = latestReviewHistory.DaysLate ?? 0;
                     leadAgentName = await reviewService.GetLeadAgentByIdAsync(ProtocolId);
                     lstReviewHistories = await reviewHistoryService.GetHistoryRecordsByProtocolAsync(ProtocolId);

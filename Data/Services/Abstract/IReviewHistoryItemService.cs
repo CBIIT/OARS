@@ -1,0 +1,14 @@
+﻿using TheradexPortal.Data.Models;
+using TheradexPortal.Data.Models.DTO;
+
+namespace TheradexPortal.Data.Services.Abstract
+{
+    public interface IReviewHistoryItemService
+    {
+        public Task<bool> CheckHistoryItemChangedAsync(int reviewHistoryItemId);
+        public Task<Dictionary<int, bool>> GetCurrentReviewHistoryItemStatusAsync(int reviewHistoryID);
+        public Task<bool> SaveReviewHistoryItemAsync(int reviewHistoryID, int reviewItemID, bool newValue);
+        public Task<bool> UpdateReviewHistoryItemAsync(int reviewHistoryID, int reviewItemID, bool newValue);
+        public int GetNextReviewHistoryItemId();
+    }
+}
