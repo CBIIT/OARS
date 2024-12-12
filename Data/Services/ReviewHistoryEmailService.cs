@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
+using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Models.DTO;
 using TheradexPortal.Data.Services.Abstract;
 
@@ -33,6 +34,25 @@ namespace TheradexPortal.Data.Services
         public async Task<string> GetAllEmailsAsync(int historyId)
         {
             return "";
+        }
+
+        public async Task<bool> SaveNewEmailAsync(int reviewHistoryId, string recipient, string body)
+        {
+            ReviewHistoryEmail newReviewHistoryEmail = new ReviewHistoryEmail();
+            newReviewHistoryEmail.EmailToAddress = recipient;
+            newReviewHistoryEmail.ReviewHistoryEmailId = GetNextReviewHistoryEmailId();
+            newReviewHistoryEmail.ReviewHistoryId = reviewHistoryId;
+            newReviewHistoryEmail.CreateDate = DateTime.Now;
+            newReviewHistoryEmail.EmailText = body;
+
+            await context.ReviewHistoryEmails.AddAsync(newReviewHistoryEmail);
+            var status = await context.SaveChangesAsync();
+            return true;
+        }
+
+        public int GetNextReviewHistoryEmailId()
+        {
+            return context.ReviewHistoryEmails.Max(p => p.ReviewHistoryEmailId) + 1;
         }
     }
 }

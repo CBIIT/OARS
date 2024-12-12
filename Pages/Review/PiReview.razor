@@ -106,6 +106,7 @@
                     </TabPanel>
                     <TabPanel Name="emailhistory">
                         <DataGrid 
+                        @ref="emailDataGrid"
                         TItem="EmailDetails" 
                         Class="admindatagrid" 
                         Data="@lstEmailDetails" 
@@ -226,6 +227,7 @@
         private string? savedNoteText { get; set; }
         private bool submitIsDisabled = true;
         private DataGrid<TextNotes> noteDataGrid;
+        private DataGrid<EmailDetails> emailDataGrid;
 
         public class TextNotes
         {
@@ -502,6 +504,8 @@
                 if (sendEmailResult)
                 {
                     await notificationService.Success("An email has been sent.");
+                    await historyEmailService.SaveNewEmailAsync(latestReviewHistory.ReviewHistoryId, emailTo, emailDescription);
+                    await emailDataGrid.Reload();
                 }
                 else
                 {
