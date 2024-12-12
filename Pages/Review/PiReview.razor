@@ -18,6 +18,7 @@
 @inject IConfiguration configuration
 @inject IHttpContextAccessor httpContextAccessor
 @inject ProtectedSessionStorage SessionData
+@inject IJSRuntime JSRuntime
 
 
 @page "/pireview/{protocolid:int?}"
@@ -295,7 +296,7 @@
 
         private void DiscardChanges()
         {
-            noteText = "";
+            JSRuntime.InvokeVoidAsync("history.back");
         }
 
         private async void SaveChanges()
