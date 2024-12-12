@@ -79,6 +79,7 @@
                 <Content>
                     <TabPanel Name="notehistory">
                         <DataGrid 
+                        @ref="noteDataGrid"
                         Class="admindatagrid" 
                         TItem="TextNotes" 
                         Data="@lstTextNotes" 
@@ -224,6 +225,7 @@
         private string? noteText { get; set; }
         private string? savedNoteText { get; set; }
         private bool submitIsDisabled = true;
+        private DataGrid<TextNotes> noteDataGrid;
 
         public class TextNotes
         {
@@ -326,8 +328,7 @@
                     }
                 }
                 noteText = "";
-                lstTextNotes = lstTextNotes.ToList();
-                StateHasChanged();
+                await noteDataGrid.Reload();
 
                 await notificationService.Success("Changes have been saved.");
             }
