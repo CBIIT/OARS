@@ -9,5 +9,6 @@ namespace TheradexPortal.Data.Services.Abstract
         public string GetCurrentStudiesForUser(int userId);
         public string GetSelectedStudyIdsForUser(int userId);
         public List<Protocol> GetSelectedStudiesForUser(int userId);
+        public Task<String> GetStudyTitleAsync(int protocolID);
     }
 }

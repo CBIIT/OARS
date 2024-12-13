@@ -79,5 +79,13 @@ namespace TheradexPortal.Data.Services
 
             return protocols;
         }
+
+        public async Task<String> GetStudyTitleAsync(int protocolID)
+        {
+            var studyTitle = await context.Protocols.Where(s => s.StudyId == protocolID.ToString())
+                .Select(pt => pt.ProtocolTitle ?? "").FirstOrDefaultAsync();
+
+            return studyTitle;
+        }
     }
 }

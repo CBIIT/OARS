@@ -31,8 +31,8 @@
     <Row>
         <Column Style="background-image: Review-Bar.png" ColumnSize="ColumnSize.Is12">
             <Div Background="Background.Primary" TextColor="TextColor.Light" style="display: flex; justify-content: center; align-items: center; width: 100%; text-align: center; flex-direction: column;">
-                <span><h3>Review for Study @ProtocolId</h3></span>
-                <span><h4>Lead Agent: @leadAgentName </h4></span>
+                <span><h3>PI Review for Study @userFullName </h3></span>
+                <span><h4> @leadAgentName : @ProtocolId : @studyDescription </h4></span>
                 <span><h4>Status: @GetReviewStatus()</h4></span>
             </Div>
         </Column>
@@ -229,6 +229,10 @@
         private bool submitIsDisabled = true;
         private DataGrid<TextNotes> noteDataGrid;
         private DataGrid<EmailDetails> emailDataGrid;
+        private string userFullName = "No Name Found";
+        private string userFirstName = "Error";
+        private string userLastName = "No Name";
+        private string studyDescription = "No description found";
 
         public class TextNotes
         {
@@ -377,6 +381,7 @@
         [Inject] public NavigationManager Navigation { get; set; }
         [Inject] private IUserService userService { get; set; } = null!;
         [Inject] private IAlertService alertService { get; set; } = null!;
+        [Inject] private IStudyService studyService { get; set; } = null!;
         [Inject] INotificationService notificationService { get; set; }
         [Inject] IEmailService emailService { get; set; } = null!;
         [Inject] IReviewService reviewService { get; set; } = null!;
@@ -410,6 +415,14 @@
                 latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(ProtocolId);
                 if (latestReviewHistory != null)
                 {
+                    var user = await userService.GetUserAsync(latestReviewHistory.UserId);
+                    if (user != null)
+                    {
+                        userFullName = user.FirstName + " " + user.LastName;
+                        userFirstName = user.FirstName;
+                        userLastName = user.LastName;
+                    }
+                    studyDescription = await studyService.GetStudyTitleAsync(ProtocolId);
                     dctReviewItemSettings = await reviewHistoryItemService.GetCurrentReviewHistoryItemStatusAsync(latestReviewHistory.ReviewHistoryId);
                     foreach (var item in lstReviewItems)
                     {
