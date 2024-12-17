@@ -308,7 +308,7 @@
 
         private void DiscardChanges()
         {
-            JSRuntime.InvokeVoidAsync("history.back");
+            JSRuntime.InvokeVoidAsync("eval", "window.history.go(-1)");
         }
 
         private async void SaveChanges()
