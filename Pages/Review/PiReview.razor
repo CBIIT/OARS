@@ -314,7 +314,7 @@
             {
                 navTo = result.Value ?? "/";
             }
-            Navigation.NavigateTo(navTo);
+            Navigation.NavigateTo(navTo, true);
         }
 
         private async void SaveChanges()
@@ -555,7 +555,7 @@
             {
                 navTo = result.Value ?? "/";
             }
-            Navigation.NavigateTo(navTo);
+            Navigation.NavigateTo(navTo, true);
         }
 }
     </body>
