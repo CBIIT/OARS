@@ -306,9 +306,15 @@
             return Task.CompletedTask;
         }
 
-        private void DiscardChanges()
+        private async Task DiscardChanges()
         {
-            JSRuntime.InvokeVoidAsync("eval", "window.history.go(-1)");
+            string navTo = "/";
+            var result = await SessionData.GetAsync<string>("dashboardUrl");
+            if (result.Success)
+            {
+                navTo = result.Value ?? "/";
+            }
+            Navigation.NavigateTo(navTo);
         }
 
         private async void SaveChanges()
@@ -543,6 +549,13 @@
             eSig = false;
             // Add DB record for next review
             modalSubmitReview.Hide();
+            string navTo = "/";
+            var result = await SessionData.GetAsync<string>("dashboardUrl");
+            if (result.Success)
+            {
+                navTo = result.Value ?? "/";
+            }
+            Navigation.NavigateTo(navTo);
         }
 }
     </body>
