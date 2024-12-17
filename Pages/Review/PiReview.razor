@@ -225,7 +225,7 @@
             </ModalBody>
             <ModalFooter>
                 <Button Color="Color.Primary" Clicked="@HideSubmitReviewModal">Cancel</Button>
-                <Button Color="Color.Primary" Clicked="@CompleteReview">Submit Review</Button>
+                <Button Color="Color.Primary" Disabled="@(!eSig)" Clicked="@CompleteReview">Submit Review</Button>
             </ModalFooter>
         </ModalContent>
     </Modal>
