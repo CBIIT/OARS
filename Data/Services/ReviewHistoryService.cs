@@ -51,5 +51,36 @@ namespace TheradexPortal.Data.Services
             var status = context.SaveChangesAsync();
             return Task.FromResult(true);
         }
+
+        private void CloseCurrentReviewAsync(ReviewHistory previousHistory)
+        {
+            previousHistory.UpdateDate = DateTime.Now;
+            previousHistory.ReviewCompleteDate = DateTime.Now;
+            return;
+        }
+
+        public async Task<bool> StartNewReviewAsync(int reviewHistoryID)
+        {
+            var previousReviewHistory = await context.ReviewHistories
+                .FirstOrDefaultAsync(r => r.ReviewHistoryId == reviewHistoryID);
+            CloseCurrentReviewAsync (previousReviewHistory);
+            var newHistory = new ReviewHistory();
+            newHistory.ReviewHistoryId = GetNextReviewHistoryId();
+            newHistory.UserId = previousReviewHistory.UserId;
+            newHistory.EmailAddress = previousReviewHistory.EmailAddress;
+            newHistory.CreateDate = previousReviewHistory.CreateDate;
+            newHistory.ReviewType = previousReviewHistory.ReviewType;
+            //Need to calcualte new review due date
+            newHistory.ReviewLate = 'F';
+            newHistory.ReviewStatus = previousReviewHistory.ReviewStatus;
+            newHistory.DaysLate = 0;
+            newHistory.UpdateDate = DateTime.Now;
+            newHistory.ProtocolId = previousReviewHistory.ProtocolId;
+            //Need to update Review Name
+            newHistory.ReviewId = previousReviewHistory.ReviewId;
+            await context.AddAsync(newHistory);
+            var status = context.SaveChangesAsync();
+            return true;
+        }
     }
 }
