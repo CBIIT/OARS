@@ -234,7 +234,7 @@
         private bool isSelected { get; set; }
         private string? noteText { get; set; }
         private string? savedNoteText { get; set; }
-        private bool submitIsDisabled = true;
+        private bool submitIsDisabled = false;
         private DataGrid<TextNotes> noteDataGrid;
         private DataGrid<EmailDetails> emailDataGrid;
         private string userFullName = "No Name Found";
@@ -450,6 +450,10 @@
                         dctReviewItemSettings.TryGetValue(item.ReviewItemId, out checkedStatus);
 
                         lstManagers.Add(new CheckBoxManager { BoxName = item.ReviewItemName, ReviewItemNumber = item.ReviewItemId, IsChecked = checkedStatus });
+                        if(checkedStatus == false)
+                        {
+                            submitIsDisabled = true;
+                        }
                     }
                     daysLate = latestReviewHistory.DaysLate ?? 0;
                     leadAgentName = await reviewService.GetLeadAgentByIdAsync(ProtocolId);
