@@ -321,17 +321,24 @@
         {
             if (ProtocolId > 0)
             {
+                bool itemUpdateNeeded = false;
                 foreach (var box in lstManagers)
                 {
                     // if the box's Number doesn't exist, in the dictionary, then we need to add a new record to the table
                     if (!dctReviewItemSettings.TryGetValue(box.ReviewItemNumber, out checkedStatus))
                     {
                         reviewHistoryItemService.SaveReviewHistoryItemAsync(latestReviewHistory.ReviewHistoryId, box.ReviewItemNumber, box.IsChecked);
+                        itemUpdateNeeded = true;
                     }
                     else if (box.IsChecked != checkedStatus)
-                    {//forgot update date
+                    {
                         await reviewHistoryItemService.UpdateReviewHistoryItemAsync(latestReviewHistory.ReviewHistoryId, box.ReviewItemNumber, box.IsChecked);
+                        dctReviewItemSettings[box.ReviewItemNumber] = box.IsChecked;
                     }
+                }
+                if(itemUpdateNeeded)
+                {
+                    dctReviewItemSettings = await reviewHistoryItemService.GetCurrentReviewHistoryItemStatusAsync(latestReviewHistory.ReviewHistoryId);
                 }
 
                 if (changesSaved == true && !string.IsNullOrWhiteSpace(noteText))
