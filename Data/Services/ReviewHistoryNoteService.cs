@@ -57,7 +57,9 @@ namespace TheradexPortal.Data.Services
 
         public int GetNextReviewHistoryNoteId()
         {
-            return context.ReviewHistoryNotes.Max(p => p.ReviewHistoryNoteId) + 1;
+            return context.ReviewHistoryNotes
+                .DefaultIfEmpty()
+                .Max(p => p == null ? 0 : p.ReviewHistoryNoteId) + 1;
         }
     }
 }
