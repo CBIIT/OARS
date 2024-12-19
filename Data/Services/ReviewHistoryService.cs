@@ -71,8 +71,7 @@ namespace TheradexPortal.Data.Services
             newHistory.UserId = previousReviewHistory.UserId;
             newHistory.EmailAddress = previousReviewHistory.EmailAddress;
 
-            //Update to now
-            newHistory.CreateDate = previousReviewHistory.CreateDate;
+            newHistory.CreateDate = DateTime.Now;
             newHistory.ReviewType = previousReviewHistory.ReviewType;
             newHistory.DueDate = ((DateTime)previousReviewHistory.DueDate).AddDays(previousReview.ReviewPeriod);
             newHistory.ReviewLate = 'F';
@@ -84,8 +83,7 @@ namespace TheradexPortal.Data.Services
             newHistory.ReviewId = previousReviewHistory.ReviewId;
             await context.AddAsync(newHistory);
             var status = context.SaveChangesAsync();
-            // Add new review history Item
-            //Modify is making new ones
+
             return true;
         }
     }
