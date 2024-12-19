@@ -26,6 +26,7 @@ using System.Threading.Tasks;
 using System;
 using Microsoft.AspNetCore.Hosting;
 using Blazorise.Extensions;
+using Okta.Sdk.Client;
 
 namespace TheradexPortal.Data.Services
 {
@@ -180,6 +181,38 @@ namespace TheradexPortal.Data.Services
                             emailText = emailText.Replace("[[UnattachedFiles]]", "");
 
                         return await SendEmail(new List<string> { emailTo }, null, null, subject, emailText, lstAttachments);
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogInformation("Email Error: " + ex.Message);
+                return false;
+            }
+        }
+
+        public async Task<bool> SendReviewEmail(string emailTo, string subject, string description, string color)
+        {
+            try
+            {
+                using (var s3Client = new AmazonS3Client(RegionEndpoint.USEast1))
+                {
+                    // Get the template to email
+                    GetObjectResponse response = await s3Client.GetObjectAsync(emailSettings.Value.AWSBucketName, string.Format("{0}/SupportRequest.txt", emailSettings.Value.EmailTemplate));
+
+                    using (Stream responseStream = response.ResponseStream)
+                    {
+                        MemoryStream templateStream = new MemoryStream();
+                        responseStream.CopyTo(templateStream);
+                        string emailText = System.Text.Encoding.UTF8.GetString(templateStream.ToArray());
+                        // Populate the specific fields
+
+                        emailText = emailText.Replace("[[Color]]", color);
+                        emailText = emailText.Replace("[[Subject]]", subject);
+                        emailText = emailText.Replace("[[Description]]", description);
+
+                        return await SendEmail(emailTo, subject, emailText);
                     }
 
                 }

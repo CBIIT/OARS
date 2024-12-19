@@ -539,7 +539,7 @@
         {
             if (await validations.ValidateAll())
             {
-                bool sendEmailResult = await emailService.SendEmail(emailTo, emailTitle, emailDescription);
+                bool sendEmailResult = await emailService.SendReviewEmail(emailTo, emailTitle, emailDescription, configuration.GetValue<string>("System:SystemColor"));
                 if (sendEmailResult)
                 {
                     await notificationService.Success("An email has been sent.");
