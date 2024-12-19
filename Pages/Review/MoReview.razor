@@ -214,10 +214,12 @@
         private bool isSelected { get; set; }
         private string? noteText { get; set; }
         private string? savedNoteText { get; set; }
+        private bool submitIsDisabled = false;
+        private DataGrid<TextNotes> noteDataGrid;
+        private DataGrid<EmailDetails> emailDataGrid;
         private string userFullName = "No Name Found";
         private string userFirstName = "Error";
         private string userLastName = "No Name";
-        private bool submitIsDisabled = true;
         private string studyDescription = "No description found";
 
         public class TextNotes
@@ -237,6 +239,7 @@
         public class CheckBoxManager
         {
             public string BoxName { get; set; }
+            public int ReviewItemNumber { get; set; }
             public bool IsChecked { get; set; }
         }
 
@@ -252,7 +255,7 @@
         public void checkboxChanged(string checkboxName, bool value)
         {
             bool allCheckd = true;
-            foreach(var item in lstManagers)
+            foreach (var item in lstManagers)
             {
                 if (checkboxName == item.BoxName)
                     item.IsChecked = value;
@@ -284,38 +287,65 @@
             return Task.CompletedTask;
         }
 
-        private void DiscardChanges()
+        private async Task DiscardChanges()
         {
-            noteText = "";
+            string navTo = "/";
+            var result = await SessionData.GetAsync<string>("dashboardUrl");
+            if (result.Success)
+            {
+                navTo = result.Value ?? "/";
+            }
+            Navigation.NavigateTo(navTo, true);
         }
 
         private async void SaveChanges()
         {
-            var newHistory = new ReviewHistory();
-            newHistory.DaysLate = daysLate;
-            newHistory.EmailAddress = latestReviewHistory.EmailAddress;
-            newHistory.ReviewHistoryId = latestReviewHistory.ReviewHistoryId;
-            newHistory.UserId = httpContextAccessor?.HttpContext?.User.GetUserId() ?? 0;
-            newHistory.ReviewLate = latestReviewHistory.ReviewLate;
-            newHistory.CreateDate = latestReviewHistory.CreateDate;
-            newHistory.UpdateDate = DateTime.Now;
-            newHistory.ReviewType = latestReviewHistory.ReviewType;
-            newHistory.DueDate = latestReviewHistory.DueDate;
-            newHistory.ReviewCompleteDate = latestReviewHistory.ReviewCompleteDate;
-            newHistory.ReviewStatus = latestReviewHistory.ReviewStatus;
-            newHistory.ProtocolId = latestReviewHistory.ProtocolId;
-            
-            if (changesSaved == true && !string.IsNullOrWhiteSpace(noteText))
+            if (AgentId > 0)
             {
-                var newNote = new ReviewHistoryNote();
-                newNote.NoteText = noteText;
-                newNote.CreateDate = DateTime.Now;
-                newNote.ReviewHistoryId = newHistory.ReviewHistoryId;
-                newNote.ReviewHistoryNoteId = historyNoteService.GetNextReviewHistoryNoteId();
-                await historyNoteService.SaveNoteAsync(newNote);
+                bool itemUpdateNeeded = false;
+                foreach (var box in lstManagers)
+                {
+                    // if the box's Number doesn't exist, in the dictionary, then we need to add a new record to the table
+                    if (!dctReviewItemSettings.TryGetValue(box.ReviewItemNumber, out checkedStatus))
+                    {
+                        reviewHistoryItemService.SaveReviewHistoryItemAsync(latestReviewHistory.ReviewHistoryId, box.ReviewItemNumber, box.IsChecked);
+                        itemUpdateNeeded = true;
+                    }
+                    else if (box.IsChecked != checkedStatus)
+                    {
+                        await reviewHistoryItemService.UpdateReviewHistoryItemAsync(latestReviewHistory.ReviewHistoryId, box.ReviewItemNumber, box.IsChecked);
+                        dctReviewItemSettings[box.ReviewItemNumber] = box.IsChecked;
+                    }
+                }
+                if (itemUpdateNeeded)
+                {
+                    dctReviewItemSettings = await reviewHistoryItemService.GetCurrentReviewHistoryItemStatusAsync(latestReviewHistory.ReviewHistoryId);
+                }
+
+                if (changesSaved == true && !string.IsNullOrWhiteSpace(noteText))
+                {
+                    var newNote = new ReviewHistoryNote();
+                    newNote.NoteText = noteText;
+                    newNote.CreateDate = DateTime.Now;
+                    newNote.ReviewHistoryId = latestReviewHistory.ReviewHistoryId;
+                    newNote.ReviewHistoryNoteId = historyNoteService.GetNextReviewHistoryNoteId();
+                    var noteAdded = await historyNoteService.SaveNoteAsync(newNote);
+                    var user = await userService.GetUserAsync(latestReviewHistory.UserId);
+                    var userName = user.FirstName + " " + user.LastName;
+                    if (noteAdded)
+                    {
+                        lstTextNotes.Add(new TextNotes { Name = userName, Note = noteText, CreationDate = newNote.CreateDate.ToString() });
+                    }
+                }
+                noteText = "";
+                await noteDataGrid.Reload();
+
+                await notificationService.Success("Changes have been saved.");
             }
-            noteText = "";
-            await notificationService.Success("Changes have been saved.");
+            else
+            {
+                await notificationService.Error("UI Demo mode. No changes to save.");
+            }
         }
 
         Task OnSendEmailClicked()
@@ -332,6 +362,7 @@
         private bool systemNotesDropdownVisible = false;
         private string systemAlertsTooltip = string.Empty;
         private string systemNotesTooltip = string.Empty;
+        private string leadAgentName = "Demo Page";
         private readonly string noSystemAlertsMessage = "No current System Alerts";
         private readonly string noSystemNotesMessage = "No current System Notes";
         private readonly string currentSystemAlertsMessage = "System Alerts: ";
@@ -340,6 +371,7 @@
         private readonly string visible = "visible";
         public string DashboardName { get; set; }
         public string ReportName { get; set; }
+        private bool eSig = false;
 
         IFluentDisplay adminDisplay = Display.None;
 
@@ -349,6 +381,7 @@
         [Inject] IReviewHistoryService reviewHistoryService { get; set; } = null!;
         [Inject] IReviewHistoryNoteService historyNoteService { get; set; } = null!;
         [Inject] IReviewHistoryEmailService historyEmailService { get; set; } = null!;
+        [Inject] IReviewHistoryItemService reviewHistoryItemService { get; set; } = null!;
         [Inject] public NavigationManager Navigation { get; set; }
         [Inject] private IUserService userService { get; set; } = null!;
         [Inject] private IAlertService alertService { get; set; } = null!;
@@ -358,6 +391,7 @@
         [Inject] IReviewService reviewService { get; set; } = null!;
 
         private Modal modalSubmitEmail;
+        private Modal modalSubmitReview;
         private bool cancelClose;
 
         private string contactUsCategoryID = "", emailTo = "", emailCategory = "", emailDescription = "", emailTitle = "", emailDescriptionLabel = "";
@@ -366,63 +400,77 @@
         private IList<ReviewItem> lstReviewItems;
         private IList<int> lstReviewHistories;
         private ReviewHistory latestReviewHistory;
-        private int daysLate;
+        private int daysLate = 0;
         private List<string> reviewNote = new List<string> { "No previous notes." };
         private List<string> reviewEmail = new List<string> { "No previous emails." };
         FileEdit fileEditRef;
         string uploadFileName = "";
-        private string leadAgentName = "Demo Page";
         List<string> lstAttachments = new List<string>();
+        Dictionary<int, bool> dctReviewItemSettings = new Dictionary<int, bool>();
         IFileEntry selectedFile;
+        private bool checkedStatus;
 
         protected override async Task OnInitializedAsync()
         {
             lstReviewItems = await reviewItemService.GetReviewItemListAsync("MO", 'T');
-            foreach(var item in lstReviewItems)
-            {
-                lstManagers.Add(new CheckBoxManager { BoxName = item.ReviewItemName, IsChecked = false });
-            }
-            latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(AgentId);
 
-            var user = await userService.GetUserAsync(latestReviewHistory.UserId);
-            if (user != null)
+            if (AgentId > 0)
             {
-                userFullName = user.FirstName + " " + user.LastName;
-                userFirstName = user.FirstName;
-                userLastName = user.LastName;
-            }
-            studyDescription = await studyService.GetStudyTitleAsync(AgentId);
-            daysLate = latestReviewHistory.DaysLate ?? 0;
-            leadAgentName = await reviewService.GetLeadAgentByIdAsync(AgentId);
-            lstReviewHistories = await reviewHistoryService.GetHistoryRecordsByProtocolAsync(AgentId);
-            if (lstReviewHistories != null && lstReviewHistories.Count() > 0)
-            {
-                for (int i = 0; i < lstReviewHistories.Count(); i++)
+                latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(AgentId);
+                if (latestReviewHistory != null)
                 {
-                    var tmpLst = await historyNoteService.GetNotesAsync(lstReviewHistories[i]);
-                    if (tmpLst != null)
+                    var user = await userService.GetUserAsync(latestReviewHistory.UserId);
+                    if (user != null)
                     {
-                        if (reviewNote.Contains("No previous notes."))
-                            reviewNote.Remove("No previous notes.");
-                        //reviewNote.Add(tmp.Notes);
-                        foreach (var tmp in tmpLst)
+                        userFullName = user.FirstName + " " + user.LastName;
+                        userFirstName = user.FirstName;
+                        userLastName = user.LastName;
+                    }
+                    studyDescription = await studyService.GetStudyTitleAsync(AgentId);
+                    dctReviewItemSettings = await reviewHistoryItemService.GetCurrentReviewHistoryItemStatusAsync(latestReviewHistory.ReviewHistoryId);
+                    foreach (var item in lstReviewItems)
+                    {
+                        dctReviewItemSettings.TryGetValue(item.ReviewItemId, out checkedStatus);
+
+                        lstManagers.Add(new CheckBoxManager { BoxName = item.ReviewItemName, ReviewItemNumber = item.ReviewItemId, IsChecked = checkedStatus });
+                        if (checkedStatus == false)
                         {
-                            lstTextNotes.Add(new TextNotes { Name = tmp.UserName, Note = tmp.Notes, CreationDate = tmp.CreationDate.ToString() });
+                            submitIsDisabled = true;
+                        }
+                    }
+
+                    daysLate = latestReviewHistory.DaysLate ?? 0;
+                    leadAgentName = await reviewService.GetLeadAgentByIdAsync(AgentId);
+                    lstReviewHistories = await reviewHistoryService.GetHistoryRecordsByProtocolAsync(AgentId);
+                    if (lstReviewHistories != null && lstReviewHistories.Count() > 0)
+                    {
+                        for (int i = 0; i < lstReviewHistories.Count(); i++)
+                        {
+                            var tmpLst = await historyNoteService.GetNotesAsync(lstReviewHistories[i]);
+                            if (tmpLst != null)
+                            {
+                                if (reviewNote.Contains("No previous notes."))
+                                    reviewNote.Remove("No previous notes.");
+                                foreach (var tmp in tmpLst)
+                                {
+                                    lstTextNotes.Add(new TextNotes { Name = tmp.UserName, Note = tmp.Notes, CreationDate = tmp.CreationDate.ToString() });
+                                }
+                            }
+                        }
+                        for (int i = 0; i < lstReviewHistories.Count(); i++)
+                        {
+                            var tmp = await historyEmailService.GetSingleEmailAsync(lstReviewHistories[i]);
+                            if (tmp != null && !String.IsNullOrEmpty(tmp.Body))
+                            {
+                                if (reviewEmail.Contains("No previous emails."))
+                                    reviewEmail.Remove("No previous emails.");
+                                reviewEmail.Add(tmp.Body);
+                                lstEmailDetails.Add(new EmailDetails { Body = tmp.Body, EmailTo = tmp.Recipient, CreationDate = tmp.CreationDate.ToString() });
+                            }
                         }
                     }
                 }
-                for (int i = 0; i < lstReviewHistories.Count(); i++)
-                {
-                    var tmp = await historyEmailService.GetSingleEmailAsync(lstReviewHistories[i]);
-                    if (tmp != null && !String.IsNullOrEmpty(tmp.Body))
-                    {
-                        if (reviewEmail.Contains("No previous emails."))
-                            reviewEmail.Remove("No previous emails.");
-                        reviewEmail.Add(tmp.Body);
-                        lstEmailDetails.Add(new EmailDetails { Body = tmp.Body, EmailTo = tmp.Recipient, CreationDate = tmp.CreationDate.ToString() });
-                    }
-                }
-            }            
+            }
         }
 
         private Task OnModalClosing(ModalClosingEventArgs e)
@@ -444,6 +492,11 @@
             return modalSubmitEmail.Show();
         }
 
+        private Task ShowSubmitReviewModal()
+        {
+            return modalSubmitReview.Show();
+        }
+
         private string GetReviewStatus()
         {
             return daysLate > 0 ? "Late" : "On Time";
@@ -455,107 +508,48 @@
             return modalSubmitEmail.Hide();
         }
 
+        private Task HideSubmitReviewModal()
+        {
+            cancelClose = false;
+            eSig = false;
+            return modalSubmitReview.Hide();
+        }
+
         private async void SendContactUsEmail()
         {
-            bool uploadResult = true;
-            bool s3TagResult = true;
-            List<string> unattachedFiles = new List<string>();
-
             if (await validations.ValidateAll())
             {
-                emailTo = string.Empty;
-                emailCategory = string.Empty;
-                string siteName = "NCI Theradex Oncology Reporting-" + configuration.GetValue<string>("System:Environment");
-                string baseURL = Navigation.BaseUri;
-                string color = configuration.GetValue<string>("System:SystemColor");
-                string dateTime = DateTime.Now.ToString("d-MMM-yyyy hh:mm tt");
-                int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
-                User curUser = await userService.GetUserAsync(userId);
-                string userName = curUser.FirstName + " " + curUser.LastName;
-
-                ContactUsCategory category = lstContactUsCategory.Where(l => l.ContactUsCategoryID == Convert.ToInt32(contactUsCategoryID)).FirstOrDefault();
-                if (category != null)
-                {
-                    if (category.ParentCategoryId != null)
-                    {
-                        ContactUsCategory parentCategory = lstContactUsCategory.Where(l => l.ContactUsCategoryID == Convert.ToInt32(category.ParentCategoryId)).FirstOrDefault();
-                        if (parentCategory != null)
-                        {
-                            emailCategory = parentCategory.Name + "-";
-                        }
-                    }
-                    emailCategory += category.Name;
-                    emailTo = category.EmailTo;
-                }
-
-                if (selectedFile != null)
-                {
-                    try
-                    {
-                        var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(selectedFile.Name);
-                        string allowedFileExtension = ".jpeg, .jpg, .gif, .pdf, .pdc, .docx, .odt, .rtf, .txt, .csv, .png, .bmp, .tiff, .xls, .xlsx";
-                        var fileExtension = Path.GetExtension(selectedFile.Name);
-                        if (allowedFileExtension.IndexOf(fileExtension) >= 0)
-                        {
-                            uploadFileName = fileNameWithoutExtension + "_" + Guid.NewGuid() + fileExtension;
-                            lstAttachments.Add(uploadFileName);
-                            using (var stream = new MemoryStream())
-                            {
-                                await selectedFile.WriteToStreamAsync(stream);
-                                uploadResult = await emailService.UploadFileToS3(uploadFileName, stream);
-                                //if (!uploadResult)
-                                //{
-                                //    unattachedFiles.Add(selectedFile.Name);
-                                //    lstAttachments.Remove(uploadFileName);
-                                //}
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        await errorLogService.SaveErrorLogAsync(userId, Navigation.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
-                    }
-                }
-
-                ContactUs contactUsLog = new ContactUs();
-                contactUsLog.ContactUsID = 0;
-                contactUsLog.Subject = emailTitle;
-                contactUsLog.Description = emailDescription; ;
-                contactUsLog.CategoryID = Convert.ToInt32(contactUsCategoryID);
-                contactUsLog.UserID = userId;
-                contactUsLog.AttachmentName = uploadFileName;
-                //if (string.IsNullOrEmpty(DashboardName))
-                if (!Navigation.Uri.Contains("dashboard"))
-                    contactUsLog.Location = Navigation.ToBaseRelativePath(Navigation.Uri);
-                else
-                    contactUsLog.Location = "dashboard/" + DashboardName + "/" + ReportName;
-
-                contactUsCategoryService.SaveContactUs(userId, contactUsLog);
-
-                if (selectedFile != null)
-                {
-                    s3TagResult = await emailService.CheckS3FileTag(uploadFileName);
-                    if (!s3TagResult)
-                    {
-                        unattachedFiles.Add(selectedFile.Name);
-                        lstAttachments.Remove(uploadFileName);
-                    }
-                }
-
-                bool sendEmailResult = await emailService.SendContactUsEmail(siteName, baseURL, color, emailTo, emailTitle, emailCategory, emailDescription,
-                userName, dateTime, contactUsLog.Location, lstAttachments, unattachedFiles);
+                bool sendEmailResult = await emailService.SendReviewEmail(emailTo, emailTitle, emailDescription, configuration.GetValue<string>("System:SystemColor"));
                 if (sendEmailResult)
                 {
-                    await notificationService.Success("An email to support has been sent.");
+                    await notificationService.Success("An email has been sent.");
+                    await historyEmailService.SaveNewEmailAsync(latestReviewHistory.ReviewHistoryId, emailTo, emailDescription);
+                    await emailDataGrid.Reload();
                 }
                 else
                 {
-                    await notificationService.Error("Error sending the email to support.");
+                    await notificationService.Error("Error sending the email.");
                 }
 
                 cancelClose = false;
                 modalSubmitEmail.Hide();
             }
+        }
+
+        private async void CompleteReview()
+        {
+            eSig = false;
+            // Add DB record for next review
+            // We need the current date for complete and for updated
+            reviewHistoryService.StartNewReviewAsync(latestReviewHistory.ReviewHistoryId);
+            modalSubmitReview.Hide();
+            string navTo = "/";
+            var result = await SessionData.GetAsync<string>("dashboardUrl");
+            if (result.Success)
+            {
+                navTo = result.Value ?? "/";
+            }
+            Navigation.NavigateTo(navTo, true);
         }
 }
 </body>
