@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using TheradexPortal.Data.Models;
+using TheradexPortal.Data.Models.DTO;
 using TheradexPortal.Data.Services.Abstract;
 
 namespace TheradexPortal.Data.Services
@@ -9,10 +10,15 @@ namespace TheradexPortal.Data.Services
     {
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
-        public ReviewHistoryService(IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, NavigationManager navigationManager) : base(databaseConnectionService)
+        private readonly IReviewService _reviewService;
+        public ReviewHistoryService(IDatabaseConnectionService databaseConnectionService,
+                                    IErrorLogService errorLogService,
+                                    NavigationManager navigationManager,
+                                    IReviewService reviewService) : base(databaseConnectionService)
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;
+            _reviewService = reviewService;
         }
         public async Task<int> GetDaysLateAsync(int protocolId)
         {
@@ -85,6 +91,28 @@ namespace TheradexPortal.Data.Services
             var status = context.SaveChangesAsync();
 
             return true;
+        }
+
+        public async Task<List<ReviewHistoryPiDTO>> GetPiInfoAsync(int protocolId)
+        {
+            var lstPiReviews = await _reviewService.GetActivePIReviewsAsync(protocolId);
+
+            var query = context.ReviewHistories
+                    .Where(rh => lstPiReviews.Contains(rh.ReviewId ?? 0) && rh.ReviewCompleteDate == null)
+                    .Join(context.Users,
+                    rh => rh.UserId,
+                    u => u.UserId,
+                    (rh, u) => new ReviewHistoryPiDTO
+                    {
+                        PiName = u.FirstName + " " + u.LastName,
+                        caseNumber = rh.ProtocolId.ToString(),
+                        updateDate = rh.UpdateDate,
+                        currentStatus = rh.ReviewStatus
+                    });
+
+            var ret = await query.ToListAsync(); ;
+
+            return ret;
         }
     }
 }

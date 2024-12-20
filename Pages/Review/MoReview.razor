@@ -30,7 +30,7 @@
     <Row>
         <Column Style="background-image: Review-Bar.png" ColumnSize="ColumnSize.Is12">
             <Div Background="Background.Primary" TextColor="TextColor.Light" style="display: flex; justify-content: center; align-items: center; width: 100%; text-align: center; flex-direction: column;">
-                <span><h3>MO Review for Study @userFullName </h3></span>
+                <span><h3>MO Review</h3></span>
                 <span><h4> @leadAgentName : @AgentId : @studyDescription </h4></span>
                 <span><h4>Status: @GetReviewStatus()</h4></span>
             </Div>
@@ -130,9 +130,9 @@
                         </DataGrid>
                     </TabPanel>
                     <TabPanel Name="piDetails">
-                        <DataGrid TItem="EmailDetails"
+                        <DataGrid TItem="ReviewHistoryPiDTO"
                         Class="admindatagrid"
-                        Data="@lstEmailDetails"
+                        Data="@lstPiDetails"
                         Bordered="true"
                         AltBordered="true"
                         Responsive
@@ -150,9 +150,10 @@
                         FixedHeaderDataGridHeight="calc(100vh - 240px)"
                         FixedHeaderDataGridMaxHeight="calc(100vh - 240px)">
                             <DataGridCommandColumn />
-                            <DataGridColumn TItem="EmailDetails" Field="@nameof(EmailDetails.EmailTo)" Caption="Recipient" />
-                            <DataGridColumn TItem="EmailDetails" Field="@nameof(EmailDetails.Body)" Caption="Email Body" />
-                            <DataGridColumn TItem="EmailDetails" Field="@nameof(EmailDetails.CreationDate)" Caption="Email Sent Date" />
+                            <DataGridColumn TItem="ReviewHistoryPiDTO" Field="@nameof(ReviewHistoryPiDTO.PiName)" Caption="PI Name" />
+                            <DataGridColumn TItem="ReviewHistoryPiDTO" Field="@nameof(ReviewHistoryPiDTO.caseNumber)" Caption="Case Number" />
+                            <DataGridColumn TItem="ReviewHistoryPiDTO" Field="@nameof(ReviewHistoryPiDTO.updateDate)" Caption="Update Date" />
+                            <DataGridColumn TItem="ReviewHistoryPiDTO" Field="@nameof(ReviewHistoryPiDTO.currentStatus)" Caption="Current PI Status" />
                         </DataGrid>
                     </TabPanel>
                 </Content>
@@ -217,6 +218,7 @@
         private bool submitIsDisabled = false;
         private DataGrid<TextNotes> noteDataGrid;
         private DataGrid<EmailDetails> emailDataGrid;
+        private DataGrid<ReviewHistoryPiDTO> piDataGrid;
         private string userFullName = "No Name Found";
         private string userFirstName = "Error";
         private string userLastName = "No Name";
@@ -236,6 +238,14 @@
             public string CreationDate { get; set; }
         }
 
+        public class PIDetails
+        {
+            public string PIName { get; set; }
+            public string caseNumber { get; set; }
+            public DateTime UpdateDate { get; set; }
+            public string CurrentStatus { get; set; }
+        }
+
         public class CheckBoxManager
         {
             public string BoxName { get; set; }
@@ -246,6 +256,7 @@
         private List<TextNotes> lstTextNotes = new List<TextNotes>();
         private List<EmailDetails> lstEmailDetails = new List<EmailDetails>();
         private List<CheckBoxManager> lstManagers = new List<CheckBoxManager>();
+        private List<ReviewHistoryPiDTO> lstPiDetails = new List<ReviewHistoryPiDTO>();
 
         [Parameter]
         public int AgentId { get; set; } = 0;
@@ -419,6 +430,7 @@
                 latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(AgentId);
                 if (latestReviewHistory != null)
                 {
+                    lstPiDetails = await reviewHistoryService.GetPiInfoAsync(AgentId);
                     var user = await userService.GetUserAsync(latestReviewHistory.UserId);
                     if (user != null)
                     {

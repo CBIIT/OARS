@@ -21,5 +21,13 @@ namespace TheradexPortal.Data.Services
                 .Select(a=>a.AgentName)
                 .FirstOrDefaultAsync() ?? "";
         }
+
+        public async Task<List<int>> GetActivePIReviewsAsync(int protocolId)
+        {
+            return await context.Reviews
+                .Where(p => p.ProtocolId == protocolId && p.ReviewType == "PI" && p.ReviewStatus == "Active")
+                .Select(r => r.ReviewId)
+                .ToListAsync();
+        }
     }
 }

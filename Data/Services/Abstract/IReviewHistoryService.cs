@@ -1,4 +1,5 @@
 ﻿using TheradexPortal.Data.Models;
+using TheradexPortal.Data.Models.DTO;
 
 namespace TheradexPortal.Data.Services.Abstract
 {
@@ -14,5 +15,6 @@ namespace TheradexPortal.Data.Services.Abstract
         public Task<bool> SaveNewReviewHistoryAsync(ReviewHistory reviewHistory);
 
         public Task<bool> StartNewReviewAsync(int reviewHistoryID);
+        public Task<List<ReviewHistoryPiDTO>> GetPiInfoAsync(int protocolId);
     }
 }
