@@ -15,19 +15,20 @@ namespace TheradexPortal.Data.Services
             _errorLogService = errorLogService;
             _navManager = navigationManager;
         }
-        public async Task<ReviewHistoryEmailDTO> GetSingleEmailAsync(int historyId)
+
+        public async Task<List<ReviewHistoryEmailDTO>> GetEmailsAsync(int historyId)
         {
-            var result =  await context.ReviewHistoryEmails
-                .Where(p => p.ReviewHistoryId == historyId)
-                .OrderBy(d => d.CreateDate)
-                .Select(r => new ReviewHistoryEmailDTO
-                {
-                    Body = r.EmailText,
-                    CreationDate = r.CreateDate,
-                    Recipient = r.EmailToAddress
-                }
+            var result = await context.ReviewHistoryEmails
+                .Where(rhe => rhe.ReviewHistoryId == historyId)
+                .OrderByDescending(rhe => rhe.CreateDate)
+                .Select(e => new ReviewHistoryEmailDTO
+                    {
+                        Body = e.EmailText,
+                        Recipient = e.EmailToAddress,
+                        CreationDate = e.CreateDate,
+                    }
                 )
-                .FirstOrDefaultAsync();
+                .ToListAsync<ReviewHistoryEmailDTO>();
             return result;
         }
 

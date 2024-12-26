@@ -105,6 +105,7 @@
                     </TabPanel>
                     <TabPanel Name="emailhistory">
                         <DataGrid TItem="EmailDetails"
+                        @ref="emailDataGrid"
                         Class="admindatagrid"
                         Data="@lstEmailDetails"
                         Bordered="true"
@@ -207,7 +208,7 @@
             </ModalBody>
             <ModalFooter>
                 <Button Color="Color.Primary" Clicked="@HideContactUsModal">Cancel</Button>
-                <Button Color="Color.Primary" Clicked="@SendContactUsEmail">Send Request</Button>
+                <Button Color="Color.Primary" Disabled="!emailFormIsValid" Clicked="@SendContactUsEmail">Send Request</Button>
             </ModalFooter>
         </ModalContent>
     </Modal>
@@ -216,6 +217,7 @@
         private string? noteText { get; set; }
         private string? savedNoteText { get; set; }
         private bool submitIsDisabled = false;
+        private bool emailFormIsValid => emailTo != null && emailTo.Contains('@') && emailTo.Contains('.');
         private DataGrid<TextNotes> noteDataGrid;
         private DataGrid<EmailDetails> emailDataGrid;
         private DataGrid<ReviewHistoryPiDTO> piDataGrid;
@@ -453,32 +455,25 @@
 
                     daysLate = latestReviewHistory.DaysLate ?? 0;
                     leadAgentName = await reviewService.GetLeadAgentByIdAsync(AgentId);
-                    lstReviewHistories = await reviewHistoryService.GetHistoryRecordsByProtocolAsync(AgentId);
-                    if (lstReviewHistories != null && lstReviewHistories.Count() > 0)
+                    var tmpLst = await historyNoteService.GetNotesAsync(latestReviewHistory.ReviewHistoryId);
+                    if (tmpLst != null)
                     {
-                        for (int i = 0; i < lstReviewHistories.Count(); i++)
+                        if (reviewNote.Contains("No previous notes."))
+                            reviewNote.Remove("No previous notes.");
+                        foreach (var tmp in tmpLst)
                         {
-                            var tmpLst = await historyNoteService.GetNotesAsync(lstReviewHistories[i]);
-                            if (tmpLst != null)
-                            {
-                                if (reviewNote.Contains("No previous notes."))
-                                    reviewNote.Remove("No previous notes.");
-                                foreach (var tmp in tmpLst)
-                                {
-                                    lstTextNotes.Add(new TextNotes { Name = tmp.UserName, Note = tmp.Notes, CreationDate = tmp.CreationDate.ToString() });
-                                }
-                            }
+                            lstTextNotes.Add(new TextNotes { Name = tmp.UserName, Note = tmp.Notes, CreationDate = tmp.CreationDate.ToString() });
                         }
-                        for (int i = 0; i < lstReviewHistories.Count(); i++)
+                    }
+                    var tmpEmailList = await historyEmailService.GetEmailsAsync(latestReviewHistory.ReviewHistoryId);
+                    if (tmpEmailList != null)
+                    {
+                        if (reviewEmail.Contains("No previous emails."))
+                            reviewEmail.Remove("No previous emails.");
+                        foreach (var email in tmpEmailList)
                         {
-                            var tmp = await historyEmailService.GetSingleEmailAsync(lstReviewHistories[i]);
-                            if (tmp != null && !String.IsNullOrEmpty(tmp.Body))
-                            {
-                                if (reviewEmail.Contains("No previous emails."))
-                                    reviewEmail.Remove("No previous emails.");
-                                reviewEmail.Add(tmp.Body);
-                                lstEmailDetails.Add(new EmailDetails { Body = tmp.Body, EmailTo = tmp.Recipient, CreationDate = tmp.CreationDate.ToString() });
-                            }
+                            reviewEmail.Add(email.Body);
+                            lstEmailDetails.Add(new EmailDetails { Body = email.Body, EmailTo = email.Recipient, CreationDate = email.CreationDate.ToString() });
                         }
                     }
                 }
@@ -536,6 +531,7 @@
                 {
                     await notificationService.Success("An email has been sent.");
                     await historyEmailService.SaveNewEmailAsync(latestReviewHistory.ReviewHistoryId, emailTo, emailDescription);
+                    lstEmailDetails.Insert(0, new EmailDetails { Body = emailDescription, EmailTo = emailTo, CreationDate = DateTime.Now.ToString() });
                     await emailDataGrid.Reload();
                 }
                 else
