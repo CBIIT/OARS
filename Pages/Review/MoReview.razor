@@ -169,7 +169,7 @@
                 <CloseButton />
             </ModalHeader>
             <ModalBody>
-                <Validations @ref="validations" Mode="ValidationMode.Manual">
+                <Validations @ref="validations" Mode="ValidationMode.Auto" ValidateOnLoad="false">
                     <Validation Validator="@ValidationRule.IsEmail">
                         <Field>
                             <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">To</FieldLabel>

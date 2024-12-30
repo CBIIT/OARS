@@ -153,17 +153,17 @@
                 <CloseButton />
             </ModalHeader>
             <ModalBody>
-                <Validations @ref="validations" Mode="ValidationMode.Manual">
-                    <Validation Validator="@ValidationRule.IsEmail">
+                <Validations @ref="validations" Mode="ValidationMode.Auto" ValidateOnLoad="false">
                         <Field>
                             <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">To</FieldLabel>
-                            <TextEdit Placeholder="Enter recipient" @bind-Text="@emailTo">
-                                <Feedback>
-                                    <ValidationError>Invalid Email</ValidationError>
-                                </Feedback>
-                            </TextEdit>
+                            <Validation Validator="@ValidationRule.IsEmail">
+                                <TextEdit Placeholder="Enter recipient" @bind-Text="@emailTo">
+                                    <Feedback>
+                                        <ValidationError>Invalid Email</ValidationError>
+                                    </Feedback>
+                                </TextEdit>
+                            </Validation>
                         </Field>
-                    </Validation>
                     <Validation Validator="@ValidationRule.IsNotEmpty">
                         <Field>
                             <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Subject</FieldLabel>
@@ -192,7 +192,7 @@
             </ModalBody>
             <ModalFooter>
                 <Button Color="Color.Primary" Clicked="@HideContactUsModal">Cancel</Button>
-                <Button Color="Color.Primary" Clicked="@SendContactUsEmail">Send Request</Button>
+                <Button Color="Color.Primary" Disabled="!emailFormIsValid" Clicked="@SendContactUsEmail">Send Request</Button>
             </ModalFooter>
         </ModalContent>
     </Modal>
@@ -234,6 +234,7 @@
         private bool isSelected { get; set; }
         private string? noteText { get; set; }
         private string? savedNoteText { get; set; }
+        private bool emailFormIsValid => emailTo != null && emailTo.Contains('@') && emailTo.Contains('.');
         private bool submitIsDisabled = false;
         private DataGrid<TextNotes> noteDataGrid;
         private DataGrid<EmailDetails> emailDataGrid;
