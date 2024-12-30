@@ -549,6 +549,7 @@
             eSig = false;
             // Add DB record for next review
             // We need the current date for complete and for updated
+            SaveChanges();
             reviewHistoryService.StartNewReviewAsync(latestReviewHistory.ReviewHistoryId);
             modalSubmitReview.Hide();
             string navTo = "/";
