@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using TheradexPortal.Data.Models.DTO;
 using TheradexPortal.Data.Services.Abstract;
 using TheradexPortal.Data.Models;
+using Blazorise;
 
 namespace TheradexPortal.Data.Services
 {
@@ -48,10 +49,11 @@ namespace TheradexPortal.Data.Services
             return "";
         }
 
-        public Task<bool> SaveNoteAsync(ReviewHistoryNote note)
+        public Task<bool> SaveNoteAsync(int userId, ReviewHistoryNote note)
         {
             context.AddAsync(note);
-            var status = context.SaveChangesAsync();
+            var primaryTable = context.Model.FindEntityType(typeof(ReviewHistoryNote)).ToString().Replace("EntityType: ", "");
+            context.SaveChangesAsync(userId, primaryTable);
             return Task.FromResult(true);
         }
 

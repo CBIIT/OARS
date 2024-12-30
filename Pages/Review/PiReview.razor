@@ -178,7 +178,7 @@
                         <Field>
                             <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Description</FieldLabel>
                             <FieldBody>
-                                <MemoEdit @bind-Text="@emailDescription" MaxLength="250" Rows="3" Placeholder="Email body"
+                                <MemoEdit @bind-Text="@emailDescription" MaxLength="4000" Rows="3" Placeholder="Email body"
                                 onkeydown="@OnDescriptionChanged">
                                     <Feedback>
                                         <ValidationError>Email body can't be empty</ValidationError>
@@ -349,7 +349,7 @@
                     newNote.CreateDate = DateTime.Now;
                     newNote.ReviewHistoryId = latestReviewHistory.ReviewHistoryId;
                     newNote.ReviewHistoryNoteId = historyNoteService.GetNextReviewHistoryNoteId();
-                    var noteAdded = await historyNoteService.SaveNoteAsync(newNote);
+                    var noteAdded = await historyNoteService.SaveNoteAsync(activeUserId, newNote);
                     var user = await userService.GetUserAsync(latestReviewHistory.UserId);
                     var userName = user.FirstName + " " + user.LastName;
                     if(noteAdded) {
@@ -387,6 +387,7 @@
         private readonly string currentSystemNotesMessage = "System Notes: ";
         private readonly string dismissed = "dismissed";
         private readonly string visible = "visible";
+        private int activeUserId;
         public string DashboardName { get; set; }
         public string ReportName { get; set; }
         private bool eSig = false;
@@ -431,7 +432,7 @@
         protected override async Task OnInitializedAsync()
         {
             lstReviewItems = await reviewItemService.GetActiveReviewItemsAsync();
-
+            activeUserId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
             if (ProtocolId > 0)
             {
                 latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(ProtocolId);
