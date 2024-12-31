@@ -52,7 +52,7 @@ namespace TheradexPortal.Data.Services
         public Task<bool> SaveNoteAsync(int userId, ReviewHistoryNote note)
         {
             context.AddAsync(note);
-            var primaryTable = context.Model.FindEntityType(typeof(ReviewHistoryNote)).ToString().Replace("EntityType: ", "");
+            var primaryTable = context.Model.FindEntityType(typeof(ReviewHistory)).ToString().Replace("EntityType: ", "");
             context.SaveChangesAsync(userId, primaryTable);
             return Task.FromResult(true);
         }

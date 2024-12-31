@@ -32,7 +32,7 @@ namespace TheradexPortal.Data.Services
             return true;
         }
 
-        public async Task<bool> SaveReviewHistoryItemAsync(int reviewHistoryID, int reviewItemID, bool newValue)
+        public async Task<bool> SaveReviewHistoryItemAsync(int activeUserId, int reviewHistoryID, int reviewItemID, bool newValue)
         {
             ReviewHistoryItem newReviewHistoryItem = new ReviewHistoryItem();
             newReviewHistoryItem.ReviewHistoryItemId = GetNextReviewHistoryItemId();
@@ -41,19 +41,20 @@ namespace TheradexPortal.Data.Services
             newReviewHistoryItem.IsCompleted = newValue ? 'T' : 'F';
             newReviewHistoryItem.CreateDate = DateTime.Now;
             newReviewHistoryItem.UpdateDate = DateTime.Now;
-
+            var primaryTable = context.Model.FindEntityType(typeof(ReviewHistory)).ToString().Replace("EntityType: ", "");
             await context.ReviewHistoryItems.AddAsync(newReviewHistoryItem);
-            var status = await context.SaveChangesAsync();
+            var status = await context.SaveChangesAsync(activeUserId, primaryTable);
             return true;
         }
 
-        public async Task<bool> UpdateReviewHistoryItemAsync(int reviewHistoryID, int reviewItemID, bool newValue)
+        public async Task<bool> UpdateReviewHistoryItemAsync(int activeUserId, int reviewHistoryID, int reviewItemID, bool newValue)
         {
             var reviewItem = await context.ReviewHistoryItems
                 .FirstOrDefaultAsync(r => r.ReviewHistoryId == reviewHistoryID && r.ReviewItemId == reviewItemID);
             reviewItem.IsCompleted = newValue ? 'T' : 'F';
             reviewItem.UpdateDate = DateTime.Now;
-            await context.SaveChangesAsync();
+            var primaryTable = context.Model.FindEntityType(typeof(ReviewHistory)).ToString().Replace("EntityType: ", "");
+            await context.SaveChangesAsync(activeUserId, primaryTable);
             return true;
         }
 

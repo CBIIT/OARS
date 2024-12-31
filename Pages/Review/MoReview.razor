@@ -321,12 +321,12 @@
                     // if the box's Number doesn't exist, in the dictionary, then we need to add a new record to the table
                     if (!dctReviewItemSettings.TryGetValue(box.ReviewItemNumber, out checkedStatus))
                     {
-                        reviewHistoryItemService.SaveReviewHistoryItemAsync(latestReviewHistory.ReviewHistoryId, box.ReviewItemNumber, box.IsChecked);
+                        reviewHistoryItemService.SaveReviewHistoryItemAsync(activeUserId, latestReviewHistory.ReviewHistoryId, box.ReviewItemNumber, box.IsChecked);
                         itemUpdateNeeded = true;
                     }
                     else if (box.IsChecked != checkedStatus)
                     {
-                        await reviewHistoryItemService.UpdateReviewHistoryItemAsync(latestReviewHistory.ReviewHistoryId, box.ReviewItemNumber, box.IsChecked);
+                        await reviewHistoryItemService.UpdateReviewHistoryItemAsync(activeUserId, latestReviewHistory.ReviewHistoryId, box.ReviewItemNumber, box.IsChecked);
                         dctReviewItemSettings[box.ReviewItemNumber] = box.IsChecked;
                     }
                 }
@@ -342,7 +342,7 @@
                     newNote.CreateDate = DateTime.Now;
                     newNote.ReviewHistoryId = latestReviewHistory.ReviewHistoryId;
                     newNote.ReviewHistoryNoteId = historyNoteService.GetNextReviewHistoryNoteId();
-                    var noteAdded = await historyNoteService.SaveNoteAsync(0, newNote);
+                    var noteAdded = await historyNoteService.SaveNoteAsync(activeUserId, newNote);
                     var user = await userService.GetUserAsync(latestReviewHistory.UserId);
                     var userName = user.FirstName + " " + user.LastName;
                     if (noteAdded)
@@ -382,6 +382,7 @@
         private readonly string currentSystemNotesMessage = "System Notes: ";
         private readonly string dismissed = "dismissed";
         private readonly string visible = "visible";
+        private int activeUserId;
         public string DashboardName { get; set; }
         public string ReportName { get; set; }
         private bool eSig = false;
@@ -430,12 +431,13 @@
             if (AgentId > 0)
             {
                 latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(AgentId);
+                activeUserId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
                 if (latestReviewHistory != null)
                 {
                     var activeReview = await reviewHistoryService.isReviewActive(latestReviewHistory.ReviewHistoryId);
                     if (!activeReview)
                     {
-                        reviewHistoryService.StartNewReviewAsync(latestReviewHistory.ReviewHistoryId);
+                        reviewHistoryService.StartNewReviewAsync(activeUserId, latestReviewHistory.ReviewHistoryId);
                         latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(AgentId);
                     }
                     lstPiDetails = await reviewHistoryService.GetPiInfoAsync(AgentId);
@@ -556,7 +558,7 @@
             // Add DB record for next review
             // We need the current date for complete and for updated
             SaveChanges();
-            reviewHistoryService.CloseCurrentReviewAsync(latestReviewHistory.ReviewHistoryId);
+            reviewHistoryService.CloseCurrentReviewAsync(activeUserId, latestReviewHistory.ReviewHistoryId);
             modalSubmitReview.Hide();
             string navTo = "/";
             var result = await SessionData.GetAsync<string>("dashboardUrl");

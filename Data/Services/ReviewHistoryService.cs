@@ -58,7 +58,7 @@ namespace TheradexPortal.Data.Services
             return Task.FromResult(true);
         }
 
-        public async Task<bool> CloseCurrentReviewAsync(int reviewHistoryID)
+        public async Task<bool> CloseCurrentReviewAsync(int userId, int reviewHistoryID)
         {
             var previousReviewHistory = await context.ReviewHistories
                 .FirstOrDefaultAsync(r => r.ReviewHistoryId == reviewHistoryID);
@@ -67,8 +67,8 @@ namespace TheradexPortal.Data.Services
 
             previousReview.UpdateDate = DateTime.Now;
             previousReviewHistory.ReviewCompleteDate = DateTime.Now;
-
-            var status = context.SaveChangesAsync();
+            var primaryTable = context.Model.FindEntityType(typeof(ReviewHistory)).ToString().Replace("EntityType: ", "");
+            var status = context.SaveChangesAsync(userId, primaryTable);
 
             return true;
         }
@@ -83,7 +83,7 @@ namespace TheradexPortal.Data.Services
         }
 
 
-        public async Task<bool> StartNewReviewAsync(int reviewHistoryID)
+        public async Task<bool> StartNewReviewAsync(int userId, int reviewHistoryID)
         {
             var previousReviewHistory = await context.ReviewHistories
                 .FirstOrDefaultAsync(r => r.ReviewHistoryId == reviewHistoryID);
@@ -105,8 +105,8 @@ namespace TheradexPortal.Data.Services
             //Need to update Review Name
             newHistory.ReviewId = previousReviewHistory.ReviewId;
             await context.AddAsync(newHistory);
-
-            var status = context.SaveChangesAsync();
+            var primaryTable = context.Model.FindEntityType(typeof(ReviewHistory)).ToString().Replace("EntityType: ", "");
+            var status = context.SaveChangesAsync(userId, primaryTable);
 
             return true;
         }

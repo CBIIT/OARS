@@ -328,12 +328,12 @@
                     // if the box's Number doesn't exist, in the dictionary, then we need to add a new record to the table
                     if (!dctReviewItemSettings.TryGetValue(box.ReviewItemNumber, out checkedStatus))
                     {
-                        reviewHistoryItemService.SaveReviewHistoryItemAsync(latestReviewHistory.ReviewHistoryId, box.ReviewItemNumber, box.IsChecked);
+                        reviewHistoryItemService.SaveReviewHistoryItemAsync(activeUserId, latestReviewHistory.ReviewHistoryId, box.ReviewItemNumber, box.IsChecked);
                         itemUpdateNeeded = true;
                     }
                     else if (box.IsChecked != checkedStatus)
                     {
-                        await reviewHistoryItemService.UpdateReviewHistoryItemAsync(latestReviewHistory.ReviewHistoryId, box.ReviewItemNumber, box.IsChecked);
+                        await reviewHistoryItemService.UpdateReviewHistoryItemAsync(activeUserId, latestReviewHistory.ReviewHistoryId, box.ReviewItemNumber, box.IsChecked);
                         dctReviewItemSettings[box.ReviewItemNumber] = box.IsChecked;
                     }
                 }
@@ -441,7 +441,7 @@
                     var activeReview = await reviewHistoryService.isReviewActive(latestReviewHistory.ReviewHistoryId);
                     if (!activeReview)
                     {
-                        reviewHistoryService.StartNewReviewAsync(latestReviewHistory.ReviewHistoryId);
+                        reviewHistoryService.StartNewReviewAsync(activeUserId, latestReviewHistory.ReviewHistoryId);
                         latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(ProtocolId);
                     }
                     var user = await userService.GetUserAsync(latestReviewHistory.UserId);
@@ -560,7 +560,7 @@
             // Add DB record for next review
             // We need the current date for complete and for updated
             SaveChanges();
-            reviewHistoryService.CloseCurrentReviewAsync(latestReviewHistory.ReviewHistoryId);
+            reviewHistoryService.CloseCurrentReviewAsync(activeUserId, latestReviewHistory.ReviewHistoryId);
             modalSubmitReview.Hide();
             string navTo = "/";
             var result = await SessionData.GetAsync<string>("dashboardUrl");

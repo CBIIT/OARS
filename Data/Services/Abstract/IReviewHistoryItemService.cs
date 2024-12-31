@@ -7,8 +7,8 @@ namespace TheradexPortal.Data.Services.Abstract
     {
         public Task<bool> CheckHistoryItemChangedAsync(int reviewHistoryItemId);
         public Task<Dictionary<int, bool>> GetCurrentReviewHistoryItemStatusAsync(int reviewHistoryID);
-        public Task<bool> SaveReviewHistoryItemAsync(int reviewHistoryID, int reviewItemID, bool newValue);
-        public Task<bool> UpdateReviewHistoryItemAsync(int reviewHistoryID, int reviewItemID, bool newValue);
+        public Task<bool> SaveReviewHistoryItemAsync(int activeUserId, int reviewHistoryID, int reviewItemID, bool newValue);
+        public Task<bool> UpdateReviewHistoryItemAsync(int activeUserId, int reviewHistoryID, int reviewItemID, bool newValue);
         public int GetNextReviewHistoryItemId();
     }
 }

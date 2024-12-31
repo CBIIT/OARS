@@ -51,7 +51,7 @@ namespace TheradexPortal.Data.Services
             return await context.ReviewItems.Where(p => p.ReviewItemId == reviewItemId).FirstOrDefaultAsync();
         }
 
-        public async Task<bool> SaveReviewItemAsync(ReviewItem item)
+        public async Task<bool> SaveReviewItemAsync(int activeUserId, ReviewItem item)
         {
             if (item.ReviewItemId > 0)
             {
@@ -74,7 +74,8 @@ namespace TheradexPortal.Data.Services
                 item.ReviewItemId = maxValue + 1;
                 context.ReviewItems.Add(item);
             }
-            if( await context.SaveChangesAsync() > 0)
+            var primaryTable = context.Model.FindEntityType(typeof(ReviewHistory)).ToString().Replace("EntityType: ", "");
+            if ( await context.SaveChangesAsync(activeUserId, primaryTable) > 0)
                 return true;
             return false;
         }

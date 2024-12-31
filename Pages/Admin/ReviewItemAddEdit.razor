@@ -160,6 +160,7 @@
     private UserGroup selectedUserGroup;
     List<UserGroup> selectedUserGroups { get; set; }
     User loggedinUser;
+    private int loginUserId;
     bool loggedinUserIsITAdmin = false;
     bool newItem = false;
 
@@ -183,7 +184,7 @@
         groupsAvailable = (await groupService.GetAllGroupsAsync()).OrderBy(g => g.GroupName).ToList();
         allGroups = (await groupService.GetAllGroupsAsync()).OrderBy(g => g.GroupName).ToList();
 
-        int loginUserId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+        loginUserId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
         loggedinUser = await userService.GetUserAsync(loginUserId);
         loggedinUserIsITAdmin = loggedinUser.UserRoles.FirstOrDefault(r => r.Role.IsPrimary && r.Role.AdminType == ThorAdminType.IT) != null;
 
@@ -263,7 +264,7 @@
             saveItem.CreateDate = currentDateTime;
         }
 
-        saved = await reviewItemService.SaveReviewItemAsync(saveItem);
+        saved = await reviewItemService.SaveReviewItemAsync(loginUserId, saveItem);
 
         // Try to create or update the OKTA user
         bool oktaSuccess = true;
