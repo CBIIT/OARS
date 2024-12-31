@@ -13,7 +13,8 @@ namespace TheradexPortal.Data.Services.Abstract
 
         public Task<ReviewHistory> GetLatestReviewHistoryByProtocolAsync(int protocolId);
         public Task<bool> SaveNewReviewHistoryAsync(ReviewHistory reviewHistory);
-
+        public Task<bool> CloseCurrentReviewAsync(int reviewHistoryID);
+        public Task<bool> isReviewActive(int reviewHistoryID);
         public Task<bool> StartNewReviewAsync(int reviewHistoryID);
         public Task<List<ReviewHistoryPiDTO>> GetPiInfoAsync(int protocolId);
     }

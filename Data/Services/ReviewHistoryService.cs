@@ -58,12 +58,30 @@ namespace TheradexPortal.Data.Services
             return Task.FromResult(true);
         }
 
-        private void CloseCurrentReviewAsync(ReviewHistory previousHistory)
+        public async Task<bool> CloseCurrentReviewAsync(int reviewHistoryID)
         {
-            previousHistory.UpdateDate = DateTime.Now;
-            previousHistory.ReviewCompleteDate = DateTime.Now;
-            return;
+            var previousReviewHistory = await context.ReviewHistories
+                .FirstOrDefaultAsync(r => r.ReviewHistoryId == reviewHistoryID);
+            var previousReview = await context.Reviews
+                .FirstOrDefaultAsync(r => r.ReviewId == previousReviewHistory.ReviewId);
+
+            previousReview.UpdateDate = DateTime.Now;
+            previousReviewHistory.ReviewCompleteDate = DateTime.Now;
+
+            var status = context.SaveChangesAsync();
+
+            return true;
         }
+
+        public async Task<bool> isReviewActive(int reviewHistoryID)
+        {
+            var previousReviewHistory = await context.ReviewHistories
+                .FirstOrDefaultAsync(r => r.ReviewHistoryId == reviewHistoryID);
+            if (previousReviewHistory.ReviewCompleteDate == null)
+                return true;
+            return false;
+        }
+
 
         public async Task<bool> StartNewReviewAsync(int reviewHistoryID)
         {
@@ -71,7 +89,6 @@ namespace TheradexPortal.Data.Services
                 .FirstOrDefaultAsync(r => r.ReviewHistoryId == reviewHistoryID);
             var previousReview = await context.Reviews
                 .FirstOrDefaultAsync(r => r.ReviewId == previousReviewHistory.ReviewId);
-            CloseCurrentReviewAsync (previousReviewHistory);
             var newHistory = new ReviewHistory();
             newHistory.ReviewHistoryId = GetNextReviewHistoryId();
             newHistory.UserId = previousReviewHistory.UserId;
@@ -88,6 +105,7 @@ namespace TheradexPortal.Data.Services
             //Need to update Review Name
             newHistory.ReviewId = previousReviewHistory.ReviewId;
             await context.AddAsync(newHistory);
+
             var status = context.SaveChangesAsync();
 
             return true;

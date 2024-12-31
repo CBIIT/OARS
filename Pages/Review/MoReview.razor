@@ -432,6 +432,12 @@
                 latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(AgentId);
                 if (latestReviewHistory != null)
                 {
+                    var activeReview = await reviewHistoryService.isReviewActive(latestReviewHistory.ReviewHistoryId);
+                    if (!activeReview)
+                    {
+                        reviewHistoryService.StartNewReviewAsync(latestReviewHistory.ReviewHistoryId);
+                        latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(AgentId);
+                    }
                     lstPiDetails = await reviewHistoryService.GetPiInfoAsync(AgentId);
                     var user = await userService.GetUserAsync(latestReviewHistory.UserId);
                     if (user != null)
@@ -550,7 +556,7 @@
             // Add DB record for next review
             // We need the current date for complete and for updated
             SaveChanges();
-            reviewHistoryService.StartNewReviewAsync(latestReviewHistory.ReviewHistoryId);
+            reviewHistoryService.CloseCurrentReviewAsync(latestReviewHistory.ReviewHistoryId);
             modalSubmitReview.Hide();
             string navTo = "/";
             var result = await SessionData.GetAsync<string>("dashboardUrl");

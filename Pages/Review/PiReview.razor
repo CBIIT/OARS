@@ -154,16 +154,16 @@
             </ModalHeader>
             <ModalBody>
                 <Validations @ref="validations" Mode="ValidationMode.Auto" ValidateOnLoad="false">
-                        <Field>
-                            <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">To</FieldLabel>
-                            <Validation Validator="@ValidationRule.IsEmail">
-                                <TextEdit Placeholder="Enter recipient" @bind-Text="@emailTo">
-                                    <Feedback>
-                                        <ValidationError>Invalid Email</ValidationError>
-                                    </Feedback>
-                                </TextEdit>
-                            </Validation>
-                        </Field>
+                    <Field>
+                        <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">To</FieldLabel>
+                        <Validation Validator="@ValidationRule.IsEmail">
+                            <TextEdit Placeholder="Enter recipient" @bind-Text="@emailTo">
+                                <Feedback>
+                                    <ValidationError>Invalid Email</ValidationError>
+                                </Feedback>
+                            </TextEdit>
+                        </Validation>
+                    </Field>
                     <Validation Validator="@ValidationRule.IsNotEmpty">
                         <Field>
                             <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Subject</FieldLabel>
@@ -438,6 +438,12 @@
                 latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(ProtocolId);
                 if (latestReviewHistory != null)
                 {
+                    var activeReview = await reviewHistoryService.isReviewActive(latestReviewHistory.ReviewHistoryId);
+                    if (!activeReview)
+                    {
+                        reviewHistoryService.StartNewReviewAsync(latestReviewHistory.ReviewHistoryId);
+                        latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(ProtocolId);
+                    }
                     var user = await userService.GetUserAsync(latestReviewHistory.UserId);
                     if (user != null)
                     {
@@ -554,7 +560,7 @@
             // Add DB record for next review
             // We need the current date for complete and for updated
             SaveChanges();
-            reviewHistoryService.StartNewReviewAsync(latestReviewHistory.ReviewHistoryId);
+            reviewHistoryService.CloseCurrentReviewAsync(latestReviewHistory.ReviewHistoryId);
             modalSubmitReview.Hide();
             string navTo = "/";
             var result = await SessionData.GetAsync<string>("dashboardUrl");
