@@ -14,6 +14,7 @@ using System.IO;
 using Newtonsoft.Json;
 using Org.BouncyCastle.Bcpg.OpenPgp;
 using Microsoft.PowerBI.Api.Models;
+using Blazorise.Extensions;
 
 namespace TheradexPortal.Data.Services
 {
@@ -208,9 +209,13 @@ namespace TheradexPortal.Data.Services
                         request.ClientStatus = "UnKnown";
                     }
 
-                    request.InternalStatus = ((RequestStatusV2)request.Status).ToString();
+                    if (request.ClientStatus == "UnKnown")
+                        request.InternalStatus = $"Status({request.Status}) is invalid";
+                    else
+                        request.InternalStatus = ((RequestStatusV2)request.Status).ToString();
 
-                    request.Metadata.CRFDescription = crfs.First(t => t.FormOID.Equals(request.Metadata.CRF)).FormName;
+                    if (request.Metadata != null && !request.Metadata.CRF.IsNullOrEmpty())
+                        request.Metadata.CRFDescription = crfs.FirstOrDefault(t => t?.FormOID?.Equals(request.Metadata.CRF, StringComparison.InvariantCultureIgnoreCase) == true)?.FormName;
                 }
             }
 
