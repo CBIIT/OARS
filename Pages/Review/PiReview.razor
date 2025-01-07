@@ -23,6 +23,12 @@
 
 @page "/pireview/{protocolid:int?}"
 
+<script>
+    function closeTab(){
+        window.close();
+    }
+</script>
+
 <html>
 <head>
     <title>PI Review Dashboard</title>
@@ -350,10 +356,16 @@
             return Task.CompletedTask;
         }
 
+        private async Task CloseTab()
+        {
+            await JSRuntime.InvokeVoidAsync("closeTab");
+        }
+
         private async Task DiscardChanges()
         {
             string navTo = "/";
             var result = await SessionData.GetAsync<string>("dashboardUrl");
+            await CloseTab();
             if (result.Success)
             {
                 navTo = result.Value ?? "/";
