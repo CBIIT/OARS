@@ -32,6 +32,6 @@ namespace TheradexPortal.Data.Models
         [Column("REVIEW_ID")]
         public int? ReviewId { get; set; }
         [Column("REVIEW_PERIOD_NAME")]
-        public string? ReviewName { get; set; }
+        public string? ReviewPeriodName { get; set; }
     }
 }

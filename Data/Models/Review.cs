@@ -31,5 +31,7 @@ namespace TheradexPortal.Data.Models
         public string? NSCNumber { get; set; }
         [Column("LEAD_AGENT")]
         public string? LeadAgent { get;set; }
+        [Column("REVIEW_PERIOD_NAME")]
+        public string? ReviewPeriodName { get;set; }
     }
 }

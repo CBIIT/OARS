@@ -30,7 +30,7 @@
     <Row>
         <Column Style="background-image: Review-Bar.png" ColumnSize="ColumnSize.Is12">
             <Div Background="Background.Primary" TextColor="TextColor.Light" style="display: flex; justify-content: center; align-items: center; width: 100%; text-align: center; flex-direction: column;">
-                <span><h3>MO Review</h3></span>
+                <span><h3>MO Review - @reviewName</h3></span>
                 <span><h4> @leadAgentName : @AgentId : @studyDescription </h4></span>
                 <span><h4>Status: @GetReviewStatus()</h4></span>
             </Div>
@@ -224,6 +224,7 @@
         private string userFullName = "No Name Found";
         private string userFirstName = "Error";
         private string userLastName = "No Name";
+        private string reviewName = "No Name";
         private string studyDescription = "No description found";
 
         public class TextNotes
@@ -440,6 +441,7 @@
                         reviewHistoryService.StartNewReviewAsync(activeUserId, latestReviewHistory.ReviewHistoryId);
                         latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(AgentId);
                     }
+                    reviewName = latestReviewHistory.ReviewPeriodName ?? "";
                     lstPiDetails = await reviewHistoryService.GetPiInfoAsync(AgentId);
                     var user = await userService.GetUserAsync(latestReviewHistory.UserId);
                     if (user != null)
