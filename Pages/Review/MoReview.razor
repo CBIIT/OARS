@@ -27,7 +27,7 @@
     <title>MO Review Dashboard</title>
 </head>
 <body>
-    @if (true)//(activeUserId == latestReviewHistory.UserId)
+    @if (AgentId != 0 && activeUserId == currentReview.UserId)
     {
     <Row>
         <Column Style="background-image: Review-Bar.png" ColumnSize="ColumnSize.Is12">
@@ -435,17 +435,18 @@
         string uploadFileName = "";
         List<string> lstAttachments = new List<string>();
         Dictionary<int, bool> dctReviewItemSettings = new Dictionary<int, bool>();
+        private Review currentReview;
         IFileEntry selectedFile;
         private bool checkedStatus;
 
         protected override async Task OnInitializedAsync()
         {
             lstReviewItems = await reviewItemService.GetReviewItemListAsync("MO", 'T');
-
+            activeUserId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
             if (AgentId > 0)
             {
+                currentReview = await reviewService.GetCurrentReviewAsync(AgentId);
                 latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(AgentId);
-                activeUserId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
                 if (latestReviewHistory != null)
                 {
                     var activeReview = await reviewHistoryService.isReviewActive(latestReviewHistory.ReviewHistoryId);
