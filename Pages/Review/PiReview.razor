@@ -34,10 +34,10 @@
     <title>PI Review Dashboard</title>
 </head>
 <body>
-    @if (true)//(activeUserId == latestReviewHistory.UserId)
+    @if (ProtocolId != 0 && activeUserId == currentReview.UserId)
     {
         <Row>
-            <Column Style="background-image: Review-Bar.png" ColumnSize="ColumnSize.Is12">
+            <Column ColumnSize="ColumnSize.Is12">
             <Div Background="Background.Primary" TextColor="TextColor.Light" style="display: flex; justify-content: center; align-items: center; width: 100%; text-align: center; flex-direction: column;">
                 <span><h3>PI Review - @reviewName </h3></span>
                 <span><h4> @leadAgentName : @ProtocolId : @studyDescription </h4></span>
@@ -488,6 +488,7 @@
         private IList<ReviewItem> lstReviewItems;
         private IList<int> lstReviewHistories;
         private ReviewHistory latestReviewHistory;
+        private Review currentReview;
         private int daysLate = 0;
         private List<string> reviewNote = new List<string> { "No previous notes." };
         private List<string> reviewEmail = new List<string> { "No previous emails." };
@@ -504,6 +505,7 @@
             activeUserId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
             if (ProtocolId > 0)
             {
+                currentReview = await reviewService.GetCurrentReviewAsync(ProtocolId);
                 latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(ProtocolId);
                 if (latestReviewHistory != null)
                 {

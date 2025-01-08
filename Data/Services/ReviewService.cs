@@ -29,5 +29,12 @@ namespace TheradexPortal.Data.Services
                 .Select(r => r.ReviewId)
                 .ToListAsync();
         }
+
+        public async Task<Review> GetCurrentReviewAsync(int protocolId)
+        {
+            return await context.Reviews
+                .Where(p => p.ProtocolId == protocolId)
+                .FirstOrDefaultAsync();
+        }
     }
 }
