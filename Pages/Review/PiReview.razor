@@ -25,7 +25,7 @@
 
 <script>
     function closeTab(){
-        window.close();
+    window.close();
     }
 </script>
 
@@ -34,8 +34,10 @@
     <title>PI Review Dashboard</title>
 </head>
 <body>
-    <Row>
-        <Column Style="background-image: Review-Bar.png" ColumnSize="ColumnSize.Is12">
+    @if (activeUserId == latestReviewHistory.UserId)
+    {
+        <Row>
+            <Column Style="background-image: Review-Bar.png" ColumnSize="ColumnSize.Is12">
             <Div Background="Background.Primary" TextColor="TextColor.Light" style="display: flex; justify-content: center; align-items: center; width: 100%; text-align: center; flex-direction: column;">
                 <span><h3>PI Review - @reviewName </h3></span>
                 <span><h4> @leadAgentName : @ProtocolId : @studyDescription </h4></span>
@@ -182,7 +184,18 @@
             </Tabs>
         </Column>
     </Row>
-
+    }
+    else
+    {
+        <Row>
+            <Column ColumnSize="ColumnSize.Is12">
+                <Div Background="Background.Primary" TextColor="TextColor.Light" style="display: flex; justify-content: center; align-items: center; width: 100%; text-align: center; flex-direction: column;">
+                    <span><h3>You are not authorized to view this review. </h3></span>
+                    <span><h4>If you feel you have reached this page in error, please contact tech support. </h4/></span>
+                </Div>
+            </Column>
+        </Row>
+    }
     <Modal @ref="modalSubmitEmail" Closing="@OnModalClosing">
         <ModalContent Centered Size="ModalSize.Large">
             <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
