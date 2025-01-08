@@ -122,10 +122,13 @@ namespace TheradexPortal.Data.Services
             newHistory.CreateDate = DateTime.Now;
             newHistory.ReviewType = previousReviewHistory.ReviewType;
             newHistory.DueDate = ((DateTime)previousReviewHistory.DueDate).AddDays(previousReview.ReviewPeriod);
+            previousReview.NextDueDate = newHistory.DueDate;
+
             newHistory.ReviewLate = 'F';
             newHistory.ReviewStatus = previousReviewHistory.ReviewStatus;
             newHistory.DaysLate = 0;
             newHistory.UpdateDate = DateTime.Now;
+            previousReview.UpdateDate = DateTime.Now;
             newHistory.ProtocolId = previousReviewHistory.ProtocolId;
             newHistory.ReviewPeriodName = UpdateReviewName(previousReview);
             newHistory.ReviewId = previousReviewHistory.ReviewId;
