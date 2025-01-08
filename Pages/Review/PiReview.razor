@@ -497,7 +497,7 @@
                     var activeReview = await reviewHistoryService.isReviewActive(latestReviewHistory.ReviewHistoryId);
                     if (!activeReview)
                     {
-                        reviewHistoryService.StartNewReviewAsync(activeUserId, latestReviewHistory.ReviewHistoryId);
+                        await reviewHistoryService.StartNewReviewAsync(activeUserId, latestReviewHistory.ReviewHistoryId);
                         latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(ProtocolId);
                     }
                     reviewName = latestReviewHistory.ReviewPeriodName ?? "";

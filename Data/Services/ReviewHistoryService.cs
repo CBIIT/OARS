@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Models.DTO;
 using TheradexPortal.Data.Services.Abstract;
@@ -82,6 +83,30 @@ namespace TheradexPortal.Data.Services
             return false;
         }
 
+        private string UpdateReviewName(Review previousReview)
+        {
+            var previousReviewName = previousReview.ReviewPeriodName;
+            string[] nameParts = previousReviewName.Split('-');
+            int counter = int.Parse(nameParts[0]);
+            int year = int.Parse(nameParts[1]);
+            int section = int.Parse(nameParts[2]);
+
+            counter++;
+            
+            if(year == DateTime.Now.Year)
+            {
+                section++;
+            }
+            else
+            {
+                year = DateTime.Now.Year;
+                section = 1;
+            }
+            var newPeriodName = $"{counter:D3}-{year:D4}-{section:D2}";
+            previousReview.ReviewPeriodName = newPeriodName;
+
+            return newPeriodName;
+        }
 
         public async Task<bool> StartNewReviewAsync(int userId, int reviewHistoryID)
         {
@@ -102,7 +127,7 @@ namespace TheradexPortal.Data.Services
             newHistory.DaysLate = 0;
             newHistory.UpdateDate = DateTime.Now;
             newHistory.ProtocolId = previousReviewHistory.ProtocolId;
-            //Need to update Review Name
+            newHistory.ReviewPeriodName = UpdateReviewName(previousReview);
             newHistory.ReviewId = previousReviewHistory.ReviewId;
             await context.AddAsync(newHistory);
             var primaryTable = context.Model.FindEntityType(typeof(ReviewHistory)).ToString().Replace("EntityType: ", "");
