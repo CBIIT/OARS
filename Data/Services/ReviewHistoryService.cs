@@ -12,14 +12,17 @@ namespace TheradexPortal.Data.Services
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
         private readonly IReviewService _reviewService;
+        private readonly IUserService _userService;
         public ReviewHistoryService(IDatabaseConnectionService databaseConnectionService,
                                     IErrorLogService errorLogService,
                                     NavigationManager navigationManager,
-                                    IReviewService reviewService) : base(databaseConnectionService)
+                                    IReviewService reviewService,
+                                    IUserService userService) : base(databaseConnectionService)
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;
             _reviewService = reviewService;
+            _userService = userService;
         }
         public async Task<int> GetDaysLateAsync(int protocolId)
         {
@@ -108,33 +111,41 @@ namespace TheradexPortal.Data.Services
             return newPeriodName;
         }
 
-        public async Task<bool> StartNewReviewAsync(int userId, int reviewHistoryID)
+        public async Task<bool> StartNewReviewAsync(int userId, int protocolId, string reviewType, int reviewHistoryID)
         {
             var previousReviewHistory = await context.ReviewHistories
                 .FirstOrDefaultAsync(r => r.ReviewHistoryId == reviewHistoryID);
-            var previousReview = await context.Reviews
-                .FirstOrDefaultAsync(r => r.ReviewId == previousReviewHistory.ReviewId);
+            var previousReview = await _reviewService.GetCurrentReviewAsync(protocolId, userId, reviewType);
+
             var newHistory = new ReviewHistory();
             newHistory.ReviewHistoryId = GetNextReviewHistoryId();
-            newHistory.UserId = previousReviewHistory.UserId;
-            newHistory.EmailAddress = previousReviewHistory.EmailAddress;
+            newHistory.UserId = userId;
+            var user = await _userService.GetUserAsync(userId);
+
+            newHistory.EmailAddress = user.EmailAddress;
 
             newHistory.CreateDate = DateTime.Now;
-            newHistory.ReviewType = previousReviewHistory.ReviewType;
-            newHistory.DueDate = ((DateTime)previousReviewHistory.DueDate).AddDays(previousReview.ReviewPeriod);
-            previousReview.NextDueDate = newHistory.DueDate;
+            newHistory.ReviewType = reviewType;
+            newHistory.DueDate = ((DateTime)previousReview.NextDueDate).AddDays(previousReview.ReviewPeriod);
 
             newHistory.ReviewLate = 'F';
-            newHistory.ReviewStatus = previousReviewHistory.ReviewStatus;
+            newHistory.ReviewStatus = previousReview.ReviewStatus;
             newHistory.DaysLate = 0;
             newHistory.UpdateDate = DateTime.Now;
-            previousReview.UpdateDate = DateTime.Now;
-            newHistory.ProtocolId = previousReviewHistory.ProtocolId;
+
+            newHistory.ProtocolId = protocolId;
             newHistory.ReviewPeriodName = UpdateReviewName(previousReview);
-            newHistory.ReviewId = previousReviewHistory.ReviewId;
+            newHistory.ReviewId = previousReview.ReviewId;
             await context.AddAsync(newHistory);
+
             var primaryTable = context.Model.FindEntityType(typeof(ReviewHistory)).ToString().Replace("EntityType: ", "");
             var status = context.SaveChangesAsync(userId, primaryTable);
+
+            if(previousReviewHistory != null)
+            {
+                previousReview.NextDueDate = newHistory.DueDate;
+                previousReview.UpdateDate = DateTime.Now;
+            }
 
             return true;
         }

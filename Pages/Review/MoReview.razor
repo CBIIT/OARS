@@ -445,14 +445,14 @@
             activeUserId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
             if (AgentId > 0)
             {
-                currentReview = await reviewService.GetCurrentReviewAsync(AgentId);
+                currentReview = await reviewService.GetCurrentReviewAsync(AgentId, activeUserId, "MO");
                 latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(AgentId);
                 if (latestReviewHistory != null)
                 {
                     var activeReview = await reviewHistoryService.isReviewActive(latestReviewHistory.ReviewHistoryId);
                     if (!activeReview)
                     {
-                        reviewHistoryService.StartNewReviewAsync(activeUserId, latestReviewHistory.ReviewHistoryId);
+                        reviewHistoryService.StartNewReviewAsync(activeUserId, AgentId, "MO", latestReviewHistory.ReviewHistoryId);
                         latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(AgentId);
                     }
                     reviewName = latestReviewHistory.ReviewPeriodName ?? "";

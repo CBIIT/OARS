@@ -34,8 +34,8 @@
     <title>PI Review Dashboard</title>
 </head>
 <body>
-        <Row>
-            <Column ColumnSize="ColumnSize.Is12">
+    <Row>
+        <Column ColumnSize="ColumnSize.Is12">
             <Div Background="Background.Primary" TextColor="TextColor.Light" style="display: flex; justify-content: center; align-items: center; width: 100%; text-align: center; flex-direction: column;">
                 <span><h3>PI Review - @reviewName </h3></span>
                 <span><h4> @leadAgentName : @ProtocolId : @studyDescription </h4></span>
@@ -476,6 +476,7 @@
         private ReviewHistory latestReviewHistory;
         private Review currentReview;
         private int daysLate = 0;
+        private int reviewHistoryId;
         private List<string> reviewNote = new List<string> { "No previous notes." };
         private List<string> reviewEmail = new List<string> { "No previous emails." };
         FileEdit fileEditRef;
@@ -489,60 +490,69 @@
         {
             lstReviewItems = await reviewItemService.GetActiveReviewItemsAsync();
             activeUserId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+            bool activeReview;
             if (ProtocolId > 0)
             {
-                currentReview = await reviewService.GetCurrentReviewAsync(ProtocolId);
+                currentReview = await reviewService.GetCurrentReviewAsync(ProtocolId, activeUserId, "PI");
                 latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(ProtocolId);
-                if (latestReviewHistory != null)
+                if(latestReviewHistory == null)
                 {
-                    var activeReview = await reviewHistoryService.isReviewActive(latestReviewHistory.ReviewHistoryId);
-                    if (!activeReview)
-                    {
-                        await reviewHistoryService.StartNewReviewAsync(activeUserId, latestReviewHistory.ReviewHistoryId);
-                        latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(ProtocolId);
-                    }
-                    reviewName = latestReviewHistory.ReviewPeriodName ?? "";
-                    var user = await userService.GetUserAsync(latestReviewHistory.UserId);
-                    if (user != null)
-                    {
-                        userFullName = user.FirstName + " " + user.LastName;
-                        userFirstName = user.FirstName;
-                        userLastName = user.LastName;
-                    }
-                    studyDescription = await studyService.GetStudyTitleAsync(ProtocolId);
-                    dctReviewItemSettings = await reviewHistoryItemService.GetCurrentReviewHistoryItemStatusAsync(latestReviewHistory.ReviewHistoryId);
-                    foreach (var item in lstReviewItems)
-                    {
-                        dctReviewItemSettings.TryGetValue(item.ReviewItemId, out checkedStatus);
+                    reviewHistoryId = reviewHistoryService.GetNextReviewHistoryId();
+                    activeReview = false;
+                }
+                else
+                {
+                    reviewHistoryId = latestReviewHistory.ReviewHistoryId;
+                    activeReview = await reviewHistoryService.isReviewActive(reviewHistoryId);
+                }
 
-                        lstManagers.Add(new CheckBoxManager { BoxName = item.ReviewItemName, ReviewItemNumber = item.ReviewItemId, IsChecked = checkedStatus });
-                        if(checkedStatus == false)
-                        {
-                            submitIsDisabled = true;
-                        }
-                    }
-                    daysLate = latestReviewHistory.DaysLate ?? 0;
-                    leadAgentName = await reviewService.GetLeadAgentByIdAsync(ProtocolId);
-                    var tmpLst = await historyNoteService.GetNotesAsync(latestReviewHistory.ReviewHistoryId);
-                    if (tmpLst != null)
+                if (!activeReview)
+                {
+                    await reviewHistoryService.StartNewReviewAsync(activeUserId, ProtocolId, "PI", reviewHistoryId);
+                    latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(ProtocolId);
+                }
+
+                reviewName = latestReviewHistory.ReviewPeriodName ?? "";
+                var user = await userService.GetUserAsync(latestReviewHistory.UserId);
+                if (user != null)
+                {
+                    userFullName = user.FirstName + " " + user.LastName;
+                    userFirstName = user.FirstName;
+                    userLastName = user.LastName;
+                }
+                studyDescription = await studyService.GetStudyTitleAsync(ProtocolId);
+                dctReviewItemSettings = await reviewHistoryItemService.GetCurrentReviewHistoryItemStatusAsync(latestReviewHistory.ReviewHistoryId);
+                foreach (var item in lstReviewItems)
+                {
+                    dctReviewItemSettings.TryGetValue(item.ReviewItemId, out checkedStatus);
+
+                    lstManagers.Add(new CheckBoxManager { BoxName = item.ReviewItemName, ReviewItemNumber = item.ReviewItemId, IsChecked = checkedStatus });
+                    if (checkedStatus == false)
                     {
-                        if (reviewNote.Contains("No previous notes."))
-                            reviewNote.Remove("No previous notes.");
-                        foreach (var tmp in tmpLst)
-                        {
-                            lstTextNotes.Add(new TextNotes { Name = tmp.UserName, Note = tmp.Notes, CreationDate = tmp.CreationDate.HasValue ? tmp.CreationDate.Value.ToString("dd-MMM-yyyy").ToUpper() : "null" });
-                        }
+                        submitIsDisabled = true;
                     }
-                    var tmpEmailList = await historyEmailService.GetEmailsAsync(latestReviewHistory.ReviewHistoryId);
-                    if (tmpEmailList != null)
+                }
+                daysLate = latestReviewHistory.DaysLate ?? 0;
+                leadAgentName = await reviewService.GetLeadAgentByIdAsync(ProtocolId);
+                var tmpLst = await historyNoteService.GetNotesAsync(latestReviewHistory.ReviewHistoryId);
+                if (tmpLst != null)
+                {
+                    if (reviewNote.Contains("No previous notes."))
+                        reviewNote.Remove("No previous notes.");
+                    foreach (var tmp in tmpLst)
                     {
-                        if (reviewEmail.Contains("No previous emails."))
-                            reviewEmail.Remove("No previous emails.");
-                        foreach(var email in tmpEmailList)
-                        {
-                            reviewEmail.Add(email.Body);
-                            lstEmailDetails.Add(new EmailDetails { Body = email.Body, EmailTo = email.Recipient, CreationDate = email.CreationDate.HasValue ? email.CreationDate.Value.ToString("dd-MMM-yyyy").ToUpper() : "null" });
-                        }
+                        lstTextNotes.Add(new TextNotes { Name = tmp.UserName, Note = tmp.Notes, CreationDate = tmp.CreationDate.HasValue ? tmp.CreationDate.Value.ToString("dd-MMM-yyyy").ToUpper() : "null" });
+                    }
+                }
+                var tmpEmailList = await historyEmailService.GetEmailsAsync(latestReviewHistory.ReviewHistoryId);
+                if (tmpEmailList != null)
+                {
+                    if (reviewEmail.Contains("No previous emails."))
+                        reviewEmail.Remove("No previous emails.");
+                    foreach (var email in tmpEmailList)
+                    {
+                        reviewEmail.Add(email.Body);
+                        lstEmailDetails.Add(new EmailDetails { Body = email.Body, EmailTo = email.Recipient, CreationDate = email.CreationDate.HasValue ? email.CreationDate.Value.ToString("dd-MMM-yyyy").ToUpper() : "null" });
                     }
                 }
             }

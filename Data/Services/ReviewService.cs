@@ -30,10 +30,13 @@ namespace TheradexPortal.Data.Services
                 .ToListAsync();
         }
 
-        public async Task<Review> GetCurrentReviewAsync(int protocolId)
+        public async Task<Review> GetCurrentReviewAsync(int protocolId, int userId, string type)
         {
             return await context.Reviews
-                .Where(p => p.ProtocolId == protocolId)
+                .Where(p => 
+                p.ProtocolId == protocolId &&
+                p.UserId == userId &&
+                p.ReviewType == type)
                 .FirstOrDefaultAsync();
         }
     }
