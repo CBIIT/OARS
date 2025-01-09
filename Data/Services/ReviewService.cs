@@ -39,5 +39,13 @@ namespace TheradexPortal.Data.Services
                 p.ReviewType == type)
                 .FirstOrDefaultAsync();
         }
+
+        public async Task<List<int>> GetAllAuthorizedUsersAsync(int protocolId)
+        {
+            return await context.Reviews
+                .Where(p=> p.ProtocolId == protocolId)
+                .Select (r => r.UserId)
+                .ToListAsync();
+        }
     }
 }

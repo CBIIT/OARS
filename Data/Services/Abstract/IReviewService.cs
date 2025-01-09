@@ -8,5 +8,7 @@ namespace TheradexPortal.Data.Services.Abstract
         public Task<List<int>> GetActivePIReviewsAsync(int protocolId);
 
         public Task<Review> GetCurrentReviewAsync(int protocolId, int userId, string type);
+
+        public Task<List<int>> GetAllAuthorizedUsersAsync(int protocolId);
     }
 }
