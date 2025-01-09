@@ -70,6 +70,9 @@ namespace TheradexPortal.Data.Services
                 .FirstOrDefaultAsync(r => r.ReviewId == previousReviewHistory.ReviewId);
 
             previousReview.UpdateDate = DateTime.Now;
+            previousReview.NextDueDate = ((DateTime)previousReview.NextDueDate).AddDays(previousReview.ReviewPeriod);
+            previousReview.ReviewPeriodName = UpdateReviewName(previousReview);
+
             previousReviewHistory.ReviewCompleteDate = DateTime.Now;
             var primaryTable = context.Model.FindEntityType(typeof(ReviewHistory)).ToString().Replace("EntityType: ", "");
             var status = context.SaveChangesAsync(userId, primaryTable);
@@ -126,7 +129,7 @@ namespace TheradexPortal.Data.Services
 
             newHistory.CreateDate = DateTime.Now;
             newHistory.ReviewType = reviewType;
-            newHistory.DueDate = ((DateTime)previousReview.NextDueDate).AddDays(previousReview.ReviewPeriod);
+            newHistory.DueDate = previousReview.NextDueDate;
 
             newHistory.ReviewLate = 'F';
             newHistory.ReviewStatus = previousReview.ReviewStatus;
@@ -134,7 +137,7 @@ namespace TheradexPortal.Data.Services
             newHistory.UpdateDate = DateTime.Now;
 
             newHistory.ProtocolId = protocolId;
-            newHistory.ReviewPeriodName = UpdateReviewName(previousReview);
+            newHistory.ReviewPeriodName = previousReview.ReviewPeriodName;
             newHistory.ReviewId = previousReview.ReviewId;
             await context.AddAsync(newHistory);
 
