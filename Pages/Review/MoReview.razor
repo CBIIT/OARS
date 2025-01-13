@@ -27,7 +27,7 @@
     <title>MO Review Dashboard</title>
 </head>
 <body>
-    @if (AgentId != 0 && activeUserId == currentReview.UserId)
+    @if (AgentId != 0 && authorizedUsers.Contains(activeUserId))
     {
     <Row>
         <Column Style="background-image: Review-Bar.png" ColumnSize="ColumnSize.Is12">
@@ -432,6 +432,7 @@
         private List<string> reviewNote = new List<string> { "No previous notes." };
         private List<string> reviewEmail = new List<string> { "No previous emails." };
         FileEdit fileEditRef;
+        private IList<int> authorizedUsers;
         string uploadFileName = "";
         List<string> lstAttachments = new List<string>();
         Dictionary<int, bool> dctReviewItemSettings = new Dictionary<int, bool>();
@@ -447,6 +448,7 @@
             {
                 currentReview = await reviewService.GetCurrentReviewAsync(AgentId, activeUserId, "MO");
                 latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(AgentId);
+                authorizedUsers = await reviewService.GetAllAuthorizedUsersAsync(AgentId);
                 if (latestReviewHistory != null)
                 {
                     var activeReview = await reviewHistoryService.isReviewActive(latestReviewHistory.ReviewHistoryId);
@@ -514,7 +516,7 @@
 
         private Task ShowContactUsModal()
         {
-            emailTitle = string.Empty;
+            emailTitle = $"Study {AgentId} - MO Review - {currentReview.ReviewPeriodName} - ";
             emailDescription = string.Empty;
             lstAttachments = new List<string>();
             uploadFileName = string.Empty;

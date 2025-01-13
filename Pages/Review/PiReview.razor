@@ -483,7 +483,8 @@
         private Modal modalSubmitReview;
         private bool cancelClose;
 
-        private string contactUsCategoryID = "", emailTo = "", emailCategory = "", emailDescription = "", emailTitle = "", emailDescriptionLabel = "";
+        private string contactUsCategoryID = "", emailTo = "", emailCategory = "", emailDescription = "", emailDescriptionLabel = "";
+        private string emailTitle = "";
         private List<ContactUsCategory> lstContactUsCategory;
         private List<ContactUsCategorySelectItemList> lstContactUsItems;
         private IList<ReviewItem> lstReviewItems;
@@ -589,7 +590,7 @@
 
         private Task ShowContactUsModal()
         {
-            emailTitle = string.Empty;
+            emailTitle = $"Study {ProtocolId} - PI Review - {currentReview.ReviewPeriodName} - ";
             emailDescription = string.Empty;
             lstAttachments = new List<string>();
             uploadFileName = string.Empty;
