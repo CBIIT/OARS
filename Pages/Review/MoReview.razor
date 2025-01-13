@@ -175,7 +175,7 @@
             </Column>
         </Row>
     }
-    <Modal @ref="modalSubmitEmail" Closing="@OnModalClosing">
+    <Modal @ref="modalSubmitEmail" Closing="@OnModalClosing" Opened="@OnModalOpen">
         <ModalContent Centered Size="ModalSize.Large">
             <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
                 <ModalTitle>Email</ModalTitle>
@@ -382,6 +382,7 @@
         }
 
         Validations validations;
+        Validations submitValidations;
         private int iconHeight = 30;
         private int systemAlertsCount;
         private int systemNotesCount;
@@ -514,14 +515,18 @@
             return Task.CompletedTask;
         }
 
+        private Task OnModalOpen()
+        {
+            validations.ClearAll();
+            return Task.CompletedTask;
+        }
+
         private Task ShowContactUsModal()
         {
             emailTitle = $"Study {AgentId} - MO Review - {currentReview.ReviewPeriodName} - ";
             emailDescription = string.Empty;
-            lstAttachments = new List<string>();
-            uploadFileName = string.Empty;
-            selectedFile = null;
-            validations.ClearAll();
+            emailTo = string.Empty;
+
             return modalSubmitEmail.Show();
         }
 
