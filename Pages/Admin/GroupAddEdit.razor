@@ -191,7 +191,7 @@
             selectedGroupProtocolList.OrderBy(sup => sup.StudyId).ToList();            
         }
         availableSelected = null;
-        grid.Reload();
+        await grid.Reload();
     }
 
     private async void RemoveFromGroup()
@@ -213,7 +213,7 @@
             StateHasChanged();
         }
         selectedGroupProtocols = null;
-        grid.Reload();
+        await grid.Reload();
     }
 
     private async void Save()
