@@ -221,7 +221,7 @@
             </ModalBody>
             <ModalFooter>
                 <Button Color="Color.Primary" Clicked="@HideContactUsModal">Cancel</Button>
-                <Button Color="Color.Primary" Disabled="!emailFormIsValid" Clicked="@SendContactUsEmail">Send Request</Button>
+                <Button Color="Color.Primary" Disabled="!emailFormIsValid" Clicked="@SendContactUsEmail">Send Email</Button>
             </ModalFooter>
         </ModalContent>
     </Modal>
@@ -552,7 +552,7 @@
         {
             if (await validations.ValidateAll())
             {
-                bool sendEmailResult = await emailService.SendReviewEmail(emailTo, emailTitle, emailDescription, configuration.GetValue<string>("System:SystemColor"));
+                bool sendEmailResult = await emailService.SendReviewEmail(userFullName, emailTo, emailTitle, emailDescription, configuration.GetValue<string>("System:SystemColor"));
                 if (sendEmailResult)
                 {
                     await notificationService.Success("An email has been sent.");

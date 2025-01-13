@@ -192,14 +192,14 @@ namespace TheradexPortal.Data.Services
             }
         }
 
-        public async Task<bool> SendReviewEmail(string emailTo, string subject, string description, string color)
+        public async Task<bool> SendReviewEmail(string senderFullName, string emailTo, string subject, string description, string color)
         {
             try
             {
                 using (var s3Client = new AmazonS3Client(RegionEndpoint.USEast1))
                 {
                     // Get the template to email
-                    GetObjectResponse response = await s3Client.GetObjectAsync(emailSettings.Value.AWSBucketName, string.Format("{0}/SupportRequest.txt", emailSettings.Value.EmailTemplate));
+                    GetObjectResponse response = await s3Client.GetObjectAsync(emailSettings.Value.AWSBucketName, string.Format("{0}/PIMOReviewEmail.txt", emailSettings.Value.EmailTemplate));
 
                     using (Stream responseStream = response.ResponseStream)
                     {
@@ -211,6 +211,8 @@ namespace TheradexPortal.Data.Services
                         emailText = emailText.Replace("[[Color]]", color);
                         emailText = emailText.Replace("[[Subject]]", subject);
                         emailText = emailText.Replace("[[Description]]", description);
+                        emailText = emailText.Replace("[[Username]]", senderFullName);
+                        emailText = emailText.Replace("[[DateTime]]", DateTime.Now.ToString());
 
                         return await SendEmail(emailTo, subject, emailText);
                     }
