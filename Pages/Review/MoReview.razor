@@ -361,7 +361,7 @@
                     var userName = user.FirstName + " " + user.LastName;
                     if (noteAdded)
                     {
-                        lstTextNotes.Add(new TextNotes { Name = userName, Note = noteText, CreationDate = newNote.CreateDate.Value.ToString("dd-MMM-yyyy").ToUpper() });
+                        lstTextNotes.Add(new TextNotes { Name = userName, Note = noteText, CreationDate = newNote.CreateDate.Value.ToString("dd-MMM-yyyy hh:mm:ss tt").ToUpper() });
                     }
                 }
                 noteText = "";
@@ -488,7 +488,7 @@
                             reviewNote.Remove("No previous notes.");
                         foreach (var tmp in tmpLst)
                         {
-                            lstTextNotes.Add(new TextNotes { Name = tmp.UserName, Note = tmp.Notes, CreationDate = tmp.CreationDate.HasValue ? tmp.CreationDate.Value.ToString("dd-MMM-yyyy").ToUpper() : "null" });
+                            lstTextNotes.Add(new TextNotes { Name = tmp.UserName, Note = tmp.Notes, CreationDate = tmp.CreationDate.HasValue ? tmp.CreationDate.Value.ToString("dd-MMM-yyyy hh:mm:ss tt").ToUpper() : "null" });
                         }
                     }
                     var tmpEmailList = await historyEmailService.GetEmailsAsync(latestReviewHistory.ReviewHistoryId);
@@ -499,7 +499,7 @@
                         foreach (var email in tmpEmailList)
                         {
                             reviewEmail.Add(email.Body);
-                            lstEmailDetails.Add(new EmailDetails { Body = email.Body, EmailTo = email.Recipient, CreationDate = email.CreationDate.HasValue ? email.CreationDate.Value.ToString("dd-MMM-yyyy").ToUpper() : "null" });
+                            lstEmailDetails.Add(new EmailDetails { Body = email.Body, EmailTo = email.Recipient, CreationDate = email.CreationDate.HasValue ? email.CreationDate.Value.ToString("dd-MMM-yyyy hh:mm:ss tt").ToUpper() : "null" });
                         }
                     }
                 }
@@ -557,7 +557,7 @@
                 {
                     await notificationService.Success("An email has been sent.");
                     await historyEmailService.SaveNewEmailAsync(latestReviewHistory.ReviewHistoryId, emailTo, emailDescription);
-                    lstEmailDetails.Insert(0, new EmailDetails { Body = emailDescription, EmailTo = emailTo, CreationDate = DateTime.Now.ToString("dd-MMM-yyyy").ToUpper() });
+                    lstEmailDetails.Insert(0, new EmailDetails { Body = emailDescription, EmailTo = emailTo, CreationDate = DateTime.Now.ToString("dd-MMM-yyyy hh:mm:ss tt").ToUpper() });
                     await emailDataGrid.Reload();
                 }
                 else
