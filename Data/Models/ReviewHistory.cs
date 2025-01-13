@@ -33,5 +33,7 @@ namespace TheradexPortal.Data.Models
         public int? ReviewId { get; set; }
         [Column("REVIEW_PERIOD_NAME")]
         public string? ReviewPeriodName { get; set; }
+        [Column("IS_WEBREPORTING")]
+        public char? IsWebReporting { get; set; }
     }
 }
