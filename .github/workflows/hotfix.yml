@@ -135,7 +135,7 @@ jobs:
       # Update ECS Task Definition
       - name: Download task definition
         run: |
-          aws ecs describe-task-definition --region ${{ secrets.AWS_DEFAULT_REGION }} --task-definition nci-oars-${{ github.event.inputs.environment }}-taskdefinition --query taskDefinition > task-definition.json
+          aws ecs describe-task-definition --region ${{ secrets.AWS_DEFAULT_REGION }} --task-definition nci-oars-${{ github.event.inputs.environment == 'DEV' && 'dev' || github.event.inputs.environment == 'QA' && 'qa' || github.event.inputs.environment == 'UAT' && 'uat' || 'prod' }}-taskdefinition --query taskDefinition > task-definition.json
 
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
@@ -150,6 +150,6 @@ jobs:
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: nci-oars-${{ github.event.inputs.environment }}-service
-          cluster: nci-oars-${{ github.event.inputs.environment }}-cluster
+          service: nci-oars-${{ github.event.inputs.environment == 'DEV' && 'dev' || github.event.inputs.environment == 'QA' && 'qa' || github.event.inputs.environment == 'UAT' && 'uat' || 'prod' }}-service
+          cluster: nci-oars-${{ github.event.inputs.environment == 'DEV' && 'dev' || github.event.inputs.environment == 'QA' && 'qa' || github.event.inputs.environment == 'UAT' && 'uat' || 'prod' }}-cluster
           wait-for-service-stability: true
