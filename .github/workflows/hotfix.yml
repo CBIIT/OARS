@@ -4,15 +4,15 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Target environment (dev, qa, uat, prod)'
+        description: 'Target environment (DEV, QA, UAT, PROD)'
         required: true
         type: choice
         options:
-          - dev
-          - qa
-          - uat
-          - prod
-        default: 'dev'
+          - DEV
+          - QA
+          - UAT
+          - PROD
+        default: 'DEV'
       branch:
         description: 'Branch to deploy (usually hotfix/*)'
         required: true
@@ -76,25 +76,25 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets[format('AWS_ARN_{0}', upper(github.event.inputs.environment))] }}
+          role-to-assume: ${{ secrets.AWS_ARN_${{ github.event.inputs.environment }} }}
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
 
       # Log in to Amazon ECR
       - name: Log in to Amazon ECR
         run: |
-          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ secrets[format('ECR_URI_{0}', upper(github.event.inputs.environment))] }}
+          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ secrets.ECR_URI_${{ github.event.inputs.environment }} }}
 
       # Build Docker Image
       - name: Build Docker Image
         run: |
-          docker build -t ${{ secrets[format('ECR_URI_{0}', upper(github.event.inputs.environment))] }}:${{ steps.semver.outputs.version }} .
-          docker build -t ${{ secrets[format('ECR_URI_{0}', upper(github.event.inputs.environment))] }}:hotfix-latest .
+          docker build -t ${{ secrets.ECR_URI_${{ github.event.inputs.environment }} }}:${{ steps.semver.outputs.version }} .
+          docker build -t ${{ secrets.ECR_URI_${{ github.event.inputs.environment }} }}:hotfix-latest .
 
       # Push Docker Image to ECR
       - name: Push Docker Image to ECR
         run: |
-          docker push ${{ secrets[format('ECR_URI_{0}', upper(github.event.inputs.environment))] }}:${{ steps.semver.outputs.version }}
-          docker push ${{ secrets[format('ECR_URI_{0}', upper(github.event.inputs.environment))] }}:hotfix-latest
+          docker push ${{ secrets.ECR_URI_${{ github.event.inputs.environment }} }}:${{ steps.semver.outputs.version }}
+          docker push ${{ secrets.ECR_URI_${{ github.event.inputs.environment }} }}:hotfix-latest
 
       # Update ECS Task Definition
       - name: Download task definition
@@ -107,7 +107,7 @@ jobs:
         with:
           task-definition: task-definition.json
           container-name: web
-          image: ${{ secrets[format('ECR_URI_{0}', upper(github.event.inputs.environment))] }}:hotfix-latest
+          image: ${{ secrets.ECR_URI_${{ github.event.inputs.environment }} }}:hotfix-latest
 
       # Deploy to ECS
       - name: Deploy Amazon ECS task definition
