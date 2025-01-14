@@ -73,33 +73,69 @@ jobs:
         continue-on-error: true
 
       # Configure AWS Credentials based on environment
-      - name: Configure AWS Credentials
+      - name: Configure AWS DEV Credentials
+        if: github.event.inputs.environment == 'DEV'
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ARN_${{ github.event.inputs.environment }} }}
+          role-to-assume: ${{ secrets.AWS_ARN_DEV }}
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      - name: Configure AWS QA Credentials
+        if: github.event.inputs.environment == 'QA'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ARN_QA }}
+          aws-region: us-east-1
+
+      - name: Configure AWS UAT Credentials
+        if: github.event.inputs.environment == 'UAT'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ARN_UAT }}
+          aws-region: us-east-1
+
+      - name: Configure AWS PROD Credentials
+        if: github.event.inputs.environment == 'PROD'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ARN_PROD }}
+          aws-region: us-east-1
+
+      # Set ECR URI based on environment
+      - name: Set ECR URI
+        id: ecr-uri
+        run: |
+          if [ "${{ github.event.inputs.environment }}" == "DEV" ]; then
+            echo "uri=${{ secrets.ECR_URI_DEV }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event.inputs.environment }}" == "QA" ]; then
+            echo "uri=${{ secrets.ECR_URI_QA }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event.inputs.environment }}" == "UAT" ]; then
+            echo "uri=${{ secrets.ECR_URI_UAT }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event.inputs.environment }}" == "PROD" ]; then
+            echo "uri=${{ secrets.ECR_URI_PROD }}" >> $GITHUB_OUTPUT
+          fi
 
       # Log in to Amazon ECR
       - name: Log in to Amazon ECR
         run: |
-          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ secrets.ECR_URI_${{ github.event.inputs.environment }} }}
+          aws ecr get-login-password --region ${{ secrets.AWS_DEFAULT_REGION }} | docker login --username AWS --password-stdin ${{ steps.ecr-uri.outputs.uri }}
 
       # Build Docker Image
       - name: Build Docker Image
         run: |
-          docker build -t ${{ secrets.ECR_URI_${{ github.event.inputs.environment }} }}:${{ steps.semver.outputs.version }} .
-          docker build -t ${{ secrets.ECR_URI_${{ github.event.inputs.environment }} }}:hotfix-latest .
+          docker build -t ${{ steps.ecr-uri.outputs.uri }}:${{ steps.semver.outputs.version }} .
+          docker build -t ${{ steps.ecr-uri.outputs.uri }}:hotfix-latest .
 
       # Push Docker Image to ECR
       - name: Push Docker Image to ECR
         run: |
-          docker push ${{ secrets.ECR_URI_${{ github.event.inputs.environment }} }}:${{ steps.semver.outputs.version }}
-          docker push ${{ secrets.ECR_URI_${{ github.event.inputs.environment }} }}:hotfix-latest
+          docker push ${{ steps.ecr-uri.outputs.uri }}:${{ steps.semver.outputs.version }}
+          docker push ${{ steps.ecr-uri.outputs.uri }}:hotfix-latest
 
       # Update ECS Task Definition
       - name: Download task definition
         run: |
-          aws ecs describe-task-definition --task-definition nci-oars-${{ github.event.inputs.environment }}-taskdefinition --query taskDefinition > task-definition.json
+          aws ecs describe-task-definition --region ${{ secrets.AWS_DEFAULT_REGION }} --task-definition nci-oars-${{ github.event.inputs.environment }}-taskdefinition --query taskDefinition > task-definition.json
 
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
@@ -107,7 +143,7 @@ jobs:
         with:
           task-definition: task-definition.json
           container-name: web
-          image: ${{ secrets.ECR_URI_${{ github.event.inputs.environment }} }}:hotfix-latest
+          image: ${{ steps.ecr-uri.outputs.uri }}:hotfix-latest
 
       # Deploy to ECS
       - name: Deploy Amazon ECS task definition
