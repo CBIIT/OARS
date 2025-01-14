@@ -40,10 +40,10 @@
     </Row>
     <Row HorizontalGutter="32" VerticalGutter="16">
         <Column ColumnSize="ColumnSize.Is4">
-            @foreach (var item in lstReviewItems)
+            @foreach (var item in lstManagers)
             {
-                <Check CheckedChanged="@((bool value) => checkboxChanged(item.ReviewItemName, value))" TValue="bool">
-                    @($"{item.ReviewItemName}")
+                <Check CheckedChanged="@((bool value) => checkboxChanged(item.BoxName, value))" TValue="bool" Checked="@item.IsChecked">
+                    @($"{item.BoxName}")
                 </Check>
             }
         </Column>
@@ -82,6 +82,7 @@
                 <Content>
                     <TabPanel Name="notehistory">
                         <DataGrid Class="admindatagrid"
+                        @ref="noteDataGrid"
                         TItem="TextNotes"
                         Data="@lstTextNotes"
                         AltBordered="true"
