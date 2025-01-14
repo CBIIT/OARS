@@ -63,7 +63,7 @@
     <Row>
         <Div><br /></Div>
         <Column>
-            <Button Color="Color.Warning" Disabled="@submitIsDisabled">Submit</Button>
+            <Button Color="Color.Warning" Disabled="@submitIsDisabled" Clicked="@ShowSubmitReviewModal">Submit</Button>
         </Column>
     </Row>
     <Row>
@@ -226,6 +226,40 @@
             </ModalFooter>
         </ModalContent>
     </Modal>
+
+    <Modal @ref="modalSubmitReview" Closing="@OnModalClosing">
+        <ModalContent Centered Size="ModalSize.Large">
+            <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
+                <ModalTitle>Submit review for @AgentId</ModalTitle>
+                <CloseButton />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="submitValidations" Mode="ValidationMode.Manual">
+                    <Field>
+                        <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Completed Review Tasks:</FieldLabel>
+                        @foreach (var item in lstReviewItems)
+                        {
+                            <Check Checked="true" Disabled="true" TValue="bool">
+                                @($"{item.ReviewItemName}")
+                            </Check>
+                        }
+                    </Field>
+                    <Field>
+                        <FieldBody>
+                            <Div Class="rounded p-4 border border-primary">
+                                <Check @bind-Checked="eSig">I attest that I have completed all the above Review Tasks.</Check>
+                            </Div>
+                        </FieldBody>
+                    </Field>
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Primary" Clicked="@HideSubmitReviewModal">Cancel</Button>
+                <Button Color="Color.Primary" Disabled="@(!eSig)" Clicked="@CompleteReview">Submit Review</Button>
+            </ModalFooter>
+        </ModalContent>
+    </Modal>
+
     @code {
         private bool isSelected { get; set; }
         private string? noteText { get; set; }
