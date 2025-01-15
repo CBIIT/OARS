@@ -55,7 +55,9 @@ namespace TheradexPortal.Data.Services
         }
         public async Task<List<ReceivingStatus>?> GetReceivingStatus(string protocalNumber)
         {
-            return await GetReceivingStatusExcel();
+            var data = await GetReceivingStatusExcel();
+            return data.Where(i => i.ProtocolNumber == protocalNumber).ToList();
+
         }
 
         public async Task<List<ReceivingStatus>?> GetReceivingStatusExcel(string filePath = "~/addr/difference_report.xlsx")
@@ -80,7 +82,7 @@ namespace TheradexPortal.Data.Services
             //            // Assign values using 1-based indexes (start from 1)
             //            receivingStatus.DataSource = row.Cell(1).GetValue<string>(); // DATASOURCE
             //            receivingStatus.SystemComments = row.Cell(2).GetValue<string>(); // VARI Comments
-            //            receivingStatus.VariCount = row.Cell(3).GetValue<string>(); // VariCount
+            //            receivingStatus.FeedCount = row.Cell(3).GetValue<string>(); // FeedCount
             //            receivingStatus.RaveCount = row.Cell(4).GetValue<string>(); // RaveCount
             //            receivingStatus.SubjectKey = row.Cell(5).GetValue<string>(); // SUBJECTKEY
             //            receivingStatus.SiteId = row.Cell(6).GetValue<string>(); // SITEID

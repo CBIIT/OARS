@@ -9,6 +9,10 @@ namespace TheradexPortal.Data.Models.ADDR
     public class ReceivingStatus : ADDRBase
     {
         [DynamoDBProperty]
+        public string? ProtocolNumber { get; set; }
+        [DynamoDBProperty]
+        public string? StudyId { get; set; }
+        [DynamoDBProperty]
         public string? SubjectUrl { get; set; }
 
         [DynamoDBProperty]
@@ -18,10 +22,10 @@ namespace TheradexPortal.Data.Models.ADDR
         public string? VariComments { get; set; }
 
         [DynamoDBProperty]
-        public int? Varicount { get; set; }
+        public int? FeedCount { get; set; }
 
         [DynamoDBProperty]
-        public int? Ravecount { get; set; }
+        public int? RaveCount { get; set; }
 
         [DynamoDBProperty]
         public string? SpecimenSponsorGroupSpecimenId { get; set; }

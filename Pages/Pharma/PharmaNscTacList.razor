@@ -1,0 +1,183 @@
+﻿@using System.Diagnostics.CodeAnalysis
+@using Microsoft.Extensions.Options
+@using Newtonsoft.Json
+@using TheradexPortal.Data.Models;
+@using TheradexPortal.Data.Models.ADDR;
+@using TheradexPortal.Data.Services
+@using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Static;
+@using TheradexPortal.Data.Models.Configuration;
+@using TheradexPortal.Data.Services.Abstract.ADDR;
+@using Microsoft.AspNetCore.Mvc;
+@using System.Collections.Generic;
+@using System.Linq;
+
+@inject IHttpContextAccessor httpContextAccessor;
+@inject IConfiguration configuration;
+@inject IOptions<EmailSettings> emailSettings;
+@inject IJSRuntime JS;
+
+@page "/pharma/pharmansctacs/{dashboardid:int?}/{reportid:int?}"
+
+<AdminRoleCheck AllowedRoles="@(new List<string> { "IT", "Biz" })"></AdminRoleCheck>
+<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>Pharmas NSC TACS List</h2></Div>
+<Row Background="Background.Light">
+    <Column ColumnSize="ColumnSize.IsFull">
+        <DataGrid TItem="PharmaNscTac"
+                  Class="admindatagrid"
+                  Data="@pharmaNscTacList"
+                  Responsive
+                  Groupable
+                  ShowGrouping
+                  Hoverable
+                  Narrow
+                  Filterable
+                  ShowPager
+                  PageSize="2000"
+                  ShowPageSizes
+                  ShowColumnChooser
+                  MaxPaginationLinks="5"
+                  PagerPosition="DataGridPagerPosition.Bottom"
+                  FixedHeader
+                  FixedHeaderDataGridHeight="calc(100vh - 240px)"
+                  FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
+                  FilterMode="DataGridFilterMode.Menu"
+                  Resizable
+                  SortMode="DataGridSortMode.Multiple"
+                  ResizeMode="TableResizeMode.Columns"
+                  Striped
+                  PagerOptions="new(){ButtonSize=Size.Default,
+                                PaginationPosition=PagerElementPosition.Default,
+                                TotalItemsPosition=PagerElementPosition.End,
+                                }"
+                  CommandMode="DataGridCommandMode.ButtonRow">
+            <DataGridColumns>
+                <DataGridMultiSelectColumn Width="30px"> </DataGridMultiSelectColumn>
+                <DataGridCommandColumn />
+                <DataGridColumn Field="@nameof(PharmaNscTac.Id)" Caption="Id"/>
+                <DataGridColumn Field="@nameof(PharmaNscTac.AgreementNumber)" Caption="Agreement" Groupable />
+                <DataGridColumn Field="@nameof(PharmaNscTac.Nsc)" Caption="NSC" Groupable />
+                <DataGridColumn Field="@nameof(PharmaNscTac.ProtocolNumber)" Caption="Study" Groupable />
+                <DataGridColumn Field="@nameof(PharmaNscTac.TrtAsgnmtCode)" Caption="Treatment Assignment  Code" Groupable />
+                <DataGridColumn Field="@nameof(PharmaNscTac.TrtAsgnmtDescription)" Caption="Treatment Assignment  Description" />
+                <DataGridColumn Field="@nameof(PharmaNscTac.Created)" Caption="Date Created" />
+                <DataGridColumn Field="@nameof(PharmaNscTac.Updated)" Caption="Date Created" />
+                <DataGridColumn Field="@nameof(PharmaNscTac.Deleted)" Caption="Date Created" />
+                <DataGridColumn Field="@nameof(PharmaNscTac.IsActive)" Caption="Record Active" />
+                <DataGridColumn Sortable="false" Filterable="false" Width="140px">
+                    <DisplayTemplate>
+                        <Button Color="Color.Info" Clicked="@(()=>EditClick(context as PharmaNscTac))">Edit</Button>
+                        <Button Color="Color.Secondary" Clicked="@(()=>ShowDeleteModal(context as PharmaNscTac))">Delete</Button>
+                    </DisplayTemplate>
+                </DataGridColumn>
+            </DataGridColumns>
+            <ButtonRowTemplate>
+                <Button Color="Color.Primary" Clicked="@NewClick">Create</Button>
+            </ButtonRowTemplate>
+        </DataGrid>
+    </Column>
+</Row>
+<Modal @ref="deleteModalRef">
+    <ModalContent Centered>
+        <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
+            <ModalTitle>Delete Group: @pharmaNscTacToDelete</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            Warning:  Continuing will delete this group.
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Light" Clicked="@HideDeleteModal">Cancel</Button>
+            <Button Color="Color.Danger" Clicked="@DeleteGroupClick">Delete</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+@code {
+    [Inject] private NavigationManager navigation { get; set; } = null!;
+    [Inject] INotificationService NotificationService { get; set; }
+    [Inject] IPharmaNscTacService pharmaNscTacService { get; set; } = null!;
+    [Inject] IReceivingStatusService service { get; set; } = null!;
+    [Inject] IUserService userService { get; set; } = null!;
+    [Inject] TimeZoneService timeZoneService { get; set; } = null!;
+    [Inject] IOktaService oktaService { get; set; } = null!;
+    [Inject] IEmailService emailService { get; set; } = null;
+    [Inject] IStudyService studyService { get; set; }
+    [Inject] IProfileService profileService { get; set; } = null!;
+
+    [Parameter] public bool IsAdminDisplay { get; set; } = false;
+    [Parameter] public string ProtocolNumber { get; set; } = string.Empty;
+    [Parameter] public int DashboardId { get; set; }
+    [Parameter] public int ReportId { get; set; }
+
+    private IList<Protocol> Protocols { get; set; } = new List<Protocol>();
+    private string SelectedProtocol { get; set; } = string.Empty;
+    private TimeSpan timeOffset;
+    private string timeZoneAbbrev = "";
+
+    private Modal deleteModalRef;
+    private string pharmaNscTacToDelete;
+    private int pharmaNscTacToDeleteId;
+    private IList<PharmaNscTac> pharmaNscTacList = new List<PharmaNscTac>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+        User curUser = await userService.GetUserAsync(userId);
+        timeZoneAbbrev = curUser.TimeZoneAbbreviation;
+        timeOffset = TimeSpan.FromMinutes((double)curUser.TimeOffset);
+
+        // Fetch protocols
+        //Protocols = await service.GetProtocols();
+        Protocols = studyService.GetProtocolsForUserAsync(userId, true).ToList().Where(i => i.STS != null && i.STS.ToLower() == "yes" && i.CDASH != null && i.CDASH.ToLower() == "yes").ToList();
+        pharmaNscTacList = (await pharmaNscTacService.GetAllAsync()).ToList();
+    }
+
+
+    private async void NewClick()
+    {
+        //navigation.NavigateTo("/admin/group");
+    }
+
+    private async void EditClick(PharmaNscTac p)
+    {
+        navigation.NavigateTo($"/admin/pharmansctac/{p.ProtocolNumber}");
+    }
+
+    private async Task ShowDeleteModal(PharmaNscTac p)
+    {
+        var canDel = true;
+        if (!canDel)
+            await NotificationService.Error("Can not delete.");
+        else
+        {
+            // groupToDelete = p.GroupName;
+            // groupToDeleteId = p.GroupId;
+            await deleteModalRef.Show();
+        }
+    }
+
+    private Task HideDeleteModal()
+    {
+        return deleteModalRef.Hide();
+    }
+
+    private async void DeleteGroupClick()
+    {
+        // PharmaNscTac pharmaNscTacToDel;
+        // // Check if any users assigned to groups - if not ok to delete
+        // int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+        // Tuple<bool, string> delpharmaNscTac = pharmaNscTacService.DeleteAsync(pharmaNscTacToDel.ProtocolNumber, userId);
+
+        // await deleteModalRef.Hide();
+        // if (delpharmaNscTac.Item1)
+        // {
+        //     await NotificationService.Success("Group deleted successfully");
+        //     pharmaNscTacList = await pharmaNscTacService.GetAllAsync();
+        //     StateHasChanged();
+        // }
+        // else
+        // {
+        //     await NotificationService.Error(delpharmaNscTac.Item2);
+        // }
+    }
+}

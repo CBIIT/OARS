@@ -134,6 +134,15 @@
                                                 </BarLink>
                                             </BarItem>
                                         }
+                                        @if (CheckRole(new List<string> { "IT" }))
+                                        {
+                                            <BarItem>
+                                                 <BarLink To="/admin/pharmansctacs">
+                                                    <BarIcon IconName="IconName.List" />
+                                                    Pharma NSC TAC
+                                                </BarLink>
+                                            </BarItem>
+                                        }
                                     </BarStart>
                                 </BarMenu>
                             </Bar>

@@ -89,21 +89,34 @@
                     </DisplayTemplate>
                 </DataGridColumn>
                 <DataGridColumn Field="@nameof(ReceivingStatus.Id)" Caption="#" Displayable="false" />
+                <DataGridColumn Field="ProtocolNumber" Caption="ProtocolNumber" />
+                <DataGridColumn Field="StudyId" Caption="StudyId" />
                 <DataGridColumn Field="DataSource" Caption="Data Source" />
-                <DataGridColumn Field="VariComments" Caption="Vari Comments" Groupable>
+                <DataGridColumn Field="SystemComments" Caption="System Comments" Groupable>
                     <DisplayTemplate >
-                        @foreach (var comment in ((context as ReceivingStatus).VariComments.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)))
+                        @if ((context as ReceivingStatus)?.SystemComments != null)
                         {
-                            <Badge Color="@GetStatusColor(comment)" Pill class="m-1">
-                                <Tooltip Text="@comment">
-                                    @comment
+                            @foreach (var comment in ((context as ReceivingStatus).SystemComments.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)))
+                            {
+                                <Badge Color="@GetStatusColor(comment)" Pill class="m-1">
+                                    <Tooltip Text="@comment">
+                                        @comment
+                                    </Tooltip>
+                                </Badge>
+                            }
+                        }
+                        else
+                        {
+                            <Badge Color="Blazorise.Color.Light" Pill class="m-1">
+                                <Tooltip Text="No Comments">
+                                    No Comments
                                 </Tooltip>
                             </Badge>
                         }
                     </DisplayTemplate>
                 </DataGridColumn>
-                <DataGridColumn Field="Varicount" Caption="Vari Count" />
-                <DataGridColumn Field="Ravecount" Caption="Rave Count" />
+                <DataGridColumn Field="FeedCount" Caption="Feed Count" />
+                <DataGridColumn Field="RaveCount" Caption="Rave Count" />
                 <DataGridColumn Caption="Subject Key" Groupable>
                     <DisplayTemplate Context="context">
                         @{
@@ -246,7 +259,7 @@
 
         // Fetch protocols
         //Protocols = await service.GetProtocols();
-        Protocols = studyService.GetProtocolsForUserAsync(userId, true).ToList().Where(i => i.STS.ToLower() == "yes" && i.CDASH.ToLower() == "yes").ToList();
+        Protocols = studyService.GetProtocolsForUserAsync(userId, true).ToList().Where(i => i.STS != null && i.STS.ToLower() == "yes" && i.CDASH != null && i.CDASH.ToLower() == "yes").ToList();
 
     }
 
@@ -274,7 +287,7 @@
         }
         
         // Set the background color to red if SystemComments are not "Match Found"
-        if (receivingStatus.VariComments.Trim().ToLower() != "match found")
+        if (receivingStatus.SystemComments?.Trim().ToLower() != "match found")
         {
             styling.Style = "background-color:#e39696; color:black; font-weight:bold;";
         }

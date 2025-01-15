@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System.Diagnostics;
 using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Static;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace TheradexPortal.Data
 {
@@ -60,6 +61,11 @@ namespace TheradexPortal.Data
                     {
                         property.SetValueConverter(converter);
                     }
+                }
+                // Configure entity as keyless if no primary key is detected
+                if (!entity.GetKeys().Any())
+                {
+                    modelBuilder.Entity(entity.ClrType).HasNoKey();
                 }
             }
 
@@ -258,5 +264,7 @@ namespace TheradexPortal.Data
         public DbSet<ReviewHistoryItem> ReviewHistoryItems { get; set; }
         public DbSet<ReviewHistoryNote> ReviewHistoryNotes { get; set; }
         public DbSet<ReviewItem> ReviewItems { get; set; }
+        public DbSet<PharmaNscTac> PharmaNscTacs { get; set; }
+
     }
 }
