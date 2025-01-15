@@ -153,7 +153,7 @@
                         </TabPanel>
                         <TabPanel Name="auditTrail">
                             <DataGrid @ref="auditDataGrid"
-                            TItem="AuditTrail"
+                            TItem="AuditTrailDTO"
                             Class="admindatagrid"
                             Data="@lstAudits"
                             Bordered="true"
@@ -173,12 +173,13 @@
                             FixedHeaderDataGridHeight="calc(100vh - 240px)"
                             FixedHeaderDataGridMaxHeight="calc(100vh - 240px)">
                                 <DataGridCommandColumn />
-                                <DataGridColumn TItem="AuditTrail" Field="@nameof(AuditTrail.UserId)" Caption="ID" />
-                                <DataGridColumn TItem="AuditTrail" Field="@nameof(AuditTrail.UserName)" Caption="Name" />
-                                <DataGridColumn TItem="AuditTrail" Field="@nameof(AuditTrail.ChangeDate)" Caption="Update Date" />
-                                <DataGridColumn TItem="AuditTrail" Field="@nameof(AuditTrail.EventType)" Caption="Change Type" />
-                                <DataGridColumn TItem="AuditTrail" Field="@nameof(AuditTrail.PreviousValue)" Caption="Previously" />
-                                <DataGridColumn TItem="AuditTrail" Field="@nameof(AuditTrail.NewValue)" Caption="Updated to" />
+                                <DataGridColumn TItem="AuditTrailDTO" Field="@nameof(AuditTrailDTO.userName)" Caption="User" />
+                                <DataGridColumn TItem="AuditTrailDTO" Field="@nameof(AuditTrailDTO.userId)" Caption="User ID" />
+                                <DataGridColumn TItem="AuditTrailDTO" Field="@nameof(AuditTrailDTO.dateOfChange)" Caption="Date Of Change" />
+                                <DataGridColumn TItem="AuditTrailDTO" Field="@nameof(AuditTrailDTO.typeOfChange)" Caption="Type Of Change" />
+                                <DataGridColumn TItem="AuditTrailDTO" Field="@nameof(AuditTrailDTO.changeField)" Caption="Changed Field" />
+                                <DataGridColumn TItem="AuditTrailDTO" Field="@nameof(AuditTrailDTO.previousValue)" Caption="Previous Value" />
+                                <DataGridColumn TItem="AuditTrailDTO" Field="@nameof(AuditTrailDTO.newValue)" Caption="New Value" />
                             </DataGrid>
                         </TabPanel>
                     </Content>
@@ -289,7 +290,7 @@
         private bool submitIsDisabled = false;
         private DataGrid<TextNotes> noteDataGrid;
         private DataGrid<EmailDetails> emailDataGrid;
-        private DataGrid<AuditTrail> auditDataGrid;
+        private DataGrid<AuditTrailDTO> auditDataGrid;
         private string userFullName = "No Name Found";
         private string userFirstName = "Error";
         private string userLastName = "No Name";
@@ -317,20 +318,10 @@
             public bool IsChecked { get; set; }
         }
 
-        public class AuditTrail
-        {
-            public int UserId { get; set; }
-            public string UserName { get; set; }
-            public string ChangeDate { get; set; }
-            public string EventType { get; set; }
-            public string PreviousValue { get; set; }
-            public string NewValue { get; set; }
-        }
-
         private List<TextNotes> lstTextNotes = new List<TextNotes>();
         private List<EmailDetails> lstEmailDetails = new List<EmailDetails>();
         private List<CheckBoxManager> lstManagers = new List<CheckBoxManager>();
-        private List<AuditTrail> lstAudits = new List<AuditTrail>();
+        private List<AuditTrailDTO> lstAudits = new List<AuditTrailDTO>();
         [Parameter]
         public int ProtocolId { get; set; } = 0;
         public bool changesSaved = true;
@@ -483,7 +474,6 @@
 
         private Modal modalSubmitEmail;
         private Modal modalSubmitReview;
-        private IList<Audit> auditTrail;
         private bool cancelClose;
 
         private string contactUsCategoryID = "", emailTo = "", emailCategory = "", emailDescription = "", emailDescriptionLabel = "";
@@ -519,7 +509,7 @@
                 authorizedUsers = await reviewService.GetAllAuthorizedUsersAsync(ProtocolId);
                 if (authorizedUsers.Contains(activeUserId))
                 {
-                    auditTrail = await auditService.GetReviewAuditTrailAsync(activeUserId, currentReview.ReviewId);
+                    lstAudits = await auditService.GetFullAuditTrailAsync(activeUserId, currentReview.ReviewId);
                     if (latestReviewHistory == null)
                     {
                         reviewHistoryId = reviewHistoryService.GetNextReviewHistoryId();

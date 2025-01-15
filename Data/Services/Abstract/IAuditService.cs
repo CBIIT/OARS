@@ -1,9 +1,10 @@
 ﻿using TheradexPortal.Data.Models;
+using TheradexPortal.Data.Models.DTO;
 
 namespace TheradexPortal.Data.Services.Abstract
 {
     public interface IAuditService
     {
-        public Task<IList<Audit>> GetReviewAuditTrailAsync(int userId, int reviewId);
+        public Task<List<AuditTrailDTO>> GetFullAuditTrailAsync(int userId, int reviewId);
     }
 }

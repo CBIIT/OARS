@@ -26,8 +26,33 @@ namespace TheradexPortal.Data.Services
             _reviewService = reviewService;
             _userService = userService;
         }
+        public async Task<List<AuditTrailDTO>> GetFullAuditTrailAsync(int userId, int reviewId)
+        {
+            List<AuditTrailDTO> auditTrail = new List<AuditTrailDTO>();
+            IList<Audit> reviewAuditTrail = await GetReviewAuditTrailAsync(userId, reviewId);
 
-        public async Task<IList<Audit>> GetReviewAuditTrailAsync(int userId, int reviewId)
+            foreach (Audit audit in reviewAuditTrail)
+            {
+                if (audit != null)
+                {
+                    auditTrail.Add(
+                        new AuditTrailDTO
+                        {
+                            userName = string.Empty,
+                            userId = userId,
+                            dateOfChange = audit.CreateDate,
+                            typeOfChange = audit.AuditType,
+                            changeField = audit.AffectedColumns,
+                            previousValue = audit.OldValues,
+                            newValue = audit.NewValues
+                        });
+                }
+            }
+
+            return auditTrail;
+        }
+
+        private async Task<IList<Audit>> GetReviewAuditTrailAsync(int userId, int reviewId)
         {
             string sqlQuery = "SELECT * FROM \"AUDIT\" WHERE USERID = {0}";
 
