@@ -479,9 +479,11 @@
         [Inject] INotificationService notificationService { get; set; }
         [Inject] IEmailService emailService { get; set; } = null!;
         [Inject] IReviewService reviewService { get; set; } = null!;
+        [Inject] IAuditService auditService { get; set; } = null!;
 
         private Modal modalSubmitEmail;
         private Modal modalSubmitReview;
+        private IList<Audit> auditTrail;
         private bool cancelClose;
 
         private string contactUsCategoryID = "", emailTo = "", emailCategory = "", emailDescription = "", emailDescriptionLabel = "";
@@ -517,6 +519,7 @@
                 authorizedUsers = await reviewService.GetAllAuthorizedUsersAsync(ProtocolId);
                 if (authorizedUsers.Contains(activeUserId))
                 {
+                    auditTrail = await auditService.GetReviewAuditTrailAsync(activeUserId, currentReview.ReviewId);
                     if (latestReviewHistory == null)
                     {
                         reviewHistoryId = reviewHistoryService.GetNextReviewHistoryId();

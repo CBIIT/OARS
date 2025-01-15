@@ -88,6 +88,7 @@ builder.Services.AddScoped<IReviewHistoryItemService, ReviewHistoryItemService>(
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IPharmaNscTacService, PharmaNscTacService>();
 
+builder.Services.AddScoped<IAuditService, AuditService>();
 
 #region Automated Data Discrepancy Report (ADDR)
 //builder.Services.AddScoped<IADDRService, ADDRService>();
