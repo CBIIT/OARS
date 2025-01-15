@@ -153,27 +153,5 @@ namespace TheradexPortal.Data.Services
 
             return true;
         }
-
-        public async Task<List<ReviewHistoryPiDTO>> GetPiInfoAsync(int protocolId)
-        {
-            var lstPiReviews = await _reviewService.GetActivePIReviewsAsync(protocolId);
-
-            var query = context.ReviewHistories
-                    .Where(rh => lstPiReviews.Contains(rh.ReviewId ?? 0) && rh.ReviewCompleteDate == null)
-                    .Join(context.Users,
-                    rh => rh.UserId,
-                    u => u.UserId,
-                    (rh, u) => new ReviewHistoryPiDTO
-                    {
-                        PiName = u.FirstName + " " + u.LastName,
-                        caseNumber = rh.ProtocolId.ToString(),
-                        updateDate = rh.UpdateDate,
-                        currentStatus = rh.ReviewStatus
-                    });
-
-            var ret = await query.ToListAsync(); ;
-
-            return ret;
-        }
     }
 }

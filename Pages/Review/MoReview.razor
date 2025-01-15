@@ -77,7 +77,7 @@
                 <Items>
                     <Tab Name="notehistory">Note History</Tab>
                     <Tab Name="emailhistory">Email History</Tab>
-                    <Tab Name="piDetails">PI Details</Tab>
+                    <Tab Name="piDetails">PI Overview</Tab>
                 </Items>
                 <Content>
                     <TabPanel Name="notehistory">
@@ -134,7 +134,7 @@
                         </DataGrid>
                     </TabPanel>
                     <TabPanel Name="piDetails">
-                        <DataGrid TItem="ReviewHistoryPiDTO"
+                        <DataGrid TItem="ReviewPiDTO"
                         Class="admindatagrid"
                         Data="@lstPiDetails"
                         Bordered="true"
@@ -154,10 +154,12 @@
                         FixedHeaderDataGridHeight="calc(100vh - 240px)"
                         FixedHeaderDataGridMaxHeight="calc(100vh - 240px)">
                             <DataGridCommandColumn />
-                            <DataGridColumn TItem="ReviewHistoryPiDTO" Field="@nameof(ReviewHistoryPiDTO.PiName)" Caption="PI Name" />
-                            <DataGridColumn TItem="ReviewHistoryPiDTO" Field="@nameof(ReviewHistoryPiDTO.caseNumber)" Caption="Case Number" />
-                            <DataGridColumn TItem="ReviewHistoryPiDTO" Field="@nameof(ReviewHistoryPiDTO.updateDate)" Caption="Update Date" />
-                            <DataGridColumn TItem="ReviewHistoryPiDTO" Field="@nameof(ReviewHistoryPiDTO.currentStatus)" Caption="Current PI Status" />
+                            <DataGridColumn TItem="ReviewPiDTO" Field="@nameof(ReviewPiDTO.PiName)" Caption="PI Name" />
+                            <DataGridColumn TItem="ReviewPiDTO" Field="@nameof(ReviewPiDTO.caseNumber)" Caption="Case Number" />
+                            <DataGridColumn TItem="ReviewPiDTO" Field="@nameof(ReviewPiDTO.currentStatus)" Caption="Current PI Status" />
+                            <DataGridColumn TItem="ReviewPiDTO" Field="@nameof(ReviewPiDTO.updateDate)" Caption="Last Updated Date" />
+                            <DataGridColumn TItem="ReviewPiDTO" Field="@nameof(ReviewPiDTO.dueDate)" Caption="Next Due Date" />
+                            <DataGridColumn TItem="ReviewPiDTO" Field="@nameof(ReviewPiDTO.periodName)" Caption="Review Name" />
                         </DataGrid>
                     </TabPanel>
                 </Content>
@@ -268,7 +270,7 @@
         private bool emailFormIsValid => emailTo != null && emailTo.Contains('@') && emailTo.Contains('.');
         private DataGrid<TextNotes> noteDataGrid;
         private DataGrid<EmailDetails> emailDataGrid;
-        private DataGrid<ReviewHistoryPiDTO> piDataGrid;
+        private DataGrid<ReviewPiDTO> piDataGrid;
         private string userFullName = "No Name Found";
         private string userFirstName = "Error";
         private string userLastName = "No Name";
@@ -307,7 +309,7 @@
         private List<TextNotes> lstTextNotes = new List<TextNotes>();
         private List<EmailDetails> lstEmailDetails = new List<EmailDetails>();
         private List<CheckBoxManager> lstManagers = new List<CheckBoxManager>();
-        private List<ReviewHistoryPiDTO> lstPiDetails = new List<ReviewHistoryPiDTO>();
+        private List<ReviewPiDTO> lstPiDetails = new List<ReviewPiDTO>();
 
         [Parameter]
         public int AgentId { get; set; } = 0;
@@ -494,7 +496,7 @@
                         latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(AgentId);
                     }
                     reviewName = latestReviewHistory.ReviewPeriodName ?? "";
-                    lstPiDetails = await reviewHistoryService.GetPiInfoAsync(AgentId);
+                    lstPiDetails = await reviewService.GetPiInfoAsync(AgentId);
                     var user = await userService.GetUserAsync(latestReviewHistory.UserId);
                     if (user != null)
                     {

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using TheradexPortal.Data.Models;
+using TheradexPortal.Data.Models.DTO;
 using TheradexPortal.Data.Services.Abstract;
 
 namespace TheradexPortal.Data.Services
@@ -46,6 +47,30 @@ namespace TheradexPortal.Data.Services
                 .Where(p=> p.ProtocolId == protocolId)
                 .Select (r => r.UserId)
                 .ToListAsync();
+        }
+
+        public async Task<List<ReviewPiDTO>> GetPiInfoAsync(int protocolId)
+        {
+            var lstPiReviews = await GetActivePIReviewsAsync(protocolId);
+
+            var query = context.Reviews
+                    .Where(r => lstPiReviews.Contains(r.ReviewId))
+                    .Join(context.Users,
+                    r => r.UserId,
+                    u => u.UserId,
+                    (r, u) => new ReviewPiDTO
+                    {
+                        PiName = u.FirstName + " " + u.LastName,
+                        caseNumber = r.ProtocolId.ToString(),
+                        dueDate = r.NextDueDate.ToString(),
+                        updateDate = r.UpdateDate,
+                        currentStatus = r.ReviewStatus,
+                        periodName = r.ReviewPeriodName
+                    });
+
+            var ret = await query.ToListAsync(); ;
+
+            return ret;
         }
     }
 }
