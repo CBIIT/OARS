@@ -6,6 +6,8 @@ using TheradexPortal.Data.Models.DTO;
 using TheradexPortal.Data.Services.Abstract;
 using Oracle.EntityFrameworkCore;
 using Oracle.ManagedDataAccess.Client;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace TheradexPortal.Data.Services
 {
@@ -30,34 +32,46 @@ namespace TheradexPortal.Data.Services
         {
             List<AuditTrailDTO> auditTrail = new List<AuditTrailDTO>();
             IList<Audit> reviewAuditTrail = await GetReviewAuditTrailAsync(userId, reviewId);
-
+            var currentUser = await _userService.GetUserAsync(userId);
+            var userName = currentUser.FirstName + " " + currentUser.LastName;
             foreach (Audit audit in reviewAuditTrail)
             {
                 if (audit != null)
                 {
-                    auditTrail.Add(
-                        new AuditTrailDTO
-                        {
-                            userName = string.Empty,
-                            userId = userId,
-                            dateOfChange = audit.CreateDate,
-                            typeOfChange = audit.AuditType,
-                            changeField = audit.AffectedColumns,
-                            previousValue = audit.OldValues,
-                            newValue = audit.NewValues
-                        });
+                    var fieldList = ParseStrings(audit.AffectedColumns);
+                    JObject oldValueJsonObjects = JObject.Parse(audit.OldValues);
+                    JObject newValueJsonObjects = JObject.Parse(audit.NewValues);
+                    foreach(var key in fieldList) {
+                        auditTrail.Add(
+                            new AuditTrailDTO
+                            {
+                                userName = userName,
+                                userId = userId,
+                                dateOfChange = audit.CreateDate,
+                                typeOfChange = audit.AuditType,
+                                changeField = key,
+                                previousValue = oldValueJsonObjects[key] != null ? oldValueJsonObjects[key].ToString() : "null",
+                                newValue = newValueJsonObjects[key] != null ? newValueJsonObjects[key].ToString() : "null"
+                            });
+                    }
                 }
             }
 
             return auditTrail;
         }
 
+        private List<string> ParseStrings(string input)
+        {
+            var result = JsonConvert.DeserializeObject<List<string>>(input);
+            return result;
+        }
+
         private async Task<IList<Audit>> GetReviewAuditTrailAsync(int userId, int reviewId)
         {
-            string sqlQuery = "SELECT * FROM \"AUDIT\" WHERE USERID = {0}";
+            string sqlQuery = "SELECT * FROM \"AUDIT\" WHERE USERID = {0} AND JSON_VALUE(PRIMARYKEY, '$.ReviewId') = {1}";
 
             var ret = await context.Audits
-                    .FromSqlRaw (sqlQuery, userId)
+                    .FromSqlRaw (sqlQuery, userId, reviewId)
                     .ToListAsync();
 
             return ret;
