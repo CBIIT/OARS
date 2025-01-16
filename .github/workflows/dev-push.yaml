@@ -20,7 +20,7 @@ jobs:
 
       # Setup .NET
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
 
@@ -89,7 +89,7 @@ jobs:
           docker save $ECR_URI_DEV:$VERSION | gzip > web-reporting_$VERSION.tar.gz
 
       - name: Upload Docker Image Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: docker-image-${{ steps.semver.outputs.version }}
           path: web-reporting_${{ steps.semver.outputs.version }}.tar.gz
