@@ -384,6 +384,8 @@
             if (ProtocolId > 0)
             {
                 bool itemUpdateNeeded = false;
+                bool itemWasUpdated = false;
+                bool noteAdded = false;
                 foreach (var box in lstManagers)
                 {
                     // if the box's Number doesn't exist, in the dictionary, then we need to add a new record to the table
@@ -391,11 +393,13 @@
                     {
                         reviewHistoryItemService.SaveReviewHistoryItemAsync(activeUserId, latestReviewHistory.ReviewHistoryId, box.ReviewItemNumber, box.IsChecked);
                         itemUpdateNeeded = true;
+                        itemWasUpdated = true;
                     }
                     else if (box.IsChecked != checkedStatus)
                     {
                         await reviewHistoryItemService.UpdateReviewHistoryItemAsync(activeUserId, latestReviewHistory.ReviewHistoryId, box.ReviewItemNumber, box.IsChecked);
                         dctReviewItemSettings[box.ReviewItemNumber] = box.IsChecked;
+                        itemWasUpdated = true;
                     }
                 }
                 if(itemUpdateNeeded)
@@ -410,17 +414,20 @@
                     newNote.CreateDate = DateTime.Now;
                     newNote.ReviewHistoryId = latestReviewHistory.ReviewHistoryId;
                     newNote.ReviewHistoryNoteId = historyNoteService.GetNextReviewHistoryNoteId();
-                    var noteAdded = await historyNoteService.SaveNoteAsync(activeUserId, newNote);
+                    noteAdded = await historyNoteService.SaveNoteAsync(activeUserId, newNote);
                     var user = await userService.GetUserAsync(latestReviewHistory.UserId);
                     var userName = user.FirstName + " " + user.LastName;
                     if(noteAdded) {
                         lstTextNotes.Add(new TextNotes { Name = userName, Note = noteText, CreationDate = newNote.CreateDate.Value.ToString("dd-MMM-yyyy hh:mm:ss tt").ToUpper() });
                     }
+                    noteText = "";
+                    await noteDataGrid.Reload();
                 }
-                noteText = "";
-                await noteDataGrid.Reload();
 
-                await notificationService.Success("Changes have been saved.");
+                if (itemWasUpdated || noteAdded)
+                {
+                    await notificationService.Success("Changes have been saved.");
+                }
             }
             else{
                 await notificationService.Error("UI Demo mode. No changes to save.");
@@ -648,6 +655,7 @@
             // Add DB record for next review
             // We need the current date for complete and for updated
             SaveChanges();
+            await notificationService.Success("Review Successfully Completed.");
             reviewHistoryService.CloseCurrentReviewAsync(activeUserId, latestReviewHistory.ReviewHistoryId);
             modalSubmitReview.Hide();
             string navTo = "/";

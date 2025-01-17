@@ -18,7 +18,7 @@
 @inject IConfiguration configuration
 @inject IHttpContextAccessor httpContextAccessor
 @inject ProtectedSessionStorage SessionData
-
+@inject IJSRuntime JSRuntime
 
 @page "/moreview/{agentid:int?}"
 
@@ -29,143 +29,143 @@
 <body>
     @if (AgentId != 0 && authorizedUsers.Contains(activeUserId))
     {
-    <Row>
-        <Column Style="background-image: Review-Bar.png" ColumnSize="ColumnSize.Is12">
-            <Div Background="Background.Primary" TextColor="TextColor.Light" style="display: flex; justify-content: center; align-items: center; width: 100%; text-align: center; flex-direction: column;">
-                <span><h3>MO Review for #@reviewName</h3></span>
-                <span><h4> @leadAgentName : @AgentId : @studyDescription </h4></span>
-                <span><h4>Status: @GetReviewStatus()</h4></span>
-            </Div>
-        </Column>
-    </Row>
-    <Row HorizontalGutter="32" VerticalGutter="16">
-        <Column ColumnSize="ColumnSize.Is4">
-            @foreach (var item in lstManagers)
-            {
-                <Check CheckedChanged="@((bool value) => checkboxChanged(item.BoxName, value))" TValue="bool" Checked="@item.IsChecked">
-                    @($"{item.BoxName}")
-                </Check>
-            }
-        </Column>
-        <Column ColumnSize="ColumnSize.Is8">
-            <Row>
-                <MemoEdit Rows="10" @bind-Text="@noteText" Placeholder="Enter new notes..." />
-            </Row>
-        </Column>
-    </Row>
-    <Row>
-        <Column>
-            <Button Color="Color.Primary" Clicked="@SaveChanges">Save Changes</Button>
-            <Button Color="Color.Primary" Clicked="@DiscardChanges">Discard Changes</Button>
-            <Button Color="Color.Primary" Clicked="@ShowContactUsModal">Send Email</Button>
-        </Column>
-    </Row>
-    <Row>
-        <Div><br /></Div>
-        <Column>
-            <Button Color="Color.Warning" Disabled="@submitIsDisabled" Clicked="@ShowSubmitReviewModal">Sign Off</Button>
-        </Column>
-    </Row>
-    <Row>
-        <Div><br /></Div>
-        <Div><br /></Div>
-        <Div><br /></Div>
-    </Row>
-    <Row>
-        <Column>
-            <Tabs SelectedTab="@selectedTab" SelectedTabChanged="@OnSelectedTabChanged">
-                <Items>
-                    <Tab Name="notehistory">Note History</Tab>
-                    <Tab Name="emailhistory">Email History</Tab>
-                    <Tab Name="piDetails">PI Overview</Tab>
-                </Items>
-                <Content>
-                    <TabPanel Name="notehistory">
-                        <DataGrid Class="admindatagrid"
-                        @ref="noteDataGrid"
-                        TItem="TextNotes"
-                        Data="@lstTextNotes"
-                        AltBordered="true"
-                        Responsive
-                        Filterable
-                        Striped
-                        ShowPager
-                        ShowPageSizes
-                        MaxPaginationLinks="5"
-                        PagerPosition="DataGridPagerPosition.Bottom"
-                        PagerOptions="new(){ButtonSize=Size.Default,
+        <Row>
+            <Column Style="background-image: Review-Bar.png" ColumnSize="ColumnSize.Is12">
+                <Div Background="Background.Primary" TextColor="TextColor.Light" style="display: flex; justify-content: center; align-items: center; width: 100%; text-align: center; flex-direction: column;">
+                    <span><h3>MO Review for #@reviewName</h3></span>
+                    <span><h4> @leadAgentName : @AgentId : @studyDescription </h4></span>
+                    <span><h4>Status: @GetReviewStatus()</h4></span>
+                </Div>
+            </Column>
+        </Row>
+        <Row HorizontalGutter="32" VerticalGutter="16">
+            <Column ColumnSize="ColumnSize.Is4">
+                @foreach (var item in lstManagers)
+                {
+                    <Check CheckedChanged="@((bool value) => checkboxChanged(item.BoxName, value))" TValue="bool" Checked="@item.IsChecked">
+                        @($"{item.BoxName}")
+                    </Check>
+                }
+            </Column>
+            <Column ColumnSize="ColumnSize.Is8">
+                <Row>
+                    <MemoEdit Rows="10" @bind-Text="@noteText" Placeholder="Enter new notes..." />
+                </Row>
+            </Column>
+        </Row>
+        <Row>
+            <Column>
+                <Button Color="Color.Primary" Clicked="@SaveChanges">Save Changes</Button>
+                <Button Color="Color.Primary" Clicked="@DiscardChanges">Discard Changes</Button>
+                <Button Color="Color.Primary" Clicked="@ShowContactUsModal">Send Email</Button>
+            </Column>
+        </Row>
+        <Row>
+            <Div><br /></Div>
+            <Column>
+                <Button Color="Color.Warning" Disabled="@submitIsDisabled" Clicked="@ShowSubmitReviewModal">Sign Off</Button>
+            </Column>
+        </Row>
+        <Row>
+            <Div><br /></Div>
+            <Div><br /></Div>
+            <Div><br /></Div>
+        </Row>
+        <Row>
+            <Column>
+                <Tabs SelectedTab="@selectedTab" SelectedTabChanged="@OnSelectedTabChanged">
+                    <Items>
+                        <Tab Name="notehistory">Note History</Tab>
+                        <Tab Name="emailhistory">Email History</Tab>
+                        <Tab Name="piDetails">PI Overview</Tab>
+                    </Items>
+                    <Content>
+                        <TabPanel Name="notehistory">
+                            <DataGrid Class="admindatagrid"
+                            @ref="noteDataGrid"
+                            TItem="TextNotes"
+                            Data="@lstTextNotes"
+                            AltBordered="true"
+                            Responsive
+                            Filterable
+                            Striped
+                            ShowPager
+                            ShowPageSizes
+                            MaxPaginationLinks="5"
+                            PagerPosition="DataGridPagerPosition.Bottom"
+                            PagerOptions="new(){ButtonSize=Size.Default,
                                 PaginationPosition=PagerElementPosition.Default,
                                 TotalItemsPosition=PagerElementPosition.End,
                                 }"
-                        FixedHeader
-                        FixedHeaderDataGridHeight="calc(100vh - 240px)"
-                        FixedHeaderDataGridMaxHeight="calc(100vh - 240px)">
-                            <DataGridCommandColumn />
-                            <DataGridColumn TItem="TextNotes" Field="@nameof(TextNotes.Name)" Caption="User" />
-                            <DataGridColumn TItem="TextNotes" Field="@nameof(TextNotes.CreationDate)" Caption="Creation Date" />
-                            <DataGridColumn TItem="TextNotes" Field="@nameof(TextNotes.Note)" Caption="Note Text" />
-                        </DataGrid>
-                    </TabPanel>
-                    <TabPanel Name="emailhistory">
-                        <DataGrid TItem="EmailDetails"
-                        @ref="emailDataGrid"
-                        Class="admindatagrid"
-                        Data="@lstEmailDetails"
-                        Bordered="true"
-                        AltBordered="true"
-                        Responsive
-                        Filterable
-                        Striped
-                        ShowPager
-                        ShowPageSizes
-                        MaxPaginationLinks="5"
-                        PagerPosition="DataGridPagerPosition.Bottom"
-                        PagerOptions="new(){ButtonSize=Size.Default,
+                            FixedHeader
+                            FixedHeaderDataGridHeight="calc(100vh - 240px)"
+                            FixedHeaderDataGridMaxHeight="calc(100vh - 240px)">
+                                <DataGridCommandColumn />
+                                <DataGridColumn TItem="TextNotes" Field="@nameof(TextNotes.Name)" Caption="User" />
+                                <DataGridColumn TItem="TextNotes" Field="@nameof(TextNotes.CreationDate)" Caption="Creation Date" />
+                                <DataGridColumn TItem="TextNotes" Field="@nameof(TextNotes.Note)" Caption="Note Text" />
+                            </DataGrid>
+                        </TabPanel>
+                        <TabPanel Name="emailhistory">
+                            <DataGrid TItem="EmailDetails"
+                            @ref="emailDataGrid"
+                            Class="admindatagrid"
+                            Data="@lstEmailDetails"
+                            Bordered="true"
+                            AltBordered="true"
+                            Responsive
+                            Filterable
+                            Striped
+                            ShowPager
+                            ShowPageSizes
+                            MaxPaginationLinks="5"
+                            PagerPosition="DataGridPagerPosition.Bottom"
+                            PagerOptions="new(){ButtonSize=Size.Default,
                                 PaginationPosition=PagerElementPosition.Default,
                                 TotalItemsPosition=PagerElementPosition.End,
                                 }"
-                        FixedHeader
-                        FixedHeaderDataGridHeight="calc(100vh - 240px)"
-                        FixedHeaderDataGridMaxHeight="calc(100vh - 240px)">
-                            <DataGridCommandColumn />
-                            <DataGridColumn TItem="EmailDetails" Field="@nameof(EmailDetails.EmailTo)" Caption="Recipient" />
-                            <DataGridColumn TItem="EmailDetails" Field="@nameof(EmailDetails.Body)" Caption="Email Body" />
-                            <DataGridColumn TItem="EmailDetails" Field="@nameof(EmailDetails.CreationDate)" Caption="Email Sent Date" />
-                        </DataGrid>
-                    </TabPanel>
-                    <TabPanel Name="piDetails">
-                        <DataGrid TItem="ReviewPiDTO"
-                        Class="admindatagrid"
-                        Data="@lstPiDetails"
-                        Bordered="true"
-                        AltBordered="true"
-                        Responsive
-                        Filterable
-                        Striped
-                        ShowPager
-                        ShowPageSizes
-                        MaxPaginationLinks="5"
-                        PagerPosition="DataGridPagerPosition.Bottom"
-                        PagerOptions="new(){ButtonSize=Size.Default,
+                            FixedHeader
+                            FixedHeaderDataGridHeight="calc(100vh - 240px)"
+                            FixedHeaderDataGridMaxHeight="calc(100vh - 240px)">
+                                <DataGridCommandColumn />
+                                <DataGridColumn TItem="EmailDetails" Field="@nameof(EmailDetails.EmailTo)" Caption="Recipient" />
+                                <DataGridColumn TItem="EmailDetails" Field="@nameof(EmailDetails.Body)" Caption="Email Body" />
+                                <DataGridColumn TItem="EmailDetails" Field="@nameof(EmailDetails.CreationDate)" Caption="Email Sent Date" />
+                            </DataGrid>
+                        </TabPanel>
+                        <TabPanel Name="piDetails">
+                            <DataGrid TItem="ReviewPiDTO"
+                            Class="admindatagrid"
+                            Data="@lstPiDetails"
+                            Bordered="true"
+                            AltBordered="true"
+                            Responsive
+                            Filterable
+                            Striped
+                            ShowPager
+                            ShowPageSizes
+                            MaxPaginationLinks="5"
+                            PagerPosition="DataGridPagerPosition.Bottom"
+                            PagerOptions="new(){ButtonSize=Size.Default,
                                 PaginationPosition=PagerElementPosition.Default,
                                 TotalItemsPosition=PagerElementPosition.End,
                                 }"
-                        FixedHeader
-                        FixedHeaderDataGridHeight="calc(100vh - 240px)"
-                        FixedHeaderDataGridMaxHeight="calc(100vh - 240px)">
-                            <DataGridCommandColumn />
-                            <DataGridColumn TItem="ReviewPiDTO" Field="@nameof(ReviewPiDTO.PiName)" Caption="PI Name" />
-                            <DataGridColumn TItem="ReviewPiDTO" Field="@nameof(ReviewPiDTO.caseNumber)" Caption="Case Number" />
-                            <DataGridColumn TItem="ReviewPiDTO" Field="@nameof(ReviewPiDTO.currentStatus)" Caption="Current PI Status" />
-                            <DataGridColumn TItem="ReviewPiDTO" Field="@nameof(ReviewPiDTO.updateDate)" Caption="Last Updated Date" />
-                            <DataGridColumn TItem="ReviewPiDTO" Field="@nameof(ReviewPiDTO.dueDate)" Caption="Next Due Date" />
-                            <DataGridColumn TItem="ReviewPiDTO" Field="@nameof(ReviewPiDTO.periodName)" Caption="Review Name" />
-                        </DataGrid>
-                    </TabPanel>
-                </Content>
-            </Tabs>
-        </Column>
-    </Row>
+                            FixedHeader
+                            FixedHeaderDataGridHeight="calc(100vh - 240px)"
+                            FixedHeaderDataGridMaxHeight="calc(100vh - 240px)">
+                                <DataGridCommandColumn />
+                                <DataGridColumn TItem="ReviewPiDTO" Field="@nameof(ReviewPiDTO.PiName)" Caption="PI Name" />
+                                <DataGridColumn TItem="ReviewPiDTO" Field="@nameof(ReviewPiDTO.caseNumber)" Caption="Case Number" />
+                                <DataGridColumn TItem="ReviewPiDTO" Field="@nameof(ReviewPiDTO.currentStatus)" Caption="Current PI Status" />
+                                <DataGridColumn TItem="ReviewPiDTO" Field="@nameof(ReviewPiDTO.updateDate)" Caption="Last Updated Date" />
+                                <DataGridColumn TItem="ReviewPiDTO" Field="@nameof(ReviewPiDTO.dueDate)" Caption="Next Due Date" />
+                                <DataGridColumn TItem="ReviewPiDTO" Field="@nameof(ReviewPiDTO.periodName)" Caption="Review Name" />
+                            </DataGrid>
+                        </TabPanel>
+                    </Content>
+                </Tabs>
+            </Column>
+        </Row>
     }
     else
     {
@@ -351,10 +351,16 @@
             return Task.CompletedTask;
         }
 
+        private async Task CloseTab()
+        {
+            await JSRuntime.InvokeVoidAsync("closeTab");
+        }
+
         private async Task DiscardChanges()
         {
             string navTo = "/";
             var result = await SessionData.GetAsync<string>("dashboardUrl");
+            await CloseTab();
             if (result.Success)
             {
                 navTo = result.Value ?? "/";
@@ -367,6 +373,8 @@
             if (AgentId > 0)
             {
                 bool itemUpdateNeeded = false;
+                bool itemWasUpdated = false;
+                bool noteAdded = false;
                 foreach (var box in lstManagers)
                 {
                     // if the box's Number doesn't exist, in the dictionary, then we need to add a new record to the table
@@ -374,11 +382,13 @@
                     {
                         reviewHistoryItemService.SaveReviewHistoryItemAsync(activeUserId, latestReviewHistory.ReviewHistoryId, box.ReviewItemNumber, box.IsChecked);
                         itemUpdateNeeded = true;
+                        itemWasUpdated = true;
                     }
                     else if (box.IsChecked != checkedStatus)
                     {
                         await reviewHistoryItemService.UpdateReviewHistoryItemAsync(activeUserId, latestReviewHistory.ReviewHistoryId, box.ReviewItemNumber, box.IsChecked);
                         dctReviewItemSettings[box.ReviewItemNumber] = box.IsChecked;
+                        itemWasUpdated = true;
                     }
                 }
                 if (itemUpdateNeeded)
@@ -393,18 +403,21 @@
                     newNote.CreateDate = DateTime.Now;
                     newNote.ReviewHistoryId = latestReviewHistory.ReviewHistoryId;
                     newNote.ReviewHistoryNoteId = historyNoteService.GetNextReviewHistoryNoteId();
-                    var noteAdded = await historyNoteService.SaveNoteAsync(activeUserId, newNote);
+                    noteAdded = await historyNoteService.SaveNoteAsync(activeUserId, newNote);
                     var user = await userService.GetUserAsync(latestReviewHistory.UserId);
                     var userName = user.FirstName + " " + user.LastName;
                     if (noteAdded)
                     {
                         lstTextNotes.Add(new TextNotes { Name = userName, Note = noteText, CreationDate = newNote.CreateDate.Value.ToString("dd-MMM-yyyy hh:mm:ss tt").ToUpper() });
                     }
+                    noteText = "";
+                    await noteDataGrid.Reload();
                 }
-                noteText = "";
-                await noteDataGrid.Reload();
 
-                await notificationService.Success("Changes have been saved.");
+                if (itemWasUpdated || noteAdded)
+                {
+                    await notificationService.Success("Changes have been saved.");
+                }
             }
             else
             {
@@ -619,6 +632,7 @@
             // We need the current date for complete and for updated
             SaveChanges();
             reviewHistoryService.CloseCurrentReviewAsync(activeUserId, latestReviewHistory.ReviewHistoryId);
+            await notificationService.Success("Review Successfully Completed.");
             modalSubmitReview.Hide();
             string navTo = "/";
             var result = await SessionData.GetAsync<string>("dashboardUrl");
@@ -626,6 +640,7 @@
             {
                 navTo = result.Value ?? "/";
             }
+            CloseTab();
             Navigation.NavigateTo(navTo, true);
         }
 }
