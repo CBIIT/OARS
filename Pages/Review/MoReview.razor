@@ -233,7 +233,7 @@
         <ModalContent Centered Size="ModalSize.Large">
             <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
                 <ModalTitle>Submit review for @AgentId</ModalTitle>
-                <CloseButton />
+                <CloseButton Clicked="@OnModalClosed" />
             </ModalHeader>
             <ModalBody>
                 <Validations @ref="submitValidations" Mode="ValidationMode.Manual">
@@ -555,6 +555,12 @@
                     }
                 }
             }
+        }
+
+        private void OnModalClosed()
+        {
+            cancelClose = false;
+            eSig = false;
         }
 
         private Task OnModalClosing(ModalClosingEventArgs e)
