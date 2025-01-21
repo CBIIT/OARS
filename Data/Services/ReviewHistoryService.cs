@@ -41,11 +41,11 @@ namespace TheradexPortal.Data.Services
                 .ToListAsync();
         }
 
-        public async Task<ReviewHistory> GetLatestReviewHistoryByProtocolAsync(int protocolId)
+        public async Task<ReviewHistory> GetLatestReviewHistoryByProtocolAsync(int protocolId, int userId)
         {
             return await context.ReviewHistories
                 .AsNoTracking()
-                .Where(p => p.ProtocolId == protocolId)
+                .Where(p => p.ProtocolId == protocolId && p.UserId == userId)
                 .OrderByDescending(p => p.ReviewHistoryId)
                 .FirstOrDefaultAsync();
         }

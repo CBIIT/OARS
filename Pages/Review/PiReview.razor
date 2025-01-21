@@ -512,7 +512,7 @@
             if (ProtocolId > 0)
             {
                 currentReview = await reviewService.GetCurrentReviewAsync(ProtocolId, activeUserId, "PI");
-                latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(ProtocolId);
+                latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(ProtocolId, activeUserId);
                 authorizedUsers = await reviewService.GetAllAuthorizedUsersAsync(ProtocolId);
                 if (authorizedUsers.Contains(activeUserId))
                 {
@@ -531,7 +531,7 @@
                     if (!activeReview)
                     {
                         await reviewHistoryService.StartNewReviewAsync(activeUserId, ProtocolId, "PI", reviewHistoryId);
-                        latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(ProtocolId);
+                        latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(ProtocolId, activeUserId);
                     }
 
                     reviewName = latestReviewHistory.ReviewPeriodName ?? "";
