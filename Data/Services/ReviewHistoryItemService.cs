@@ -27,6 +27,17 @@ namespace TheradexPortal.Data.Services
 
             return queryResult;
         }
+
+        public async Task<List<int>> GetReviewHistoryItemIdsAsync(int reviewHistoryID)
+        {
+            var queryResult = await context.ReviewHistoryItems
+                .Where(r => r.ReviewHistoryId == reviewHistoryID)
+                .Select(r => r.ReviewHistoryItemId)
+                .ToListAsync();
+
+            return queryResult;
+        }
+
         public async Task<bool> CheckHistoryItemChangedAsync(int reviewHistoryItemId)
         {
             return true;

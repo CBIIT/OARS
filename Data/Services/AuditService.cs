@@ -8,6 +8,8 @@ using Oracle.EntityFrameworkCore;
 using Oracle.ManagedDataAccess.Client;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using DocumentFormat.OpenXml.Spreadsheet;
+using System.Collections.Generic;
 
 namespace TheradexPortal.Data.Services
 {
@@ -28,36 +30,69 @@ namespace TheradexPortal.Data.Services
             _reviewService = reviewService;
             _userService = userService;
         }
-        public async Task<List<AuditTrailDTO>> GetFullAuditTrailAsync(int userId, int reviewId)
+        public async Task<List<AuditTrailDTO>> GetFullAuditTrailAsync(int userId, int reviewId, int reviewHistoryId, List<int> reviewHistoryItemIds)
         {
             List<AuditTrailDTO> auditTrail = new List<AuditTrailDTO>();
-            IList<Audit> reviewAuditTrail = await GetReviewAuditTrailAsync(userId, reviewId);
+            Audit reviewAuditTrail = await GetReviewAuditTrailAsync(userId, reviewId);
             var currentUser = await _userService.GetUserAsync(userId);
             var userName = currentUser.FirstName + " " + currentUser.LastName;
-            foreach (Audit audit in reviewAuditTrail)
+
+            if (reviewAuditTrail != null)
             {
-                if (audit != null)
+                ProcessAuditEntry(reviewAuditTrail, userName, userId, auditTrail);
+            }
+
+            IList<Audit> reviewItemAuditTrail = await GetReviewHistoryItemAuditTrailAsync(userId, reviewHistoryId, reviewHistoryItemIds);
+            if (reviewItemAuditTrail != null)
+            {
+                foreach (var riAudit in reviewItemAuditTrail)
                 {
-                    var fieldList = ParseStrings(audit.AffectedColumns);
-                    JObject oldValueJsonObjects = JObject.Parse(audit.OldValues);
-                    JObject newValueJsonObjects = JObject.Parse(audit.NewValues);
-                    foreach(var key in fieldList) {
+                    ProcessAuditEntry(riAudit, userName, userId, auditTrail);
+                }
+            }
+            return auditTrail;
+        }
+
+        private void ProcessAuditEntry(Audit auditEntry, string userName, int userId, List<AuditTrailDTO> auditTrail)
+        {
+            if (auditEntry != null)
+            {
+                if (auditEntry.AuditType == "Update")
+                {
+                    var fieldList = ParseStrings(auditEntry.AffectedColumns);
+                    JObject oldValueJsonObjects = JObject.Parse(auditEntry.OldValues);
+                    JObject newValueJsonObjects = JObject.Parse(auditEntry.NewValues);
+                    foreach (var key in fieldList)
+                    {
                         auditTrail.Add(
                             new AuditTrailDTO
                             {
                                 userName = userName,
                                 userId = userId,
-                                dateOfChange = audit.CreateDate,
-                                typeOfChange = audit.AuditType,
+                                dateOfChange = auditEntry.CreateDate,
+                                typeOfChange = auditEntry.AuditType,
                                 changeField = key,
                                 previousValue = oldValueJsonObjects[key] != null ? oldValueJsonObjects[key].ToString() : "null",
                                 newValue = newValueJsonObjects[key] != null ? newValueJsonObjects[key].ToString() : "null"
                             });
                     }
                 }
+                else if (auditEntry.AuditType == "Create")
+                {
+                    JObject newValueJsonObjects = JObject.Parse(auditEntry.NewValues);
+                    auditTrail.Add(
+                        new AuditTrailDTO
+                        {
+                            userName = userName,
+                            userId = userId,
+                            dateOfChange = auditEntry.CreateDate,
+                            typeOfChange = auditEntry.AuditType,
+                            changeField = auditEntry.TableName,
+                            previousValue = "N/A",
+                            newValue = string.Join("\n", newValueJsonObjects.Properties().Select(p => $"{p.Name}: {p.Value}"))
+                        });
+                }
             }
-
-            return auditTrail;
         }
 
         private List<string> ParseStrings(string input)
@@ -66,13 +101,38 @@ namespace TheradexPortal.Data.Services
             return result;
         }
 
-        private async Task<IList<Audit>> GetReviewAuditTrailAsync(int userId, int reviewId)
+        private async Task<IList<Audit>> GetReviewHistoryItemAuditTrailAsync(int userId, int reviewHistoryId, List<int> reviewHistoryItemIds)
+        {
+            string numberList = string.Join(",", reviewHistoryItemIds);
+            string sqlInts = "(" + string.Join(",", reviewHistoryItemIds) + ")";
+            string sqlQuery = "SELECT * FROM \"AUDIT\" WHERE USERID = {0} AND TABLENAME = 'ReviewHistoryItem' AND JSON_VALUE(PRIMARYKEY, '$.ReviewHistoryItemId') IN "+sqlInts;//= {1}";
+            //int value = numberList[0];
+            var ret = await context.Audits
+                    .FromSqlRaw(sqlQuery, userId)//, sqlInts)//value)
+                    .ToListAsync();
+
+            return ret;
+        }
+
+        private async Task<IList<Audit>> GetReviewHistoryAuditTrailAsync(int userId, int reviewHistoryId)
         {
             string sqlQuery = "SELECT * FROM \"AUDIT\" WHERE USERID = {0} AND JSON_VALUE(PRIMARYKEY, '$.ReviewId') = {1}";
 
             var ret = await context.Audits
-                    .FromSqlRaw (sqlQuery, userId, reviewId)
+                    .FromSqlRaw(sqlQuery, userId)
                     .ToListAsync();
+
+            return ret;
+        }
+
+        /* There should only ever be 1 "review" Audit per audit history we pull, the most recent. */
+        private async Task<Audit> GetReviewAuditTrailAsync(int userId, int reviewId)
+        {
+            string sqlQuery = "SELECT * FROM \"AUDIT\" WHERE USERID = {0} AND JSON_VALUE(PRIMARYKEY, '$.ReviewId') = {1} ORDER BY CREATEDATE DESC FETCH FIRST 1 ROWS ONLY";
+
+            var ret = await context.Audits
+                    .FromSqlRaw (sqlQuery, userId, reviewId)
+                    .FirstOrDefaultAsync();
 
             return ret;
         }

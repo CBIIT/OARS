@@ -10,5 +10,6 @@ namespace TheradexPortal.Data.Services.Abstract
         public Task<bool> SaveReviewHistoryItemAsync(int activeUserId, int reviewHistoryID, int reviewItemID, bool newValue);
         public Task<bool> UpdateReviewHistoryItemAsync(int activeUserId, int reviewHistoryID, int reviewItemID, bool newValue);
         public int GetNextReviewHistoryItemId();
+        public Task<List<int>> GetReviewHistoryItemIdsAsync(int reviewHistoryID);
     }
 }

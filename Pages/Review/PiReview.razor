@@ -516,7 +516,6 @@
                 authorizedUsers = await reviewService.GetAllAuthorizedUsersAsync(ProtocolId);
                 if (authorizedUsers.Contains(activeUserId))
                 {
-                    lstAudits = await auditService.GetFullAuditTrailAsync(activeUserId, currentReview.ReviewId);
                     if (latestReviewHistory == null)
                     {
                         reviewHistoryId = reviewHistoryService.GetNextReviewHistoryId();
@@ -577,6 +576,11 @@
                             lstEmailDetails.Add(new EmailDetails { Body = email.Body, EmailTo = email.Recipient, CreationDate = email.CreationDate.HasValue ? email.CreationDate.Value.ToString("dd-MMM-yyyy hh:mm:ss tt").ToUpper() : "null" });
                         }
                     }
+                    lstAudits = await auditService.GetFullAuditTrailAsync(
+                        activeUserId, 
+                        currentReview.ReviewId, 
+                        latestReviewHistory.ReviewHistoryId,
+                        await reviewHistoryItemService.GetReviewHistoryItemIdsAsync(latestReviewHistory.ReviewHistoryId));
                 }
             }
         }

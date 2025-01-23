@@ -5,6 +5,6 @@ namespace TheradexPortal.Data.Services.Abstract
 {
     public interface IAuditService
     {
-        public Task<List<AuditTrailDTO>> GetFullAuditTrailAsync(int userId, int reviewId);
+        public Task<List<AuditTrailDTO>> GetFullAuditTrailAsync(int userId, int reviewId, int reviewHistoryId, List<int> reviewHistoryItemIds);
     }
 }
