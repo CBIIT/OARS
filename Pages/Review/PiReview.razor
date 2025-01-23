@@ -576,11 +576,18 @@
                             lstEmailDetails.Add(new EmailDetails { Body = email.Body, EmailTo = email.Recipient, CreationDate = email.CreationDate.HasValue ? email.CreationDate.Value.ToString("dd-MMM-yyyy hh:mm:ss tt").ToUpper() : "null" });
                         }
                     }
-                    lstAudits = await auditService.GetFullAuditTrailAsync(
-                        activeUserId, 
-                        currentReview.ReviewId, 
-                        latestReviewHistory.ReviewHistoryId,
-                        await reviewHistoryItemService.GetReviewHistoryItemIdsAsync(latestReviewHistory.ReviewHistoryId));
+                    try
+                    {
+                        lstAudits = await auditService.GetFullAuditTrailAsync(
+                            activeUserId, 
+                            currentReview.ReviewId, 
+                            latestReviewHistory.ReviewHistoryId,
+                            await reviewHistoryItemService.GetReviewHistoryItemIdsAsync(latestReviewHistory.ReviewHistoryId));
+                    }
+                    catch (Exception ex)
+                    {
+                        await JSRuntime.InvokeVoidAsync("console.error", "Error in Audit Trail: " + ex.Message);
+                    }
                 }
             }
         }
