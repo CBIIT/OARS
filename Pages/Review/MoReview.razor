@@ -506,7 +506,7 @@
             if (AgentId > 0)
             {
                 currentReview = await reviewService.GetCurrentReviewAsync(AgentId, activeUserId, "MO");
-                latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(AgentId, activeUserId);
+                latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(AgentId, activeUserId, "MO");
                 authorizedUsers = await reviewService.GetAllAuthorizedUsersAsync(AgentId);
                 if (latestReviewHistory != null)
                 {
@@ -514,7 +514,7 @@
                     if (!activeReview)
                     {
                         reviewHistoryService.StartNewReviewAsync(activeUserId, AgentId, "MO", latestReviewHistory.ReviewHistoryId);
-                        latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(AgentId, activeUserId);
+                        latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(AgentId, activeUserId, "MO");
                     }
                     reviewName = latestReviewHistory.ReviewPeriodName ?? "";
                     lstPiDetails = await reviewService.GetPiInfoAsync(AgentId);

@@ -42,12 +42,15 @@ namespace TheradexPortal.Data.Services
                 ProcessAuditEntry(reviewAuditTrail, userName, userId, auditTrail);
             }
 
-            IList<Audit> reviewItemAuditTrail = await GetReviewHistoryItemAuditTrailAsync(userId, reviewHistoryId, reviewHistoryItemIds);
-            if (reviewItemAuditTrail != null)
+            if (reviewHistoryItemIds.Count > 0)
             {
-                foreach (var riAudit in reviewItemAuditTrail)
+                IList<Audit> reviewItemAuditTrail = await GetReviewHistoryItemAuditTrailAsync(userId, reviewHistoryId, reviewHistoryItemIds);
+                if (reviewItemAuditTrail != null)
                 {
-                    ProcessAuditEntry(riAudit, userName, userId, auditTrail);
+                    foreach (var riAudit in reviewItemAuditTrail)
+                    {
+                        ProcessAuditEntry(riAudit, userName, userId, auditTrail);
+                    }
                 }
             }
             return auditTrail;
