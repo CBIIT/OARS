@@ -108,10 +108,10 @@ namespace TheradexPortal.Data.Services
         {
             string numberList = string.Join(",", reviewHistoryItemIds);
             string sqlInts = "(" + string.Join(",", reviewHistoryItemIds) + ")";
-            string sqlQuery = "SELECT * FROM \"AUDIT\" WHERE USERID = {0} AND TABLENAME = 'ReviewHistoryItem' AND JSON_VALUE(PRIMARYKEY, '$.ReviewHistoryItemId') IN "+sqlInts;//= {1}";
-            //int value = numberList[0];
+            string sqlQuery = "SELECT * FROM \"AUDIT\" WHERE USERID = {0} AND TABLENAME = 'ReviewHistoryItem' AND JSON_VALUE(PRIMARYKEY, '$.ReviewHistoryItemId') IN "+sqlInts;
+
             var ret = await context.Audits
-                    .FromSqlRaw(sqlQuery, userId)//, sqlInts)//value)
+                    .FromSqlRaw(sqlQuery, userId)
                     .ToListAsync();
 
             return ret;
