@@ -91,7 +91,7 @@ namespace TheradexPortal.Data.Services
                             dateOfChange = auditEntry.CreateDate,
                             typeOfChange = auditEntry.AuditType,
                             changeField = auditEntry.TableName,
-                            previousValue = "N/A",
+                            previousValue = "",
                             newValue = string.Join("\n", newValueJsonObjects.Properties().Select(p => $"{p.Name}: {p.Value}"))
                         });
                 }
