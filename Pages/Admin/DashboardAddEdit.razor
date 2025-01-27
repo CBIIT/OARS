@@ -77,17 +77,18 @@
                     <Row Background="Background.Light">
                         <Column ColumnSize="ColumnSize.IsFull">
                             <DataGrid TItem="Report"
-                                        Class="admindatagrid"
-                                        Data="@reportList"
-                                        Responsive
-                                        Striped
-                                        FixedHeader
-                                        Sortable="false"
-                                        ShowPager
-                                        FixedHeaderDataGridHeight="450px"
-                                        FixedHeaderDataGridMaxHeight="450px"
-                                        PageSize="100"
-                                        CommandMode="DataGridCommandMode.ButtonRow">
+                            @ref="reportGrid"
+                            Class="admindatagrid"
+                            Data="@reportList"
+                            Responsive
+                            Striped
+                            FixedHeader
+                            Sortable="false"
+                            ShowPager
+                            FixedHeaderDataGridHeight="450px"
+                            FixedHeaderDataGridMaxHeight="450px"
+                            PageSize="100"
+                            CommandMode="DataGridCommandMode.ButtonRow">
                                 <DataGridColumns>
                                     <DataGridMultiSelectColumn Width="30px"> </DataGridMultiSelectColumn>
                                     <DataGridCommandColumn />
@@ -97,9 +98,9 @@
                                         </CaptionTemplate>
                                         <DisplayTemplate>
                                             <Text> @{@((context as Report)?.Name) }
-                                                   <BR />
-                                                   @{@((context as Report)?.Description) }
-                                             </Text>
+                                                <BR />
+                                                @{@((context as Report)?.Description) }
+                                            </Text>
                                         </DisplayTemplate>
                                     </DataGridColumn>
                                     <DataGridColumn Field="@nameof(Report.DisplayIconName)" Caption="Icon" Width="100px" />
@@ -110,9 +111,9 @@
                                         </CaptionTemplate>
                                         <DisplayTemplate>
                                             <Text> @{@((context as Report)?.ReportName) }
-                                                   <BR />
-                                                   @{@((context as Report)?.PageName) }
-                                             </Text>
+                                                <BR />
+                                                @{@((context as Report)?.PageName) }
+                                            </Text>
                                         </DisplayTemplate>
                                     </DataGridColumn>
                                     <DataGridColumn Field="@nameof(Report.PowerBIReportId)" Caption="" Displayable="false" />
@@ -201,7 +202,7 @@
                         <Field ColumnSize="ColumnSize.Is12">
                             <FieldLabel ColumnSize="ColumnSize.Is12" TextWeight="TextWeight.Bold">Icon</FieldLabel>
                             <FieldBody ColumnSize="ColumnSize.Is12">
-                                    <TextEdit Placeholder="Icon to display" MaxLength="50" @bind-Text="@reportIcon" />
+                                <TextEdit Placeholder="Icon to display" MaxLength="50" @bind-Text="@reportIcon" />
                             </FieldBody>
                             <FieldHelp>
                                 <Link To="https://blazorise.com/docs/extensions/icons-available" Target="Target.Blank">Available icons</Link>
@@ -218,7 +219,7 @@
                 <Field ColumnSize="ColumnSize.Is12">
                     <FieldLabel ColumnSize="ColumnSize.Is12" TextWeight="TextWeight.Bold">Level 3 Menu Name</FieldLabel>
                     <FieldBody ColumnSize="ColumnSize.Is8">
-                            <TextEdit Placeholder="Sub menu name"  MaxLength="100" @bind-Text="@reportSubMenu" />
+                        <TextEdit Placeholder="Sub menu name"  MaxLength="100" @bind-Text="@reportSubMenu" />
                     </FieldBody>
                 </Field>
                 <Field ColumnSize="ColumnSize.Is12">
@@ -249,12 +250,12 @@
                                 <FieldLabel ColumnSize="ColumnSize.Is12" TextWeight="TextWeight.Bold">Power BI Report Name</FieldLabel>
                                 <FieldBody ColumnSize="ColumnSize.Is8">
                                     <SelectList TItem="PowerBIReport"
-                                        TValue="string"
-                                        Data="@repList"
-                                        TextField="@((item)=>item.Name)"
-                                        ValueField="@((item)=>item.Id)"
-                                        SelectedValue="@selectedReportValue"
-                                        SelectedValueChanged="OnSelectedReportValueChanged" />
+                                    TValue="string"
+                                    Data="@repList"
+                                    TextField="@((item)=>item.Name)"
+                                    ValueField="@((item)=>item.Id)"
+                                    SelectedValue="@selectedReportValue"
+                                    SelectedValueChanged="OnSelectedReportValueChanged" />
                                 </FieldBody>
                             </Field>
                         </Validation>
@@ -263,12 +264,12 @@
                                 <FieldLabel ColumnSize="ColumnSize.Is12" TextWeight="TextWeight.Bold">Power BI Report Page</FieldLabel>
                                 <FieldBody ColumnSize="ColumnSize.Is8">
                                     <SelectList TItem="PowerBIReportPage"
-                                                TValue="string"
-                                                Data="@pageList"
-                                                TextField="@((item)=>item.Name)"
-                                                ValueField="@((item)=>item.Id)"
-                                                SelectedValue="@selectedPageValue"
-                                                SelectedValueChanged="OnSelectedPageValueChanged" />                                
+                                    TValue="string"
+                                    Data="@pageList"
+                                    TextField="@((item)=>item.Name)"
+                                    ValueField="@((item)=>item.Id)"
+                                    SelectedValue="@selectedPageValue"
+                                    SelectedValueChanged="OnSelectedPageValueChanged" />                                
                                 </FieldBody>
                             </Field>
                         </Validation>
@@ -355,6 +356,7 @@
     private DropContainer<DropItem> reorderContainer;
     List<DropItem> items = new List<DropItem>();
     List<int> reportIdOrder = new List<int>();
+    private DataGrid<Report> reportGrid;
 
     private Modal? addEditRepRef;
     private string addEditReport = "";
@@ -596,6 +598,7 @@
         SetItemOrder();
         StateHasChanged();
         reorderContainer.Refresh();
+        await reportGrid.Reload();
     }
     private Task HideDeleteModal()
     {

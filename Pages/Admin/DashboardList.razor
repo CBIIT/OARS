@@ -10,22 +10,23 @@
 <Row Background="Background.Light">
     <Column ColumnSize="ColumnSize.IsFull">
         <DataGrid TItem="Dashboard"
-                  Class="admindatagrid"
-                  Data="@dashboardList"
-                  Responsive
-                  Striped
-                  ShowPager
-                  ShowPageSizes
-                  MaxPaginationLinks="5"
-                  PagerPosition="DataGridPagerPosition.Bottom"
-                  PagerOptions="new(){ButtonSize=Size.Default, 
+        @ref="dashboardGrid"
+        Class="admindatagrid"
+        Data="@dashboardList"
+        Responsive
+        Striped
+        ShowPager
+        ShowPageSizes
+        MaxPaginationLinks="5"
+        PagerPosition="DataGridPagerPosition.Bottom"
+        PagerOptions="new(){ButtonSize=Size.Default, 
                                 PaginationPosition=PagerElementPosition.Default,
                                 TotalItemsPosition=PagerElementPosition.End,
                                 }"
-                  FixedHeader
-                  FixedHeaderDataGridHeight="calc(100vh - 240px)"
-                  FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
-                  CommandMode="DataGridCommandMode.ButtonRow">
+        FixedHeader
+        FixedHeaderDataGridHeight="calc(100vh - 240px)"
+        FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
+        CommandMode="DataGridCommandMode.ButtonRow">
             <DataGridColumns>
                 <DataGridMultiSelectColumn Width="30px"> </DataGridMultiSelectColumn>
                 <DataGridCommandColumn />
@@ -98,6 +99,7 @@
     private DropContainer<DropItem> reorderContainer;
     List<DropItem> items = new List<DropItem>();
     List<int> dashIdOrder = new List<int>();
+    private DataGrid<Dashboard> dashboardGrid;
 
     private Modal deleteModalRef;
     private string dashboardToDelete;
@@ -173,6 +175,7 @@
             SetItemOrder();
             StateHasChanged();
             reorderContainer.Refresh();
+            await dashboardGrid.Reload();
         }
         else
         {

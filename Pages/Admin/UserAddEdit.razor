@@ -92,15 +92,15 @@
                     <Field>
                         <FieldLabel ColumnSize="ColumnSize.Is12" TextWeight="TextWeight.Bold">Primary Role</FieldLabel>
                         <FieldBody ColumnSize="ColumnSize.Is4" Margin="Margin.IsAuto">
-                             <SelectList TItem="Role"
-                                        TValue="int"
-                                        Data="@primaryRoles"
-                                        TextField="@((role)=>role.RoleName)"
-                                        ValueField="@((role)=>role.RoleId)"
-                                        SelectedValue = "@primaryRoleId"
-                                        SelectedValueChanged = "@OnChangeRole"        
-                                        DefaultItemText="Select the Primary Role"
-                                        Disabled="@primaryRoleDisabled" />
+                            <SelectList TItem="Role"
+                            TValue="int"
+                            Data="@primaryRoles"
+                            TextField="@((role)=>role.RoleName)"
+                            ValueField="@((role)=>role.RoleId)"
+                            SelectedValue = "@primaryRoleId"
+                            SelectedValueChanged = "@OnChangeRole"        
+                            DefaultItemText="Select the Primary Role"
+                            Disabled="@primaryRoleDisabled" />
                         </FieldBody>
                     </Field>
                 </Div>
@@ -110,13 +110,13 @@
                         <FieldLabel ColumnSize="ColumnSize.Is10" TextWeight="TextWeight.Bold">Available Secondary Roles</FieldLabel>
                         <FieldBody ColumnSize="ColumnSize.Is4" Margin="Margin.IsAuto">
                             <SelectList TItem="Role"
-                                        TValue="int"
-                                        Data="@rolesAvailable"
-                                        TextField="@((role)=>role.RoleName)"
-                                        ValueField="@((role)=>role.RoleId)"
-                                        @bind-SelectedValues="@availableRolesSelected"
-                                        MaxVisibleItems = "12"
-                                        Multiple />
+                            TValue="int"
+                            Data="@rolesAvailable"
+                            TextField="@((role)=>role.RoleName)"
+                            ValueField="@((role)=>role.RoleId)"
+                            @bind-SelectedValues="@availableRolesSelected"
+                            MaxVisibleItems = "12"
+                            Multiple />
                         </FieldBody>
                     </Field>
                     <Button Color="Color.Primary" Clicked="@MoveToSelectedRole">Add to Assigned</Button>
@@ -126,23 +126,24 @@
                         <FieldLabel TextWeight="TextWeight.Bold">Assigned Secondary Roles</FieldLabel>
                         <FieldBody>
                             <DataGrid TItem="UserRole"
-                                        Class="admindataeditgrid"
-                                        Data="@selectedUserRoleList"
-                                        @bind-SelectedRow="@selectedUserRole"
-                                        @bind-SelectedRows="@selectedUserRoles"
-                                        Editable
-                                        Responsive
-                                        PageSize="2000"
-                                        FixedHeader
-                                        FixedHeaderDataGridHeight="278px"
-                                        FixedHeaderDataGridMaxHeight="278px"
-                                        SelectionMode = "DataGridSelectionMode.Multiple"
-                                        CommandMode="DataGridCommandMode.Commands"
-                                        EditMode="DataGridEditMode.Inline">
+                            @ref=assignedSecondaryRoles
+                            Class="admindataeditgrid"
+                            Data="@selectedUserRoleList"
+                            @bind-SelectedRow="@selectedUserRole"
+                            @bind-SelectedRows="@selectedUserRoles"
+                            Editable
+                            Responsive
+                            PageSize="2000"
+                            FixedHeader
+                            FixedHeaderDataGridHeight="278px"
+                            FixedHeaderDataGridMaxHeight="278px"
+                            SelectionMode = "DataGridSelectionMode.Multiple"
+                            CommandMode="DataGridCommandMode.Commands"
+                            EditMode="DataGridEditMode.Inline">
                                 <DataGridColumns>
                                     <DataGridColumn Width="260px"  Caption="Role Name">
-                        	            <DisplayTemplate>
-                                                <Text>@GetRoleName((context as UserRole).RoleId)</Text>
+                                        <DisplayTemplate>
+                                            <Text>@GetRoleName((context as UserRole).RoleId)</Text>
                                         </DisplayTemplate>
                                     </DataGridColumn> 
                                     <DataGridColumn Field="@nameof(UserRole.ExpirationDate)" Width="150" Caption="Last Access Date" Editable DisplayFormat="{0:dd-MMM-yyyy}">
@@ -188,13 +189,13 @@
                             <FieldLabel TextWeight="TextWeight.Bold">Available Studies</FieldLabel>
                             <FieldBody>
                                 <SelectList TItem="Protocol"
-                                    MaxVisibleItems = "14"
-                                    TValue="string"
-                                    Data="@protocolsAvailable"
-                                    TextField="@((protocol)=>protocol.StudyId)"
-                                    ValueField="@((protocol)=>protocol.StudyId)"
-                                    @bind-SelectedValues="@availableSelected"
-                                    Multiple />
+                                MaxVisibleItems = "14"
+                                TValue="string"
+                                Data="@protocolsAvailable"
+                                TextField="@((protocol)=>protocol.StudyId)"
+                                ValueField="@((protocol)=>protocol.StudyId)"
+                                @bind-SelectedValues="@availableSelected"
+                                Multiple />
                             </FieldBody>
                         </Field>
                         <Button Color="Color.Primary" Clicked="@MoveToSelectedProtocol">Add to Assigned</Button>
@@ -204,19 +205,20 @@
                             <FieldLabel TextWeight="TextWeight.Bold">Assigned Studies</FieldLabel>
                             <FieldBody>
                                 <DataGrid TItem="UserProtocol"
-                                          Class="admindataeditgrid"
-                                          Data="@selectedUserProtocolList"
-                                          @bind-SelectedRow="@selectedUserProtocol"
-                                          @bind-SelectedRows="@selectedUserProtocols"
-                                          Editable
-                                          Responsive
-                                          PageSize="2000"
-                                          FixedHeader
-                                          FixedHeaderDataGridHeight="324px"
-                                          FixedHeaderDataGridMaxHeight="324px"
-                                          SelectionMode = "DataGridSelectionMode.Multiple"
-                                          CommandMode="DataGridCommandMode.Commands"
-                                          EditMode="DataGridEditMode.Inline">
+                                @ref=assignedStudies
+                                Class="admindataeditgrid"
+                                Data="@selectedUserProtocolList"
+                                @bind-SelectedRow="@selectedUserProtocol"
+                                @bind-SelectedRows="@selectedUserProtocols"
+                                Editable
+                                Responsive
+                                PageSize="2000"
+                                FixedHeader
+                                FixedHeaderDataGridHeight="324px"
+                                FixedHeaderDataGridMaxHeight="324px"
+                                SelectionMode = "DataGridSelectionMode.Multiple"
+                                CommandMode="DataGridCommandMode.Commands"
+                                EditMode="DataGridEditMode.Inline">
                                     <DataGridColumns>
                                         <DataGridColumn Field="@nameof(UserProtocol.StudyId)" Width="100px" Caption="Study Id" />
                                         <DataGridColumn Field="@nameof(UserProtocol.ExpirationDate)" Width="200px" Caption="Last Access Date" Editable DisplayFormat="{0:dd-MMM-yyyy}">
@@ -244,13 +246,13 @@
                             <FieldLabel TextWeight="TextWeight.Bold">Available Groups</FieldLabel>
                             <FieldBody>
                                 <SelectList TItem="Group"
-                                    MaxVisibleItems = "14"
-                                    TValue="int"
-                                    Data="@groupsAvailable"
-                                    TextField="@((group)=>group.GroupName)"
-                                    ValueField="@((group)=>group.GroupId)"
-                                    @bind-SelectedValues="@availableGroupsSelected"
-                                    Multiple />
+                                MaxVisibleItems = "14"
+                                TValue="int"
+                                Data="@groupsAvailable"
+                                TextField="@((group)=>group.GroupName)"
+                                ValueField="@((group)=>group.GroupId)"
+                                @bind-SelectedValues="@availableGroupsSelected"
+                                Multiple />
                             </FieldBody>
                         </Field>
                         <Button Color="Color.Primary" Clicked="@MoveToSelectedGroup">Add to Assigned</Button>
@@ -260,23 +262,24 @@
                             <FieldLabel TextWeight="TextWeight.Bold">Assigned Groups</FieldLabel>
                             <FieldBody>
                                 <DataGrid TItem="UserGroup"
-                                          Class="admindataeditgrid"
-                                          Data="@selectedUserGroupList"
-                                          @bind-SelectedRow="@selectedUserGroup"
-                                          @bind-SelectedRows="@selectedUserGroups"
-                                          Editable
-                                          Responsive
-                                          PageSize="2000"
-                                          FixedHeader
-                                          FixedHeaderDataGridHeight="320px"
-                                          FixedHeaderDataGridMaxHeight="320px"
-                                          SelectionMode = "DataGridSelectionMode.Multiple"
-                                          CommandMode="DataGridCommandMode.Commands"
-                                          EditMode="DataGridEditMode.Inline">
+                                @ref=assignedGroups
+                                Class="admindataeditgrid"
+                                Data="@selectedUserGroupList"
+                                @bind-SelectedRow="@selectedUserGroup"
+                                @bind-SelectedRows="@selectedUserGroups"
+                                Editable
+                                Responsive
+                                PageSize="2000"
+                                FixedHeader
+                                FixedHeaderDataGridHeight="320px"
+                                FixedHeaderDataGridMaxHeight="320px"
+                                SelectionMode = "DataGridSelectionMode.Multiple"
+                                CommandMode="DataGridCommandMode.Commands"
+                                EditMode="DataGridEditMode.Inline">
                                     <DataGridColumns>
                                         <DataGridColumn Width="240px"  Caption="Group Name">
-                        	                <DisplayTemplate>
-                                                    <Text>@GetGroupName((context as UserGroup).GroupId)</Text>
+                                            <DisplayTemplate>
+                                                <Text>@GetGroupName((context as UserGroup).GroupId)</Text>
                                             </DisplayTemplate>
                                         </DataGridColumn> 
                                         <DataGridColumn Field="@nameof(UserGroup.ExpirationDate)" Width="200" Caption="Last Access Date" Editable DisplayFormat="{0:dd-MMM-yyyy}">
@@ -317,19 +320,19 @@
                                 <TableRowCell>@firstName</TableRowCell>
                                 <TableRowCell>
                                     <Span TextColor="TextColor.Danger">
-                                    @{
-                                        if (firstName == "")
-                                        { @("Required") }
-                                        else
-                                        { @("") }
-                                    }
+                                        @{
+                                            if (firstName == "")
+                                            { @("Required") }
+                                            else
+                                            { @("") }
+                                        }
                                     </Span>
                                 </TableRowCell>
                                 <TableRowHeader>Is CTEP User</TableRowHeader>
                                 <TableRowCell>
                                     @{
                                         if (isCTEPUser)
-                                         { @("Yes") }
+                                        { @("Yes") }
                                         else
                                         { @("No") }
                                     }
@@ -341,24 +344,24 @@
                                 <TableRowCell>@lastName</TableRowCell>
                                 <TableRowCell>
                                     <Span TextColor="TextColor.Danger">
-                                    @{
-                                        if (lastName == "")
-                                        { @("Required") }
-                                        else
-                                        { @("") }
-                                    }
+                                        @{
+                                            if (lastName == "")
+                                            { @("Required") }
+                                            else
+                                            { @("") }
+                                        }
                                     </Span>
                                 </TableRowCell>
                                 <TableRowHeader>CTEP Username</TableRowHeader>
                                 <TableRowCell>@ctepUserId</TableRowCell>
                                 <TableRowCell>
                                     <Span TextColor="TextColor.Danger">
-                                    @{
-                                        if (isCTEPUser && (ctepUserId == "" || ctepUserId == null))
-                                        { @("Required") }
-                                        else
-                                        { @("") }
-                                    }
+                                        @{
+                                            if (isCTEPUser && (ctepUserId == "" || ctepUserId == null))
+                                            { @("Required") }
+                                            else
+                                            { @("") }
+                                        }
                                     </Span>
                                 </TableRowCell>
                             </TableRow>
@@ -367,25 +370,25 @@
                                 <TableRowCell>@email</TableRowCell>
                                 <TableRowCell>
                                     <Span TextColor="TextColor.Danger">
-                                    @{
-                                        if (email == "")
-                                        { @("Required") }
-                                        else if (!emailRegexIsValid(email))
-                                        {
-                                            @("Invalid Email")
+                                        @{
+                                            if (email == "")
+                                            { @("Required") }
+                                            else if (!emailRegexIsValid(email))
+                                            {
+                                                @("Invalid Email")
+                                            }
+                                            else
+                                            {
+                                                @("")
+                                            }
                                         }
-                                        else
-                                        {
-                                            @("")
-                                        }
-                                    }
                                     </Span>
                                 </TableRowCell>
                                 <TableRowHeader>Is Active</TableRowHeader>
                                 <TableRowCell>
                                     @{
                                         if (isActive)
-                                         { @("Yes") }
+                                        { @("Yes") }
                                         else
                                         { @("No") }
                                     }
@@ -412,12 +415,12 @@
                                 <TableRowCell>@roleName</TableRowCell>
                                 <TableRowCell>
                                     <Span TextColor="TextColor.Danger">
-                                    @{
-                                        if (roleName == "")
-                                        { @("Required") }
-                                        else
-                                        { @("") }
-                                    }
+                                        @{
+                                            if (roleName == "")
+                                            { @("Required") }
+                                            else
+                                            { @("") }
+                                        }
                                     </Span>
                                 </TableRowCell>
                             </TableRow>
@@ -428,9 +431,9 @@
                                 </TableRow>   
                             }
                             else if (selectedUserRoleList.Count == 0) {
-                            <TableRow>
-                                <TableRowHeader Style="width:200px">Secondary Roles</TableRowHeader>
-                                <TableRowCell>None selected</TableRowCell>
+                                <TableRow>
+                                    <TableRowHeader Style="width:200px">Secondary Roles</TableRowHeader>
+                                    <TableRowCell>None selected</TableRowCell>
                                 </TableRow>
                             }
                             else {
@@ -447,16 +450,16 @@
                                         <TableRowCell Style="width:200px">@(GetRoleName(selectedUserRoleList[curId].RoleId))
                                         </TableRowCell>
                                         @{ if (selectedUserRoleList[curId].ExpirationDate != null)
-                                        {
-                                        <TableRowCell>
-                                            @("Until " + selectedUserRoleList[curId].ExpirationDate.Value.ToString("dd-MMM-yyyy"))
-                                        </TableRowCell>
-                                        }
-                                        else
-                                        {
-                                            <TableRowCell></TableRowCell>
-                                        }}
-                                </TableRow>
+                                            {
+                                                <TableRowCell>
+                                                    @("Until " + selectedUserRoleList[curId].ExpirationDate.Value.ToString("dd-MMM-yyyy"))
+                                                </TableRowCell>
+                                            }
+                                            else
+                                            {
+                                                <TableRowCell></TableRowCell>
+                                            }}
+                                    </TableRow>
                                 }
                             }
                         </TableBody>
@@ -483,23 +486,23 @@
                                             <TableRowCell Style="width:200px">@selectedUserProtocolList[curId2].StudyId
                                             </TableRowCell>
                                             @{ if (selectedUserProtocolList[curId2].ExpirationDate != null)
-                                            {
-                                            <TableRowCell>
-                                                @("Until " + selectedUserProtocolList[curId2].ExpirationDate.Value.ToString("dd-MMM-yyyy"))
-                                            </TableRowCell>
-                                            }
-                                            else
-                                            {
-                                                <TableRowCell></TableRowCell>
-                                            }}
+                                                {
+                                                    <TableRowCell>
+                                                        @("Until " + selectedUserProtocolList[curId2].ExpirationDate.Value.ToString("dd-MMM-yyyy"))
+                                                    </TableRowCell>
+                                                }
+                                                else
+                                                {
+                                                    <TableRowCell></TableRowCell>
+                                                }}
                                         </TableRow>
                                     }
                                 }
                                 else
                                 {
-                                   <TableRow>
-                                       <TableRowCell>No studies assigned</TableRowCell>
-                                   </TableRow>
+                                    <TableRow>
+                                        <TableRowCell>No studies assigned</TableRowCell>
+                                    </TableRow>
                                 }
                             }
                         </TableBody>
@@ -524,23 +527,23 @@
                                             <TableRowCell Style="width:200px">@selectedUserGroupList[curId3].Group.GroupName
                                             </TableRowCell>
                                             @{ if (selectedUserGroupList[curId3].ExpirationDate != null)
-                                            {
-                                            <TableRowCell>
-                                                @("Until " + selectedUserGroupList[curId3].ExpirationDate.Value.ToString("dd-MMM-yyyy"))
-                                            </TableRowCell>
-                                            }
-                                            else
-                                            {
-                                                <TableRowCell></TableRowCell>
-                                            }}
+                                                {
+                                                    <TableRowCell>
+                                                        @("Until " + selectedUserGroupList[curId3].ExpirationDate.Value.ToString("dd-MMM-yyyy"))
+                                                    </TableRowCell>
+                                                }
+                                                else
+                                                {
+                                                    <TableRowCell></TableRowCell>
+                                                }}
                                         </TableRow>
                                     }
                                 }
                                 else
                                 {
-                                   <TableRow>
-                                       <TableRowCell>No groups assigned</TableRowCell>
-                                   </TableRow>
+                                    <TableRow>
+                                        <TableRowCell>No groups assigned</TableRowCell>
+                                    </TableRow>
                                 }
                             }
                         </TableBody>
@@ -613,11 +616,14 @@
     private UserRole selectedUserRole;
     List<UserRole> selectedUserRoles { get; set; }
     bool primaryRoleDisabled = false;
+    private DataGrid<UserRole> assignedSecondaryRoles;
 
     // Step 3 vars (Protocol & Group Assignment)
     IFluentDisplay showStudies = Display.None;
     IFluentDisplay showIsAdmin = Display.None;
     IFluentDisplay studyGroupAssignmentDiv = Display.None;
+    private DataGrid<UserProtocol> assignedStudies;
+    private DataGrid<UserGroup> assignedGroups;
 
     // Step 4 vars (Review page)
     private string roleName = "";
@@ -883,6 +889,7 @@
             selectedUserProtocolList = selectedUserProtocolList.OrderBy(sup => sup.StudyId).ToList();
         }
         availableSelected = null;
+        await assignedStudies.Reload();
     }
 
     private async void RemoveFromSelectedProtocol()
@@ -903,6 +910,7 @@
             protocolsAvailable = protocolsAvailable.OrderBy(pa => pa.StudyId).ToList();
         }
         selectedUserProtocols = null;
+        await assignedStudies.Reload();
     }
 
     private Task OnStudySelectionChanged(int value)
@@ -941,6 +949,7 @@
             }
         }
         availableGroupsSelected = null;
+        await assignedGroups.Reload();
     }
 
     private async void RemoveFromSelectedGroup()
@@ -961,6 +970,7 @@
             }
         }
         selectedUserGroups = null;
+        await assignedGroups.Reload();
     }
 
     private string GetRoleName(int roleId)
@@ -988,6 +998,7 @@
             }
         }
         availableRolesSelected = null;
+        await assignedSecondaryRoles.Reload();
     }
 
     private async void RemoveFromSelectedRole()
@@ -1007,7 +1018,8 @@
                 rolesAvailable.Add(newR);
             }
         }
-        selectedUserRoles = null;        
+        selectedUserRoles = null;
+        await assignedSecondaryRoles.Reload();
     }
 
     private DateTime? ExpirationDate()
