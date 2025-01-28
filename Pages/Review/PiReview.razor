@@ -49,11 +49,11 @@
                         <span style="margin-left: auto;font-size:15px;">Due Date: @DueDate</span>
                         @if (daysRemaining >= 0)
                         {
-                        <span style="margin-left: auto;font-size:15px;">Days Remaining to Complete: @daysRemaining </span>
+                            <span style="margin-left: auto;font-size:15px;">Days Remaining to Complete: @daysRemaining </span>
                         }
                         else
                         {
-                        <span style="margin-left: auto;font-size:15px;">Days Overdue: @(daysRemaining*-1) </span>
+                            <span style="margin-left: auto;font-size:15px;">Days Overdue: @(daysRemaining*-1) </span>
                         }
                     </Div>
                 </Div>
@@ -439,6 +439,7 @@
 
                 if (itemWasUpdated || noteAdded)
                 {
+                    GenerateAuditTrail();
                     await notificationService.Success("Changes have been saved.");
                 }
             }
@@ -593,21 +594,26 @@
                             lstEmailDetails.Add(new EmailDetails { Body = email.Body, EmailTo = email.Recipient, CreationDate = email.CreationDate.HasValue ? email.CreationDate.Value.ToString("dd-MMM-yyyy hh:mm:ss tt").ToUpper() : "null" });
                         }
                     }
-                    try
-                    {
-                        lstAudits = await auditService.GetFullAuditTrailAsync(
-                            activeUserId, 
-                            currentReview.ReviewId, 
-                            latestReviewHistory.ReviewHistoryId,
-                            await reviewHistoryItemService.GetReviewHistoryItemIdsAsync(latestReviewHistory.ReviewHistoryId));
-                        lstAudits.Sort((x, y) => y.dateOfChange.CompareTo(x.dateOfChange));
-                    }
-                    catch (Exception ex)
-                    {
-                        await JSRuntime.InvokeVoidAsync("console.error", "Error in Audit Trail: " + ex.Message);
-                    }
+                    GenerateAuditTrail();
                 }
             }
+        }
+
+        private async Task GenerateAuditTrail()
+        {
+            try
+            {
+                lstAudits = await auditService.GetFullAuditTrailAsync(
+                        activeUserId, 
+                        currentReview.ReviewId, 
+                        latestReviewHistory.ReviewHistoryId,
+                        await reviewHistoryItemService.GetReviewHistoryItemIdsAsync(latestReviewHistory.ReviewHistoryId));
+                lstAudits.Sort((x, y) => y.dateOfChange.CompareTo(x.dateOfChange));
+            }
+            catch (Exception ex)
+            {
+                await JSRuntime.InvokeVoidAsync("console.error", "Error in Audit Trail: " + ex.Message);
+            }            
         }
 
         private void OnModalClosed()
