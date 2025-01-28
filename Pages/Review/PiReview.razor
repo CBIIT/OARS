@@ -600,6 +600,7 @@
                             currentReview.ReviewId, 
                             latestReviewHistory.ReviewHistoryId,
                             await reviewHistoryItemService.GetReviewHistoryItemIdsAsync(latestReviewHistory.ReviewHistoryId));
+                        lstAudits.Sort((x, y) => y.dateOfChange.CompareTo(x.dateOfChange));
                     }
                     catch (Exception ex)
                     {
