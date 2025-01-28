@@ -139,7 +139,7 @@ namespace TheradexPortal.Data.Services
             newHistory.ProtocolId = protocolId;
             newHistory.ReviewPeriodName = previousReview.ReviewPeriodName;
             newHistory.ReviewId = previousReview.ReviewId;
-            newHistory.IsWebReporting = 'F';
+            
             await context.AddAsync(newHistory);
 
             var primaryTable = context.Model.FindEntityType(typeof(ReviewHistory)).ToString().Replace("EntityType: ", "");
