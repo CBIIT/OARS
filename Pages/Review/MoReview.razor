@@ -35,17 +35,17 @@
                     <span><h3>Review Period: @reviewName - MO Review</h3></span>
                     <Div style="display: flex; justify-content: space-between; width: 100%;">
                         <span style="font-size:15px;"> @leadAgentName : @AgentId : @studyDescription </span>
-                        <span style="margin-left: auto;font-size:15px;">Status: @GetReviewStatus()</span>
+                        <span style="margin-left: auto;font-size:15px;"><b>Status</b>: @GetReviewStatus()</span>
                     </Div>
                     <Div style="display: flex; justify-content: right; align-items: right; width: 100%; text-align: right;flex-direction: column;">
-                        <span style="margin-left: auto;font-size:15px;">Due Date: @DueDate</span>
+                        <span style="margin-left: auto;font-size:15px;"><b>Due Date</b>: @DueDate</span>
                         @if (daysRemaining >= 0)
                         {
-                            <span style="margin-left: auto;font-size:15px;">Days Remaining to Complete: @daysRemaining </span>
+                            <span style="margin-left: auto;font-size:15px;"><b>Days Remaining to Complete</b>: @daysRemaining </span>
                         }
                         else
                         {
-                            <span style="margin-left: auto;font-size:15px;">Days Overdue: @(daysRemaining*-1) </span>
+                            <span style="margin-left: auto;font-size:15px;"><b>Days Overdue</b>: @(daysRemaining*-1) </span>
                         }
                     </Div>
                 </Div>
