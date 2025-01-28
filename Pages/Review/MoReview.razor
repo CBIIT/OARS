@@ -647,7 +647,7 @@
                 if (sendEmailResult)
                 {
                     await notificationService.Success("An email has been sent.");
-                    await historyEmailService.SaveNewEmailAsync(latestReviewHistory.ReviewHistoryId, emailTo, emailDescription);
+                    await historyEmailService.SaveNewEmailAsync(activeUserId, latestReviewHistory.ReviewHistoryId, emailTo, emailDescription);
                     lstEmailDetails.Insert(0, new EmailDetails { Body = emailDescription, EmailTo = emailTo, CreationDate = DateTime.Now.ToString("dd-MMM-yyyy hh:mm:ss tt").ToUpper() });
                     await emailDataGrid.Reload();
                 }

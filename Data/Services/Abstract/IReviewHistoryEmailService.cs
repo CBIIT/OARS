@@ -8,7 +8,7 @@ namespace TheradexPortal.Data.Services.Abstract
     {
         public Task<List<ReviewHistoryEmailDTO>> GetEmailsAsync(int protocolId);
         public Task<string> GetAllEmailsAsync(int protocolId);
-        public Task<bool> SaveNewEmailAsync(int reviewHistoryId, string recipient, string body);
+        public Task<bool> SaveNewEmailAsync(int userId, int reviewHistoryId, string recipient, string body);
         public int GetNextReviewHistoryEmailId();
     }
 }

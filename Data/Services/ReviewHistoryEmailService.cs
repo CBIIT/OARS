@@ -37,7 +37,7 @@ namespace TheradexPortal.Data.Services
             return "";
         }
 
-        public async Task<bool> SaveNewEmailAsync(int reviewHistoryId, string recipient, string body)
+        public async Task<bool> SaveNewEmailAsync(int userId, int reviewHistoryId, string recipient, string body)
         {
             ReviewHistoryEmail newReviewHistoryEmail = new ReviewHistoryEmail();
             newReviewHistoryEmail.EmailToAddress = recipient;
@@ -47,7 +47,9 @@ namespace TheradexPortal.Data.Services
             newReviewHistoryEmail.EmailText = body;
 
             await context.ReviewHistoryEmails.AddAsync(newReviewHistoryEmail);
-            var status = await context.SaveChangesAsync();
+            var primaryTable = context.Model.FindEntityType(typeof(ReviewHistory)).ToString().Replace("EntityType: ", "");
+
+            var status = await context.SaveChangesAsync(userId, primaryTable);
             return true;
         }
 
