@@ -53,7 +53,9 @@ namespace TheradexPortal.Data.Services
 
         public int GetNextReviewHistoryEmailId()
         {
-            return context.ReviewHistoryEmails.Max(p => p.ReviewHistoryEmailId) + 1;
+            return context.ReviewHistoryEmails
+                .DefaultIfEmpty()
+                .Max(p => p == null ? 0 : p.ReviewHistoryEmailId) + 1;
         }
     }
 }
