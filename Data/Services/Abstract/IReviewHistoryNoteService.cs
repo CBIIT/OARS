@@ -8,6 +8,8 @@ namespace TheradexPortal.Data.Services.Abstract
         public Task<List<ReviewHistoryNoteDTO>> GetNotesAsync(int protocolId);
         public Task<string> GetAllNotesAsync(int protocolId);
         public Task<bool> SaveNoteAsync(int userId, ReviewHistoryNote note);
+        public Task<List<int>> GetReviewHistoryNoteIdsAsync(int reviewHistoryID);
+
         public int GetNextReviewHistoryNoteId();
     }
 }

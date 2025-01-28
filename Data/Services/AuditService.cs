@@ -30,7 +30,7 @@ namespace TheradexPortal.Data.Services
             _reviewService = reviewService;
             _userService = userService;
         }
-        public async Task<List<AuditTrailDTO>> GetFullAuditTrailAsync(int userId, int reviewId, int reviewHistoryId, List<int> reviewHistoryItemIds)
+        public async Task<List<AuditTrailDTO>> GetFullAuditTrailAsync(int userId, int reviewId, int reviewHistoryId, List<int> reviewHistoryItemIds, List<int> reviewHistoryNoteIds)
         {
             List<AuditTrailDTO> auditTrail = new List<AuditTrailDTO>();
             Audit reviewAuditTrail = await GetReviewAuditTrailAsync(userId, reviewId);
@@ -48,6 +48,17 @@ namespace TheradexPortal.Data.Services
                 if (reviewItemAuditTrail != null)
                 {
                     foreach (var riAudit in reviewItemAuditTrail)
+                    {
+                        ProcessAuditEntry(riAudit, userName, userId, auditTrail);
+                    }
+                }
+            }
+            if (reviewHistoryItemIds.Count > 0)
+            {
+                IList<Audit> reviewNoteAuditTrail = await GetReviewNoteAuditTrailAsync(userId, reviewHistoryId, reviewHistoryNoteIds);
+                if (reviewNoteAuditTrail != null)
+                {
+                    foreach (var riAudit in reviewNoteAuditTrail)
                     {
                         ProcessAuditEntry(riAudit, userName, userId, auditTrail);
                     }
@@ -102,6 +113,19 @@ namespace TheradexPortal.Data.Services
         {
             var result = JsonConvert.DeserializeObject<List<string>>(input);
             return result;
+        }
+
+        private async Task<IList<Audit>> GetReviewNoteAuditTrailAsync(int userId, int reviewHistoryId, List<int> reviewHistoryNoteIds)
+        {
+            string numberList = string.Join(",", reviewHistoryNoteIds);
+            string sqlInts = "(" + string.Join(",", reviewHistoryNoteIds) + ")";
+            string sqlQuery = "SELECT * FROM \"AUDIT\" WHERE USERID = {0} AND TABLENAME = 'ReviewHistoryNote' AND JSON_VALUE(PRIMARYKEY, '$.ReviewHistoryNoteId') IN " + sqlInts;
+
+            var ret = await context.Audits
+                    .FromSqlRaw(sqlQuery, userId)
+                    .ToListAsync();
+
+            return ret;
         }
 
         private async Task<IList<Audit>> GetReviewHistoryItemAuditTrailAsync(int userId, int reviewHistoryId, List<int> reviewHistoryItemIds)

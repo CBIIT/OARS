@@ -439,7 +439,7 @@
 
                 if (itemWasUpdated || noteAdded)
                 {
-                    GenerateAuditTrail();
+                    await GenerateAuditTrail();
                     await notificationService.Success("Changes have been saved.");
                 }
             }
@@ -594,7 +594,7 @@
                             lstEmailDetails.Add(new EmailDetails { Body = email.Body, EmailTo = email.Recipient, CreationDate = email.CreationDate.HasValue ? email.CreationDate.Value.ToString("dd-MMM-yyyy hh:mm:ss tt").ToUpper() : "null" });
                         }
                     }
-                    GenerateAuditTrail();
+                    await GenerateAuditTrail();
                 }
             }
         }
@@ -604,10 +604,11 @@
             try
             {
                 lstAudits = await auditService.GetFullAuditTrailAsync(
-                        activeUserId, 
-                        currentReview.ReviewId, 
+                        activeUserId,
+                        currentReview.ReviewId,
                         latestReviewHistory.ReviewHistoryId,
-                        await reviewHistoryItemService.GetReviewHistoryItemIdsAsync(latestReviewHistory.ReviewHistoryId));
+                        await reviewHistoryItemService.GetReviewHistoryItemIdsAsync(latestReviewHistory.ReviewHistoryId),
+                        await historyNoteService.GetReviewHistoryNoteIdsAsync(latestReviewHistory.ReviewHistoryId));
                 lstAudits.Sort((x, y) => y.dateOfChange.CompareTo(x.dateOfChange));
             }
             catch (Exception ex)
