@@ -41,11 +41,11 @@
                         <span style="margin-left: auto;font-size:15px;">Due Date: @DueDate</span>
                         @if (daysRemaining >= 0)
                         {
-                        <span style="margin-left: auto;font-size:15px;">Days Remaining to Complete: @daysRemaining </span>
+                            <span style="margin-left: auto;font-size:15px;">Days Remaining to Complete: @daysRemaining </span>
                         }
                         else
                         {
-                        <span style="margin-left: auto;font-size:15px;">Days Overdue: @(daysRemaining*-1) </span>
+                            <span style="margin-left: auto;font-size:15px;">Days Overdue: @(daysRemaining*-1) </span>
                         }
                     </Div>
                 </Div>
@@ -521,61 +521,66 @@
             if (AgentId > 0)
             {
                 currentReview = await reviewService.GetCurrentReviewAsync(AgentId, activeUserId, "MO");
-                DueDate = ((DateTime)currentReview.NextDueDate).Date.ToString("dd-MMM-yyyy");
-                daysRemaining = (((DateTime)currentReview.NextDueDate) - DateTime.Now).Days;
+
                 latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(AgentId, activeUserId, "MO");
                 authorizedUsers = await reviewService.GetAllAuthorizedUsersAsync(AgentId);
-                if (latestReviewHistory != null)
+                if (authorizedUsers.Contains(activeUserId))
                 {
-                    var activeReview = await reviewHistoryService.isReviewActive(latestReviewHistory.ReviewHistoryId);
-                    if (!activeReview)
-                    {
-                        reviewHistoryService.StartNewReviewAsync(activeUserId, AgentId, "MO", latestReviewHistory.ReviewHistoryId);
-                        latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(AgentId, activeUserId, "MO");
-                    }
-                    reviewName = latestReviewHistory.ReviewPeriodName ?? "";
-                    lstPiDetails = await reviewService.GetPiInfoAsync(AgentId);
-                    var user = await userService.GetUserAsync(latestReviewHistory.UserId);
-                    if (user != null)
-                    {
-                        userFullName = user.FirstName + " " + user.LastName;
-                        userFirstName = user.FirstName;
-                        userLastName = user.LastName;
-                    }
-                    studyDescription = await studyService.GetStudyTitleAsync(AgentId);
-                    dctReviewItemSettings = await reviewHistoryItemService.GetCurrentReviewHistoryItemStatusAsync(latestReviewHistory.ReviewHistoryId);
-                    foreach (var item in lstReviewItems)
-                    {
-                        dctReviewItemSettings.TryGetValue(item.ReviewItemId, out checkedStatus);
+                    DueDate = ((DateTime)currentReview.NextDueDate).Date.ToString("dd-MMM-yyyy");
+                    daysRemaining = (((DateTime)currentReview.NextDueDate) - DateTime.Now).Days;
 
-                        lstManagers.Add(new CheckBoxManager { BoxName = item.ReviewItemName, ReviewItemNumber = item.ReviewItemId, IsChecked = checkedStatus });
-                        if (checkedStatus == false)
+                    if (latestReviewHistory != null)
+                    {
+                        var activeReview = await reviewHistoryService.isReviewActive(latestReviewHistory.ReviewHistoryId);
+                        if (!activeReview)
                         {
-                            submitIsDisabled = true;
+                            reviewHistoryService.StartNewReviewAsync(activeUserId, AgentId, "MO", latestReviewHistory.ReviewHistoryId);
+                            latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(AgentId, activeUserId, "MO");
                         }
-                    }
+                        reviewName = latestReviewHistory.ReviewPeriodName ?? "";
+                        lstPiDetails = await reviewService.GetPiInfoAsync(AgentId);
+                        var user = await userService.GetUserAsync(latestReviewHistory.UserId);
+                        if (user != null)
+                        {
+                            userFullName = user.FirstName + " " + user.LastName;
+                            userFirstName = user.FirstName;
+                            userLastName = user.LastName;
+                        }
+                        studyDescription = await studyService.GetStudyTitleAsync(AgentId);
+                        dctReviewItemSettings = await reviewHistoryItemService.GetCurrentReviewHistoryItemStatusAsync(latestReviewHistory.ReviewHistoryId);
+                        foreach (var item in lstReviewItems)
+                        {
+                            dctReviewItemSettings.TryGetValue(item.ReviewItemId, out checkedStatus);
 
-                    daysLate = latestReviewHistory.DaysLate ?? 0;
-                    leadAgentName = await reviewService.GetLeadAgentByIdAsync(AgentId);
-                    var tmpLst = await historyNoteService.GetNotesAsync(latestReviewHistory.ReviewHistoryId);
-                    if (tmpLst != null)
-                    {
-                        if (reviewNote.Contains("No previous notes."))
-                            reviewNote.Remove("No previous notes.");
-                        foreach (var tmp in tmpLst)
-                        {
-                            lstTextNotes.Add(new TextNotes { Name = tmp.UserName, Note = tmp.Notes, CreationDate = tmp.CreationDate.HasValue ? tmp.CreationDate.Value.ToString("dd-MMM-yyyy hh:mm:ss tt").ToUpper() : "null" });
+                            lstManagers.Add(new CheckBoxManager { BoxName = item.ReviewItemName, ReviewItemNumber = item.ReviewItemId, IsChecked = checkedStatus });
+                            if (checkedStatus == false)
+                            {
+                                submitIsDisabled = true;
+                            }
                         }
-                    }
-                    var tmpEmailList = await historyEmailService.GetEmailsAsync(latestReviewHistory.ReviewHistoryId);
-                    if (tmpEmailList != null)
-                    {
-                        if (reviewEmail.Contains("No previous emails."))
-                            reviewEmail.Remove("No previous emails.");
-                        foreach (var email in tmpEmailList)
+
+                        daysLate = latestReviewHistory.DaysLate ?? 0;
+                        leadAgentName = await reviewService.GetLeadAgentByIdAsync(AgentId);
+                        var tmpLst = await historyNoteService.GetNotesAsync(latestReviewHistory.ReviewHistoryId);
+                        if (tmpLst != null)
                         {
-                            reviewEmail.Add(email.Body);
-                            lstEmailDetails.Add(new EmailDetails { Body = email.Body, EmailTo = email.Recipient, CreationDate = email.CreationDate.HasValue ? email.CreationDate.Value.ToString("dd-MMM-yyyy hh:mm:ss tt").ToUpper() : "null" });
+                            if (reviewNote.Contains("No previous notes."))
+                                reviewNote.Remove("No previous notes.");
+                            foreach (var tmp in tmpLst)
+                            {
+                                lstTextNotes.Add(new TextNotes { Name = tmp.UserName, Note = tmp.Notes, CreationDate = tmp.CreationDate.HasValue ? tmp.CreationDate.Value.ToString("dd-MMM-yyyy hh:mm:ss tt").ToUpper() : "null" });
+                            }
+                        }
+                        var tmpEmailList = await historyEmailService.GetEmailsAsync(latestReviewHistory.ReviewHistoryId);
+                        if (tmpEmailList != null)
+                        {
+                            if (reviewEmail.Contains("No previous emails."))
+                                reviewEmail.Remove("No previous emails.");
+                            foreach (var email in tmpEmailList)
+                            {
+                                reviewEmail.Add(email.Body);
+                                lstEmailDetails.Add(new EmailDetails { Body = email.Body, EmailTo = email.Recipient, CreationDate = email.CreationDate.HasValue ? email.CreationDate.Value.ToString("dd-MMM-yyyy hh:mm:ss tt").ToUpper() : "null" });
+                            }
                         }
                     }
                 }

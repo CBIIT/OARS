@@ -527,12 +527,12 @@
             if (ProtocolId > 0)
             {
                 currentReview = await reviewService.GetCurrentReviewAsync(ProtocolId, activeUserId, "PI");
-                DueDate = ((DateTime)currentReview.NextDueDate).Date.ToString("dd-MMM-yyyy");
-                daysRemaining = (((DateTime)currentReview.NextDueDate) - DateTime.Now).Days;
                 latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(ProtocolId, activeUserId, "PI");
                 authorizedUsers = await reviewService.GetAllAuthorizedUsersAsync(ProtocolId);
                 if (authorizedUsers.Contains(activeUserId))
                 {
+                    DueDate = ((DateTime)currentReview.NextDueDate).Date.ToString("dd-MMM-yyyy");
+                    daysRemaining = (((DateTime)currentReview.NextDueDate) - DateTime.Now).Days;
                     if (latestReviewHistory == null)
                     {
                         reviewHistoryId = reviewHistoryService.GetNextReviewHistoryId();
