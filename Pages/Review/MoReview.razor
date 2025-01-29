@@ -79,6 +79,7 @@
                 <Button Color="Color.Primary" Clicked="@SaveChanges">Save Changes</Button>
                 <Button Color="Color.Primary" Clicked="@DiscardChanges">Discard Changes</Button>
                 <Button Color="Color.Primary" Clicked="@ShowContactUsModal">Send Email</Button>
+                <Button Color="Color.Primary" Clicked="@ShowChangeDurationModal">Adjust Review Duration</Button>
             </Column>
         </Row>
         <Row>
@@ -250,6 +251,46 @@
         </ModalContent>
     </Modal>
 
+    <Modal @ref="modalChangeDuration" Closing="@OnModalClosing" Opened="@OnModalOpen">
+        <ModalContent Centered Size="ModalSize.Large">
+            <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
+                <ModalTitle>Change Review Durations</ModalTitle>
+                <CloseButton />
+            </ModalHeader>
+            <ModalBody>
+                <Field>
+                    <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold" Style="margin-bottom:25px;">PI Review Duration</FieldLabel>
+                    <Div Style="position:relative;width:100%">
+                        <Slider @bind-Value="@pi_duration" Step="30" Max="120" Min="30"  />
+                        <Div Style="position: absolute;top:-25px;width:100%;display:flex;justify-content:space-between;">
+                            <Span Style="position:absolute;left:0%;bottom:-25px;font-size:12px;">30</Span>
+                            <Span Style="position:absolute;left:33%;bottom:-25px;font-size:12px;">60</Span>
+                            <Span Style="position:absolute;left:65%;bottom:-25px;font-size:12px;">90</Span>
+                            <Span Style="position:absolute;left:98%;bottom:-25px;font-size:12px;">120</Span>
+                        </Div>
+                    </Div>
+                </Field>
+                <Field>
+                    <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold" Style="margin-bottom:25px;">MO Review Duration</FieldLabel>
+                    <Div Style="position:relative;width:100%">
+                        <Slider @bind-Value="@pi_duration" Step="30" Max="120" Min="30"  />
+                        <Div Style="position: absolute;top:-25px;width:100%;display:flex;justify-content:space-between;">
+                            <Span Style="position:absolute;left:0%;bottom:-25px;font-size:12px;">30</Span>
+                            <Span Style="position:absolute;left:33%;bottom:-25px;font-size:12px;">60</Span>
+                            <Span Style="position:absolute;left:65%;bottom:-25px;font-size:12px;">90</Span>
+                            <Span Style="position:absolute;left:98%;bottom:-25px;font-size:12px;">120</Span>
+                        </Div>
+                    </Div>
+
+                </Field>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Primary" Clicked="@HideChangeDurationModal">Cancel</Button>
+                <Button Color="Color.Primary" Disabled="!emailFormIsValid" Clicked="@SendContactUsEmail">Update Review Durations</Button>
+            </ModalFooter>
+        </ModalContent>
+    </Modal>
+
     <Modal @ref="modalSubmitReview" Closing="@OnModalClosing">
         <ModalContent Centered Size="ModalSize.Large">
             <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
@@ -297,6 +338,7 @@
         private string userLastName = "No Name";
         private string reviewName = "No Name";
         private string studyDescription = "No description found";
+        private int pi_duration = 30;
 
         public class TextNotes
         {
@@ -494,6 +536,7 @@
 
         private Modal modalSubmitEmail;
         private Modal modalSubmitReview;
+        private Modal modalChangeDuration;
         private bool cancelClose;
 
         private string contactUsCategoryID = "", emailTo = "", emailCategory = "", emailDescription = "", emailTitle = "", emailDescriptionLabel = "";
@@ -616,6 +659,11 @@
             return modalSubmitEmail.Show();
         }
 
+        private Task ShowChangeDurationModal()
+        {
+            return modalChangeDuration.Show();
+        }
+
         private Task ShowSubmitReviewModal()
         {
             return modalSubmitReview.Show();
@@ -630,6 +678,12 @@
         {
             cancelClose = false;
             return modalSubmitEmail.Hide();
+        }
+
+        private Task HideChangeDurationModal()
+        {
+            cancelClose = false;
+            return modalChangeDuration.Hide();
         }
 
         private Task HideSubmitReviewModal()
