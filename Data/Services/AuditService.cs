@@ -36,10 +36,11 @@ namespace TheradexPortal.Data.Services
             Audit reviewAuditTrail = await GetReviewAuditTrailAsync(userId, reviewId);
             var currentUser = await _userService.GetUserAsync(userId);
             var userName = currentUser.FirstName + " " + currentUser.LastName;
+            var userEmail = currentUser.EmailAddress;
 
             if (reviewAuditTrail != null)
             {
-                ProcessAuditEntry(reviewAuditTrail, userName, userId, auditTrail);
+                ProcessAuditEntry(reviewAuditTrail, userName, userEmail, auditTrail);
             }
 
             if (reviewHistoryItemIds.Count > 0)
@@ -49,25 +50,25 @@ namespace TheradexPortal.Data.Services
                 {
                     foreach (var riAudit in reviewItemAuditTrail)
                     {
-                        ProcessAuditEntry(riAudit, userName, userId, auditTrail);
+                        ProcessAuditEntry(riAudit, userName, userEmail, auditTrail);
                     }
                 }
             }
-            if (reviewHistoryItemIds.Count > 0)
+            if (reviewHistoryNoteIds.Count > 0)
             {
                 IList<Audit> reviewNoteAuditTrail = await GetReviewNoteAuditTrailAsync(userId, reviewHistoryId, reviewHistoryNoteIds);
                 if (reviewNoteAuditTrail != null)
                 {
                     foreach (var riAudit in reviewNoteAuditTrail)
                     {
-                        ProcessAuditEntry(riAudit, userName, userId, auditTrail);
+                        ProcessAuditEntry(riAudit, userName, userEmail, auditTrail);
                     }
                 }
             }
             return auditTrail;
         }
 
-        private void ProcessAuditEntry(Audit auditEntry, string userName, int userId, List<AuditTrailDTO> auditTrail)
+        private void ProcessAuditEntry(Audit auditEntry, string userName, string userEmail, List<AuditTrailDTO> auditTrail)
         {
             if (auditEntry != null)
             {
@@ -82,7 +83,7 @@ namespace TheradexPortal.Data.Services
                             new AuditTrailDTO
                             {
                                 userName = userName,
-                                userId = userId,
+                                userEmail = userEmail,
                                 dateOfChange = auditEntry.CreateDate,
                                 typeOfChange = auditEntry.AuditType,
                                 changeField = key,
@@ -98,7 +99,7 @@ namespace TheradexPortal.Data.Services
                         new AuditTrailDTO
                         {
                             userName = userName,
-                            userId = userId,
+                            userEmail = userEmail,
                             dateOfChange = auditEntry.CreateDate,
                             typeOfChange = auditEntry.AuditType,
                             changeField = auditEntry.TableName,
