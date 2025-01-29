@@ -273,7 +273,7 @@
                 <Field>
                     <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold" Style="margin-bottom:25px;">MO Review Duration</FieldLabel>
                     <Div Style="position:relative;width:100%">
-                        <Slider @bind-Value="@pi_duration" Step="30" Max="120" Min="30"  />
+                        <Slider @bind-Value="@mo_duration" Step="30" Max="120" Min="30"  />
                         <Div Style="position: absolute;top:-25px;width:100%;display:flex;justify-content:space-between;">
                             <Span Style="position:absolute;left:0%;bottom:-25px;font-size:12px;">30</Span>
                             <Span Style="position:absolute;left:33%;bottom:-25px;font-size:12px;">60</Span>
@@ -338,7 +338,8 @@
         private string userLastName = "No Name";
         private string reviewName = "No Name";
         private string studyDescription = "No description found";
-        private int pi_duration = 30;
+        private int pi_duration;
+        private int mo_duration;
 
         public class TextNotes
         {
@@ -571,7 +572,7 @@
                 {
                     DueDate = ((DateTime)currentReview.NextDueDate).Date.ToString("dd-MMM-yyyy");
                     daysRemaining = (((DateTime)currentReview.NextDueDate) - DateTime.Now).Days;
-
+                    (mo_duration, pi_duration)= await reviewService.GetReviewDurationsAsync(currentReview.ProtocolId);
                     if (latestReviewHistory != null)
                     {
                         var activeReview = await reviewHistoryService.isReviewActive(latestReviewHistory.ReviewHistoryId);

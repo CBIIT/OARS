@@ -12,5 +12,6 @@ namespace TheradexPortal.Data.Services.Abstract
 
         public Task<List<int>> GetAllAuthorizedUsersAsync(int protocolId);
         public Task<List<ReviewPiDTO>> GetPiInfoAsync(int protocolId);
+        public Task<(int, int)> GetReviewDurationsAsync(int protocolId);
     }
 }

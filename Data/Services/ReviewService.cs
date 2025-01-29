@@ -41,6 +41,21 @@ namespace TheradexPortal.Data.Services
                 .FirstOrDefaultAsync();
         }
 
+        public async Task<(int, int)> GetReviewDurationsAsync(int protocolId)
+        {
+            var reviewPeriods = await context.Reviews
+                .Where(r => r.ProtocolId == protocolId && (r.ReviewType == "MO" || r.ReviewType == "PI"))
+                .Select(r => new { r.ReviewType, r.ReviewPeriod })
+                .ToListAsync(); // Load the data into memory
+
+            // Get the first "MO" and "PI" ReviewPeriod
+            var moReviewPeriod = reviewPeriods.FirstOrDefault(r => r.ReviewType == "MO")?.ReviewPeriod ?? 30;
+            var piReviewPeriod = reviewPeriods.FirstOrDefault(r => r.ReviewType == "PI")?.ReviewPeriod ?? 30;
+
+            return (moReviewPeriod, piReviewPeriod);
+
+        }
+
         public async Task<List<int>> GetAllAuthorizedUsersAsync(int protocolId)
         {
             return await context.Reviews
