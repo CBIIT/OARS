@@ -10,5 +10,6 @@ namespace TheradexPortal.Data.Services.Abstract
         public Task<string> GetAllEmailsAsync(int protocolId);
         public Task<bool> SaveNewEmailAsync(int userId, int reviewHistoryId, string recipient, string body);
         public int GetNextReviewHistoryEmailId();
+        public Task<List<int>> GetReviewHistoryEmailIdsAsync(int reviewHistoryID);
     }
 }
