@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using TheradexPortal.Data.Models;
+using TheradexPortal.Data.Models.ADDR;
 using TheradexPortal.Data.Models.DTO;
 using TheradexPortal.Data.Services.Abstract;
 
@@ -45,15 +46,39 @@ namespace TheradexPortal.Data.Services
         {
             var reviewPeriods = await context.Reviews
                 .Where(r => r.ProtocolId == protocolId && (r.ReviewType == "MO" || r.ReviewType == "PI"))
-                .Select(r => new { r.ReviewType, r.ReviewPeriod })
-                .ToListAsync(); // Load the data into memory
+                .Select(r => new { r.ReviewType, r.ReviewPeriodUpcoming })
+                .ToListAsync();
 
             // Get the first "MO" and "PI" ReviewPeriod
-            var moReviewPeriod = reviewPeriods.FirstOrDefault(r => r.ReviewType == "MO")?.ReviewPeriod ?? 30;
-            var piReviewPeriod = reviewPeriods.FirstOrDefault(r => r.ReviewType == "PI")?.ReviewPeriod ?? 30;
+            var moReviewPeriod = reviewPeriods.FirstOrDefault(r => r.ReviewType == "MO")?.ReviewPeriodUpcoming ?? 30;
+            var piReviewPeriod = reviewPeriods.FirstOrDefault(r => r.ReviewType == "PI")?.ReviewPeriodUpcoming ?? 30;
 
             return (moReviewPeriod, piReviewPeriod);
 
+        }
+
+        public async Task<bool> SetReviewDurationsAsync(int userId, int protocolId, int MOReviewPeriod, int PIReviewPeriod)
+        {
+            List<Review> reviewItem = await context.Reviews
+                .Where(r=>r.ProtocolId == protocolId)
+                .ToListAsync();
+
+            foreach (var review in reviewItem)
+            {
+                if (review.ReviewType == "MO")
+                {
+                    review.ReviewPeriodUpcoming = MOReviewPeriod;
+                }
+                else
+                {
+                    review.ReviewPeriodUpcoming = PIReviewPeriod;
+                }
+                review.UpdateDate = DateTime.Now;
+            }
+            var primaryTable = context.Model.FindEntityType(typeof(Review)).ToString().Replace("EntityType: ", "");
+            context.SaveChangesAsync(userId, primaryTable);
+
+            return true;
         }
 
         public async Task<List<int>> GetAllAuthorizedUsersAsync(int protocolId)

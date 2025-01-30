@@ -286,7 +286,7 @@
             </ModalBody>
             <ModalFooter>
                 <Button Color="Color.Primary" Clicked="@HideChangeDurationModal">Cancel</Button>
-                <Button Color="Color.Primary" Disabled="!emailFormIsValid" Clicked="@SendContactUsEmail">Update Review Durations</Button>
+                <Button Color="Color.Primary" Clicked="@UpdateReviewDurations">Update Review Durations</Button>
             </ModalFooter>
         </ModalContent>
     </Modal>
@@ -338,8 +338,8 @@
         private string userLastName = "No Name";
         private string reviewName = "No Name";
         private string studyDescription = "No description found";
-        private int pi_duration;
-        private int mo_duration;
+        private int original_pi_duration, pi_duration;
+        private int original_mo_duration, mo_duration;
 
         public class TextNotes
         {
@@ -489,6 +489,22 @@
             }
         }
 
+        private async void UpdateReviewDurations()
+        {
+            if ((pi_duration != original_pi_duration) || (mo_duration != original_mo_duration))
+            {
+                await reviewService.SetReviewDurationsAsync(activeUserId, AgentId, mo_duration, pi_duration);
+                original_mo_duration = mo_duration;
+                original_pi_duration = pi_duration;
+                await notificationService.Success("Durations have been Updated.");
+            }
+            else
+            {
+                await notificationService.Error("No duration changes to save.");
+            }
+            modalChangeDuration.Hide();
+        }
+
         Task OnSendEmailClicked()
         {
 
@@ -573,6 +589,8 @@
                     DueDate = ((DateTime)currentReview.NextDueDate).Date.ToString("dd-MMM-yyyy");
                     daysRemaining = (((DateTime)currentReview.NextDueDate) - DateTime.Now).Days;
                     (mo_duration, pi_duration)= await reviewService.GetReviewDurationsAsync(currentReview.ProtocolId);
+                    original_mo_duration = mo_duration;
+                    original_pi_duration = pi_duration;
                     if (latestReviewHistory != null)
                     {
                         var activeReview = await reviewHistoryService.isReviewActive(latestReviewHistory.ReviewHistoryId);
@@ -684,6 +702,8 @@
         private Task HideChangeDurationModal()
         {
             cancelClose = false;
+            pi_duration = original_pi_duration;
+            mo_duration = original_mo_duration;
             return modalChangeDuration.Hide();
         }
 
