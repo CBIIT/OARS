@@ -255,7 +255,7 @@
         <ModalContent Centered Size="ModalSize.Large">
             <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
                 <ModalTitle>Change Review Durations</ModalTitle>
-                <CloseButton />
+                <CloseButton Clicked="@OnDurationModalClosed" />
             </ModalHeader>
             <ModalBody>
                 <Field>
@@ -286,7 +286,38 @@
             </ModalBody>
             <ModalFooter>
                 <Button Color="Color.Primary" Clicked="@HideChangeDurationModal">Cancel</Button>
-                <Button Color="Color.Primary" Clicked="@UpdateReviewDurations">Update Review Durations</Button>
+                <Button Color="Color.Primary" Clicked="@ShowConfirmChangeDurationModal">Update Review Durations</Button>
+            </ModalFooter>
+        </ModalContent>
+    </Modal>
+
+    <Modal @ref="modalConfirmChangeDuration" Closing="@OnModalClosing">
+        <ModalContent Centered Size="ModalSize.Small">
+            <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
+                <ModalTitle>Confirm Review Duration Change</ModalTitle>
+                <CloseButton />
+            </ModalHeader>
+            <ModalBody>
+                @if ((mo_duration != original_mo_duration) || (pi_duration != original_pi_duration))
+                {
+                    <p>Please Confirm changes:</p>
+                    @if(mo_duration != original_mo_duration)
+                    {
+                        <p>Changing MO review duration from @original_mo_duration.ToString() days to @mo_duration.ToString() days.</p>
+                    }
+                    @if(pi_duration != original_pi_duration)
+                    {
+                        <p>Changing PI review duration from @original_pi_duration.ToString() days to @pi_duration.ToString() days.</p>
+                    }
+                }
+                else
+                {
+                    <p> No changes have been made.</p>
+                }
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Primary" Clicked="@HideConfirmChangeDurationModal">Cancel</Button>
+                <Button Color="Color.Primary"  Disabled="!durationChanged" Clicked="@UpdateReviewDurations">Update Review Durations</Button>
             </ModalFooter>
         </ModalContent>
     </Modal>
@@ -330,6 +361,7 @@
         private string? savedNoteText { get; set; }
         private bool submitIsDisabled = false;
         private bool emailFormIsValid => emailTo != null && emailTo.Contains('@') && emailTo.Contains('.');
+        private bool durationChanged => mo_duration != original_mo_duration || pi_duration != original_pi_duration;
         private DataGrid<TextNotes> noteDataGrid;
         private DataGrid<EmailDetails> emailDataGrid;
         private DataGrid<ReviewPiDTO> piDataGrid;
@@ -502,7 +534,13 @@
             {
                 await notificationService.Error("No duration changes to save.");
             }
+            modalConfirmChangeDuration.Hide();
             modalChangeDuration.Hide();
+        }
+
+        private Task ShowConfirmChangeDurationModal()
+        {
+            return modalConfirmChangeDuration.Show();
         }
 
         Task OnSendEmailClicked()
@@ -554,6 +592,7 @@
         private Modal modalSubmitEmail;
         private Modal modalSubmitReview;
         private Modal modalChangeDuration;
+        private Modal modalConfirmChangeDuration;
         private bool cancelClose;
 
         private string contactUsCategoryID = "", emailTo = "", emailCategory = "", emailDescription = "", emailTitle = "", emailDescriptionLabel = "";
@@ -655,6 +694,12 @@
             eSig = false;
         }
 
+        private void OnDurationModalClosed()
+        {
+            pi_duration = original_pi_duration;
+            mo_duration = original_mo_duration;
+        }
+
         private Task OnModalClosing(ModalClosingEventArgs e)
         {
             e.Cancel = cancelClose
@@ -705,6 +750,11 @@
             pi_duration = original_pi_duration;
             mo_duration = original_mo_duration;
             return modalChangeDuration.Hide();
+        }
+
+        private Task HideConfirmChangeDurationModal()
+        {
+            return modalConfirmChangeDuration.Hide();
         }
 
         private Task HideSubmitReviewModal()
