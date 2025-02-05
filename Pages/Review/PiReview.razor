@@ -186,13 +186,37 @@
                             FixedHeaderDataGridHeight="calc(100vh - 240px)"
                             FixedHeaderDataGridMaxHeight="calc(100vh - 240px)">
                                 <DataGridCommandColumn />
-                                <DataGridColumn TItem="AuditTrailDTO" Field="@nameof(AuditTrailDTO.userName)" Caption="User" />
+                                <DataGridColumn TItem="AuditTrailDTO" Caption="User">
+                                    <DisplayTemplate>
+                                        <Div Style="white-space: nowrap;">
+                                            @context.userName
+                                        </Div>
+                                    </DisplayTemplate>
+                                </DataGridColumn>
                                 <DataGridColumn TItem="AuditTrailDTO" Field="@nameof(AuditTrailDTO.userEmail)" Caption="User Email" />
-                                <DataGridColumn TItem="AuditTrailDTO" Field="@nameof(AuditTrailDTO.dateOfChange)" Caption="Date Of Change" />
+                                <DataGridColumn TItem="AuditTrailDTO" Caption="Date Of Change">
+                                    <DisplayTemplate>
+                                        <Div Style="white-space: nowrap;">
+                                            @context.dateOfChange
+                                        </Div>
+                                    </DisplayTemplate>
+                                </DataGridColumn>
                                 <DataGridColumn TItem="AuditTrailDTO" Field="@nameof(AuditTrailDTO.typeOfChange)" Caption="Type Of Change" />
                                 <DataGridColumn TItem="AuditTrailDTO" Field="@nameof(AuditTrailDTO.changeField)" Caption="Changed Field" />
-                                <DataGridColumn TItem="AuditTrailDTO" Field="@nameof(AuditTrailDTO.previousValue)" Caption="Previous Value" />
-                                <DataGridColumn TItem="AuditTrailDTO" Field="@nameof(AuditTrailDTO.newValue)" Caption="New Value" />
+                                <DataGridColumn TItem="AuditTrailDTO" Caption="Previous Value">
+                                    <DisplayTemplate>
+                                        <Div Style="white-space: pre-wrap;">
+                                            @context.previousValue
+                                        </Div>
+                                    </DisplayTemplate>
+                                </DataGridColumn>
+                                <DataGridColumn TItem="AuditTrailDTO" Caption="New Value" >
+                                        <DisplayTemplate>
+                                            <Div Style="display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; word-wrap: break-word; white-space: pre-wrap;">
+                                                @context.newValue
+                                            </Div>
+                                        </DisplayTemplate>
+                                </DataGridColumn>
                             </DataGrid>
                         </TabPanel>
                     </Content>

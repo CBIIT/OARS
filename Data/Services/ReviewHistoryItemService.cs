@@ -73,5 +73,18 @@ namespace TheradexPortal.Data.Services
         {
             return context.ReviewHistoryItems.Max(p => p.ReviewHistoryItemId) + 1;
         }
+
+        public async Task<string> GetReviewHistoryItemNameAsync(int reviewHistoryItemId)
+        {
+            var itemId = await context.ReviewHistoryItems
+                .Where(r => r.ReviewHistoryItemId == reviewHistoryItemId)
+                .Select(r => r.ReviewItemId)
+                .FirstOrDefaultAsync();
+
+            return await context.ReviewItems
+                .Where(i => i.ReviewItemId == itemId)
+                .Select(i => i.ReviewItemName)
+                .FirstOrDefaultAsync() ?? "";
+        }
     }
 }

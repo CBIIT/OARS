@@ -11,5 +11,6 @@ namespace TheradexPortal.Data.Services.Abstract
         public Task<bool> UpdateReviewHistoryItemAsync(int activeUserId, int reviewHistoryID, int reviewItemID, bool newValue);
         public int GetNextReviewHistoryItemId();
         public Task<List<int>> GetReviewHistoryItemIdsAsync(int reviewHistoryID);
+        public Task<string> GetReviewHistoryItemNameAsync(int reviewItemId);
     }
 }

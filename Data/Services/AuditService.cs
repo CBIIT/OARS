@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using DocumentFormat.OpenXml.Spreadsheet;
 using System.Collections.Generic;
+using RestSharp.Serialization.Json;
 
 namespace TheradexPortal.Data.Services
 {
@@ -18,16 +19,19 @@ namespace TheradexPortal.Data.Services
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
         private readonly IReviewService _reviewService;
+        private readonly IReviewHistoryItemService _reviewHistoryItemService;
         private readonly IUserService _userService;
         public AuditService(IDatabaseConnectionService databaseConnectionService,
                                     IErrorLogService errorLogService,
                                     NavigationManager navigationManager,
                                     IReviewService reviewService,
+                                    IReviewHistoryItemService reviewHistoryItemService,
                                     IUserService userService) : base(databaseConnectionService)
         {
             _errorLogService = errorLogService;
             _navManager = navigationManager;
             _reviewService = reviewService;
+            _reviewHistoryItemService = reviewHistoryItemService;
             _userService = userService;
         }
         public async Task<List<AuditTrailDTO>> GetFullAuditTrailAsync(int userId, int reviewId, int reviewHistoryId, List<int> reviewHistoryItemIds, 
@@ -86,11 +90,6 @@ namespace TheradexPortal.Data.Services
             {
                 if (auditEntry.AuditType == "Update")
                 {
-                    var fieldList = ParseStrings(auditEntry.AffectedColumns);
-                    JObject oldValueJsonObjects = JObject.Parse(auditEntry.OldValues);
-                    JObject newValueJsonObjects = JObject.Parse(auditEntry.NewValues);
-                    foreach (var key in fieldList)
-                    {
                         auditTrail.Add(
                             new AuditTrailDTO
                             {
@@ -98,15 +97,13 @@ namespace TheradexPortal.Data.Services
                                 userEmail = userEmail,
                                 dateOfChange = auditEntry.CreateDate,
                                 typeOfChange = auditEntry.AuditType,
-                                changeField = key,
-                                previousValue = oldValueJsonObjects[key] != null ? oldValueJsonObjects[key].ToString() : "null",
-                                newValue = newValueJsonObjects[key] != null ? newValueJsonObjects[key].ToString() : "null"
+                                changeField = auditEntry.AffectedColumns,
+                                previousValue = auditEntry.OldValues,
+                                newValue = auditEntry.NewValues
                             });
-                    }
                 }
                 else if (auditEntry.AuditType == "Create")
                 {
-                    JObject newValueJsonObjects = JObject.Parse(auditEntry.NewValues);
                     auditTrail.Add(
                         new AuditTrailDTO
                         {
@@ -116,16 +113,10 @@ namespace TheradexPortal.Data.Services
                             typeOfChange = auditEntry.AuditType,
                             changeField = auditEntry.TableName,
                             previousValue = "",
-                            newValue = string.Join("\n", newValueJsonObjects.Properties().Select(p => $"{p.Name}: {p.Value}"))
+                            newValue = auditEntry.NewValues
                         });
                 }
             }
-        }
-
-        private List<string> ParseStrings(string input)
-        {
-            var result = JsonConvert.DeserializeObject<List<string>>(input);
-            return result;
         }
 
         private async Task<IList<Audit>> GetReviewEmailAuditTrailAsync(int userId, int reviewHistoryId, List<int> reviewHistoryEmailIds)
@@ -137,6 +128,15 @@ namespace TheradexPortal.Data.Services
             var ret = await context.Audits
                     .FromSqlRaw(sqlQuery, userId)
                     .ToListAsync();
+
+            foreach (var item in ret)
+            {
+                var newValuesDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(item.NewValues);
+                string emailTo = newValuesDict["EmailToAddress"] ?? "Missing recipiant";
+                string emailText = newValuesDict["EmailText"] ?? "Missing Body";
+                item.TableName = "Email";
+                item.NewValues = "Email sent to: " + emailTo + "\nEmail Contents: " + emailText;
+            }
 
             return ret;
         }
@@ -151,6 +151,14 @@ namespace TheradexPortal.Data.Services
                     .FromSqlRaw(sqlQuery, userId)
                     .ToListAsync();
 
+            foreach (var item in ret)
+            {
+                var newValuesDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(item.NewValues);
+                string noteText = newValuesDict["NoteText"] ?? "Missing Text";
+                item.TableName = "Note";
+                item.NewValues = "Added Note\nContents: " + noteText;
+            }
+
             return ret;
         }
 
@@ -163,6 +171,27 @@ namespace TheradexPortal.Data.Services
             var ret = await context.Audits
                     .FromSqlRaw(sqlQuery, userId)
                     .ToListAsync();
+            string itemName;
+
+            foreach(var item in ret)
+            {
+                itemName = await _reviewHistoryItemService.GetReviewHistoryItemNameAsync(JsonConvert.DeserializeObject<Dictionary<string, int>>(item.PrimaryKey)["ReviewHistoryItemId"]);
+                var oldValuesDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(item.NewValues);
+                string checkedStatus = oldValuesDict["IsCompleted"] == "T" ? "Checked" : "Unchecked";
+
+                item.AffectedColumns = "Reivew Item";
+                item.TableName = "Review Item";
+                if (item.AuditType == "Update")
+                {
+                    item.OldValues = "Review Item: " + itemName + "\nPrevious Value: " + checkedStatus;
+                    item.NewValues = "Review Item: " + itemName + "\nPrevious Value: " + (checkedStatus == "Checked" ? "Unchecked" : "Checked");
+                }
+                else
+                {
+                    item.NewValues = "Review Item: " + itemName + "\nSet to: " + checkedStatus;
+                }
+            }
+
 
             return ret;
         }
@@ -181,11 +210,26 @@ namespace TheradexPortal.Data.Services
         /* There should only ever be 1 "review" Audit per audit history we pull, the most recent. */
         private async Task<Audit> GetReviewAuditTrailAsync(int userId, int reviewId)
         {
-            string sqlQuery = "SELECT * FROM \"AUDIT\" WHERE USERID = {0} AND JSON_VALUE(PRIMARYKEY, '$.ReviewId') = {1} ORDER BY CREATEDATE DESC FETCH FIRST 1 ROWS ONLY";
+            string sqlQuery = "SELECT * FROM \"AUDIT\" WHERE USERID = {0} AND AFFECTEDCOLUMNS LIKE '%\"NextDueDate\"%' AND JSON_VALUE(PRIMARYKEY, '$.ReviewId') = {1} ORDER BY CREATEDATE DESC FETCH FIRST 1 ROWS ONLY";
 
             var ret = await context.Audits
                     .FromSqlRaw (sqlQuery, userId, reviewId)
                     .FirstOrDefaultAsync();
+
+            string itemName;
+            // If one of the affected columns is "NextDueDate" then we have a review closed event
+            // If it's ReviewPeriodUpcoming, then it's a change to the period
+            var oldValuesDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(ret.OldValues);
+            var newValuesDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(ret.NewValues);
+            string oldDueDate = oldValuesDict["NextDueDate"] ?? "";
+            string newDueDate = newValuesDict["NextDueDate"] ?? "";
+
+            string oldPeriodName = oldValuesDict["ReviewPeriodName"] ?? "";
+            string newPeriodName = newValuesDict["ReviewPeriodName"] ?? "";
+
+            ret.AffectedColumns = "Reivew Transition";
+            ret.OldValues = "Previous Reivew Due Date: " + oldDueDate + "\nPrevious Review Name: " + oldPeriodName;
+            ret.NewValues = "Next Review Due Date: " + newDueDate + "\nNext Review Name: " + newPeriodName;
 
             return ret;
         }
