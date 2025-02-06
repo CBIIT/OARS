@@ -101,6 +101,7 @@ namespace TheradexPortal.Data.Services
                     (r, u) => new ReviewPiDTO
                     {
                         PiName = u.FirstName + " " + u.LastName,
+                        piIdNumber = u.UserId,
                         caseNumber = r.ProtocolId.ToString(),
                         dueDate = r.NextDueDate.ToString(),
                         updateDate = r.UpdateDate,

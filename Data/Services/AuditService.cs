@@ -129,15 +129,17 @@ namespace TheradexPortal.Data.Services
                     .FromSqlRaw(sqlQuery, userId)
                     .ToListAsync();
 
-            foreach (var item in ret)
+            if (ret != null)
             {
-                var newValuesDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(item.NewValues);
-                string emailTo = newValuesDict["EmailToAddress"] ?? "Missing recipiant";
-                string emailText = newValuesDict["EmailText"] ?? "Missing Body";
-                item.TableName = "Email";
-                item.NewValues = "Email sent to: " + emailTo + "\nEmail Contents: " + emailText;
+                foreach (var item in ret)
+                {
+                    var newValuesDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(item.NewValues);
+                    string emailTo = newValuesDict["EmailToAddress"] ?? "Missing recipiant";
+                    string emailText = newValuesDict["EmailText"] ?? "Missing Body";
+                    item.TableName = "Email";
+                    item.NewValues = "Email sent to: " + emailTo + "\nEmail Contents: " + emailText;
+                }
             }
-
             return ret;
         }
 
@@ -151,14 +153,16 @@ namespace TheradexPortal.Data.Services
                     .FromSqlRaw(sqlQuery, userId)
                     .ToListAsync();
 
-            foreach (var item in ret)
+            if (ret != null)
             {
-                var newValuesDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(item.NewValues);
-                string noteText = newValuesDict["NoteText"] ?? "Missing Text";
-                item.TableName = "Note";
-                item.NewValues = "Added Note\nContents: " + noteText;
+                foreach (var item in ret)
+                {
+                    var newValuesDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(item.NewValues);
+                    string noteText = newValuesDict["NoteText"] ?? "Missing Text";
+                    item.TableName = "Note";
+                    item.NewValues = "Added Note\nContents: " + noteText;
+                }
             }
-
             return ret;
         }
 
@@ -173,25 +177,27 @@ namespace TheradexPortal.Data.Services
                     .ToListAsync();
             string itemName;
 
-            foreach(var item in ret)
+            if (ret != null)
             {
-                itemName = await _reviewHistoryItemService.GetReviewHistoryItemNameAsync(JsonConvert.DeserializeObject<Dictionary<string, int>>(item.PrimaryKey)["ReviewHistoryItemId"]);
-                var oldValuesDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(item.NewValues);
-                string checkedStatus = oldValuesDict["IsCompleted"] == "T" ? "Checked" : "Unchecked";
+                foreach (var item in ret)
+                {
+                    itemName = await _reviewHistoryItemService.GetReviewHistoryItemNameAsync(JsonConvert.DeserializeObject<Dictionary<string, int>>(item.PrimaryKey)["ReviewHistoryItemId"]);
+                    var oldValuesDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(item.NewValues);
+                    string checkedStatus = oldValuesDict["IsCompleted"] == "T" ? "Checked" : "Unchecked";
 
-                item.AffectedColumns = "Reivew Item";
-                item.TableName = "Review Item";
-                if (item.AuditType == "Update")
-                {
-                    item.OldValues = "Review Item: " + itemName + "\nPrevious Value: " + checkedStatus;
-                    item.NewValues = "Review Item: " + itemName + "\nPrevious Value: " + (checkedStatus == "Checked" ? "Unchecked" : "Checked");
-                }
-                else
-                {
-                    item.NewValues = "Review Item: " + itemName + "\nSet to: " + checkedStatus;
+                    item.AffectedColumns = "Reivew Item";
+                    item.TableName = "Review Item";
+                    if (item.AuditType == "Update")
+                    {
+                        item.OldValues = "Review Item: " + itemName + "\nPrevious Value: " + checkedStatus;
+                        item.NewValues = "Review Item: " + itemName + "\nPrevious Value: " + (checkedStatus == "Checked" ? "Unchecked" : "Checked");
+                    }
+                    else
+                    {
+                        item.NewValues = "Review Item: " + itemName + "\nSet to: " + checkedStatus;
+                    }
                 }
             }
-
 
             return ret;
         }
@@ -216,20 +222,22 @@ namespace TheradexPortal.Data.Services
                     .FromSqlRaw (sqlQuery, userId, reviewId)
                     .FirstOrDefaultAsync();
 
-            string itemName;
-            // If one of the affected columns is "NextDueDate" then we have a review closed event
-            // If it's ReviewPeriodUpcoming, then it's a change to the period
-            var oldValuesDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(ret.OldValues);
-            var newValuesDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(ret.NewValues);
-            string oldDueDate = oldValuesDict["NextDueDate"] ?? "";
-            string newDueDate = newValuesDict["NextDueDate"] ?? "";
+            if (ret != null)
+            {
+                // If one of the affected columns is "NextDueDate" then we have a review closed event
+                // If it's ReviewPeriodUpcoming, then it's a change to the period
+                var oldValuesDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(ret.OldValues);
+                var newValuesDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(ret.NewValues);
+                string oldDueDate = oldValuesDict["NextDueDate"] ?? "";
+                string newDueDate = newValuesDict["NextDueDate"] ?? "";
 
-            string oldPeriodName = oldValuesDict["ReviewPeriodName"] ?? "";
-            string newPeriodName = newValuesDict["ReviewPeriodName"] ?? "";
+                string oldPeriodName = oldValuesDict["ReviewPeriodName"] ?? "";
+                string newPeriodName = newValuesDict["ReviewPeriodName"] ?? "";
 
-            ret.AffectedColumns = "Reivew Transition";
-            ret.OldValues = "Previous Reivew Due Date: " + oldDueDate + "\nPrevious Review Name: " + oldPeriodName;
-            ret.NewValues = "Next Review Due Date: " + newDueDate + "\nNext Review Name: " + newPeriodName;
+                ret.AffectedColumns = "Reivew Transition";
+                ret.OldValues = "Previous Reivew Due Date: " + oldDueDate + "\nPrevious Review Name: " + oldPeriodName;
+                ret.NewValues = "Next Review Due Date: " + newDueDate + "\nNext Review Name: " + newPeriodName;
+            }
 
             return ret;
         }
