@@ -99,7 +99,12 @@
                     <Items>
                         <Tab Name="notehistory">Note History</Tab>
                         <Tab Name="emailhistory">Email History</Tab>
-                        <Tab Name="piDetails">PI Overview</Tab>
+                        @foreach (var pi in lstPiDetails)
+                        {
+                            var piLastName = pi.PiName.Substring(pi.PiName.IndexOf(' ') + 1);
+                            string tabName = $"piDetails{piLastName}";
+                            <Tab Name="@tabName">PI  @piLastName Overview</Tab>
+                        }
                     </Items>
                     <Content>
                         <TabPanel Name="notehistory">
@@ -155,7 +160,11 @@
                                 <DataGridColumn TItem="EmailDetails" Field="@nameof(EmailDetails.CreationDate)" Caption="Email Sent Date" />
                             </DataGrid>
                         </TabPanel>
-                        <TabPanel Name="piDetails">
+                        @foreach (var pi in lstPiDetails)
+                        {
+                            var piLastName = pi.PiName.Substring(pi.PiName.IndexOf(' ') + 1);
+                            string tabName = $"piDetails{piLastName}";
+                        <TabPanel Name="@tabName">
                             <DataGrid TItem="ReviewPiDTO"
                             Class="admindatagrid"
                             Data="@lstPiDetails"
@@ -184,6 +193,7 @@
                                 <DataGridColumn TItem="ReviewPiDTO" Field="@nameof(ReviewPiDTO.periodName)" Caption="Review Name" />
                             </DataGrid>
                         </TabPanel>
+                        }
                     </Content>
                 </Tabs>
             </Column>
