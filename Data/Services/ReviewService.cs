@@ -113,7 +113,7 @@ namespace TheradexPortal.Data.Services
             return ret;
         }
 
-        public async Task<(int, int)> GetPiAndMoOverdueReviewCountAsync(int userId)
+        public async Task<(int, int)> GetPiAndMoOverdueReviewCountsAsync(int userId)
         {
             var PiOverdueList = await context.Reviews
                 .Where(r => r.UserId == userId && r.ReviewType == "PI" 

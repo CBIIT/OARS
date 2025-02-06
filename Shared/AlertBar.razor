@@ -139,7 +139,7 @@ else
                 this.activeAlerts = await alertService.GetActiveSystemAlertsAsync();
 
                 //The following code alerts the user if they have overdue reviews 
-                var overdueReviewCounts = await reviewService.GetPiAndMoOverdueReviewCountAsync(22);
+                var overdueReviewCounts = await reviewService.GetPiAndMoOverdueReviewCountsAsync(activeUserId);
                 var overduePi = overdueReviewCounts.Item1;
                 var overdueMo = overdueReviewCounts.Item2;
 
@@ -151,8 +151,6 @@ else
 
                     activeAlerts.Add(reviewAlert);
                 }
-      
-
             }
             if (Note)
             {
