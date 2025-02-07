@@ -147,15 +147,15 @@ else
 				string? reviewAlertText = null;
 				if (overdueTotal > 0 && upcomingTotal > 0)
 				{
-					reviewAlertText = "You have " + overdueTotal + " overdue review(s) and " + upcomingTotal + " upcoming review(s).";
+					reviewAlertText = "You have " + overdueTotal + " overdue review(s) and " + upcomingTotal + " upcoming review(s). Please visit the Review Dashboard to complete your reviews.";
 				}
 				else if (overdueTotal > 0)
 				{
-					reviewAlertText = "You have " + overdueTotal + " overdue review(s).";
+					reviewAlertText = "You have " + overdueTotal + " overdue review(s). Please visit the Review Dashboard to complete your reviews.";
 				}
 				else if (upcomingTotal > 0)
 				{
-					reviewAlertText = "You have " + upcomingTotal + " upcoming review(s).";
+					reviewAlertText = "You have " + upcomingTotal + " upcoming review(s). Please visit the Review Dashboard to complete your reviews.";
 				}
 
 				if (reviewAlertText != null)
