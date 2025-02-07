@@ -129,5 +129,20 @@ namespace TheradexPortal.Data.Services
             return PiAndMoOverdueCount;
         }
 
+        public async Task<(int, int)> GetPiAndMoUpcomingReviewCountsAsync(int userId)
+        {
+            var PiUpcomingList = await context.Reviews
+                .Where(r => r.UserId == userId && r.ReviewType == "PI"
+                && r.NextDueDate != null && r.NextDueDate >= DateTime.Today)
+                .ToListAsync();
+
+            var MoUpcomingList = await context.Reviews
+                .Where(r => r.UserId == userId && r.ReviewType == "MO"
+                && r.NextDueDate != null && r.NextDueDate >= DateTime.Today)
+                .ToListAsync();
+
+            (int, int) PiAndMoOverdueCount = (PiUpcomingList.Count, MoUpcomingList.Count);
+            return PiAndMoOverdueCount;
+        }
     }
 }

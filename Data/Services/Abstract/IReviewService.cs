@@ -15,5 +15,6 @@ namespace TheradexPortal.Data.Services.Abstract
         public Task<(int, int)> GetReviewDurationsAsync(int protocolId);
         public Task<bool> SetReviewDurationsAsync(int userId, int protocolId, int MOReviewPeriod, int PIReviewPeriod);
         public Task<(int, int)> GetPiAndMoOverdueReviewCountsAsync(int userId);
+        public Task<(int, int)> GetPiAndMoUpcomingReviewCountsAsync(int userId);
     }
 }
