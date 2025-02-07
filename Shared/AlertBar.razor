@@ -136,7 +136,7 @@ else
 			{
 				this.activeAlerts = await alertService.GetActiveSystemAlertsAsync();
 
-				//The following code alerts the user if they have overdue reviews
+				//The following code alerts the user if they have overdue/upcoming reviews
 				var activeUserId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
 
 				var overdueCounts = await reviewService.GetPiAndMoOverdueReviewCountsAsync(activeUserId);
