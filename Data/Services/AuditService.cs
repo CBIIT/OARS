@@ -14,7 +14,7 @@ using RestSharp.Serialization.Json;
 
 namespace TheradexPortal.Data.Services
 {
-    public class AuditService: BaseService, IAuditService
+    public class AuditService : BaseService, IAuditService
     {
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
@@ -34,7 +34,7 @@ namespace TheradexPortal.Data.Services
             _reviewHistoryItemService = reviewHistoryItemService;
             _userService = userService;
         }
-        public async Task<List<AuditTrailDTO>> GetFullAuditTrailAsync(int userId, int reviewId, int reviewHistoryId, List<int> reviewHistoryItemIds, 
+        public async Task<List<AuditTrailDTO>> GetFullAuditTrailAsync(int userId, int reviewId, int reviewHistoryId, List<int> reviewHistoryItemIds,
             List<int> reviewHistoryNoteIds, List<int> reviewHistoryEmailIds)
         {
             List<AuditTrailDTO> auditTrail = new List<AuditTrailDTO>();
@@ -90,17 +90,17 @@ namespace TheradexPortal.Data.Services
             {
                 if (auditEntry.AuditType == "Update")
                 {
-                        auditTrail.Add(
-                            new AuditTrailDTO
-                            {
-                                userName = userName,
-                                userEmail = userEmail,
-                                dateOfChange = auditEntry.CreateDate,
-                                typeOfChange = auditEntry.AuditType,
-                                changeField = auditEntry.AffectedColumns,
-                                previousValue = auditEntry.OldValues,
-                                newValue = auditEntry.NewValues
-                            });
+                    auditTrail.Add(
+                        new AuditTrailDTO
+                        {
+                            userName = userName,
+                            userEmail = userEmail,
+                            dateOfChange = auditEntry.CreateDate,
+                            typeOfChange = auditEntry.AuditType,
+                            changeField = auditEntry.AffectedColumns,
+                            previousValue = auditEntry.OldValues,
+                            newValue = auditEntry.NewValues
+                        });
                 }
                 else if (auditEntry.AuditType == "Create")
                 {
@@ -121,6 +121,7 @@ namespace TheradexPortal.Data.Services
 
         private async Task<IList<Audit>> GetReviewEmailAuditTrailAsync(int userId, int reviewHistoryId, List<int> reviewHistoryEmailIds)
         {
+            IList<Audit> localAuditCopy = null;
             string numberList = string.Join(",", reviewHistoryEmailIds);
             string sqlInts = "(" + string.Join(",", reviewHistoryEmailIds) + ")";
             string sqlQuery = "SELECT * FROM \"AUDIT\" WHERE USERID = {0} AND TABLENAME = 'ReviewHistoryEmail' AND JSON_VALUE(PRIMARYKEY, '$.ReviewHistoryEmailId') IN " + sqlInts;
@@ -131,7 +132,21 @@ namespace TheradexPortal.Data.Services
 
             if (ret != null)
             {
-                foreach (var item in ret)
+                localAuditCopy = ret.Select(audit => new Audit
+                {
+                    AuditId = audit.AuditId,
+                    UserId = audit.UserId,
+                    CreateDate = audit.CreateDate,
+                    AuditType = audit.AuditType,
+                    TableName = audit.TableName,
+                    AffectedColumns = audit.AffectedColumns,
+                    OldValues = audit.OldValues,
+                    NewValues = audit.NewValues,
+                    PrimaryKey = audit.PrimaryKey,
+                    IsPrimaryTable = audit.IsPrimaryTable
+                }).ToList();
+
+                foreach (var item in localAuditCopy)
                 {
                     var newValuesDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(item.NewValues);
                     string emailTo = newValuesDict["EmailToAddress"] ?? "Missing recipiant";
@@ -140,11 +155,12 @@ namespace TheradexPortal.Data.Services
                     item.NewValues = "Email sent to: " + emailTo + "\nEmail Contents: " + emailText;
                 }
             }
-            return ret;
+            return localAuditCopy;
         }
 
         private async Task<IList<Audit>> GetReviewNoteAuditTrailAsync(int userId, int reviewHistoryId, List<int> reviewHistoryNoteIds)
         {
+            IList<Audit> localAuditCopy = null;
             string numberList = string.Join(",", reviewHistoryNoteIds);
             string sqlInts = "(" + string.Join(",", reviewHistoryNoteIds) + ")";
             string sqlQuery = "SELECT * FROM \"AUDIT\" WHERE USERID = {0} AND TABLENAME = 'ReviewHistoryNote' AND JSON_VALUE(PRIMARYKEY, '$.ReviewHistoryNoteId') IN " + sqlInts;
@@ -155,7 +171,21 @@ namespace TheradexPortal.Data.Services
 
             if (ret != null)
             {
-                foreach (var item in ret)
+                localAuditCopy = ret.Select(audit => new Audit
+                {
+                    AuditId = audit.AuditId,
+                    UserId = audit.UserId,
+                    CreateDate = audit.CreateDate,
+                    AuditType = audit.AuditType,
+                    TableName = audit.TableName,
+                    AffectedColumns = audit.AffectedColumns,
+                    OldValues = audit.OldValues,
+                    NewValues = audit.NewValues,
+                    PrimaryKey = audit.PrimaryKey,
+                    IsPrimaryTable = audit.IsPrimaryTable
+                }).ToList();
+
+                foreach (var item in localAuditCopy)
                 {
                     var newValuesDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(item.NewValues);
                     string noteText = newValuesDict["NoteText"] ?? "Missing Text";
@@ -163,14 +193,15 @@ namespace TheradexPortal.Data.Services
                     item.NewValues = "Added Note\nContents: " + noteText;
                 }
             }
-            return ret;
+            return localAuditCopy;
         }
 
         private async Task<IList<Audit>> GetReviewHistoryItemAuditTrailAsync(int userId, int reviewHistoryId, List<int> reviewHistoryItemIds)
         {
+            IList<Audit> localAuditCopy = null;
             string numberList = string.Join(",", reviewHistoryItemIds);
             string sqlInts = "(" + string.Join(",", reviewHistoryItemIds) + ")";
-            string sqlQuery = "SELECT * FROM \"AUDIT\" WHERE USERID = {0} AND TABLENAME = 'ReviewHistoryItem' AND JSON_VALUE(PRIMARYKEY, '$.ReviewHistoryItemId') IN "+sqlInts;
+            string sqlQuery = "SELECT * FROM \"AUDIT\" WHERE USERID = {0} AND TABLENAME = 'ReviewHistoryItem' AND JSON_VALUE(PRIMARYKEY, '$.ReviewHistoryItemId') IN " + sqlInts;
 
             var ret = await context.Audits
                     .FromSqlRaw(sqlQuery, userId)
@@ -179,7 +210,22 @@ namespace TheradexPortal.Data.Services
 
             if (ret != null)
             {
-                foreach (var item in ret)
+                localAuditCopy = ret.Select(audit => new Audit
+                {
+                    AuditId = audit.AuditId,
+                    UserId = audit.UserId,
+                    CreateDate = audit.CreateDate,
+                    AuditType = audit.AuditType,
+                    TableName = audit.TableName,
+                    AffectedColumns = audit.AffectedColumns,
+                    OldValues = audit.OldValues,
+                    NewValues = audit.NewValues,
+                    PrimaryKey = audit.PrimaryKey,
+                    IsPrimaryTable = audit.IsPrimaryTable
+                }).ToList();
+
+
+                foreach (var item in localAuditCopy)
                 {
                     itemName = await _reviewHistoryItemService.GetReviewHistoryItemNameAsync(JsonConvert.DeserializeObject<Dictionary<string, int>>(item.PrimaryKey)["ReviewHistoryItemId"]);
                     var oldValuesDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(item.NewValues);
@@ -199,7 +245,7 @@ namespace TheradexPortal.Data.Services
                 }
             }
 
-            return ret;
+            return localAuditCopy;
         }
 
         private async Task<IList<Audit>> GetReviewHistoryAuditTrailAsync(int userId, int reviewHistoryId)
@@ -216,30 +262,42 @@ namespace TheradexPortal.Data.Services
         /* There should only ever be 1 "review" Audit per audit history we pull, the most recent. */
         private async Task<Audit> GetReviewAuditTrailAsync(int userId, int reviewId)
         {
+            Audit localAuditCopy = null;
             string sqlQuery = "SELECT * FROM \"AUDIT\" WHERE USERID = {0} AND AFFECTEDCOLUMNS LIKE '%\"NextDueDate\"%' AND JSON_VALUE(PRIMARYKEY, '$.ReviewId') = {1} ORDER BY CREATEDATE DESC FETCH FIRST 1 ROWS ONLY";
 
             var ret = await context.Audits
-                    .FromSqlRaw (sqlQuery, userId, reviewId)
+                    .FromSqlRaw(sqlQuery, userId, reviewId)
                     .FirstOrDefaultAsync();
 
             if (ret != null)
             {
+                localAuditCopy = new Audit();
+                localAuditCopy.AuditId = ret.AuditId;
+                localAuditCopy.UserId = ret.UserId;
+                localAuditCopy.CreateDate = ret.CreateDate;
+                localAuditCopy.AuditType = ret.AuditType;
+                localAuditCopy.TableName = ret.TableName;
+                localAuditCopy.OldValues = ret.OldValues;
+                localAuditCopy.NewValues = ret.NewValues;
+                localAuditCopy.PrimaryKey = ret.PrimaryKey;
+                localAuditCopy.IsPrimaryTable = ret.IsPrimaryTable;
+
                 // If one of the affected columns is "NextDueDate" then we have a review closed event
                 // If it's ReviewPeriodUpcoming, then it's a change to the period
-                var oldValuesDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(ret.OldValues);
-                var newValuesDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(ret.NewValues);
+                var oldValuesDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(localAuditCopy.OldValues);
+                var newValuesDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(localAuditCopy.NewValues);
                 string oldDueDate = oldValuesDict["NextDueDate"] ?? "";
                 string newDueDate = newValuesDict["NextDueDate"] ?? "";
 
                 string oldPeriodName = oldValuesDict["ReviewPeriodName"] ?? "";
                 string newPeriodName = newValuesDict["ReviewPeriodName"] ?? "";
 
-                ret.AffectedColumns = "Reivew Transition";
-                ret.OldValues = "Previous Reivew Due Date: " + oldDueDate + "\nPrevious Review Name: " + oldPeriodName;
-                ret.NewValues = "Next Review Due Date: " + newDueDate + "\nNext Review Name: " + newPeriodName;
+                localAuditCopy.AffectedColumns = "Reivew Transition";
+                localAuditCopy.OldValues = "Previous Reivew Due Date: " + oldDueDate + "\nPrevious Review Name: " + oldPeriodName;
+                localAuditCopy.NewValues = "Next Review Due Date: " + newDueDate + "\nNext Review Name: " + newPeriodName;
             }
 
-            return ret;
+            return localAuditCopy;
         }
     }
 }
