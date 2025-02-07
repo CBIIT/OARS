@@ -425,12 +425,25 @@ ul.steps > li.step {
     cursor: pointer;
 }
 
+.table.addr-data-grid tr {
+    font-size: small;
+    vertical-align: middle;
+    border-color: black;
+}
 .table.addr-data-grid td {
-    font-size:.9rem;
+    font-size: .9rem;
+    border-color: black;
 }
 .table.addr-data-grid th {
     font-size: .9rem;
     padding: 2px 2px; /* Adjust the padding to reduce gaps */
     margin: 0; /* Ensure no margin is added */
     line-height: 1; /* Optional: Adjust line-height to make the text more compact */
+    background-color: #FCE3BA !important;
+}
+.table.addr-data-grid tr td {
+    font-size: small;
+    vertical-align: middle;
+    margin-left: 1px;
+    padding: 0px;
 }

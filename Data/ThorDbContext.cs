@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System.Diagnostics;
 using TheradexPortal.Data.Models;
+using TheradexPortal.Data.Models.Pharma;
 using TheradexPortal.Data.Static;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -10,7 +11,7 @@ namespace TheradexPortal.Data
     public class ThorDBContext : DbContext
     {
         private readonly ILogger<ThorDBContext> logger; // Add logger field
-        public ThorDBContext(ILogger<ThorDBContext> logger,DbContextOptions<ThorDBContext> options) : base(options)
+        public ThorDBContext(ILogger<ThorDBContext> logger, DbContextOptions<ThorDBContext> options) : base(options)
         {
             this.logger = logger; // Initialize logger
             Debug.WriteLine($"{ContextId} context created.");
@@ -23,7 +24,7 @@ namespace TheradexPortal.Data
             var stopwatch = new System.Diagnostics.Stopwatch();
             stopwatch.Start();
 
-            var converter = new BoolToStringConverter("N","Y");
+            var converter = new BoolToStringConverter("N", "Y");
 
             foreach (var entity in modelBuilder.Model.GetEntityTypes())
             {
@@ -68,6 +69,8 @@ namespace TheradexPortal.Data
                     modelBuilder.Entity(entity.ClrType).HasNoKey();
                 }
             }
+            modelBuilder.Entity<Models.Pharma.DrugList>().HasKey(d => new { d.DrugId, d.Nsc});
+            modelBuilder.Entity<Models.Pharma.ProtocolTac>().HasKey(d => new { d.StudyId, d.TrtAsgnmtCode });
 
             // Stop the stopwatch and log the time taken
             stopwatch.Stop();
@@ -115,7 +118,7 @@ namespace TheradexPortal.Data
                 auditEntry.CreateDate = auditDateTime;
                 auditEntry.IsPrimaryTable = (auditEntry.TableName == primaryTable);
                 auditEntries.Add(auditEntry);
-                
+
                 foreach (var property in entry.Properties)
                 {
                     string propertyName = property.Metadata.Name;
@@ -211,13 +214,13 @@ namespace TheradexPortal.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Protocol> Protocols { get; set; }
         public DbSet<Dashboard> Dashboards { get; set; }
-        public DbSet<Report> Reports { get; set; } 
+        public DbSet<Report> Reports { get; set; }
         public DbSet<Visual> Visuals { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<RoleVisual> Role_Visuals { get; set; }
         public DbSet<UserRole> User_Roles { get; set; }
         public DbSet<ThorAlert> Alerts { get; set; }
-        public DbSet<RoleDashboard> Role_Dashboards { get; set; } 
+        public DbSet<RoleDashboard> Role_Dashboards { get; set; }
         public DbSet<RoleReport> Role_Reports { get; set; }
         public DbSet<UserProtocol> User_Protocols { get; set; }
         public DbSet<UserSelectedProtocols> User_Selected_Protocols { get; set; }
@@ -249,7 +252,7 @@ namespace TheradexPortal.Data
         public DbSet<ProtocolEDCForm> ProtocolEDCForms { get; set; }
         public DbSet<ProtocolAgent> ProtocolAgents { get; set; }
         public DbSet<ProtocolSubGroup> ProtocolSubGroups { get; set; }
-        public DbSet<ProtocolTac> ProtocolTacs { get; set; }
+        public DbSet<Models.ProtocolTac> ProtocolTacs { get; set; }
         public DbSet<ProtocolDisease> ProtocolDiseases { get; set; }
         public DbSet<ProtocolDataCategory> ProtocolDataCategories { get; set; }
         public DbSet<ProtocolCategoryStatus> ProtocolCategoryStatus { get; set; }
@@ -264,8 +267,10 @@ namespace TheradexPortal.Data
         public DbSet<ReviewHistoryItem> ReviewHistoryItems { get; set; }
         public DbSet<ReviewHistoryNote> ReviewHistoryNotes { get; set; }
         public DbSet<ReviewItem> ReviewItems { get; set; }
-        public DbSet<PharmaNscTac> PharmaNscTacs { get; set; }
-
         public DbSet<Audit> Audits { get; set; }
+        public DbSet<Models.Pharma.PharmaNscTac> Pharma_PharmaNscTacs { get; set; }
+        public DbSet<Models.Pharma.DrugList> Pharma_DrugLists { get; set; }
+        public DbSet<Models.Pharma.ProtocolTac> Pharma_ProtocolTacs { get; set; }
+
     }
 }

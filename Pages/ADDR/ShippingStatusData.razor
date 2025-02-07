@@ -19,36 +19,50 @@
 @inject IOptions<EmailSettings> emailSettings;
 @inject IJSRuntime JS;
 
-<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>Automated Data Discrepancy Report - Shipping Status</h2></Div>
-<Row Background="Background.Light">
-    <Column ColumnSize="ColumnSize.IsFull">
-        <!-- Protocol Selection Dropdown -->
-        <Autocomplete TItem="Protocol"
-                      TValue="string"
-                      Data="@Protocols"
-                      TextField="@(( item ) => item.StudyId)"
-                      ValueField="@(( item ) => item.StudyId)"
-                      SelectedValueChanged="@(async (v) => await OnProtocolChanged(v))"
-                      Placeholder="Select Protocol..."
-                      Filter="AutocompleteFilter.StartsWith"
-                      FreeTyping
-                      HighlightSearch
-                      CustomFilter="@(( item, searchValue ) => item.StudyId.IndexOf( searchValue, 0, StringComparison.CurrentCultureIgnoreCase ) >= 0 )">
-            <NotFoundContent> Sorry... @context was not found! :( </NotFoundContent>
-            <ItemContent>
-                <Div Flex="Flex.InlineFlex.JustifyContent.Between" Width="Width.Is100">
-                    <Heading Margin="Margin.Is2.FromBottom">@context.Value</Heading>
-                </Div>
-                <Paragraph Margin="Margin.Is2.FromBottom"><Small>@context.Item.Institution</Small></Paragraph>
-            </ItemContent>
-        </Autocomplete>
-    </Column>
-</Row>
+<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>Automated Data Discrepancy Report - Shipping Status (@currentStudies)</h2></Div>
+<Div Padding="Padding.Is2" Margin="Margin.Is3.FromBottom">
+    <Row Background="Background.Light">
+        <Column ColumnSize="ColumnSize.Is9">
+            <Row Padding="Padding.Is2">
+                <Column ColumnSize="ColumnSize.Is1" TextAlignment="TextAlignment.End">
+                    <Text>* Protocol:</Text>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <!-- Protocol Selection Dropdown -->
+                    <Autocomplete TItem="Protocol"
+                                  TValue="string"
+                                  Data="@Protocols"
+                                  Validator="IsValidProtocol"
+                                  TextField="@(( item ) => item.StudyId)"
+                                  ValueField="@(( item ) => item.StudyId)"
+                                  SelectedValue="@SelectedProtocol"
+                                  SelectedValueChanged="@(async (v) => await OnProtocolChanged(v))"
+                                  Placeholder="Select Protocol..."
+                                  Filter="AutocompleteFilter.StartsWith"
+                                  FreeTyping
+                                  HighlightSearch
+                                  CustomFilter="@(( item, searchValue ) => item.StudyId.IndexOf( searchValue, 0, StringComparison.CurrentCultureIgnoreCase ) >= 0 )">
+                        <NotFoundContent> Sorry... @context was not found! :( </NotFoundContent>
+                        <ItemContent>
+                            <Div Flex="Flex.InlineFlex.JustifyContent.Between" Width="Width.Is33">
+                                <Heading Margin="Margin.Is2.FromBottom">@context.Value</Heading>
+                            </Div>
+                            <Paragraph Margin="Margin.Is2.FromBottom"><Small>@context.Item.Institution</Small></Paragraph>
+                        </ItemContent>
+                    </Autocomplete>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3"><Check TValue="bool" Checked="@includeAll" CheckedChanged="@OnIncludeAllChanged">Include All</Check></Column>
+
+            </Row>
+        </Column>
+    </Row>
+</Div>
 <Row Background="Background.Light">
     <Column ColumnSize="ColumnSize.IsFull">
         <DataGrid Class="addr-data-grid" @ref="dataGridRef"
                   TItem="ShippingStatus"
                   Data="@filteredData"
+                  PageSize="50"
                   Responsive
                   Groupable
                   ShowGrouping
@@ -100,33 +114,39 @@
                                 </Tooltip>
                             </Badge>
                         }
-                    </DisplayTemplate>
+                        </DisplayTemplate>
                 </DataGridColumn>
                 <DataGridColumn Caption="Subject Key" Groupable>
                     <DisplayTemplate Context="context">
                         @{
-                            if (context.DataSource=="RAVE")
+                            if (context.DataSource == "RAVE")
                             {
-                            <a href="@(string.Format("{0}", context.SubjectUrl))" target="_blank">
-                                @context.SubjectKey
-                            </a>
+                                <a href="@(string.Format("{0}", context.SubjectUrl))" target="_blank">
+                                    @context.SubjectKey
+                                </a>
 
                             }
-                            else {<span>@context.SubjectKey</span>}
+                            else
+                            {
+                                <span>@context.SubjectKey</span>
+                            }
                         }
                     </DisplayTemplate>
                 </DataGridColumn>
                 <DataGridColumn Caption="Form Url">
                     <DisplayTemplate Context="context">
                         @{
-                            if (context.DataSource=="RAVE")
+                            if (context.DataSource == "RAVE")
                             {
-                            <a href="@(string.Format("{0}", context.PageUrl))" target="_blank">
-                                Click Here
-                            </a>
+                                <a href="@(string.Format("{0}", context.PageUrl))" target="_blank">
+                                    Click Here
+                                </a>
 
                             }
-                            else {<span>Not Available</span>}
+                            else
+                            {
+                                <span>Not Available</span>
+                            }
                         }
 
                     </DisplayTemplate>
@@ -214,7 +234,12 @@
     [Parameter] public int ReportId { get; set; }
 
     private List<ShippingStatus> data { get; set; } = new List<ShippingStatus>();
-    private List<ShippingStatus> filteredData => data.Where(d => string.IsNullOrEmpty(SelectedProtocol) || d.ProtocolNumber == SelectedProtocol).ToList();
+
+    private List<ShippingStatus> filteredData => data?
+    .Where(d => string.IsNullOrEmpty(SelectedProtocol) || d.ProtocolNumber == SelectedProtocol)
+    .Where(d => d.Comments?.Trim().ToLower() != "match found")
+    .ToList() ?? new List<ShippingStatus>();
+
     private IList<Protocol> Protocols { get; set; } = new List<Protocol>();
     private string SelectedProtocol { get; set; } = string.Empty;
     private TimeSpan timeOffset;
@@ -223,6 +248,10 @@
     private ShippingStatus SelectedItem { get; set; }
     private string NewNote { get; set; }
     private NotesModel? NotesModelDataModal;
+    string currentStudies;
+
+    private bool includeAll { get; set; } = false;
+
 
     // Initialize component and set user-specific time zone information
     protected override async Task OnInitializedAsync()
@@ -234,7 +263,33 @@
 
         // Fetch protocols
         //Protocols = await service.GetProtocols();
-        Protocols = studyService.GetProtocolsForUserAsync(userId, true).ToList().Where(i => i.STS.ToLower() == "yes" && i.CDASH.ToLower() == "yes").ToList();
+        //Protocols = studyService.GetProtocolsForUserAsync(userId, true).ToList().Where(i => i.STS != null && i.STS.ToLower() == "yes" && i.CDASH != null && i.CDASH.ToLower() == "yes").ToList();
+
+        // Retrieve protocols for the user and apply the initial filters for STS and CDASH.
+        var protocols = studyService.GetProtocolsForUserAsync(userId, true)
+            .ToList()
+            .Where(i => i.STS != null && i.STS.ToLower() == "yes" &&
+                        i.CDASH != null && i.CDASH.ToLower() == "yes");
+
+        // Retrieve current studies for the user
+        currentStudies = studyService.GetCurrentStudiesForUser(userId);
+
+        // If there are any current studies selected, filter the protocols accordingly.
+        if (!string.IsNullOrEmpty(currentStudies))
+        {
+            // Assuming currentStudies is a comma-separated list of study identifiers.
+            var currentStudiesList = currentStudies
+                .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => s.Trim())
+                .ToList();
+
+            protocols = protocols.Where(p => currentStudiesList.Contains(p.StudyId)); // Replace 'StudyId' with the actual property name.
+        }
+        else
+            protocols = new List<Protocol>();
+
+        // Convert the filtered protocols back to a list.
+        Protocols = protocols.ToList();
 
     }
 
@@ -260,7 +315,7 @@
             Console.WriteLine("styling is null");
             return;
         }
-        
+
         // Set the background color to red if SystemComments are not "Match Found"
         if (shippingStatus.SystemComments.Trim().ToLower() != "match found")
         {
@@ -311,13 +366,43 @@
         await JS.InvokeAsync<object>("open", token, values);
     }
 
-
     // Handle protocol change
-    public async Task OnProtocolChanged(string selectedProtocol)
+    public async Task OnProtocolChanged(string value)
     {
-        if (!string.IsNullOrEmpty(selectedProtocol))
+        SelectedProtocol = value;
+        if (!string.IsNullOrEmpty(value))
         {
-            data = await service.GetShippingStatus(selectedProtocol);
+            data = await service.GetShippingStatus(value);
+            data = data.Where(D => D.SystemComments?.Trim().ToLower() != "match found").ToList();
         }
+        else data = new List<ShippingStatus>();
+    }
+    void IsValidProtocol(ValidatorEventArgs e)
+    {
+        Console.WriteLine(e.Value);
+
+        e.Status = !string.IsNullOrEmpty(e.Value?.ToString())
+            ? ValidationStatus.Success
+            : ValidationStatus.Error;
+
+        if (e.Status == ValidationStatus.Error)
+        {
+            e.ErrorText = "Protocol is required!!!";
+        }
+        else
+        {
+            e.ErrorText = "OK";
+        }
+    }
+    public async Task OnIncludeAllChanged(bool value)
+    {
+        includeAll = value;
+        if (!string.IsNullOrEmpty(SelectedProtocol))
+        {
+            data = await service.GetShippingStatus(SelectedProtocol);
+            if (value == false)
+                data = data.Where(D => D.SystemComments?.Trim().ToLower() != "match found").ToList();
+        }
+
     }
 }

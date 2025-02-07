@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
-using TheradexPortal.Data.Models;
+using TheradexPortal.Data.Models.Pharma;
 using TheradexPortal.Data.Services.Abstract;
+using TheradexPortal.Data.Services.Abstract.Pharma;
 
-namespace TheradexPortal.Data.Services
+namespace TheradexPortal.Data.Services.Pharma
 {
     public class PharmaNscTacService : BaseService, IPharmaNscTacService
     {
@@ -17,16 +18,19 @@ namespace TheradexPortal.Data.Services
         // Get all records
         public async Task<IEnumerable<PharmaNscTac>> GetAllAsync()
         {
-            return await context.PharmaNscTacs.ToListAsync();
+            return await context.Pharma_PharmaNscTacs.ToListAsync();
         }
 
         // Get a single record by ID
-        public async Task<PharmaNscTac> GetByIdAsync(string protocolNumber)
+        public async Task<PharmaNscTac> GetByIdAsync(int id)
         {
-            return await context.PharmaNscTacs
-                .FirstOrDefaultAsync(e => e.ProtocolNumber == protocolNumber);
+            return await context.Pharma_PharmaNscTacs.FirstOrDefaultAsync(e => e.Id == id);
         }
-
+        // Get a single record by Protocol Number
+        public async Task<PharmaNscTac> GetByProtocolNumberAsync(string protocolNumber)
+        {
+            return await context.Pharma_PharmaNscTacs.FirstOrDefaultAsync(e => e.ProtocolNumber == protocolNumber);
+        }
         // Add a new record
         public async Task AddAsync(PharmaNscTac entity, int userId)
         {
@@ -35,7 +39,7 @@ namespace TheradexPortal.Data.Services
                 throw new ArgumentNullException(nameof(entity));
             }
 
-            await context.PharmaNscTacs.AddAsync(entity);
+            await context.Pharma_PharmaNscTacs.AddAsync(entity);
             await context.SaveChangesAsync();
         }
 
@@ -47,7 +51,7 @@ namespace TheradexPortal.Data.Services
                 throw new ArgumentNullException(nameof(entity));
             }
 
-            var existingEntity = await context.PharmaNscTacs
+            var existingEntity = await context.Pharma_PharmaNscTacs
                 .FirstOrDefaultAsync(e => e.ProtocolNumber == entity.ProtocolNumber);
 
             if (existingEntity == null)
@@ -61,14 +65,14 @@ namespace TheradexPortal.Data.Services
             existingEntity.Nsc = entity.Nsc;
             existingEntity.AgreementNumber = entity.AgreementNumber;
 
-            context.PharmaNscTacs.Update(existingEntity);
+            context.Pharma_PharmaNscTacs.Update(existingEntity);
             await context.SaveChangesAsync();
         }
 
         // Delete 
         public async Task DeleteAsync(string protocolNumber)
         {
-            var entity = await context.PharmaNscTacs 
+            var entity = await context.Pharma_PharmaNscTacs
                 .FirstOrDefaultAsync(e => e.ProtocolNumber == protocolNumber);
 
             if (entity == null)
@@ -76,7 +80,7 @@ namespace TheradexPortal.Data.Services
                 throw new KeyNotFoundException("Record not found.");
             }
 
-            context.PharmaNscTacs.Remove(entity);
+            context.Pharma_PharmaNscTacs.Remove(entity);
             await context.SaveChangesAsync();
         }
 
@@ -85,7 +89,7 @@ namespace TheradexPortal.Data.Services
             try
             {
                 var primaryTable = context.Model.FindEntityType(typeof(PharmaNscTac)).ToString().Replace("EntityType: ", "");
-                var pharmaNscTac = context.PharmaNscTacs.Where(g => g.ProtocolNumber == protocolNumber).First();
+                var pharmaNscTac = context.Pharma_PharmaNscTacs.Where(g => g.ProtocolNumber == protocolNumber).First();
                 context.Remove(pharmaNscTac);
                 context.SaveChangesAsync(userId, primaryTable);
                 return new Tuple<bool, string>(true, "Pharma Nsc Tac deleted successfully");
@@ -97,12 +101,12 @@ namespace TheradexPortal.Data.Services
             }
         }
 
-        public Tuple<bool, string> DeleteAsync(int id , int userId)
+        public Tuple<bool, string> DeleteAsync(int id, int userId)
         {
             try
             {
                 var primaryTable = context.Model.FindEntityType(typeof(PharmaNscTac)).ToString().Replace("EntityType: ", "");
-                var pharmaNscTac = context.PharmaNscTacs.Where(g => g.Id== id).First();
+                var pharmaNscTac = context.Pharma_PharmaNscTacs.Where(g => g.Id == id).First();
                 context.Remove(pharmaNscTac);
                 context.SaveChangesAsync(userId, primaryTable);
                 return new Tuple<bool, string>(true, "Pharma Nsc Tac deleted successfully");
@@ -122,7 +126,7 @@ namespace TheradexPortal.Data.Services
                 throw new ArgumentException("AgreementNumber cannot be null or empty.", nameof(agreementNumber));
             }
 
-            return await context.PharmaNscTacs
+            return await context.Pharma_PharmaNscTacs
                 .Where(e => e.AgreementNumber == agreementNumber)
                 .ToListAsync();
         }
@@ -135,7 +139,7 @@ namespace TheradexPortal.Data.Services
                 throw new ArgumentException("NSC cannot be null or empty.", nameof(nsc));
             }
 
-            return await context.PharmaNscTacs
+            return await context.Pharma_PharmaNscTacs
                 .Where(e => e.Nsc == nsc)
                 .ToListAsync();
         }
@@ -148,7 +152,7 @@ namespace TheradexPortal.Data.Services
                 throw new ArgumentException("Treatment Assignment Code cannot be null or empty.", nameof(trtAsgnmtCode));
             }
 
-            return await context.PharmaNscTacs
+            return await context.Pharma_PharmaNscTacs
                 .Where(e => e.TrtAsgnmtCode == trtAsgnmtCode)
                 .ToListAsync();
         }

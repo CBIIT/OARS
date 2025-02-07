@@ -22,6 +22,7 @@ using DocumentFormat.OpenXml.ExtendedProperties;
 using TheradexPortal.Data.Services.Abstract.ADDR;
 using TheradexPortal.Pages.ADDR;
 using Microsoft.Extensions.Hosting.Internal;
+using System.Text.Json.Nodes;
 
 namespace TheradexPortal.Data.Services
 {
@@ -55,7 +56,8 @@ namespace TheradexPortal.Data.Services
         }
         public async Task<List<ShippingStatus>?> GetShippingStatus(string protocalNumber)
         {
-            return await GeShippingStatusExcel();
+            var data = await GeShippingStatusExcel();
+            return data.Where(i => i.ProtocolNumber == protocalNumber).ToList();
         }
 
         public async Task<List<ShippingStatus>?> GeShippingStatusExcel(string filePath = "~/addr/difference_report.xlsx")
@@ -120,6 +122,7 @@ namespace TheradexPortal.Data.Services
             // Read the JSON from the file
             string excelFilePath = Path.Combine(_webHostEnvironment.WebRootPath, "addr", "IV-SHIPPING_STATUS.json");
             string jsonString = File.ReadAllText(excelFilePath);
+
             var settings = new JsonSerializerSettings
                 {
                     ContractResolver = new Newtonsoft.Json.Serialization.DefaultContractResolver
@@ -127,7 +130,13 @@ namespace TheradexPortal.Data.Services
                         NamingStrategy = new Newtonsoft.Json.Serialization.DefaultNamingStrategy()
                     }
                 };
+            
             shippingStatusList = JsonConvert.DeserializeObject<List<ShippingStatus>>(jsonString,settings);
+            // Add "ProtocolNumber": "10323" to each object
+            foreach (var item in shippingStatusList)
+            {
+                item.ProtocolNumber = "10323";
+            }
 
             return shippingStatusList;
 

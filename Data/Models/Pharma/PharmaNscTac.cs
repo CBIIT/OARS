@@ -2,13 +2,12 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace TheradexPortal.Data.Models
+namespace TheradexPortal.Data.Models.Pharma
 {
     [Table("PHARMA_NSC_TAC", Schema = "MRATHI")]
     public class PharmaNscTac
     {
         [Key]
-        [Column("ID")]
         public int Id { get; set; }
 
         [Column("PROTOCOL_NUMBER")]
@@ -27,12 +26,12 @@ namespace TheradexPortal.Data.Models
         public string? AgreementNumber { get; set; }
 
         [Column("CREATED")]
-        public DateTime Created{ get; set; }
+        public DateTime Created { get; set; }
         [Column("UPDATED")]
         public DateTime? Updated { get; set; }
         [Column("DELETED")]
         public DateTime? Deleted { get; set; }
         [Column("ISACTIVE")]
-        public Boolean IsActive { get; set; }
+        public bool IsActive { get; set; }
     }
 }
