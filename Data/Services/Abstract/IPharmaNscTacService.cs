@@ -1,11 +1,12 @@
-﻿using TheradexPortal.Data.Models;
+﻿using TheradexPortal.Data.Models.Pharma;
 
-namespace TheradexPortal.Data.Services.Abstract
+namespace TheradexPortal.Data.Services.Abstract.Pharma
 {
     public interface IPharmaNscTacService
     {
         Task<IEnumerable<PharmaNscTac>> GetAllAsync();
-        Task<PharmaNscTac> GetByIdAsync(string protocolNumber);
+        Task<PharmaNscTac> GetByProtocolNumberAsync(string protocolNumber);
+        Task<PharmaNscTac> GetByIdAsync(int id);
         Task AddAsync(PharmaNscTac entity, int userId);
         Task UpdateAsync(PharmaNscTac entity, int userId);
         Tuple<bool, string> DeleteAsync(string protocolNumber, int userId);

@@ -101,6 +101,7 @@ namespace TheradexPortal.Data.Services
                     (r, u) => new ReviewPiDTO
                     {
                         PiName = u.FirstName + " " + u.LastName,
+                        piIdNumber = u.UserId,
                         caseNumber = r.ProtocolId.ToString(),
                         dueDate = r.NextDueDate.ToString(),
                         updateDate = r.UpdateDate,
@@ -143,6 +144,21 @@ namespace TheradexPortal.Data.Services
 
             (int, int) PiAndMoOverdueCount = (PiUpcomingList.Count, MoUpcomingList.Count);
             return PiAndMoOverdueCount;
+        }
+        
+        public async Task<bool> SetMissedReviewCountAsync(int userId, int protocolId, string reviewType, int missedReviewCount)
+        {
+            Review reviewItem = await context.Reviews
+                .Where(r => r.ProtocolId == protocolId && r.UserId == userId && r.ReviewType == reviewType)
+                .FirstOrDefaultAsync();
+
+            reviewItem.MissedReviewCount = missedReviewCount;
+            reviewItem.UpdateDate = DateTime.Now;
+
+            var primaryTable = context.Model.FindEntityType(typeof(Review)).ToString().Replace("EntityType: ", "");
+            context.SaveChangesAsync(userId, primaryTable);
+
+            return true;
         }
     }
 }

@@ -5,12 +5,16 @@
 @using TheradexPortal.Data.Models.ADDR;
 @using TheradexPortal.Data.Services
 @using TheradexPortal.Data.Services.Abstract;
+@using TheradexPortal.Data.Services.Abstract.Pharma
 @using TheradexPortal.Data.Static;
 @using TheradexPortal.Data.Models.Configuration;
 @using TheradexPortal.Data.Services.Abstract.ADDR;
 @using Microsoft.AspNetCore.Mvc;
 @using System.Collections.Generic;
 @using System.Linq;
+@using TheradexPortal.Data.Models.Pharma;
+@using TheradexPortal.Data.Identity
+@inherits LayoutComponentBase
 
 @inject IHttpContextAccessor httpContextAccessor;
 @inject IConfiguration configuration;
@@ -19,51 +23,50 @@
 
 @page "/pharma/pharmansctacs/{dashboardid:int?}/{reportid:int?}"
 
-<AdminRoleCheck AllowedRoles="@(new List<string> { "IT", "Biz" })"></AdminRoleCheck>
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>Pharmas NSC TACS List</h2></Div>
 <Row Background="Background.Light">
     <Column ColumnSize="ColumnSize.IsFull">
         <DataGrid TItem="PharmaNscTac"
-                  Class="admindatagrid"
-                  Data="@pharmaNscTacList"
-                  Responsive
-                  Groupable
-                  ShowGrouping
-                  Hoverable
-                  Narrow
-                  Filterable
-                  ShowPager
-                  PageSize="2000"
-                  ShowPageSizes
-                  ShowColumnChooser
-                  MaxPaginationLinks="5"
-                  PagerPosition="DataGridPagerPosition.Bottom"
-                  FixedHeader
-                  FixedHeaderDataGridHeight="calc(100vh - 240px)"
-                  FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
-                  FilterMode="DataGridFilterMode.Menu"
-                  Resizable
-                  SortMode="DataGridSortMode.Multiple"
-                  ResizeMode="TableResizeMode.Columns"
-                  Striped
-                  PagerOptions="new(){ButtonSize=Size.Default,
+        Class="addr-data-grid"
+        Data="@pharmaNscTacList"
+        Responsive
+        Groupable
+        ShowGrouping
+        Hoverable
+        Narrow
+        Filterable
+        ShowPager
+        PageSize="50"
+        ShowPageSizes
+        ShowColumnChooser
+        MaxPaginationLinks="5"
+        PagerPosition="DataGridPagerPosition.Bottom"
+        FixedHeader
+        FixedHeaderDataGridHeight="calc(100vh - 240px)"
+        FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
+        FilterMode="DataGridFilterMode.Menu"
+        Resizable
+        SortMode="DataGridSortMode.Multiple"
+        ResizeMode="TableResizeMode.Columns"
+        Striped
+        PagerOptions="new(){ButtonSize=Size.Default,
                                 PaginationPosition=PagerElementPosition.Default,
                                 TotalItemsPosition=PagerElementPosition.End,
                                 }"
-                  CommandMode="DataGridCommandMode.ButtonRow">
+        CommandMode="DataGridCommandMode.ButtonRow">
             <DataGridColumns>
                 <DataGridMultiSelectColumn Width="30px"> </DataGridMultiSelectColumn>
                 <DataGridCommandColumn />
-                <DataGridColumn Field="@nameof(PharmaNscTac.Id)" Caption="Id"/>
+                <DataGridColumn Field="@nameof(PharmaNscTac.Id)" Caption="Id" Displayable="false" />
                 <DataGridColumn Field="@nameof(PharmaNscTac.AgreementNumber)" Caption="Agreement" Groupable />
                 <DataGridColumn Field="@nameof(PharmaNscTac.Nsc)" Caption="NSC" Groupable />
                 <DataGridColumn Field="@nameof(PharmaNscTac.ProtocolNumber)" Caption="Study" Groupable />
                 <DataGridColumn Field="@nameof(PharmaNscTac.TrtAsgnmtCode)" Caption="Treatment Assignment  Code" Groupable />
                 <DataGridColumn Field="@nameof(PharmaNscTac.TrtAsgnmtDescription)" Caption="Treatment Assignment  Description" />
-                <DataGridColumn Field="@nameof(PharmaNscTac.Created)" Caption="Date Created" />
-                <DataGridColumn Field="@nameof(PharmaNscTac.Updated)" Caption="Date Created" />
-                <DataGridColumn Field="@nameof(PharmaNscTac.Deleted)" Caption="Date Created" />
-                <DataGridColumn Field="@nameof(PharmaNscTac.IsActive)" Caption="Record Active" />
+                <DataGridColumn Field="@nameof(PharmaNscTac.Created)" Caption="Date Created" Displayable="false" />
+                <DataGridColumn Field="@nameof(PharmaNscTac.Updated)" Caption="Date Updated" Displayable="false" />
+                <DataGridColumn Field="@nameof(PharmaNscTac.Deleted)" Caption="Date Deleted" Displayable="false" />
+                <DataGridColumn Field="@nameof(PharmaNscTac.IsActive)" Caption="Record Active" Displayable="false" />
                 <DataGridColumn Sortable="false" Filterable="false" Width="140px">
                     <DisplayTemplate>
                         <Button Color="Color.Info" Clicked="@(()=>EditClick(context as PharmaNscTac))">Edit</Button>
@@ -130,6 +133,17 @@
         //Protocols = await service.GetProtocols();
         Protocols = studyService.GetProtocolsForUserAsync(userId, true).ToList().Where(i => i.STS != null && i.STS.ToLower() == "yes" && i.CDASH != null && i.CDASH.ToLower() == "yes").ToList();
         pharmaNscTacList = (await pharmaNscTacService.GetAllAsync()).ToList();
+
+        List<string> allowed = new List<string> { "DMU Study Admin", "DMU Global Admin" };
+        allowed = new List<string> { };
+        List<string> adminRole = new List<string> { "IT" };
+
+        if (httpContextAccessor?.HttpContext?.User.HasAnyTHORRole(allowed.ToArray()) == false && httpContextAccessor?.HttpContext?.User.HasAnyAdminRole(adminRole.ToArray()) == false)
+        {
+            var studyIds = userService.GetProtocolAccessForUser(httpContextAccessor.HttpContext.User.GetUserId());
+            Protocols = Protocols.Where(x => studyIds.Contains(x.StudyId)).ToList();
+            pharmaNscTacList = pharmaNscTacList.Where(x => studyIds.Contains(x.ProtocolNumber)).ToList();
+        }
     }
 
 
@@ -140,7 +154,7 @@
 
     private async void EditClick(PharmaNscTac p)
     {
-        navigation.NavigateTo($"/admin/pharmansctac/{p.ProtocolNumber}");
+        navigation.NavigateTo($"/pharma/pharmansctac/{p.Id}");
     }
 
     private async Task ShowDeleteModal(PharmaNscTac p)

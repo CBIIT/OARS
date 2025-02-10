@@ -211,11 +211,11 @@
                                     </DisplayTemplate>
                                 </DataGridColumn>
                                 <DataGridColumn TItem="AuditTrailDTO" Caption="New Value" >
-                                        <DisplayTemplate>
-                                            <Div Style="display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; word-wrap: break-word; white-space: pre-wrap;">
-                                                @context.newValue
-                                            </Div>
-                                        </DisplayTemplate>
+                                    <DisplayTemplate>
+                                        <Div Style="display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; word-wrap: break-word; white-space: pre-wrap;">
+                                            @context.newValue
+                                        </Div>
+                                    </DisplayTemplate>
                                 </DataGridColumn>
                             </DataGrid>
                         </TabPanel>
@@ -531,7 +531,6 @@
         private IList<int> lstReviewHistories;
         private ReviewHistory latestReviewHistory;
         private Review currentReview;
-        private int daysLate = 0;
         private int reviewHistoryId;
         private List<string> reviewNote = new List<string> { "No previous notes." };
         private List<string> reviewEmail = new List<string> { "No previous emails." };
@@ -595,7 +594,39 @@
                             submitIsDisabled = true;
                         }
                     }
-                    daysLate = latestReviewHistory.DaysLate ?? 0;
+
+                    if(daysRemaining >= 0)
+                    {
+                        // Not late yet, make sure current review is not late
+                        if(currentReview.MissedReviewCount > 0)
+                        {
+                            await reviewService.SetMissedReviewCountAsync(activeUserId, ProtocolId, "PI", 0);
+                        }
+                        // Also make sure reviewHistory is not late
+                        if(latestReviewHistory.ReviewLate == 'T' || latestReviewHistory.DaysLate > 0)
+                        {
+                            await reviewHistoryService.SetReviewHistoryLateStatusAsync(activeUserId, ProtocolId, "PI", 0);
+                        }
+                    }
+                    else
+                    {
+                        int daysLate = daysRemaining * -1;
+                        // Review is late! Make sure we're reporting it correctly
+                        if(daysLate > currentReview.ReviewPeriod )
+                        {
+                            int cyclesMissed = daysLate / currentReview.ReviewPeriod;
+                            if (currentReview.MissedReviewCount != cyclesMissed)
+                            {
+                                await reviewService.SetMissedReviewCountAsync(activeUserId, ProtocolId, "PI", cyclesMissed);
+                            }
+                        }
+                        // Also make sure reviewHistory is set late
+                        if(latestReviewHistory.ReviewLate == 'F' || latestReviewHistory.DaysLate != daysLate)
+                        {
+                            await reviewHistoryService.SetReviewHistoryLateStatusAsync(activeUserId, ProtocolId, "PI", daysLate);
+                        }
+                    }
+
                     leadAgentName = await reviewService.GetLeadAgentByIdAsync(ProtocolId);
                     var tmpLst = await historyNoteService.GetNotesAsync(latestReviewHistory.ReviewHistoryId);
                     if (tmpLst != null)

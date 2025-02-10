@@ -153,5 +153,22 @@ namespace TheradexPortal.Data.Services
 
             return true;
         }
+
+        public async Task<bool> SetReviewHistoryLateStatusAsync(int userId, int protocolId, string reviewType, int daysLate)
+        {
+            char lateStatus = (daysLate > 0) ? 'T' : 'F';
+
+            ReviewHistory res = await context.ReviewHistories
+                .Where(rh => rh.ReviewType == reviewType && rh.UserId == userId && rh.ProtocolId == protocolId)
+                .FirstOrDefaultAsync();
+
+            res.UpdateDate = DateTime.Now;
+            res.DaysLate = daysLate;
+            res.ReviewLate = lateStatus;
+
+            var status = context.SaveChangesAsync();
+
+            return true;
+        }
     }
 }

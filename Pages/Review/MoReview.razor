@@ -164,35 +164,67 @@
                         {
                             var piLastName = pi.PiName.Substring(pi.PiName.IndexOf(' ') + 1);
                             string tabName = $"piDetails{piLastName}";
-                        <TabPanel Name="@tabName">
-                            <DataGrid TItem="ReviewPiDTO"
-                            Class="admindatagrid"
-                            Data="@lstPiDetails"
-                            Bordered="true"
-                            AltBordered="true"
-                            Responsive
-                            Filterable
-                            Striped
-                            ShowPager
-                            ShowPageSizes
-                            MaxPaginationLinks="5"
-                            PagerPosition="DataGridPagerPosition.Bottom"
-                            PagerOptions="new(){ButtonSize=Size.Default,
+                            <TabPanel Name="@tabName">
+                                <DataGrid TItem="AuditTrailDTO"
+                                Class="admindatagrid"
+                                Data="@pi.lstPiAuditTrail"
+                                Bordered="true"
+                                AltBordered="true"
+                                Responsive
+                                Filterable
+                                Striped
+                                ShowPager
+                                ShowPageSizes
+                                MaxPaginationLinks="5"
+                                PagerPosition="DataGridPagerPosition.Bottom"
+                                PagerOptions="new(){ButtonSize=Size.Default,
                                 PaginationPosition=PagerElementPosition.Default,
                                 TotalItemsPosition=PagerElementPosition.End,
                                 }"
-                            FixedHeader
-                            FixedHeaderDataGridHeight="calc(100vh - 240px)"
-                            FixedHeaderDataGridMaxHeight="calc(100vh - 240px)">
-                                <DataGridCommandColumn />
-                                <DataGridColumn TItem="ReviewPiDTO" Field="@nameof(ReviewPiDTO.PiName)" Caption="PI Name" />
-                                <DataGridColumn TItem="ReviewPiDTO" Field="@nameof(ReviewPiDTO.caseNumber)" Caption="Case Number" />
-                                <DataGridColumn TItem="ReviewPiDTO" Field="@nameof(ReviewPiDTO.currentStatus)" Caption="Current PI Status" />
-                                <DataGridColumn TItem="ReviewPiDTO" Field="@nameof(ReviewPiDTO.updateDate)" Caption="Last Updated Date" />
-                                <DataGridColumn TItem="ReviewPiDTO" Field="@nameof(ReviewPiDTO.dueDate)" Caption="Next Due Date" />
-                                <DataGridColumn TItem="ReviewPiDTO" Field="@nameof(ReviewPiDTO.periodName)" Caption="Review Name" />
-                            </DataGrid>
-                        </TabPanel>
+                                FixedHeader
+                                FixedHeaderDataGridHeight="calc(100vh - 240px)"
+                                FixedHeaderDataGridMaxHeight="calc(100vh - 240px)">
+                                    <DataGridCommandColumn />
+                                    @if(pi != null)
+                                    {
+                                    <DataGridColumn TItem="AuditTrailDTO" Caption="User">
+                                        <DisplayTemplate>
+                                            <Div Style="white-space: nowrap;">
+                                                @context.userName
+                                            </Div>
+                                        </DisplayTemplate>
+                                    </DataGridColumn>
+                                    <DataGridColumn TItem="AuditTrailDTO" Field="@nameof(AuditTrailDTO.userEmail)" Caption="User Email" />
+                                    <DataGridColumn TItem="AuditTrailDTO" Caption="Date Of Change">
+                                        <DisplayTemplate>
+                                            <Div Style="white-space: nowrap;">
+                                                @context.dateOfChange
+                                            </Div>
+                                        </DisplayTemplate>
+                                    </DataGridColumn>
+                                    <DataGridColumn TItem="AuditTrailDTO" Field="@nameof(AuditTrailDTO.typeOfChange)" Caption="Type Of Change" />
+                                    <DataGridColumn TItem="AuditTrailDTO" Field="@nameof(AuditTrailDTO.changeField)" Caption="Changed Field" />
+                                    <DataGridColumn TItem="AuditTrailDTO" Caption="Previous Value">
+                                        <DisplayTemplate>
+                                            <Div Style="white-space: pre-wrap;">
+                                                @context.previousValue
+                                            </Div>
+                                        </DisplayTemplate>
+                                    </DataGridColumn>
+                                    <DataGridColumn TItem="AuditTrailDTO" Caption="New Value" >
+                                        <DisplayTemplate>
+                                            <Div Style="display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; word-wrap: break-word; white-space: pre-wrap;">
+                                                @context.newValue
+                                            </Div>
+                                        </DisplayTemplate>
+                                    </DataGridColumn>
+                                    }
+                                    else
+                                    {
+                                        <p>No data captured yet.</p>
+                                    }
+                                </DataGrid>
+                            </TabPanel>
                         }
                     </Content>
                 </Tabs>
@@ -374,7 +406,7 @@
         private bool durationChanged => mo_duration != original_mo_duration || pi_duration != original_pi_duration;
         private DataGrid<TextNotes> noteDataGrid;
         private DataGrid<EmailDetails> emailDataGrid;
-        private DataGrid<ReviewPiDTO> piDataGrid;
+        private DataGrid<AuditTrailDTO> piDataGrid;
         private string userFullName = "No Name Found";
         private string userFirstName = "Error";
         private string userLastName = "No Name";
@@ -598,6 +630,7 @@
         [Inject] INotificationService notificationService { get; set; }
         [Inject] IEmailService emailService { get; set; } = null!;
         [Inject] IReviewService reviewService { get; set; } = null!;
+        [Inject] IAuditService auditService { get; set; } = null!;
 
         private Modal modalSubmitEmail;
         private Modal modalSubmitReview;
@@ -611,7 +644,6 @@
         private IList<ReviewItem> lstReviewItems;
         private IList<int> lstReviewHistories;
         private ReviewHistory latestReviewHistory;
-        private int daysLate = 0;
         private List<string> reviewNote = new List<string> { "No previous notes." };
         private List<string> reviewEmail = new List<string> { "No previous emails." };
         FileEdit fileEditRef;
@@ -650,6 +682,10 @@
                         }
                         reviewName = latestReviewHistory.ReviewPeriodName ?? "";
                         lstPiDetails = await reviewService.GetPiInfoAsync(AgentId);
+                        foreach(var pi in lstPiDetails)
+                        {
+                            pi.lstPiAuditTrail = await GenerateAuditTrail(pi.piIdNumber, pi.lstPiAuditTrail);
+                        }
                         var user = await userService.GetUserAsync(latestReviewHistory.UserId);
                         if (user != null)
                         {
@@ -670,7 +706,38 @@
                             }
                         }
 
-                        daysLate = latestReviewHistory.DaysLate ?? 0;
+                    if(daysRemaining >= 0)
+                    {
+                        // Not late yet, make sure current review is not late
+                        if(currentReview.MissedReviewCount > 0)
+                        {
+                            await reviewService.SetMissedReviewCountAsync(activeUserId, AgentId, "MO", 0);
+                        }
+                        // Also make sure reviewHistory is not late
+                        if(latestReviewHistory.ReviewLate == 'T' || latestReviewHistory.DaysLate > 0)
+                        {
+                            await reviewHistoryService.SetReviewHistoryLateStatusAsync(activeUserId, AgentId, "MO", 0);
+                        }
+                    }
+                    else
+                    {
+                        int daysLate = daysRemaining * -1;
+                        // Review is late! Make sure we're reporting it correctly
+                        if(daysLate > currentReview.ReviewPeriod )
+                        {
+                            int cyclesMissed = daysLate / currentReview.ReviewPeriod;
+                            if (currentReview.MissedReviewCount != cyclesMissed)
+                            {
+                                await reviewService.SetMissedReviewCountAsync(activeUserId, AgentId, "MO", cyclesMissed);
+                            }
+                        }
+                        // Also make sure reviewHistory is set late
+                        if(latestReviewHistory.ReviewLate == 'F' || latestReviewHistory.DaysLate != daysLate)
+                        {
+                            await reviewHistoryService.SetReviewHistoryLateStatusAsync(activeUserId, AgentId, "MO", daysLate);
+                        }
+                    }
+
                         leadAgentName = await reviewService.GetLeadAgentByIdAsync(AgentId);
                         var tmpLst = await historyNoteService.GetNotesAsync(latestReviewHistory.ReviewHistoryId);
                         if (tmpLst != null)
@@ -696,6 +763,32 @@
                     }
                 }
             }
+        }
+
+        private async Task<List<AuditTrailDTO>> GenerateAuditTrail(int piUserId, List<AuditTrailDTO> lstAudits)
+        {
+            try
+            {
+                var piCurrentReview = await reviewService.GetCurrentReviewAsync(AgentId, piUserId, "PI");
+                var piLatestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(AgentId, piUserId, "PI");
+                if (piCurrentReview != null && piLatestReviewHistory != null)
+                {
+                    lstAudits = await auditService.GetFullAuditTrailAsync(
+                            piUserId,
+                            piCurrentReview.ReviewId,
+                            piLatestReviewHistory.ReviewHistoryId,
+                            await reviewHistoryItemService.GetReviewHistoryItemIdsAsync(piLatestReviewHistory.ReviewHistoryId),
+                            await historyNoteService.GetReviewHistoryNoteIdsAsync(piLatestReviewHistory.ReviewHistoryId),
+                            await historyEmailService.GetReviewHistoryEmailIdsAsync(piLatestReviewHistory.ReviewHistoryId));
+                    lstAudits.Sort((x, y) => y.dateOfChange.CompareTo(x.dateOfChange));
+                }
+            }
+            catch (Exception ex)
+            {
+                await JSRuntime.InvokeVoidAsync("console.error", "Error in Audit Trail: " + ex.Message);
+            }
+
+            return lstAudits;
         }
 
         private void OnModalClosed()

@@ -29,6 +29,9 @@ using System.Diagnostics;
 using TheradexPortal.Data.Services.Abstract.ADDR;
 using TheradexPortal.Pages.ADDR;
 using TheradexPortal.Data.Models.ADDR;
+using TheradexPortal.Data.Services.Pharma;
+using TheradexPortal.Data.Services.Abstract;
+using TheradexPortal.Data.Services.Abstract.Pharma;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -86,9 +89,12 @@ builder.Services.AddScoped<IReviewHistoryNoteService, ReviewHistoryNoteService>(
 builder.Services.AddScoped<IReviewHistoryEmailService, ReviewHistoryEmailService>();
 builder.Services.AddScoped<IReviewHistoryItemService, ReviewHistoryItemService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
-builder.Services.AddScoped<IPharmaNscTacService, PharmaNscTacService>();
 
 builder.Services.AddScoped<IAuditService, AuditService>();
+builder.Services.AddScoped<IPharmaNscTacService, PharmaNscTacService>();
+builder.Services.AddScoped<IPharmaDrugListService, PharmaDrugListService>();
+builder.Services.AddScoped<IPharmaProtocolTacService, PharmaProtocolTacService>();
+
 
 #region Automated Data Discrepancy Report (ADDR)
 //builder.Services.AddScoped<IADDRService, ADDRService>();
