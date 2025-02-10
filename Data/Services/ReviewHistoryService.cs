@@ -70,6 +70,8 @@ namespace TheradexPortal.Data.Services
                 .FirstOrDefaultAsync(r => r.ReviewId == previousReviewHistory.ReviewId);
 
             previousReview.UpdateDate = DateTime.Now;
+            previousReview.MissedReviewCount = 0;
+            previousReview.ReviewPeriod = previousReview.ReviewPeriodUpcoming;
             previousReview.NextDueDate = ((DateTime)previousReview.NextDueDate).AddDays(previousReview.ReviewPeriod);
             previousReview.ReviewPeriodName = UpdateReviewName(previousReview);
 
