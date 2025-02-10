@@ -7,7 +7,7 @@ using TheradexPortal.Data.Services.Abstract;
 
 namespace TheradexPortal.Data.Services
 {
-    public class ReviewService: BaseService, IReviewService
+    public class ReviewService : BaseService, IReviewService
     {
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
@@ -19,8 +19,8 @@ namespace TheradexPortal.Data.Services
         public async Task<string> GetLeadAgentByIdAsync(int protocolId)
         {
             return await context.Reviews
-                .Where(p=>p.ProtocolId == protocolId)
-                .Select(a=>a.AgentName)
+                .Where(p => p.ProtocolId == protocolId)
+                .Select(a => a.AgentName)
                 .FirstOrDefaultAsync() ?? "";
         }
 
@@ -35,7 +35,7 @@ namespace TheradexPortal.Data.Services
         public async Task<Review> GetCurrentReviewAsync(int protocolId, int userId, string type)
         {
             return await context.Reviews
-                .Where(p => 
+                .Where(p =>
                 p.ProtocolId == protocolId &&
                 p.UserId == userId &&
                 p.ReviewType == type)
@@ -60,7 +60,7 @@ namespace TheradexPortal.Data.Services
         public async Task<bool> SetReviewDurationsAsync(int userId, int protocolId, int MOReviewPeriod, int PIReviewPeriod)
         {
             List<Review> reviewItem = await context.Reviews
-                .Where(r=>r.ProtocolId == protocolId)
+                .Where(r => r.ProtocolId == protocolId)
                 .ToListAsync();
 
             foreach (var review in reviewItem)
@@ -84,8 +84,8 @@ namespace TheradexPortal.Data.Services
         public async Task<List<int>> GetAllAuthorizedUsersAsync(int protocolId)
         {
             return await context.Reviews
-                .Where(p=> p.ProtocolId == protocolId)
-                .Select (r => r.UserId)
+                .Where(p => p.ProtocolId == protocolId)
+                .Select(r => r.UserId)
                 .ToListAsync();
         }
 
@@ -128,5 +128,37 @@ namespace TheradexPortal.Data.Services
 
             return true;
         }
+        public async Task<(int, int)> GetPiAndMoOverdueReviewCountsAsync(int userId)
+        {
+            var PiOverdueList = await context.Reviews
+                .Where(r => r.UserId == userId && r.ReviewType == "PI"
+                && r.NextDueDate != null && r.NextDueDate < DateTime.Today)
+                .ToListAsync();
+
+            var MoOverdueList = await context.Reviews
+                .Where(r => r.UserId == userId && r.ReviewType == "MO"
+                && r.NextDueDate != null && r.NextDueDate < DateTime.Today)
+                .ToListAsync();
+
+            (int, int) PiAndMoOverdueCount = (PiOverdueList.Count, MoOverdueList.Count);
+            return PiAndMoOverdueCount;
+        }
+
+        public async Task<(int, int)> GetPiAndMoUpcomingReviewCountsAsync(int userId)
+        {
+            var PiUpcomingList = await context.Reviews
+                .Where(r => r.UserId == userId && r.ReviewType == "PI"
+                && r.NextDueDate != null && r.NextDueDate >= DateTime.Today)
+                .ToListAsync();
+
+            var MoUpcomingList = await context.Reviews
+                .Where(r => r.UserId == userId && r.ReviewType == "MO"
+                && r.NextDueDate != null && r.NextDueDate >= DateTime.Today)
+                .ToListAsync();
+
+            (int, int) PiAndMoOverdueCount = (PiUpcomingList.Count, MoUpcomingList.Count);
+            return PiAndMoOverdueCount;
+        }
+
     }
 }

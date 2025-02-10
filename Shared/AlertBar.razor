@@ -5,6 +5,8 @@
 @using TheradexPortal.Data.Static
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @inject ProtectedSessionStorage SessionData
+@inject IHttpContextAccessor httpContextAccessor
+
 
 @if (this.NoAlertsMessage && this.Alert)
 {
@@ -72,6 +74,7 @@ else
     private bool alertsSessionLoaded;
     private bool pageLoaded;
     [Inject] private IAlertService alertService { get; set; } = null!;
+    [Inject] private IReviewService reviewService { get; set; } = null!;
     private BarItem? alertsItem;
     private BarItem? notesItem;
     private Color? currentColor;
@@ -81,6 +84,7 @@ else
     private Dashboard selectedDashboard { get; set; } = null!;
     private IList<ThorAlert> activeAlerts = new List<ThorAlert>();
     private string? dismissedAlerts = string.Empty;
+    private int activeUserId;
 
     protected override async Task OnInitializedAsync()
     {
@@ -89,6 +93,7 @@ else
         await this.getSystemAlerts();
         await this.getLoginAlerts();
         await this.getDashboardAlerts();
+        activeUserId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
         this.alertColor = await alertService.AlertColor();
         this.noteColor = await alertService.NoteColor();
         this.infoColor = await alertService.InfoColor();
@@ -132,6 +137,38 @@ else
             if (Alert)
             {
                 this.activeAlerts = await alertService.GetActiveSystemAlertsAsync();
+
+
+                //The following code alerts the user if they have overdue reviews 
+                var overdueReviewCounts = await reviewService.GetPiAndMoOverdueReviewCountsAsync(activeUserId);
+                var overduePi = overdueReviewCounts.Item1;
+                var overdueMo = overdueReviewCounts.Item2;
+                var overdueCounts = await reviewService.GetPiAndMoOverdueReviewCountsAsync(activeUserId);
+                var upcomingCounts = await reviewService.GetPiAndMoUpcomingReviewCountsAsync(activeUserId);
+                var overdueTotal = overdueCounts.Item1 + overdueCounts.Item2;
+                var upcomingTotal = upcomingCounts.Item1 + upcomingCounts.Item2;
+
+                string? reviewAlertText = null;
+                if (overdueTotal > 0 && upcomingTotal > 0)
+                {
+                    reviewAlertText = "You have " + overdueTotal + " overdue review(s) and " + upcomingTotal + " upcoming review(s). Please visit the Review Dashboard to complete your reviews.";
+                }
+                else if (overdueTotal > 0)
+                {
+                    reviewAlertText = "You have " + overdueTotal + " overdue review(s). Please visit the Review Dashboard to complete your reviews.";
+                }
+                else if (upcomingTotal > 0)
+                {
+                    reviewAlertText = "You have " + upcomingTotal + " upcoming review(s). Please visit the Review Dashboard to complete your reviews.";
+                }
+
+                if (reviewAlertText != null)
+                {
+                    var reviewAlert = new ThorAlert();
+                    reviewAlert.AlertType = "Alert";
+                    reviewAlert.AlertText = reviewAlertText;
+                    activeAlerts.Add(reviewAlert);
+                }
             }
             if (Note)
             {
@@ -262,4 +299,5 @@ else
             await this.updateAlertsCount(alertsCount);
         }
     }
+
 }
