@@ -33,6 +33,8 @@ namespace TheradexPortal.Data.Models
         public string? LeadAgent { get;set; }
         [Column("REVIEW_PERIOD_NAME")]
         public string? ReviewPeriodName { get;set; }
+        [Column("MISSED_REVIEW_COUNT")]
+        public int MissedReviewCount { get; set; }
         [Column("REVIEW_PERIOD_UPCOMING")]
         public int ReviewPeriodUpcoming { get; set; }
     }

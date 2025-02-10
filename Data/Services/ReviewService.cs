@@ -113,5 +113,20 @@ namespace TheradexPortal.Data.Services
 
             return ret;
         }
+
+        public async Task<bool> SetMissedReviewCountAsync(int userId, int protocolId, string reviewType, int missedReviewCount)
+        {
+            Review reviewItem = await context.Reviews
+                .Where(r => r.ProtocolId == protocolId && r.UserId == userId && r.ReviewType == reviewType)
+                .FirstOrDefaultAsync();
+
+            reviewItem.MissedReviewCount = missedReviewCount;
+            reviewItem.UpdateDate = DateTime.Now;
+
+            var primaryTable = context.Model.FindEntityType(typeof(Review)).ToString().Replace("EntityType: ", "");
+            context.SaveChangesAsync(userId, primaryTable);
+
+            return true;
+        }
     }
 }

@@ -16,5 +16,6 @@ namespace TheradexPortal.Data.Services.Abstract
         public Task<bool> CloseCurrentReviewAsync(int userId, int reviewHistoryID);
         public Task<bool> isReviewActive(int reviewHistoryID);
         public Task<bool> StartNewReviewAsync(int userId, int protocolId, string reviewType, int reviewHistoryID);
+        public Task<bool> SetReviewHistoryLateStatusAsync(int userId, int protocolId, string reviewType, int daysLate);
     }
 }
