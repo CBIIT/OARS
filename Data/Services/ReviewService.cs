@@ -114,38 +114,6 @@ namespace TheradexPortal.Data.Services
             return ret;
         }
 
-        public async Task<(int, int)> GetPiAndMoOverdueReviewCountsAsync(int userId)
-        {
-            var PiOverdueList = await context.Reviews
-                .Where(r => r.UserId == userId && r.ReviewType == "PI" 
-                && r.NextDueDate != null && r.NextDueDate < DateTime.Today)
-                .ToListAsync();
-
-            var MoOverdueList = await context.Reviews
-                .Where(r => r.UserId == userId && r.ReviewType == "MO" 
-                && r.NextDueDate != null && r.NextDueDate < DateTime.Today)
-                .ToListAsync();
-
-            (int, int) PiAndMoOverdueCount = (PiOverdueList.Count, MoOverdueList.Count);
-            return PiAndMoOverdueCount;
-        }
-
-        public async Task<(int, int)> GetPiAndMoUpcomingReviewCountsAsync(int userId)
-        {
-            var PiUpcomingList = await context.Reviews
-                .Where(r => r.UserId == userId && r.ReviewType == "PI"
-                && r.NextDueDate != null && r.NextDueDate >= DateTime.Today)
-                .ToListAsync();
-
-            var MoUpcomingList = await context.Reviews
-                .Where(r => r.UserId == userId && r.ReviewType == "MO"
-                && r.NextDueDate != null && r.NextDueDate >= DateTime.Today)
-                .ToListAsync();
-
-            (int, int) PiAndMoOverdueCount = (PiUpcomingList.Count, MoUpcomingList.Count);
-            return PiAndMoOverdueCount;
-        }
-        
         public async Task<bool> SetMissedReviewCountAsync(int userId, int protocolId, string reviewType, int missedReviewCount)
         {
             Review reviewItem = await context.Reviews
