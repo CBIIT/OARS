@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
+using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Models.Pharma;
 using TheradexPortal.Data.Services.Abstract;
 using TheradexPortal.Data.Services.Abstract.Pharma;
@@ -32,16 +33,34 @@ namespace TheradexPortal.Data.Services.Pharma
             return await context.Pharma_PharmaNscTacs.FirstOrDefaultAsync(e => e.ProtocolNumber == protocolNumber);
         }
         // Add a new record
-        public async Task AddAsync(PharmaNscTac entity, int userId)
+        public async Task<bool> AddAsync(PharmaNscTac entity, int userId)
         {
             if (entity == null)
             {
                 throw new ArgumentNullException(nameof(entity));
             }
+            try
+            {
 
-            await context.Pharma_PharmaNscTacs.AddAsync(entity);
-            await context.SaveChangesAsync();
+                entity.Created = DateTime.UtcNow;
+                entity.IsActive = true;
+                entity.IsDeleted = false;
+
+                context.Pharma_PharmaNscTacs.Add(entity);
+                var primaryTable = context.Model.FindEntityType(typeof(PharmaNscTac)).ToString().Replace("EntityType: ", "");
+                var status = await context.SaveChangesAsync(userId, primaryTable);
+                return true;
+
+            }
+            catch (Exception ex)
+            {
+                // Log the error or handle it as per your logging mechanism
+                Console.WriteLine($"Error inserting record: {ex.Message}");
+                return false;
+            }
         }
+
+
 
         // Update an existing record
         public async Task UpdateAsync(PharmaNscTac entity, int userId)
@@ -69,50 +88,57 @@ namespace TheradexPortal.Data.Services.Pharma
             await context.SaveChangesAsync();
         }
 
+        public async Task<bool> CanDelete(int id)
+        {
+            return context.Pharma_PharmaNscTacs.Where(ug => ug.Id == id).Count() == 1;
+        }
+
         // Delete 
-        public async Task DeleteAsync(string protocolNumber)
+        public async Task<Tuple<bool, string>> DeleteAsync(int id, int userId, bool isHardDelete = false)
         {
-            var entity = await context.Pharma_PharmaNscTacs
-                .FirstOrDefaultAsync(e => e.ProtocolNumber == protocolNumber);
-
-            if (entity == null)
+            if (isHardDelete)
             {
-                throw new KeyNotFoundException("Record not found.");
+                try
+                {
+                    var primaryTable = context.Model.FindEntityType(typeof(PharmaNscTac)).ToString().Replace("EntityType: ", "");
+                    var pharmaNscTac = context.Pharma_PharmaNscTacs.Where(g => g.Id == id).First();
+                    
+                    if (pharmaNscTac == null)
+                        return new Tuple<bool, string>(false, "Record not found"); // Record not found
+
+                    context.Remove(pharmaNscTac);
+
+                    await context.SaveChangesAsync(userId, primaryTable);
+
+                    return new Tuple<bool, string>(true, "Pharma Nsc Tac deleted successfully");
+                }
+                catch (Exception ex)
+                {
+                    _errorLogService.SaveErrorLogAsync(userId, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+                    return new Tuple<bool, string>(false, "Failed to delete Pharma Nsc Tac");
+                }
             }
 
-            context.Pharma_PharmaNscTacs.Remove(entity);
-            await context.SaveChangesAsync();
-        }
-
-        public Tuple<bool, string> DeleteAsync(string protocolNumber, int userId)
-        {
             try
             {
+                var record = await context.Pharma_PharmaNscTacs.FindAsync(id);
+
+                if (record == null)
+                    return new Tuple<bool, string>(false, "Record not found"); // Record not found
+
+                record.IsDeleted = true;
+                record.IsActive = false; // Mark inactive if applicable
+                record.Deleted = DateTime.UtcNow; // Set deletion timestamp
+
+                context.Pharma_PharmaNscTacs.Update(record);
                 var primaryTable = context.Model.FindEntityType(typeof(PharmaNscTac)).ToString().Replace("EntityType: ", "");
-                var pharmaNscTac = context.Pharma_PharmaNscTacs.Where(g => g.ProtocolNumber == protocolNumber).First();
-                context.Remove(pharmaNscTac);
-                context.SaveChangesAsync(userId, primaryTable);
+                await context.SaveChangesAsync(userId, primaryTable);
                 return new Tuple<bool, string>(true, "Pharma Nsc Tac deleted successfully");
             }
             catch (Exception ex)
             {
-                _errorLogService.SaveErrorLogAsync(userId, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
-                return new Tuple<bool, string>(false, "Failed to delete Pharma Nsc Tac");
-            }
-        }
-
-        public Tuple<bool, string> DeleteAsync(int id, int userId)
-        {
-            try
-            {
-                var primaryTable = context.Model.FindEntityType(typeof(PharmaNscTac)).ToString().Replace("EntityType: ", "");
-                var pharmaNscTac = context.Pharma_PharmaNscTacs.Where(g => g.Id == id).First();
-                context.Remove(pharmaNscTac);
-                context.SaveChangesAsync(userId, primaryTable);
-                return new Tuple<bool, string>(true, "Pharma Nsc Tac deleted successfully");
-            }
-            catch (Exception ex)
-            {
+                // Log or handle the error
+                Console.WriteLine($"Error deleting record: {ex.Message}");
                 _errorLogService.SaveErrorLogAsync(userId, _navManager.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
                 return new Tuple<bool, string>(false, "Failed to delete Pharma Nsc Tac");
             }
@@ -155,6 +181,15 @@ namespace TheradexPortal.Data.Services.Pharma
             return await context.Pharma_PharmaNscTacs
                 .Where(e => e.TrtAsgnmtCode == trtAsgnmtCode)
                 .ToListAsync();
+        }
+
+        public async Task<bool> IsUniqueCombinationAsync(string agreementNumber, string nsc, string protocolNumber, string trtAsgnmtCode)
+        {
+            return !await context.Pharma_PharmaNscTacs.AnyAsync(tac =>
+                tac.AgreementNumber == agreementNumber &&
+                tac.Nsc == nsc &&
+                tac.ProtocolNumber == protocolNumber &&
+                tac.TrtAsgnmtCode == trtAsgnmtCode);
         }
     }
 }

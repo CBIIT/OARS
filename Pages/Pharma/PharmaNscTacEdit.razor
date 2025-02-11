@@ -45,18 +45,18 @@
                             <Column ColumnSize="ColumnSize.Is4">
                                 <!-- Protocol Selection Dropdown -->
                                 <Autocomplete TItem="string"
-                                              TValue="string"
-                                              Data="@allAggrements"
-                                              TextField="@(( item ) => item)"
-                                              ValueField="@(( item ) => item)"
-                                              SelectedValue="@selectedAggrement"
-                                              Validator="IsValidValue"
-                                              SelectedValueChanged="@(async (v) => await OnChangeProtocol(v))"
-                                              Placeholder="Select Aggrement..."
-                                              Filter="AutocompleteFilter.StartsWith"
-                                              FreeTyping
-                                              HighlightSearch
-                                              CustomFilter="@(( item, searchValue ) => item.IndexOf( searchValue, 0, StringComparison.CurrentCultureIgnoreCase ) >= 0 )">
+                                TValue="string"
+                                Data="@allAggrements"
+                                TextField="@(( item ) => item)"
+                                ValueField="@(( item ) => item)"
+                                SelectedValue="@selectedAggrement"
+                                Validator="IsValidAggrementValue"
+                                SelectedValueChanged="@(async (v) => await OnAggrementsChanged(v))"
+                                Placeholder="Select Aggrement..."
+                                Filter="AutocompleteFilter.StartsWith"
+                                FreeTyping
+                                HighlightSearch
+                                CustomFilter="@(( item, searchValue ) => item.IndexOf( searchValue, 0, StringComparison.CurrentCultureIgnoreCase ) >= 0 )">
                                     <NotFoundContent> Sorry... @context was not found! :( </NotFoundContent>
                                     <ItemContent>
                                         <Div Flex="Flex.InlineFlex.JustifyContent.Between" Width="Width.Is100">
@@ -72,29 +72,20 @@
                                 <Text>NSC:</Text>
                             </Column>
                             <Column ColumnSize="ColumnSize.Is4">
-                                @*                         <SelectList TItem="string"
-                                    TValue="String"
-                                    Data="@allNscs"
-                                    TextField="@(( item ) => item)"
-                                    ValueField="@(( item ) => item)"
-                                    SelectedValue="@nsc"
-                                    SelectedValueChanged="@OnChangeDrug"
-                                    DefaultItemText="Select the Nsc"
-                                    Disabled="@drugDisabled" /> *@
-                                <!-- Protocol Selection Dropdown -->
                                 <Autocomplete TItem="string"
-                                              TValue="string"
-                                              Data="@allNscs"
-                                              TextField="@(( item ) => item)"
-                                              ValueField="@(( item ) => item)"
-                                              SelectedValue="@selectedAggrement"
-                                              Validator="IsValidValue"
-                                              SelectedValueChanged="@(async (v) => await OnChangeDrug(v))"
-                                              Placeholder="Select Nsc..."
-                                              Filter="AutocompleteFilter.StartsWith"
-                                              FreeTyping
-                                              HighlightSearch
-                                              CustomFilter="@(( item, searchValue ) => item.IndexOf( searchValue, 0, StringComparison.CurrentCultureIgnoreCase ) >= 0 )">
+                                TValue="string"
+                                Data="@allNscs"
+                                TextField="@(( item ) => item)"
+                                ValueField="@(( item ) => item)"
+                                SelectedValue="@selectedNSC"
+                                Validator="IsValidNscValue"
+                                SelectedValueChanged="@(async (v) => await OnNSCChanged(v))"
+                                Disabled="@isEdit"
+                                Placeholder="Select Nsc..."
+                                Filter="AutocompleteFilter.StartsWith"
+                                FreeTyping
+                                HighlightSearch
+                                CustomFilter="@(( item, searchValue ) => item.IndexOf( searchValue, 0, StringComparison.CurrentCultureIgnoreCase ) >= 0 )">
                                     <NotFoundContent> Sorry... @context was not found! :( </NotFoundContent>
                                     <ItemContent>
                                         <Div Flex="Flex.InlineFlex.JustifyContent.Between" Width="Width.Is100">
@@ -111,18 +102,19 @@
                             <Column ColumnSize="ColumnSize.Is4">
                                 <!-- Protocol Selection Dropdown -->
                                 <Autocomplete TItem="string"
-                                              TValue="string"
-                                              Data="@allProtocols"
-                                              TextField="@(( item ) => item)"
-                                              ValueField="@(( item ) => item)"
-                                              SelectedValue="@selectedAggrement"
-                                              Validator="IsValidValue"
-                                              SelectedValueChanged="@(async (v) => await OnChangeProtocol(v))"
-                                              Placeholder="Select Protocol..."
-                                              Filter="AutocompleteFilter.StartsWith"
-                                              FreeTyping
-                                              HighlightSearch
-                                              CustomFilter="@(( item, searchValue ) => item.IndexOf( searchValue, 0, StringComparison.CurrentCultureIgnoreCase ) >= 0 )">
+                                TValue="string"
+                                Data="@allProtocols"
+                                TextField="@(( item ) => item)"
+                                ValueField="@(( item ) => item)"
+                                SelectedValue="@selectedProtocol"
+                                Disabled="@isEdit"
+                                Validator="IsValidProtocolValue"
+                                SelectedValueChanged="@(async (v) => await OnProtocolChanged(v))"
+                                Placeholder="Select Protocol..."
+                                Filter="AutocompleteFilter.StartsWith"
+                                FreeTyping
+                                HighlightSearch
+                                CustomFilter="@(( item, searchValue ) => item.IndexOf( searchValue, 0, StringComparison.CurrentCultureIgnoreCase ) >= 0 )">
                                     <NotFoundContent> Sorry... @context was not found! :( </NotFoundContent>
                                     <ItemContent>
                                         <Div Flex="Flex.InlineFlex.JustifyContent.Between" Width="Width.Is100">
@@ -139,49 +131,32 @@
                             <Column ColumnSize="ColumnSize.Is4">
                                 <!-- Protocol Selection Dropdown -->
                                 <Autocomplete TItem="Data.Models.Pharma.ProtocolTac"
-                                              TValue="string"
-                                              Data="@allPharmaProtocolTacs"
-                                              TextField="@(( item ) => item.TrtAsgnmtCode)"
-                                              ValueField="@(( item ) => item.TrtAsgnmtCode)"
-                                              SelectedValue="@selectedAggrement"
-                                              Validator="IsValidValue"
-                                              SelectedValueChanged="@(async (v) => await OnChangeProtocol(v))"
-                                              Placeholder="Select Treatment Assignment Code..."
-                                              Filter="AutocompleteFilter.StartsWith"
-                                              FreeTyping
-                                              HighlightSearch
-                                              CustomFilter="@((item, searchValue) => item.TrtAsgnmtCode.IndexOf(searchValue, 0, StringComparison.CurrentCultureIgnoreCase) >= 0)">
+                                TValue="string"
+                                Data="@allPharmaProtocolTacs"
+                                TextField="@(( item ) => item.TrtAsgnmtCode)"
+                                ValueField="@(( item ) => item.TrtAsgnmtCode)"
+                                Disabled="@isEdit"
+                                SelectedValue="@selectedTreatmentAssignmentCode"
+                                SelectedValueChanged="@(async (v) => await OnProtocolTacChanged(v))"
+                                Validator="IsValidTACValue"
+                                Placeholder="Select Treatment Assignment Code..."
+                                Filter="AutocompleteFilter.StartsWith"
+                                FreeTyping
+                                HighlightSearch
+                                CustomFilter="@((item, searchValue) => item.TrtAsgnmtCode.IndexOf(searchValue, 0, StringComparison.CurrentCultureIgnoreCase) >= 0)">
                                     <NotFoundContent> Sorry... @context was not found! :( </NotFoundContent>
                                     <ItemContent>
                                         <Div Flex="Flex.InlineFlex.JustifyContent.Between" Width="Width.Is100">
                                             <Heading Margin="Margin.Is2.FromBottom">@context.Value</Heading>
+                                            <Paragraph Margin="Margin.Is2.FromBottom"><Small>Study Id : @context.Item.StudyId</Small>|<Small>Treatment Code : @context.Item.TrtAsgnmtCode</Small>|<Small>Description : @context.Item.TrtAsgnmtDescription</Small></Paragraph>
                                         </Div>
                                         <Paragraph Margin="Margin.Is2.FromBottom"><Small>Study Id : @context.Item.StudyId</Small>|<Small>Treatment Code : @context.Item.TrtAsgnmtCode</Small>|<Small>Description : @context.Item.TrtAsgnmtDescription</Small></Paragraph>
                                     </ItemContent>
                                 </Autocomplete>
                             </Column>
                         </Row>
-                        @* <Row Padding="Padding.Is2">
-                    <Column ColumnSize="ColumnSize.Is4">
-                        <Text>Select Protocol2:</Text>
-                    </Column>
-                    <Column ColumnSize="ColumnSize.Is4">
-                        <SelectList TItem="Data.Models.Pharma.ProtocolTac"
-                                    TValue="String"
-                                    Data="@allPharmaProtocolTacs"
-                                    TextField="@((protocol)=>protocol.StudyId)"
-                                    ValueField="@((protocol)=>protocol.StudyId)"
-                                    SelectedValue="@protocol"
-                                    SelectedValueChanged="@OnChangeProtocol"
-                                    DefaultItemText="Select the Protocol"
-                                    Disabled="@protocolDisabled" />
-                    </Column>
-                </Row> *@
-
                     </Column>
                 </Row>
-            </Div>
-            <Div Padding="Padding.Is2" Background="Background.Light">
             </Div>
             <Divider />
             <Field Flex="Flex.JustifyContent.Center">
@@ -190,37 +165,7 @@
                     <Button Color="Color.Primary" Type="ButtonType.Submit" PreventDefaultOnSubmit Clicked="@Save">Save</Button>
                 </Div>
             </Field>
-            @*     <Div Padding="Padding.Is2" Background="Background.Light">
-        <Field>
-            <FieldLabel ColumnSize="ColumnSize.Is12" TextWeight="TextWeight.Bold">Protocol Name</FieldLabel>
-            <FieldBody ColumnSize="ColumnSize.Is4" Margin="Margin.IsAuto">
-                <SelectList TItem="Data.Models.Pharma.ProtocolTac"
-                            TValue="String"
-                            Data="@allPharmaProtocolTacs"
-                            TextField="@((protocol)=>protocol.StudyId)"
-                            ValueField="@((protocol)=>protocol.StudyId)"
-                            SelectedValue="@protocol"
-                            SelectedValueChanged="@OnChangeProtocol"
-                            DefaultItemText="Select the Protocol"
-                            Disabled="@protocolDisabled" />
-            </FieldBody>
-        </Field>
-        <Field>
-            <FieldLabel ColumnSize="ColumnSize.Is12" TextWeight="TextWeight.Bold">NSC</FieldLabel>
-            <FieldBody ColumnSize="ColumnSize.Is4" Margin="Margin.IsAuto">
-                <SelectList TItem="DrugList"
-                            TValue="String"
-                            Data="@allPharmaDrugLists"
-                            TextField="@((drug)=>drug.Nsc)"
-                            ValueField="@((drug)=>drug.Nsc)"
-                            SelectedValue="@protocol"
-                            SelectedValueChanged="@OnChangeDrug"
-                            DefaultItemText="Select the Drug"
-                            Disabled="@drugDisabled" />
-            </FieldBody>
-        </Field>
-    </Div>
- *@    
+
         </LoadingIndicator>
     </Container>
 </LayoutContent>
@@ -228,32 +173,42 @@
 @code {
     [Inject] IPharmaNscTacService pharmaNscTacService { get; set; } = null!;
     [Inject] IPharmaProtocolTacService protocolService { get; set; } = null!;
-    [Inject] IPharmaDrugListService drugListService { get; set; } = null!;
+    [Inject] IPharmaCdrdmStudyAgentService drugListService { get; set; } = null!;
     [Inject] IStudyService studyService { get; set; } = null!;
     [Inject] private NavigationManager navigation { get; set; } = null!;
     [Inject] INotificationService notificationService { get; set; }
     [Inject] IUserService userService { get; set; } = null!;
     [Inject] private IMessageService messageService { get; set; } = null!;
+    [Inject] IErrorLogService errorLogService { get; set; } = null!;
+
+    [Parameter] public int? Id { get; set; }
+
+
 
     IList<Role> primaryRoles;
-
-    IList<DrugList> allPharmaDrugLists { get; set; }
-    IList<Data.Models.Pharma.ProtocolTac> allPharmaProtocolTacs { get; set; }
-    //IList<Protocol> allProtocols;
+    IList<string> allPharmaDrugLists { get; set; }
 
     IList<string> allAggrements = new List<string>();
     IList<string> allNscs = new List<string>();
     IList<string> allProtocols = new List<string>();
+    IList<Data.Models.Pharma.ProtocolTac> allPharmaProtocolTacs = new List<Data.Models.Pharma.ProtocolTac>();
+    //IList<KeyValuePair<string, string>> allTacs = new List<KeyValuePair<string, string>>();
 
-    IList<KeyValuePair<string, string>> allTacs = new List<KeyValuePair<string, string>>();
+    // Filtered lists based on selections
+    IList<Data.Models.Pharma.ProtocolTac> filteredTACs = new List<Data.Models.Pharma.ProtocolTac>();
 
-
-    [Parameter] public int? Id { get; set; }
+    string selectedAggrement { get; set; } = string.Empty;
+    string selectedNSC { get; set; } = string.Empty;
+    string selectedProtocol { get; set; } = string.Empty;
+    string selectedTreatmentAssignmentCode { get; set; } = string.Empty;
+    Data.Models.Pharma.ProtocolTac selectedTac { get; set; }
 
     private LoadingIndicator loading;
     private int activeUserId;
 
     public string AddOrEdit { get; set; }
+    private bool isEdit = false;
+
     Visibility visibilityDelete = Visibility.Invisible;
     Validations validations;
 
@@ -265,29 +220,26 @@
 
     string protocol = string.Empty;
     string nsc = string.Empty;
-
     bool protocolDisabled = false;
     bool drugDisabled = false;
 
     User loggedinUser;
     bool loggedinUserIsITAdmin = false;
-    string selectedAggrement = "11-1-00002";
-    string selectedNSC = "11-1-00002";
-    string selectedProtocol = "11-1-00002";
-    string selectedTreatmentAssignmentCode = "11-1-00002";
 
     protected override async Task OnInitializedAsync()
     {
         // Determine action (Create or Edit) and visibility
-        if (Id == null)
+        if (Id == null || Id == -1)
         {
             AddOrEdit = "Create Pharma NSC TAC ";
             visibilityDelete = Visibility.Invisible;
+            isEdit = false;
         }
         else
         {
             AddOrEdit = $"Edit Pharma NSC TAC - {Id}";
             visibilityDelete = Visibility.Visible;
+            isEdit = true;
         }
 
         // Get the active user ID and logged-in user details
@@ -299,30 +251,33 @@
             .Any(r => r.Role.IsPrimary && r.Role.AdminType == ThorAdminType.IT);
 
         // Fetch all necessary data in parallel to improve performance
-        var drugListTask = drugListService.GetAllAsync();
+        // Load common data in parallel
+        var drugListTask = drugListService.GetDistinctNscCodesAsync();
         var protocolTask = protocolService.GetAllAsync();
         var pharmaNscTacTask = pharmaNscTacService.GetAllAsync();
         var protocolAsyncTask = studyService.GetAllProtocolsAsync();
 
         await Task.WhenAll(drugListTask, protocolTask, pharmaNscTacTask, protocolAsyncTask);
 
-        // Extract results from tasks
-        allPharmaDrugLists = drugListTask.Result.ToList();
-        allPharmaProtocolTacs = protocolTask.Result.ToList();
-        var allPharmaNscTacs = pharmaNscTacTask.Result.ToList();
-        var allProtocolsData = protocolAsyncTask.Result;
 
-        // Extract and transform data
-        allNscs = allPharmaDrugLists.OrderBy(p => p.Nsc).Select(d => d.Nsc).Distinct().ToList();
-        allTacs = allPharmaProtocolTacs.OrderBy(p => p.TrtAsgnmtCode).ThenBy(p => p.TrtAsgnmtDescription).Select(p => new KeyValuePair<string, string>(p.TrtAsgnmtCode, p.TrtAsgnmtDescription)).Distinct().ToList();
-        allAggrements = allPharmaNscTacs.Where(p => string.IsNullOrEmpty(p.AgreementNumber) == false).Select(p => p.AgreementNumber).Order().Distinct().ToList();
-        allProtocols = allProtocolsData.OrderBy(p => p.StudyId).Select(p => p.StudyId).Distinct().ToList();
+        // Extract results from tasks
+        // Set available NSCs and Protocol TAC data
+        allNscs = drugListTask.Result.ToList();
+        allPharmaProtocolTacs = protocolTask.Result.ToList();  // assuming this returns ProtocolTac objects
+        allProtocols = protocolAsyncTask.Result.OrderBy(p => p.StudyId).Select(p => p.StudyId).Distinct().ToList();
+        allAggrements = pharmaNscTacTask.Result.OrderBy(p => p.AgreementNumber).Select(p => p.AgreementNumber).Distinct().ToList();
+
+
+
+        // If in Edit mode, load the existing record
+        if (Id.HasValue && Id != -1)
+        {
+            await LoadPharmaNscTac(Id.Value);
+        }
 
         // Save activity log
         userService.SaveActivityLog(activeUserId, ThorActivityType.Navigation, "PharmaNscTac", AddOrEdit);
     }
-
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -331,7 +286,11 @@
             if (Id != null)
             {
                 await notificationService.Info("Loading data...");
-                GetPharmaNscTac(Id);
+                // If in Edit mode, load the existing record
+                if (Id.HasValue && Id != -1)
+                {
+                    await LoadPharmaNscTac(Id.Value);
+                }
             }
             StateHasChanged();
             await loading.Hide();
@@ -339,62 +298,91 @@
         return;
 
     }
-    private async void GetPharmaNscTac(int? id)
+
+    private async void Save()
     {
-        if (id == null)
+        List<string> missingFields = new List<string>();
+        var saved = false;
+
+        if (string.IsNullOrWhiteSpace(selectedAggrement))
+            missingFields.Add("Agreement Number");
+        if (string.IsNullOrWhiteSpace(selectedNSC))
+            missingFields.Add("NSC");
+        if (string.IsNullOrWhiteSpace(selectedProtocol))
+            missingFields.Add("Protocol Number");
+        if (string.IsNullOrWhiteSpace(selectedTreatmentAssignmentCode))
+            missingFields.Add("Treatment Assignment Code");
+
+        if (missingFields.Count > 0)
         {
+            string errorMessage = $"Please ensure the following fields are filled out: {string.Join(", ", missingFields)}.";
+            await notificationService.Error(errorMessage);
             return;
         }
 
-        PharmaNscTac pharmaNscTac = await pharmaNscTacService.GetByIdAsync(id.Value);
+        bool isUnique = await pharmaNscTacService.IsUniqueCombinationAsync(
+            selectedAggrement,
+            selectedNSC,
+            selectedProtocol,
+            selectedTreatmentAssignmentCode);
 
-        if (pharmaNscTac == null)
+        if (!isUnique)
         {
-            await notificationService.Error("Pharma Nsc Tac not found.");
-            navigation.NavigateTo("/admin/pharmansctacs");
+            await notificationService.Error("The combination of Agreement Number, NSC, Protocol Number, and Treatment Assignment Code must be unique");
             return;
         }
 
-
-    }
-    public async Task<CancellableRowChange<PharmaNscTac>> ConfirmDelete(CancellableRowChange<PharmaNscTac> item)
-    {
-        if (!await messageService.Confirm("Are you sure you want to delete this?", "Confirmation"))
+        try
         {
-            item.Cancel = true;
+
+            var pharmaNscTac = new PharmaNscTac
+                {
+                    AgreementNumber = selectedAggrement,
+                    Nsc = selectedNSC,
+                    ProtocolNumber = selectedProtocol,
+                    TrtAsgnmtCode = selectedTac.TrtAsgnmtCode,
+                    TrtAsgnmtDescription = selectedTac.TrtAsgnmtDescription,
+                    Created = DateTime.UtcNow,
+                    Deleted = null,
+                    Updated = DateTime.UtcNow,
+                    IsActive = true,
+                    IsDeleted = false
+                };
+
+            saved = await pharmaNscTacService.AddAsync(pharmaNscTac, activeUserId);
+           
         }
-
-        return item;
-    }
-    private async Task<Boolean> Delete(PharmaNscTac deleteRow)
-    {
-        Tuple<bool, string> deleted = pharmaNscTacService.DeleteAsync(deleteRow.Id, activeUserId);
-
-        if (deleted.Item1)
+        catch (Exception ex)
         {
-            await notificationService.Success("Successfully deleted!");
-
-            return true;
+            saved = false;
+            await errorLogService.SaveErrorLogAsync(
+                activeUserId,
+                navigation.Uri,
+                ex.InnerException,
+                ex.Source,
+                ex.Message,
+                ex.StackTrace);
+            await notificationService.Error("An error occurred while saving the record.");
+        }
+        
+        if (saved)
+        {
+            await notificationService.Success("Pharmas NSC TACS successfully saved");
         }
         else
         {
-            await notificationService.Error("Error Deleting");
-            return false;
+            await notificationService.Error("Error saving Pharmas NSC TACS");
         }
-    }
-    private async void Save()
-    {
-        bool saved = false;
-        if (await validations.ValidateAll())
+
+        string navTo = "/";
+        var result = await SessionData.GetAsync<string>("dashboardUrl");
+        if (result.Success)
         {
-            // Check for existing group name
-            // if (!pharmaNscTacService.CheckGroupName(groupName, (int)(GroupId != null ? GroupId : 0)))
-            // {
-            //     await NotificationService.Error("Group Name already exists.");
-            //     return;
-            // }
-            DateTime saveDateTime = DateTime.UtcNow;
+            navTo = result.Value ?? "/";
         }
+        navigation.NavigateTo(navTo, true);
+        // Optionally, record the save time if needed
+        DateTime saveDateTime = DateTime.UtcNow;
     }
 
     private async void Cancel()
@@ -408,31 +396,189 @@
         navigation.NavigateTo(navTo, true);
     }
 
-    private Task OnChangeProtocol(string value)
-    {
-        protocol = value;
-        return Task.CompletedTask;
-    }
-    private Task OnChangeDrug(string value)
-    {
-        nsc = value;
-        return Task.CompletedTask;
-    }
-    void IsValidValue(ValidatorEventArgs e)
+    void IsValidAggrementValue(ValidatorEventArgs e)
     {
         Console.WriteLine(e.Value);
 
-        e.Status = !string.IsNullOrEmpty(e.Value?.ToString()) && allAggrements.Any(x => x == e.Value.ToString())
+        e.Status = !string.IsNullOrEmpty(e.Value?.ToString())
             ? ValidationStatus.Success
             : ValidationStatus.Error;
 
         if (e.Status == ValidationStatus.Error)
         {
-            e.ErrorText = "ERROR";
+            e.ErrorText = "Aggrements is required!!!";
         }
         else
         {
             e.ErrorText = "OK";
         }
+    }
+    void IsValidNscValue(ValidatorEventArgs e)
+    {
+        Console.WriteLine(e.Value);
+
+        e.Status = !string.IsNullOrEmpty(e.Value?.ToString()) && allNscs.Any(x => x == e.Value.ToString())
+            ? ValidationStatus.Success
+            : ValidationStatus.Error;
+
+        if (e.Status == ValidationStatus.Error)
+        {
+            e.ErrorText = "NSC is required!!!";
+        }
+        else
+        {
+            e.ErrorText = "OK";
+        }
+    }
+    void IsValidProtocolValue(ValidatorEventArgs e)
+    {
+        Console.WriteLine(e.Value);
+
+        e.Status = !string.IsNullOrEmpty(e.Value?.ToString()) && allProtocols.Any(x => x == e.Value.ToString())
+            ? ValidationStatus.Success
+            : ValidationStatus.Error;
+
+        if (e.Status == ValidationStatus.Error)
+        {
+            e.ErrorText = "Protocol is required!!!";
+        }
+        else
+        {
+            e.ErrorText = "OK";
+        }
+    }
+    void IsValidTACValue(ValidatorEventArgs e)
+    {
+        e.Status = !string.IsNullOrEmpty(e.Value?.ToString()) && allPharmaProtocolTacs.Any(x => x.TrtAsgnmtCode == e.Value.ToString())
+            ? ValidationStatus.Success
+            : ValidationStatus.Error;
+
+        if (e.Status == ValidationStatus.Error)
+        {
+            e.ErrorText = "Treatment Assignment Code is required!!!";
+        }
+        else
+        {
+            e.ErrorText = "OK";
+        }
+    }
+
+    /// <summary>
+    /// Called when the NSC selection changes.
+    /// Filters the list of protocols and resets dependent fields.
+    /// </summary>
+    private async Task OnAggrementsChanged(string value)
+    {
+        selectedAggrement = value;
+    }
+
+    /// <summary>
+    /// Called when the NSC selection changes.
+    /// Filters the list of protocols and resets dependent fields.
+    /// </summary>
+    private async Task OnNSCChanged(string value)
+    {
+        if (isEdit) return;
+
+        selectedNSC = value;
+        // Filter protocols for the selected NSC.
+        await FilterProtocolsByNSC(selectedNSC);
+
+        // Clear previously selected protocol and TAC.
+        selectedProtocol = string.Empty;
+        selectedTreatmentAssignmentCode = string.Empty;
+    }
+
+    /// <summary>
+    /// Called when the Protocol selection changes.
+    /// Filters the list of Treatment Assignment Codes based on the selected protocol.
+    /// </summary>
+    private async Task OnProtocolChanged(string value)
+    {
+        if (isEdit) return;
+        selectedProtocol = value;
+        await FilterTACsByProtocol(selectedProtocol);
+
+        // Optionally auto-populate the Treatment Assignment Code if only one option exists.
+        if (filteredTACs.Count == 1)
+        {
+            selectedTreatmentAssignmentCode = filteredTACs.First().TrtAsgnmtCode;
+        }
+        else
+        {
+            selectedTreatmentAssignmentCode = string.Empty;
+        }
+    }
+    private async Task OnProtocolTacChanged(string value)
+    {
+        if (isEdit) return;
+        selectedTreatmentAssignmentCode = value;
+        selectedTac =  allPharmaProtocolTacs.Where(p => p.TrtAsgnmtCode == value).FirstOrDefault();
+
+    }
+
+
+    /// <summary>
+    /// Loads an existing Pharma NSC TAC record by its Id and sets the selected values.
+    /// Also filters the protocol and TAC lists accordingly.
+    /// </summary>
+    private async Task LoadPharmaNscTac(int id)
+    {
+        var pharmaNscTac = await pharmaNscTacService.GetByIdAsync(id);
+        if (pharmaNscTac == null)
+        {
+            await notificationService.Error("Pharma NSC TAC not found.");
+            navigation.NavigateTo("/pharma/pharmansctacs");
+            return;
+        }
+
+        // Set selected values from the loaded record.
+        // Adjust the property names based on your PharmaNscTac model.
+        selectedNSC = pharmaNscTac.Nsc;
+        selectedProtocol = pharmaNscTac.ProtocolNumber;
+        selectedTreatmentAssignmentCode = pharmaNscTac.TrtAsgnmtCode;
+        selectedAggrement = pharmaNscTac.AgreementNumber;  // if applicable
+
+        // Filter protocols based on the NSC value.
+        await FilterProtocolsByNSC(selectedNSC);
+        // And filter TACs based on the protocol.
+        await FilterTACsByProtocol(selectedProtocol);
+    }
+
+    /// <summary>
+    /// Filters the available protocols based on the selected NSC.
+    /// Assumes that each ProtocolTac has an NSC property.
+    /// </summary>
+    private async Task FilterProtocolsByNSC(string nsc)
+    {
+        // Retrieve all CdrdmStudyAgent records (this could be cached earlier if needed).
+        var studyAgents = await drugListService.GetDocumentNumbersByNscAsync(nsc);
+
+        // Filter for the given NSC, select distinct document numbers, and order them.
+        allProtocols = studyAgents
+            .Select(agent => agent)
+            .Where(docNum => !string.IsNullOrEmpty(docNum)) // optionally, filter out null/empty values
+            .Distinct()
+            .OrderBy(docNum => docNum)
+            .ToList();
+
+        await Task.CompletedTask;
+    }
+    /// <summary>
+    /// Filters the Treatment Assignment Codes based on the selected protocol.
+    /// Assumes that the ProtocolTac objects have a StudyId property matching the protocol.
+    /// </summary>
+    private async Task FilterTACsByProtocol(string protocol)
+    {
+        filteredTACs = allPharmaProtocolTacs
+            .Where(p => p.StudyId == protocol)
+            .OrderBy(p => p.TrtAsgnmtCode)
+            .ToList();
+
+        await Task.CompletedTask;
+    }
+    private async Task HandleValidSubmit()
+    {
+
     }
 }

@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TheradexPortal.Data.Models.Pharma
 {
-    [Table("PHARMA_NSC_TAC", Schema = "MRATHI")]
+    [Table("PHARMA_NSC_TAC", Schema = "THORDB")]
     public class PharmaNscTac
     {
         [Key]
@@ -33,5 +33,7 @@ namespace TheradexPortal.Data.Models.Pharma
         public DateTime? Deleted { get; set; }
         [Column("ISACTIVE")]
         public bool IsActive { get; set; }
+        [Column("ISDELETED")]
+        public bool IsDeleted{ get; set; }
     }
 }

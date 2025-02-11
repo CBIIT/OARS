@@ -69,8 +69,8 @@ namespace TheradexPortal.Data
                     modelBuilder.Entity(entity.ClrType).HasNoKey();
                 }
             }
-            modelBuilder.Entity<Models.Pharma.DrugList>().HasKey(d => new { d.DrugId, d.Nsc});
-            modelBuilder.Entity<Models.Pharma.ProtocolTac>().HasKey(d => new { d.StudyId, d.TrtAsgnmtCode });
+            //modelBuilder.Entity<Models.Pharma.CdrdmStudyAgent>().HasKey(d => new { d.DocumentNumber, d.Nsc});
+            modelBuilder.Entity<Models.Pharma.ProtocolTac>().HasKey(d => new { d.StudyId, d.TrtAsgnmtCode});
 
             // Stop the stopwatch and log the time taken
             stopwatch.Stop();
@@ -269,7 +269,7 @@ namespace TheradexPortal.Data
         public DbSet<ReviewItem> ReviewItems { get; set; }
         public DbSet<Audit> Audits { get; set; }
         public DbSet<Models.Pharma.PharmaNscTac> Pharma_PharmaNscTacs { get; set; }
-        public DbSet<Models.Pharma.DrugList> Pharma_DrugLists { get; set; }
+        public DbSet<Models.Pharma.CdrdmStudyAgent> Pharma_CdrdmStudyAgent{ get; set; }
         public DbSet<Models.Pharma.ProtocolTac> Pharma_ProtocolTacs { get; set; }
 
     }

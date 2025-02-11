@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TheradexPortal.Data.Models.Pharma
 {
-    [Table("PROTOCOL_TAC", Schema = "MRATHI")]
+    [Table("PROTOCOL_TAC", Schema = "THORDB")]
     public class ProtocolTac
     {
         [Key]
@@ -14,12 +14,12 @@ namespace TheradexPortal.Data.Models.Pharma
         public string StudyId { get; set; }
 
         [Key]
-        [Column("TAC")]
+        [Column("TRT_ASGNMT_CODE")]
         [Required]
-        [MaxLength(50)]
+        [MaxLength(500)]
         public string TrtAsgnmtCode { get; set; }
 
-        [Column("TAC_DESCRIPTION")]
+        [Column("TRT_ASGNMT_DESCRIPTION")]
         [MaxLength(4000)]
         public string TrtAsgnmtDescription { get; set; }
 

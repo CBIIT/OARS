@@ -92,7 +92,7 @@ builder.Services.AddScoped<IReviewService, ReviewService>();
 
 builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddScoped<IPharmaNscTacService, PharmaNscTacService>();
-builder.Services.AddScoped<IPharmaDrugListService, PharmaDrugListService>();
+builder.Services.AddScoped<IPharmaCdrdmStudyAgentService, PharmaCdrdmStudyAgentService>();
 builder.Services.AddScoped<IPharmaProtocolTacService, PharmaProtocolTacService>();
 
 

@@ -23,7 +23,16 @@
 
 @page "/pharma/pharmansctacs/{dashboardid:int?}/{reportid:int?}"
 
-<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>Pharmas NSC TACS List</h2></Div>
+<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1">
+    <h2>Pharmas NSC TACS List </h2>
+</Div>
+<Row Background="Background.Light">
+    <Column ColumnSize="ColumnSize.IsFull">
+        <Div style="padding:16px; background-color:#f8f9fa; display:flex; justify-content:flex-end;">
+            <Button Background="Background.Dark" Size="Size.Small" TextColor="TextColor.Light" Clicked="@NewClick">Create TAC Association</Button>
+        </Div>
+    </Column>
+</Row>
 <Row Background="Background.Light">
     <Column ColumnSize="ColumnSize.IsFull">
         <DataGrid TItem="PharmaNscTac"
@@ -38,7 +47,6 @@
         ShowPager
         PageSize="50"
         ShowPageSizes
-        ShowColumnChooser
         MaxPaginationLinks="5"
         PagerPosition="DataGridPagerPosition.Bottom"
         FixedHeader
@@ -57,7 +65,7 @@
             <DataGridColumns>
                 <DataGridMultiSelectColumn Width="30px"> </DataGridMultiSelectColumn>
                 <DataGridCommandColumn />
-                <DataGridColumn Field="@nameof(PharmaNscTac.Id)" Caption="Id" Displayable="false" />
+                <DataGridColumn Field="@nameof(PharmaNscTac.Id)" Caption="Id" Displayable="true" />
                 <DataGridColumn Field="@nameof(PharmaNscTac.AgreementNumber)" Caption="Agreement" Groupable />
                 <DataGridColumn Field="@nameof(PharmaNscTac.Nsc)" Caption="NSC" Groupable />
                 <DataGridColumn Field="@nameof(PharmaNscTac.ProtocolNumber)" Caption="Study" Groupable />
@@ -65,33 +73,40 @@
                 <DataGridColumn Field="@nameof(PharmaNscTac.TrtAsgnmtDescription)" Caption="Treatment Assignment  Description" />
                 <DataGridColumn Field="@nameof(PharmaNscTac.Created)" Caption="Date Created" Displayable="false" />
                 <DataGridColumn Field="@nameof(PharmaNscTac.Updated)" Caption="Date Updated" Displayable="false" />
-                <DataGridColumn Field="@nameof(PharmaNscTac.Deleted)" Caption="Date Deleted" Displayable="false" />
-                <DataGridColumn Field="@nameof(PharmaNscTac.IsActive)" Caption="Record Active" Displayable="false" />
+                <DataGridColumn Field="@nameof(PharmaNscTac.Deleted)" Caption="Date Deleted" Displayable="false" Groupable />
+                <DataGridColumn Field="@nameof(PharmaNscTac.IsDeleted)" Caption="Deleted" Displayable="true" Groupable />
+                <DataGridColumn Field="@nameof(PharmaNscTac.IsActive)" Caption="Active" Displayable="true" Groupable />
                 <DataGridColumn Sortable="false" Filterable="false" Width="140px">
                     <DisplayTemplate>
-                        <Button Color="Color.Info" Clicked="@(()=>EditClick(context as PharmaNscTac))">Edit</Button>
-                        <Button Color="Color.Secondary" Clicked="@(()=>ShowDeleteModal(context as PharmaNscTac))">Delete</Button>
+                        @* <Button Color="Color.Info" Clicked="@(()=>EditClick(context as PharmaNscTac))">Edit</Button> *@
+                        <Button Color="Color.Secondary" Clicked="@(()=>ShowDeleteModal(context as PharmaNscTac))">Remove TAC Association</Button>
                     </DisplayTemplate>
                 </DataGridColumn>
             </DataGridColumns>
             <ButtonRowTemplate>
-                <Button Color="Color.Primary" Clicked="@NewClick">Create</Button>
             </ButtonRowTemplate>
         </DataGrid>
+    </Column>
+</Row>
+<Row Background="Background.Light">
+    <Column ColumnSize="ColumnSize.IsFull">
+        <Div style="padding:16px; background-color:#f8f9fa; display:flex; justify-content:flex-end;">
+            <Button Background="Background.Dark" Size="Size.Small" TextColor="TextColor.Light" Clicked="@NewClick">Create TAC Association</Button>
+        </Div>
     </Column>
 </Row>
 <Modal @ref="deleteModalRef">
     <ModalContent Centered>
         <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
-            <ModalTitle>Delete Group: @pharmaNscTacToDelete</ModalTitle>
+            <ModalTitle>Delete TAC Association: @pharmaNscTacToDelete</ModalTitle>
             <CloseButton />
         </ModalHeader>
         <ModalBody>
-            Warning:  Continuing will delete this group.
+            Warning:  Continuing will delete this TAC Association.
         </ModalBody>
         <ModalFooter>
             <Button Color="Color.Light" Clicked="@HideDeleteModal">Cancel</Button>
-            <Button Color="Color.Danger" Clicked="@DeleteGroupClick">Delete</Button>
+            <Button Color="Color.Danger" Clicked="@DeleteClick">Delete</Button>
         </ModalFooter>
     </ModalContent>
 </Modal>
@@ -134,22 +149,22 @@
         Protocols = studyService.GetProtocolsForUserAsync(userId, true).ToList().Where(i => i.STS != null && i.STS.ToLower() == "yes" && i.CDASH != null && i.CDASH.ToLower() == "yes").ToList();
         pharmaNscTacList = (await pharmaNscTacService.GetAllAsync()).ToList();
 
-        List<string> allowed = new List<string> { "DMU Study Admin", "DMU Global Admin" };
-        allowed = new List<string> { };
-        List<string> adminRole = new List<string> { "IT" };
+        // List<string> allowed = new List<string> { "DMU Study Admin", "DMU Global Admin" };
+        // allowed = new List<string> { };
+        // List<string> adminRole = new List<string> { "IT" };
 
-        if (httpContextAccessor?.HttpContext?.User.HasAnyTHORRole(allowed.ToArray()) == false && httpContextAccessor?.HttpContext?.User.HasAnyAdminRole(adminRole.ToArray()) == false)
-        {
-            var studyIds = userService.GetProtocolAccessForUser(httpContextAccessor.HttpContext.User.GetUserId());
-            Protocols = Protocols.Where(x => studyIds.Contains(x.StudyId)).ToList();
-            pharmaNscTacList = pharmaNscTacList.Where(x => studyIds.Contains(x.ProtocolNumber)).ToList();
-        }
+        // if (httpContextAccessor?.HttpContext?.User.HasAnyTHORRole(allowed.ToArray()) == false && httpContextAccessor?.HttpContext?.User.HasAnyAdminRole(adminRole.ToArray()) == false)
+        // {
+        //     var studyIds = userService.GetProtocolAccessForUser(httpContextAccessor.HttpContext.User.GetUserId());
+        //     Protocols = Protocols.Where(x => studyIds.Contains(x.StudyId)).ToList();
+        //     pharmaNscTacList = pharmaNscTacList.Where(x => studyIds.Contains(x.ProtocolNumber)).ToList();
+        // }
     }
 
 
     private async void NewClick()
     {
-        //navigation.NavigateTo("/admin/group");
+        navigation.NavigateTo("/pharma/pharmansctac/");
     }
 
     private async void EditClick(PharmaNscTac p)
@@ -159,13 +174,13 @@
 
     private async Task ShowDeleteModal(PharmaNscTac p)
     {
-        var canDel = true;
+        bool canDel= await pharmaNscTacService.CanDelete(p.Id);
         if (!canDel)
-            await NotificationService.Error("Can not delete.");
+            await NotificationService.Error("Can not delete Pharmas NSC TACS.");
         else
         {
-            // groupToDelete = p.GroupName;
-            // groupToDeleteId = p.GroupId;
+            pharmaNscTacToDelete = $"Id - {p.Id} , Agreement - {p.AgreementNumber}, NSC - {p.Nsc}, Study - {p.ProtocolNumber}";
+            pharmaNscTacToDeleteId = p.Id;
             await deleteModalRef.Show();
         }
     }
@@ -175,23 +190,22 @@
         return deleteModalRef.Hide();
     }
 
-    private async void DeleteGroupClick()
+    private async void DeleteClick()
     {
-        // PharmaNscTac pharmaNscTacToDel;
-        // // Check if any users assigned to groups - if not ok to delete
-        // int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
-        // Tuple<bool, string> delpharmaNscTac = pharmaNscTacService.DeleteAsync(pharmaNscTacToDel.ProtocolNumber, userId);
+       
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+        Tuple<bool, string> delpharmaNscTac = await pharmaNscTacService.DeleteAsync(pharmaNscTacToDeleteId, userId);
 
-        // await deleteModalRef.Hide();
-        // if (delpharmaNscTac.Item1)
-        // {
-        //     await NotificationService.Success("Group deleted successfully");
-        //     pharmaNscTacList = await pharmaNscTacService.GetAllAsync();
-        //     StateHasChanged();
-        // }
-        // else
-        // {
-        //     await NotificationService.Error(delpharmaNscTac.Item2);
-        // }
+        await deleteModalRef.Hide();
+        if (delpharmaNscTac.Item1)
+        {
+            await NotificationService.Success($"Pharmas NSC TACS {pharmaNscTacToDelete} deleted successfully");
+            pharmaNscTacList = (await pharmaNscTacService.GetAllAsync()).ToList();
+            StateHasChanged();
+        }
+        else
+        {
+            await NotificationService.Error(delpharmaNscTac.Item2);
+        }
     }
 }
