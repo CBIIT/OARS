@@ -84,7 +84,6 @@ else
     private Dashboard selectedDashboard { get; set; } = null!;
     private IList<ThorAlert> activeAlerts = new List<ThorAlert>();
     private string? dismissedAlerts = string.Empty;
-    private int activeUserId;
 
     protected override async Task OnInitializedAsync()
     {
@@ -93,7 +92,6 @@ else
         await this.getSystemAlerts();
         await this.getLoginAlerts();
         await this.getDashboardAlerts();
-        activeUserId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
         this.alertColor = await alertService.AlertColor();
         this.noteColor = await alertService.NoteColor();
         this.infoColor = await alertService.InfoColor();
@@ -138,11 +136,9 @@ else
             {
                 this.activeAlerts = await alertService.GetActiveSystemAlertsAsync();
 
+                var activeUserId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
 
                 //The following code alerts the user if they have overdue reviews 
-                var overdueReviewCounts = await reviewService.GetPiAndMoOverdueReviewCountsAsync(activeUserId);
-                var overduePi = overdueReviewCounts.Item1;
-                var overdueMo = overdueReviewCounts.Item2;
                 var overdueCounts = await reviewService.GetPiAndMoOverdueReviewCountsAsync(activeUserId);
                 var upcomingCounts = await reviewService.GetPiAndMoUpcomingReviewCountsAsync(activeUserId);
                 var overdueTotal = overdueCounts.Item1 + overdueCounts.Item2;
