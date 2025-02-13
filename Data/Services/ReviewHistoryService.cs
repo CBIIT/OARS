@@ -141,6 +141,7 @@ namespace TheradexPortal.Data.Services
             newHistory.ProtocolId = protocolId;
             newHistory.ReviewPeriodName = previousReview.ReviewPeriodName;
             newHistory.ReviewId = previousReview.ReviewId;
+            newHistory.MissedReviewCount = 0;
             
             await context.AddAsync(newHistory);
 
@@ -167,6 +168,20 @@ namespace TheradexPortal.Data.Services
             res.UpdateDate = DateTime.Now;
             res.DaysLate = daysLate;
             res.ReviewLate = lateStatus;
+
+            var status = context.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task<bool> SetMissedReviewHistoryCountAsync (int userId, int protocolId, string reviewType, int missedReviewCount)
+        {
+            ReviewHistory res = await context.ReviewHistories
+                .Where(rh => rh.ReviewType == reviewType && rh.UserId == userId && rh.ProtocolId == protocolId && rh.ReviewCompleteDate == null)
+                .FirstOrDefaultAsync();
+
+            res.UpdateDate = DateTime.Now;
+            res.MissedReviewCount = missedReviewCount;
 
             var status = context.SaveChangesAsync();
 

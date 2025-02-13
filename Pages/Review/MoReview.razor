@@ -712,6 +712,7 @@
                         if(currentReview.MissedReviewCount > 0)
                         {
                             await reviewService.SetMissedReviewCountAsync(activeUserId, AgentId, "MO", 0);
+                            await reviewHistoryService.SetMissedReviewHistoryCountAsync(activeUserId, AgentId, "MO", 0);
                         }
                         // Also make sure reviewHistory is not late
                         if(latestReviewHistory.ReviewLate == 'T' || latestReviewHistory.DaysLate > 0)
@@ -729,6 +730,7 @@
                             if (currentReview.MissedReviewCount != cyclesMissed)
                             {
                                 await reviewService.SetMissedReviewCountAsync(activeUserId, AgentId, "MO", cyclesMissed);
+                                await reviewHistoryService.SetMissedReviewHistoryCountAsync(activeUserId, AgentId, "MO", cyclesMissed);
                             }
                         }
                         // Also make sure reviewHistory is set late

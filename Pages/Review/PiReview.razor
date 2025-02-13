@@ -601,6 +601,7 @@
                         if(currentReview.MissedReviewCount > 0)
                         {
                             await reviewService.SetMissedReviewCountAsync(activeUserId, ProtocolId, "PI", 0);
+                            await reviewHistoryService.SetMissedReviewHistoryCountAsync(activeUserId, ProtocolId, "PI", 0);
                         }
                         // Also make sure reviewHistory is not late
                         if(latestReviewHistory.ReviewLate == 'T' || latestReviewHistory.DaysLate > 0)
@@ -618,6 +619,7 @@
                             if (currentReview.MissedReviewCount != cyclesMissed)
                             {
                                 await reviewService.SetMissedReviewCountAsync(activeUserId, ProtocolId, "PI", cyclesMissed);
+                                await reviewHistoryService.SetMissedReviewHistoryCountAsync(activeUserId, ProtocolId, "PI", cyclesMissed);
                             }
                         }
                         // Also make sure reviewHistory is set late
