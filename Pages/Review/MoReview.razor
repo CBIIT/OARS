@@ -99,6 +99,7 @@
                     <Items>
                         <Tab Name="notehistory">Note History</Tab>
                         <Tab Name="emailhistory">Email History</Tab>
+                        <Tab Name="moAuditTrail">MO Audit Trail #@reviewName</Tab>
                         @foreach (var pi in lstPiDetails)
                         {
                             var piLastName = pi.PiName.Substring(pi.PiName.IndexOf(' ') + 1);
@@ -158,6 +159,61 @@
                                 <DataGridColumn TItem="EmailDetails" Field="@nameof(EmailDetails.EmailTo)" Caption="Recipient" />
                                 <DataGridColumn TItem="EmailDetails" Field="@nameof(EmailDetails.Body)" Caption="Email Body" />
                                 <DataGridColumn TItem="EmailDetails" Field="@nameof(EmailDetails.CreationDate)" Caption="Email Sent Date" />
+                            </DataGrid>
+                        </TabPanel>
+                        <TabPanel Name="moAuditTrail">
+                            <DataGrid @ref="moAuditDataGrid"
+                            TItem="AuditTrailDTO"
+                            Class="admindatagrid"
+                            Data="@lstMoAudits"
+                            Bordered="true"
+                            AltBordered="true"
+                            Responsive
+                            Filterable
+                            Striped
+                            ShowPager
+                            ShowPageSizes
+                            MaxPaginationLinks="5"
+                            PagerPosition="DataGridPagerPosition.Bottom"
+                            PagerOptions="new(){ButtonSize=Size.Default,
+                                PaginationPosition=PagerElementPosition.Default,
+                                TotalItemsPosition=PagerElementPosition.End,
+                                }"
+                            FixedHeader
+                            FixedHeaderDataGridHeight="calc(100vh - 240px)"
+                            FixedHeaderDataGridMaxHeight="calc(100vh - 240px)">
+                                <DataGridCommandColumn />
+                                <DataGridColumn TItem="AuditTrailDTO" Caption="User">
+                                    <DisplayTemplate>
+                                        <Div Style="white-space: nowrap;">
+                                            @context.userName
+                                        </Div>
+                                    </DisplayTemplate>
+                                </DataGridColumn>
+                                <DataGridColumn TItem="AuditTrailDTO" Field="@nameof(AuditTrailDTO.userEmail)" Caption="User Email" />
+                                <DataGridColumn TItem="AuditTrailDTO" Caption="Date Of Change">
+                                    <DisplayTemplate>
+                                        <Div Style="white-space: nowrap;">
+                                            @context.dateOfChange
+                                        </Div>
+                                    </DisplayTemplate>
+                                </DataGridColumn>
+                                <DataGridColumn TItem="AuditTrailDTO" Field="@nameof(AuditTrailDTO.typeOfChange)" Caption="Type Of Change" />
+                                <DataGridColumn TItem="AuditTrailDTO" Field="@nameof(AuditTrailDTO.changeField)" Caption="Changed Field" />
+                                <DataGridColumn TItem="AuditTrailDTO" Caption="Previous Value">
+                                    <DisplayTemplate>
+                                        <Div Style="white-space: pre-wrap;">
+                                            @context.previousValue
+                                        </Div>
+                                    </DisplayTemplate>
+                                </DataGridColumn>
+                                <DataGridColumn TItem="AuditTrailDTO" Caption="New Value" >
+                                    <DisplayTemplate>
+                                        <Div Style="display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; word-wrap: break-word; white-space: pre-wrap;">
+                                            @context.newValue
+                                        </Div>
+                                    </DisplayTemplate>
+                                </DataGridColumn>
                             </DataGrid>
                         </TabPanel>
                         @foreach (var pi in lstPiDetails)
@@ -406,6 +462,7 @@
         private bool durationChanged => mo_duration != original_mo_duration || pi_duration != original_pi_duration;
         private DataGrid<TextNotes> noteDataGrid;
         private DataGrid<EmailDetails> emailDataGrid;
+        private DataGrid<AuditTrailDTO> moAuditDataGrid;
         private DataGrid<AuditTrailDTO> piDataGrid;
         private string userFullName = "No Name Found";
         private string userFirstName = "Error";
@@ -448,6 +505,7 @@
         private List<EmailDetails> lstEmailDetails = new List<EmailDetails>();
         private List<CheckBoxManager> lstManagers = new List<CheckBoxManager>();
         private List<ReviewPiDTO> lstPiDetails = new List<ReviewPiDTO>();
+        private List<AuditTrailDTO> lstMoAudits = new List<AuditTrailDTO>();
 
         [Parameter]
         public int AgentId { get; set; } = 0;
@@ -684,7 +742,7 @@
                         lstPiDetails = await reviewService.GetPiInfoAsync(AgentId);
                         foreach(var pi in lstPiDetails)
                         {
-                            pi.lstPiAuditTrail = await GenerateAuditTrail(pi.piIdNumber, pi.lstPiAuditTrail);
+                            pi.lstPiAuditTrail = await GenerateAuditTrail(pi.piIdNumber, pi.lstPiAuditTrail, "PI");
                         }
                         var user = await userService.GetUserAsync(latestReviewHistory.UserId);
                         if (user != null)
@@ -762,17 +820,18 @@
                                 lstEmailDetails.Add(new EmailDetails { Body = email.Body, EmailTo = email.Recipient, CreationDate = email.CreationDate.HasValue ? email.CreationDate.Value.ToString("dd-MMM-yyyy hh:mm:ss tt").ToUpper() : "null" });
                             }
                         }
+                        lstMoAudits = await GenerateAuditTrail(activeUserId, lstMoAudits, "MO");
                     }
                 }
             }
         }
 
-        private async Task<List<AuditTrailDTO>> GenerateAuditTrail(int piUserId, List<AuditTrailDTO> lstAudits)
+        private async Task<List<AuditTrailDTO>> GenerateAuditTrail(int piUserId, List<AuditTrailDTO> lstAudits, string userRole)
         {
             try
             {
-                var piCurrentReview = await reviewService.GetCurrentReviewAsync(AgentId, piUserId, "PI");
-                var piLatestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(AgentId, piUserId, "PI");
+                var piCurrentReview = await reviewService.GetCurrentReviewAsync(AgentId, piUserId, userRole);
+                var piLatestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(AgentId, piUserId, userRole);
                 if (piCurrentReview != null && piLatestReviewHistory != null)
                 {
                     lstAudits = await auditService.GetFullAuditTrailAsync(
