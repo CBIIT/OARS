@@ -119,6 +119,7 @@
                         <DataGridColumns>
                             <DataGridMultiSelectColumn Width="30px"> </DataGridMultiSelectColumn>
                             <DataGridCommandColumn />
+                            <DataGridColumn Field="@nameof(ReviewItem.ReviewItemId)" Caption="Review Item #" />
                             <DataGridColumn Field="@nameof(ReviewItem.ReviewItemName)" Caption="Review Item" />
                             <DataGridColumn Field="@nameof(ReviewItem.IsActive)" Filterable="false" Caption="Active" Width="125px">
                                 <DisplayTemplate>
