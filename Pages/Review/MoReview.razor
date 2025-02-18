@@ -107,7 +107,7 @@
                         {
                             var piLastName = pi.PiName.Substring(pi.PiName.IndexOf(' ') + 1);
                             string tabName = $"piDetails{piLastName}";
-                            <Tab Name="@tabName">PI  @piLastName Overview</Tab>
+                            <Tab Name="@tabName">PI:  @piLastName - Audit #@pi.periodName</Tab>
                         }
                     </Items>
                     <Content>
