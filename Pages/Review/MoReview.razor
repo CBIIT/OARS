@@ -709,6 +709,7 @@
         private List<string> reviewEmail = new List<string> { "No previous emails." };
         FileEdit fileEditRef;
         private IList<int> authorizedUsers;
+        private int reviewHistoryId;
         string uploadFileName = "";
         List<string> lstAttachments = new List<string>();
         Dictionary<int, bool> dctReviewItemSettings = new Dictionary<int, bool>();
@@ -720,6 +721,8 @@
         {
             lstReviewItems = await reviewItemService.GetReviewItemListAsync("MO", 'T');
             activeUserId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+
+            bool activeReviewCheck;
             if (AgentId > 0)
             {
                 currentReview = await reviewService.GetCurrentReviewAsync(AgentId, activeUserId, "MO");
@@ -730,11 +733,26 @@
                 {
                     DueDate = ((DateTime)currentReview.NextDueDate).Date.ToString("dd-MMM-yyyy");
                     daysRemaining = (((DateTime)currentReview.NextDueDate) - DateTime.Now).Days;
+                    if (latestReviewHistory == null)
+                    {
+                        reviewHistoryId = reviewHistoryService.GetNextReviewHistoryId();
+                        activeReviewCheck = false;
+                    }
+                    else
+                    {
+                        reviewHistoryId = latestReviewHistory.ReviewHistoryId;
+                        activeReviewCheck = await reviewHistoryService.isReviewActive(reviewHistoryId);
+                    }
+
+                    if (!activeReviewCheck)
+                    {
+                        await reviewHistoryService.StartNewReviewAsync(activeUserId, AgentId, "MO", reviewHistoryId);
+                        latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(AgentId, activeUserId, "MO");
+                    }
                     (mo_duration, pi_duration)= await reviewService.GetReviewDurationsAsync(currentReview.ProtocolId);
                     original_mo_duration = mo_duration;
                     original_pi_duration = pi_duration;
-                    if (latestReviewHistory != null)
-                    {
+
                         var activeReview = await reviewHistoryService.isReviewActive(latestReviewHistory.ReviewHistoryId);
                         if (!activeReview)
                         {
@@ -824,7 +842,6 @@
                             }
                         }
                         lstMoAudits = await GenerateAuditTrail(activeUserId, lstMoAudits, "MO");
-                    }
                 }
             }
         }
