@@ -74,13 +74,12 @@
             <Div Class="pt-2"></Div>
             <Div Flex="Flex.JustifyContent.Center">
                 <Div> 
-                    <b>Study @ProtocolId</b>: @studyDescription
+                    <b>Study #@ProtocolId</b>: @studyDescription
                 </Div>
             </Div>
         </Row>
         <Row>
-            <br />
-            <Div></Div>
+            <Div Class="pt-3"></Div>
             <Div Class="rounded p-2 border border-primary">
                 Please go through each item in the checklist below, complete the necessary actions as instructed, and check the box next to each item. The 'Sign Off' button will remain disabled until all items are checked off.
             </Div>
@@ -108,11 +107,8 @@
                 <Button Color="Color.Primary" Clicked="@DiscardChanges">Discard Changes</Button>
                 <Button Color="Color.Primary" Clicked="@ShowContactUsModal" >Send Email</Button>
             </Column>
-        </Row>
-        <Row>
-            <Div><br /></Div>
-            <Column>
-                <Button Color="Color.Warning" Disabled="@submitIsDisabled" Clicked="@ShowSubmitReviewModal">Sign Off</Button>
+            <Column Flex="Flex.JustifyContent.End">
+                <Button Color="Color.Warning" Disabled="@submitIsDisabled" Clicked="@ShowSubmitReviewModal" Style="text-align: right;">Provided Review Sign Off</Button>
             </Column>
         </Row>
         <Row>
