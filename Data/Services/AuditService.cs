@@ -38,14 +38,26 @@ namespace TheradexPortal.Data.Services
             List<int> reviewHistoryNoteIds, List<int> reviewHistoryEmailIds)
         {
             List<AuditTrailDTO> auditTrail = new List<AuditTrailDTO>();
-            Audit reviewAuditTrail = await GetReviewAuditTrailAsync(userId, reviewId);
+            // Audit reviewAuditTrail = await GetReviewAuditTrailAsync(userId, reviewId);
             var currentUser = await _userService.GetUserAsync(userId);
             var userName = currentUser.FirstName + " " + currentUser.LastName;
             var userEmail = currentUser.EmailAddress;
 
-            if (reviewAuditTrail != null)
+            //if (reviewAuditTrail != null)
+            //{
+            //    ProcessAuditEntry(reviewAuditTrail, userName, userEmail, auditTrail);
+            //}
+
+            if (reviewHistoryId != 0)
             {
-                ProcessAuditEntry(reviewAuditTrail, userName, userEmail, auditTrail);
+                IList<Audit> reviewHistoryAuditTrail = await GetReviewHistoryAuditTrailAsync(userId, reviewHistoryId);
+                if (reviewHistoryAuditTrail != null)
+                {
+                    foreach (var riAudit in reviewHistoryAuditTrail)
+                    {
+                        ProcessAuditEntry(riAudit, userName, userEmail, auditTrail);
+                    }
+                }
             }
 
             if (reviewHistoryItemIds.Count > 0)
@@ -250,13 +262,51 @@ namespace TheradexPortal.Data.Services
 
         private async Task<IList<Audit>> GetReviewHistoryAuditTrailAsync(int userId, int reviewHistoryId)
         {
-            string sqlQuery = "SELECT * FROM \"AUDIT\" WHERE USERID = {0} AND JSON_VALUE(PRIMARYKEY, '$.ReviewId') = {1}";
+            IList<Audit> localAuditCopy = null;
+            string sqlQuery = "SELECT * FROM \"AUDIT\" WHERE USERID = {0} AND JSON_VALUE(PRIMARYKEY, '$.ReviewHistoryId') = {1}";
 
             var ret = await context.Audits
-                    .FromSqlRaw(sqlQuery, userId)
+                    .FromSqlRaw(sqlQuery, userId, reviewHistoryId)
                     .ToListAsync();
 
-            return ret;
+            if (ret != null)
+            {
+                localAuditCopy = ret.Select(audit => new Audit
+                {
+                    AuditId = audit.AuditId,
+                    UserId = audit.UserId,
+                    CreateDate = audit.CreateDate,
+                    AuditType = audit.AuditType,
+                    TableName = audit.TableName,
+                    AffectedColumns = audit.AffectedColumns,
+                    OldValues = audit.OldValues,
+                    NewValues = audit.NewValues,
+                    PrimaryKey = audit.PrimaryKey,
+                    IsPrimaryTable = audit.IsPrimaryTable
+                }).ToList();
+
+
+                foreach (var item in localAuditCopy)
+                {
+                    var oldValuesDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(item.NewValues);
+                    string dueDate = oldValuesDict["DueDate"];
+                    string reviewPeriodName = oldValuesDict["ReviewPeriodName"];
+
+                    item.AffectedColumns = "Reivew Item";
+                    item.TableName = "Review Item";
+                    if (item.AuditType == "Update")
+                    {
+                        item.OldValues = "";
+                        item.NewValues = "Review Completed.";
+                    }
+                    else
+                    {
+                        item.OldValues = "";
+                        item.NewValues = "New Review Started\nDue Date: " + dueDate + "\nReview Period Name: " + reviewPeriodName;
+                    }
+                }
+            }
+            return localAuditCopy;
         }
 
         /* There should only ever be 1 "review" Audit per audit history we pull, the most recent. */
