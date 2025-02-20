@@ -10,15 +10,17 @@ namespace TheradexPortal.Data.Services
     public class UserService : BaseService, IUserService
     {
         private readonly IErrorLogService _errorLogService;
+        private readonly IStudyService _studyService;
         private readonly NavigationManager _navManager;
         private readonly IConfiguration configuration;
         protected readonly ILogger<UserService> logger;
 
-        public UserService(ILogger<UserService> logger, IConfiguration configuration, IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, NavigationManager navigationManager, IHttpContextAccessor httpContextAccessor) : base(databaseConnectionService)
+        public UserService(ILogger<UserService> logger, IConfiguration configuration, IDatabaseConnectionService databaseConnectionService, IErrorLogService errorLogService, IStudyService studyService, NavigationManager navigationManager, IHttpContextAccessor httpContextAccessor) : base(databaseConnectionService)
         {
             this.logger = logger;
             this.configuration = configuration;
             _errorLogService = errorLogService;
+            _studyService = studyService;
             _navManager = navigationManager;
         }
 
@@ -151,6 +153,7 @@ namespace TheradexPortal.Data.Services
                         foreach (UserProtocol del in upToRemove)
                             dbUser.UserProtocols.Remove(del);
 
+
                         // User Groups
                         foreach (UserGroup ug in user.UserGroups)
                         {
@@ -196,6 +199,76 @@ namespace TheradexPortal.Data.Services
                         }
 
                         context.SaveChangesAsync(loggedInUserId, primaryTable);
+
+                        //Remove the user's selected and currently selected protocols which are not assigned to them
+                        if (user.AllStudies == false)
+                        {
+                            UserSelectedProtocols? userSelectedProtocols = context.User_Selected_Protocols.FirstOrDefault(usp => usp.UserId == user.UserId);
+                            List<Protocol>? allUserProtocols = _studyService.GetProtocolsForUserAsync(user.UserId, false) as List<Protocol>;
+
+                            if (allUserProtocols != null)
+                            {
+                                string? selectedProtocols = userSelectedProtocols?.Selected_Protocols;
+                                if (selectedProtocols != null)
+                                {
+                                    string[] selectedProtocolsArr = selectedProtocols.Split(',');
+                                    string updatedSelectedProtocols = "";
+
+                                    foreach (String selection in selectedProtocolsArr)
+                                    {
+                                        bool protocolIsAssigned = false;
+                                        foreach (Protocol p in allUserProtocols)
+                                        {
+                                            if (p?.StudyId == selection)
+                                                protocolIsAssigned = true;
+
+                                        }
+                                        if (protocolIsAssigned)
+                                            updatedSelectedProtocols += selection + ",";
+                                    }
+
+                                    if (updatedSelectedProtocols.Length > 0)
+                                        userSelectedProtocols!.Selected_Protocols = updatedSelectedProtocols.Trim(',');
+                                    else
+                                        userSelectedProtocols!.Selected_Protocols = null;
+                                }
+
+                                string? currentProtocols = userSelectedProtocols?.Current_Protocols;
+                                if (currentProtocols != null)
+                                {
+                                    string[] currentProtocolsArr = currentProtocols.Split(',');
+                                    string updatedCurrentProtocols = "";
+
+                                    foreach (String selection in currentProtocolsArr)
+                                    {
+                                        bool protocolIsAssigned = false;
+                                        foreach (Protocol p in allUserProtocols)
+                                        {
+                                            if (p?.StudyId == selection)
+                                                protocolIsAssigned = true;
+                                        }
+                                        if (protocolIsAssigned)
+                                            updatedCurrentProtocols += selection + ",";
+                                    }
+
+                                    if (updatedCurrentProtocols.Length > 0)
+                                        userSelectedProtocols!.Current_Protocols = updatedCurrentProtocols.Trim(',');
+                                    else
+                                        userSelectedProtocols!.Current_Protocols = null;
+                                }
+                            }
+                            else
+                            {
+                                if (userSelectedProtocols != null)
+                                {
+                                    userSelectedProtocols!.Selected_Protocols = null;
+                                    userSelectedProtocols!.Current_Protocols = null;
+                                }
+                            }
+
+                            context.SaveChangesAsync(loggedInUserId, primaryTable);
+                        }
+
                     }
                 }
 
@@ -301,14 +374,34 @@ namespace TheradexPortal.Data.Services
                 string studyList = "";
                 bool saved = true;
                 IList<string> studies = await GetProtocolHistoryAsync(userId, count);
+                List<Protocol>? allCurrentStudies = _studyService.GetProtocolsForUserAsync(userId, false) as List<Protocol>;
+                User? curUser = context.Users.Where(u => u.UserId == userId).FirstOrDefault();
                 // Reverse it
 
                 if (studies != null && studies.Count != 0)
                 {
                     for (int i = studies.Count - 1; i >= 0; i--)
-                        studyList += studies[i] + ",";
+                    {
+                        if (curUser?.AllStudies == true)
+                            studyList += studies[i] + ",";
+                        else
+                        {
+                            if (allCurrentStudies != null)
+                            {
+                                bool inCurrentStudies = false;
+                                foreach (Protocol p in allCurrentStudies)
+                                    if (p?.StudyId == studies[i])
+                                        inCurrentStudies = true;
+
+                                if (inCurrentStudies)
+                                    studyList += studies[i] + ",";
+                            }
+                        }
+                    }
                     studyList = studyList.Trim(',');
-                    saved = SaveSelectedStudies(userId, studyList, true);
+
+                    if(studyList.Length > 0)
+                        saved = SaveSelectedStudies(userId, studyList, true);
                 }
 
                 saved = SaveActivityLog(userId, ThorActivityType.Study, "Filter Studies-Login", studyList);

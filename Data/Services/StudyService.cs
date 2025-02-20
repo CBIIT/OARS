@@ -32,7 +32,7 @@ namespace TheradexPortal.Data.Services
                              .Union(from ug in context.User_Groups
                                     join ugp in context.Group_Protocols on ug.GroupId equals ugp.GroupId where ugp.IsActive
                                     join p in context.Protocols on ugp.StudyId equals p.StudyId
-                                    where ug.UserId == userId && (ug.ExpirationDate == null || ug.ExpirationDate.Value.Date >= DateTime.UtcNow.Date)
+                                    where ug.UserId == userId && (ug.ExpirationDate == null || ug.ExpirationDate.Value.Date >= DateTime.UtcNow.Date && p.HideStudy.ToUpper() == "NO")
                                     select p)
                              .OrderBy(p1 => p1.StudyId).ToList();
             }
