@@ -246,7 +246,7 @@ namespace TheradexPortal.Data.Services
                                 dbReport.ReportName = report.ReportName;
                                 dbReport.PowerBIPageName = report.PowerBIPageName;
                                 dbReport.PageName = report.PageName;
-                                dbReport.FilterType = report.FilterType;
+                                dbReport.ReportFilterId = report.ReportFilterId;
                                 if (context.Entry(dbReport).State == EntityState.Modified)
                                 {
                                     dbDashboard.UpdateDate = curDateTime;
@@ -396,6 +396,16 @@ namespace TheradexPortal.Data.Services
                 await fileTransferUtility.UploadAsync(uploadRequest);
                 return true;
             }
+        }
+
+        public async Task<ReportFilter?> GetReportFilterByIdAsync(int reportFilterId)
+        {
+            return await context.ReportFilters.Include(rf => rf.FilterItems).OrderBy(r => r.ReportFilterId).Where(r => r.ReportFilterId == reportFilterId).SingleOrDefaultAsync();
+        }
+
+        public async Task<List<ReportFilter>> GetReportFilterList()
+        {
+            return await context.ReportFilters.OrderBy(rf => rf.FilterName).ToListAsync();
         }
     }
 }

@@ -267,6 +267,9 @@ namespace TheradexPortal.Data
         public DbSet<ReviewHistoryItem> ReviewHistoryItems { get; set; }
         public DbSet<ReviewHistoryNote> ReviewHistoryNotes { get; set; }
         public DbSet<ReviewItem> ReviewItems { get; set; }
+        public DbSet<ReportFilter> ReportFilters { get; set; }
+        public DbSet<ReportFilterItem> ReportFilterItems { get; set; }
+
         public DbSet<Audit> Audits { get; set; }
         public DbSet<Models.Pharma.PharmaNscTac> Pharma_PharmaNscTacs { get; set; }
         public DbSet<Models.Pharma.CdrdmStudyAgent> Pharma_CdrdmStudyAgent{ get; set; }

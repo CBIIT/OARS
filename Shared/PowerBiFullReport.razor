@@ -68,30 +68,64 @@
         bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(ThorClaimType.IsAdmin, "True");
         int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
         var currentStudy = "";
+        string dataToSend = "";
+        string[] filterTable;
+        string[] filterColumn;
+        string[] filterDisplayName;
+        string[] filterType;
+        string[] filterData;
 
-        // Send in list of protocols - this is the list that will populate the STUDY_ID filter.
-        string filteredStudies = studyService.GetSelectedStudyIdsForUser(userId);
-
-        // This is the list that will start as checked in the STUDY_ID filter.
-        string protocols = studyService.GetCurrentStudiesForUser(userId);
-
-        if (protocols != null && protocols.Length > 0)
+        ReportFilter? reportFilter = null;
+        if (Report.ReportFilterId != null)
         {
-            // Should only have one current study - but if there are more, only select the first.
-            if (Report.FilterType == "Single")
+            // Set the report filters
+            reportFilter = await dashboardService.GetReportFilterByIdAsync((int)Report.ReportFilterId);
+            List<ReportFilterItem> orderedFilter = reportFilter.FilterItems.OrderBy(rf => rf.ReportFilterItemId).ToList();
+
+            filterTable = new string[reportFilter.FilterItems.Count()];
+            filterColumn = new string[reportFilter.FilterItems.Count()];
+            filterDisplayName = new string[reportFilter.FilterItems.Count()];
+            filterType = new string[reportFilter.FilterItems.Count()];
+            filterData = new string[reportFilter.FilterItems.Count()];
+
+            int arrayItem = 0;
+            foreach (ReportFilterItem filterItem in orderedFilter)
             {
-                string[] studies = protocols.Split(',');
-                currentStudy = studies[0];
-            }
-            else
-            {
-                currentStudy = protocols;
+                switch (filterItem.Data)
+                {
+                    case "Selected_Studies":
+                        dataToSend = studyService.GetSelectedStudyIdsForUser(userId);
+                        break;
+                    case "Current_Studies":
+                        dataToSend = studyService.GetCurrentStudiesForUser(userId);
+                        if (filterType.Contains("Single"))
+                            dataToSend = dataToSend.Split(",")[0];
+                        break;
+                    case "User_Email":
+                        dataToSend = httpContextAccessor.HttpContext?.User?.FindFirst("preferred_username")?.Value;
+                        break;
+                }
+                filterTable[arrayItem] = filterItem.TableName;
+                filterColumn[arrayItem] = filterItem.FieldName;
+                filterDisplayName[arrayItem] = filterItem.DisplayName;
+                filterType[arrayItem] = filterItem.DisplayType;
+                filterData[arrayItem] = dataToSend;
+                arrayItem++;
             }
 
+        }
+        else
+        {
+            filterTable = null;
+            filterColumn= null;
+            filterDisplayName  = null;
+            filterType = null;
+            filterData = null;
         }
 
         if (string.IsNullOrEmpty(userEmail))
             throw new ArgumentNullException("Email address not found");
+
 
         EmbedParams embedParams;
         if (powerBiConfig.Value.UseRowLevelSecurity)
@@ -105,27 +139,17 @@
 
         var embedUrl = embedParams.EmbedReport[0].EmbedUrl + "&pageName=" + Report.PowerBIPageName;
 
-        // Parameters to load PowerBI report
-        //      Javacsript method to call
-        //      Reference to report
-        //      AccessToken
-        //      Filter Targets
-        //      Embed URL - used to load report and page requested
-        //      Guid of Power BI Report
-        //      Filter type - single or multi
-        //      List of studies for study Id filter
-        //      Starting filter (stored in SELECTED_PROTOCOLS.CURRENT_PROTOCOLS  field)
         reportRef = await pbiEmbedModule.InvokeAsync<IJSObjectReference>(
             "embedFullReport",
             pbiElement,
             embedParams.EmbedToken.Token,
-            ThorConstants.PBI_STUDY_FILTER_TARGETS.ToArray(),
             embedUrl,
             embedParams.EmbedReport[0].ReportId.ToString(),
-            Report.FilterType,
-            (filteredStudies == null || filteredStudies == "") ? "" : filteredStudies.Split(','),
-            currentStudy.Split(',')
-        //(Report.FilterType == "Single") ? "[" + currentStudy + "]" : currentStudy.Split(',')
+            filterTable,
+            filterColumn,
+            filterDisplayName,
+            filterType,
+            filterData
         );
     }
 
@@ -175,8 +199,6 @@
 
         bool saved = userService.SaveCurrentStudy(userId, value);
 
-        //if (curStudies != value)
-        //if ((curStudies == null && value != "") && curStudies != value)
         if (curStudies != value && !(curStudies == null && value == ""))
             saved = userService.SaveActivityLog(userId, ThorActivityType.Study, "Select Study", value);
     }

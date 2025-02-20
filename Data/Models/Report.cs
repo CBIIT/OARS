@@ -33,7 +33,8 @@ namespace TheradexPortal.Data.Models
         public string? PowerBIReportId { get; set; }
         public string? PageName { get; set; }
         public string? ReportName { get; set; }
-        public string? FilterType { get; set; }
+        [Column("Report_Filter_Id")]
+        public int? ReportFilterId { get; set; }
         public Dashboard? Dashboard { get; init; }
 
     }

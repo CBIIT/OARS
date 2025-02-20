@@ -25,5 +25,7 @@ namespace TheradexPortal.Data.Services.Abstract
         public bool SaveDashboardOrder(List<int> dashIds, int userId);
         public Task<string> GetDashboardHelpFileName(int dashboardId);
         public Task<bool> UploadFileToS3(string folderName, string fileName, string awsBucketName, MemoryStream memoryStream);
+        public Task<ReportFilter> GetReportFilterByIdAsync(int reportFilterId);
+        public Task<List<ReportFilter>> GetReportFilterList();
     }
 }

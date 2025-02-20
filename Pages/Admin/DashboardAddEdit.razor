@@ -118,7 +118,16 @@
                                     </DataGridColumn>
                                     <DataGridColumn Field="@nameof(Report.PowerBIReportId)" Caption="" Displayable="false" />
                                     <DataGridColumn Field="@nameof(Report.PowerBIPageName)" Caption="" Displayable="false" />
-                                    <DataGridColumn Field="@nameof(Report.FilterType)" Caption="Filter Type" Width="100px" />
+                                    <DataGridColumn Field="@nameof(Report.ReportFilterId)" Caption="Custom Filter" Width="200px">
+                                        <DisplayTemplate>
+                                            @{
+                                                var repFilterId = (context as Report)?.ReportFilterId;
+                                                ReportFilter foundFilter = reportFilterList.Find(r => r.ReportFilterId == repFilterId);
+                                                if (foundFilter != null)
+                                                    @(foundFilter.FilterName);
+                                        }
+                                        </DisplayTemplate>
+                                    </DataGridColumn>
                                     <DataGridColumn Field="@nameof(Report.CustomPagePath)" Caption="Site Page" Width="130px" />
                                     <DataGridColumn Sortable="false" Filterable="false" Width="120px">
                                         <DisplayTemplate>
@@ -275,13 +284,15 @@
                         </Validation>
                     </Validations>
                     <Field ColumnSize="ColumnSize.Is12">
-                        <FieldLabel ColumnSize="ColumnSize.Is12" TextWeight="TextWeight.Bold">Filter Type</FieldLabel>
-                        <FieldBody ColumnSize="ColumnSize.Is8">
-                            <Select TValue="int" @bind-SelectedValue="@filterType">
-                                <SelectItem Value="0">None</SelectItem>
-                                <SelectItem Value="1">Single</SelectItem>
-                                <SelectItem Value="2">Multi</SelectItem>
-                            </Select>
+                        <FieldLabel ColumnSize="ColumnSize.Is12" TextWeight="TextWeight.Bold">Custom Filter</FieldLabel>
+                        <FieldBody ColumnSize="ColumnSize.Is12">
+                            <SelectList TItem="ReportFilter"
+                            TValue="int"
+                            Data="@reportFilterList"
+                            TextField="@((item)=>item.FilterName)"
+                            ValueField="@((item)=>item.ReportFilterId)"
+                            SelectedValue="@selectedFilterValue"
+                            SelectedValueChanged="OnSelectedFilterValueChanged"/>
                         </FieldBody>
                     </Field>
                 </Div>
@@ -371,11 +382,12 @@
     private string reportDesc = "";
     private string selectedReportValue;
     private string selectedPageValue;
+    private int selectedFilterValue;
     private string reportPageName = "";
     private string reportSubMenu = "";
-    private int filterType = 1;
     private List<PowerBIReport> repList = new List<PowerBIReport>();
     private List<PowerBIReportPage> pageList = new List<PowerBIReportPage>();
+    private List<ReportFilter> reportFilterList = new List<ReportFilter>();
 
     string flexContainerStyle = $"width:50%;";
 
@@ -397,6 +409,7 @@
         }
 
         await GetReportList();
+        await GetReportFilterList();
         int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
         userService.SaveActivityLog(userId, ThorActivityType.Navigation, "Dashboard", AddOrEdit);
     }
@@ -429,6 +442,14 @@
         pageList.Insert(0,new PowerBIReportPage() { Id = "", Name = "Please select a page" });
         StateHasChanged();
 
+    }
+
+    private async Task GetReportFilterList()
+    {
+        reportFilterList.Clear();
+        reportFilterList = await dashboardService.GetReportFilterList();
+        reportFilterList.Insert(0, new ReportFilter() { ReportFilterId = 0, FilterName = "No custom filter" });
+        StateHasChanged();
     }
 
     private async void GetDashboard(int? dashboardId)
@@ -521,7 +542,7 @@
         pageList.Add(new PowerBIReportPage() { Id = "", Name = "Please select a report first" });
         selectedPageValue = "";
         reportSubMenu = "";
-        filterType = 1;
+        selectedFilterValue = 0;
 
         return addEditRepRef.Show();
     }
@@ -546,18 +567,11 @@
             selectedReportValue = r.PowerBIReportId;
             OnSelectedReportValueChanged(selectedReportValue);
             selectedPageValue = r.PowerBIPageName;
-            switch (r.FilterType)
-            {
-                case "Single":
-                    filterType = 1;
-                    break;
-                case "Multi":
-                    filterType = 2;
-                    break;
-                default:
-                    filterType = 0;
-                    break;
-            }
+            if (r.ReportFilterId != null)
+                selectedFilterValue = (int)r.ReportFilterId;
+            else
+                selectedFilterValue = 0;
+            OnSelectedFilterValueChanged(selectedFilterValue);
 
             reportPageName = "";
         }
@@ -569,7 +583,7 @@
 
             selectedReportValue = "";
             selectedPageValue = "";
-            filterType = 1;
+            selectedFilterValue = 0;
         }
 
         return addEditRepRef.Show();
@@ -788,6 +802,11 @@
         return Task.CompletedTask;
     }
 
+    Task OnSelectedFilterValueChanged ( int filterId)
+    {
+        selectedFilterValue = filterId;
+        return Task.CompletedTask;
+    }
     private Task CancelEditReport()
     {
         return addEditRepRef.Hide();
@@ -813,6 +832,7 @@
                 addEditRepRef.Hide(); 
             }
         }
+        reportGrid.Reload();
     }
 
     private bool StoreDashboardReport()
@@ -849,7 +869,7 @@
             curReport.ReportName = null;
             curReport.PowerBIPageName = null;
             curReport.PageName = null;
-            curReport.FilterType = null;
+            curReport.ReportFilterId = null;
         }
         else
         {
@@ -859,18 +879,7 @@
             curReport.PowerBIPageName = selectedPageValue;
             PowerBIReportPage pbiRepItem = pageList.Find(r => r.Id == selectedPageValue);
             curReport.PageName = pbiRepItem.Name;
-            switch (filterType)
-            {
-                case 0:
-                    curReport.FilterType = "None";
-                    break;
-                case 1:
-                    curReport.FilterType = "Single";
-                    break;
-                case 2:
-                    curReport.FilterType = "Multi";
-                    break;
-            }
+            curReport.ReportFilterId = (selectedFilterValue != 0) ? selectedFilterValue : null;
             curReport.CustomPagePath = null;
         }
 
