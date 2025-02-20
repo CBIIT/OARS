@@ -39,30 +39,44 @@
 
         <Row>
             <Column ColumnSize="ColumnSize.Is12">
-                <Div Background="Background.Primary" TextColor="TextColor.Light" style="display: flex; padding: 10px; padding-left: 15px; padding-right: 15px; justify-content: space-between; align-items: center; width: 100%; text-align: left;">
-        
-                    <!-- Left Content (Larger) -->
-                    <Div style="display: flex; flex-direction: column; font-size: 18px;">
-                        <span><h3>Review Period: @reviewName - PI Review </h3></span>
-                        <span style="font-size: 15px;">@leadAgentName : @ProtocolId : @studyDescription </span>
+                <Div Background="Background.Primary" TextColor="TextColor.Light" Class="px-2 py-1">
+                    
+                    <Div Style="display: inline-grid; grid-template-columns: 1fr 3fr 1fr; width: 100%">
+                        <Div Style="display: inline-block;"> </Div>
+                        <Div Style="display: inline-block; text-align: center;"> 
+                            <h4>Perform PI Review for Review Period #@reviewName </h4>
+                        </Div>
+                        <Div Style="display: inline-block; text-align: right;">
+                            <h4> PI Name: @userFirstName @userLastName </h4>
+                        </Div>
                     </Div>
-        
-                    <!-- Right Content (Smaller) -->
-                    <Div style="display: flex; flex-direction: column; font-size: 15px; text-align: right;">
-                        <span><b>Status</b>: @GetReviewStatus()</span>
-                        <span><b>Due Date</b>: @DueDate</span>
-                        @if (daysRemaining >= 0)
-                        {
-                            <span><b>Days Remaining to Complete</b>: @daysRemaining</span>
+
+                    <Div Flex="Flex.JustifyContent.Between">
+                        <Div>
+                            <b>Status:</b> @GetReviewStatus()
+                        </Div>
+                        <Div style="text-align: center;"> 
+                            <b>Due Date:</b> @DueDate 
+                        </Div>
+                        @if (daysRemaining >= 0) 
+                        { 
+                            <Div><b>Days Remaining:</b> @daysRemaining</Div> 
+                        } 
+                        else 
+                        { 
+                            <Div><b>Days Overdue:</b> @(daysRemaining * -1)</Div> 
                         }
-                        else
-                        {
-                            <span><b>Days Overdue</b>: @(daysRemaining * -1)</span>
-                        }
-                    </Div>
-        
+                    </Div>        
                 </Div>
             </Column>
+        </Row>
+        <Row>
+            <Div Class="pt-2"></Div>
+            <Div Flex="Flex.JustifyContent.Center">
+                <Div> 
+                    <b>Study @ProtocolId</b>: @studyDescription
+                </Div>
+            </Div>
         </Row>
         <Row>
             <br />
@@ -70,9 +84,10 @@
             <Div Class="rounded p-2 border border-primary">
                 Please go through each item in the checklist below, complete the necessary actions as instructed, and check the box next to each item. The 'Sign Off' button will remain disabled until all items are checked off.
             </Div>
-            <br />
         </Row>
         <Row HorizontalGutter="32" VerticalGutter="16">
+            <br/>
+            <Div></Div>
             <Column ColumnSize="ColumnSize.Is4">
                 @foreach (var item in lstManagers)
                 {
