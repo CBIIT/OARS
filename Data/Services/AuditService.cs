@@ -292,8 +292,8 @@ namespace TheradexPortal.Data.Services
                     string dueDate = oldValuesDict["DueDate"];
                     string reviewPeriodName = oldValuesDict["ReviewPeriodName"];
 
-                    item.AffectedColumns = "Reivew Item";
-                    item.TableName = "Review Item";
+                    item.AffectedColumns = "Reivew Status";
+                    item.TableName = "Review Status";
                     if (item.AuditType == "Update")
                     {
                         item.OldValues = "";
