@@ -31,38 +31,56 @@
     {
         <Row>
             <Column Style="background-image: Review-Bar.png" ColumnSize="ColumnSize.Is12">
-                  <Div Background="Background.Primary" TextColor="TextColor.Light" style="display: flex; padding: 10px; padding-left: 15px; padding-right: 15px; justify-content: space-between; align-items: center; width: 100%; text-align: left;">
-        
-                    <!-- Left Content (Larger) -->
-                    <Div style="display: flex; flex-direction: column; font-size: 18px;">
-                        <span><h3>Review Period: @reviewName - MO Review</h3></span>
-                        <span style="font-size:15px;"> @leadAgentName : @AgentId : @studyDescription </span>
+                <Div Background="Background.Primary" TextColor="TextColor.Light" Class="px-2 py-1">
+                    <Div Style="display: inline-grid; grid-template-columns: 1fr 2fr 1fr; width: 100%">
+                        <Div Style="display: inline-block;"> </Div>
+                        <Div Style="display: inline-block; text-align: center;"> 
+                            <h4>Perform MO Review for Review Period #@reviewName </h4>
+                        </Div>
+                        <Div Style="display: inline-block; text-align: right;">
+                            <h4> MO Name: @userFirstName @userLastName </h4>
+                        </Div>
                     </Div>
-                    <!-- Right Content (Smaller) -->
-                    <Div style="display: flex; flex-direction: column; font-size: 15px; text-align: right;">
-                        <span style="margin-left: auto;font-size:15px;"><b>Status</b>: @GetReviewStatus()</span>
-                        <span style="margin-left: auto;font-size:15px;"><b>Due Date</b>: @DueDate</span>
-                        @if (daysRemaining >= 0)
-                        {
-                            <span style="margin-left: auto;font-size:15px;"><b>Days Remaining to Complete</b>: @daysRemaining </span>
+
+                    <Div Flex="Flex.JustifyContent.Between">
+                        <Div>
+                            <b>Status:</b> @GetReviewStatus()
+                        </Div>
+                        <Div style="text-align: center;"> 
+                            <b>Due Date:</b> @DueDate 
+                        </Div>
+                        @if (daysRemaining >= 0) 
+                        { 
+                            <Div><b>Days Remaining:</b> @daysRemaining</Div> 
+                        } 
+                        else 
+                        { 
+                            <Div><b>Days Overdue:</b> @(daysRemaining * -1)</Div> 
                         }
-                        else
-                        {
-                            <span style="margin-left: auto;font-size:15px;"><b>Days Overdue</b>: @(daysRemaining*-1) </span>
-                        }
-                    </Div>
+                    </Div>        
                 </Div>
             </Column>
         </Row>
         <Row>
-            <br />
-            <Div></Div>
-            <Div Class="rounded p-2 border border-primary">
-                Please go through each item in the checklist below, complete the necessary actions as instructed, and check the box next to each item. The 'Sign Off' button will remain disabled until all items are checked off.
+            <Div Class="pt-2"></Div>
+            <Div Flex="Flex.JustifyContent.Center">
+                <Div> 
+                    @leadAgentName : @AgentId : @studyDescription
+                </Div>
             </Div>
-            <br />
+        </Row>
+        <Row>
+            <Div Flex="Flex.JustifyContent.Between" Class="pt-3">
+                <Div/>
+                <Div Class="rounded p-2 border border-primary">
+                    Please go through each item in the checklist below, complete the necessary actions as instructed, and check the box next to each item. The 'Provide Review Sign Off' button will remain disabled until all items are checked off.
+                </Div>
+                <Div></Div/>
+            </Div>
         </Row>
         <Row HorizontalGutter="32" VerticalGutter="16">
+            <br/>
+            <Div></Div>
             <Column ColumnSize="ColumnSize.Is4">
                 @foreach (var item in lstManagers)
                 {
@@ -77,18 +95,15 @@
                 </Row>
             </Column>
         </Row>
-        <Row>
+        <Row Class="pt-2">
             <Column>
                 <Button Color="Color.Primary" Clicked="@SaveChanges">Save Changes</Button>
                 <Button Color="Color.Primary" Clicked="@DiscardChanges">Discard Changes</Button>
                 <Button Color="Color.Primary" Clicked="@ShowContactUsModal">Send Email</Button>
                 <Button Color="Color.Primary" Clicked="@ShowChangeDurationModal">Adjust Review Duration</Button>
             </Column>
-        </Row>
-        <Row>
-            <Div><br /></Div>
-            <Column>
-                <Button Color="Color.Warning" Disabled="@submitIsDisabled" Clicked="@ShowSubmitReviewModal">Sign Off</Button>
+            <Column Flex="Flex.JustifyContent.End">
+                <Button Color="Color.Warning" Disabled="@submitIsDisabled" Clicked="@ShowSubmitReviewModal" Style="text-align: right;">Provide Review Sign Off</Button>
             </Column>
         </Row>
         <Row>
