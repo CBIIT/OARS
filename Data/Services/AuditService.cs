@@ -38,15 +38,9 @@ namespace TheradexPortal.Data.Services
             List<int> reviewHistoryNoteIds, List<int> reviewHistoryEmailIds)
         {
             List<AuditTrailDTO> auditTrail = new List<AuditTrailDTO>();
-            // Audit reviewAuditTrail = await GetReviewAuditTrailAsync(userId, reviewId);
             var currentUser = await _userService.GetUserAsync(userId);
             var userName = currentUser.FirstName + " " + currentUser.LastName;
             var userEmail = currentUser.EmailAddress;
-
-            //if (reviewAuditTrail != null)
-            //{
-            //    ProcessAuditEntry(reviewAuditTrail, userName, userEmail, auditTrail);
-            //}
 
             if (reviewHistoryId != 0)
             {
@@ -161,7 +155,7 @@ namespace TheradexPortal.Data.Services
                 foreach (var item in localAuditCopy)
                 {
                     var newValuesDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(item.NewValues);
-                    string emailTo = newValuesDict["EmailToAddress"] ?? "Missing recipiant";
+                    string emailTo = newValuesDict["EmailToAddress"] ?? "Missing recipient";
                     string emailText = newValuesDict["EmailText"] ?? "Missing Body";
                     item.TableName = "Email";
                     item.NewValues = "Email sent to: " + emailTo + "\nEmail Contents: " + emailText;
@@ -243,7 +237,7 @@ namespace TheradexPortal.Data.Services
                     var oldValuesDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(item.NewValues);
                     string checkedStatus = oldValuesDict["IsCompleted"] == "T" ? "Checked" : "Unchecked";
 
-                    item.AffectedColumns = "Reivew Item";
+                    item.AffectedColumns = "Review Item";
                     item.TableName = "Review Item";
                     if (item.AuditType == "Update")
                     {
@@ -292,7 +286,7 @@ namespace TheradexPortal.Data.Services
                     string dueDate = oldValuesDict["DueDate"];
                     string reviewPeriodName = oldValuesDict["ReviewPeriodName"];
 
-                    item.AffectedColumns = "Reivew Status";
+                    item.AffectedColumns = "Review Status";
                     item.TableName = "Review Status";
                     if (item.AuditType == "Update")
                     {
@@ -342,8 +336,8 @@ namespace TheradexPortal.Data.Services
                 string oldPeriodName = oldValuesDict["ReviewPeriodName"] ?? "";
                 string newPeriodName = newValuesDict["ReviewPeriodName"] ?? "";
 
-                localAuditCopy.AffectedColumns = "Reivew Transition";
-                localAuditCopy.OldValues = "Previous Reivew Due Date: " + oldDueDate + "\nPrevious Review Name: " + oldPeriodName;
+                localAuditCopy.AffectedColumns = "Review Transition";
+                localAuditCopy.OldValues = "Previous Review Due Date: " + oldDueDate + "\nPrevious Review Name: " + oldPeriodName;
                 localAuditCopy.NewValues = "Next Review Due Date: " + newDueDate + "\nNext Review Name: " + newPeriodName;
             }
 
