@@ -656,6 +656,7 @@
                         {
                             lstTextNotes.Add(new TextNotes { Name = tmp.UserName, Note = tmp.Notes, CreationDate = tmp.CreationDate.HasValue ? tmp.CreationDate.Value.ToString("dd-MMM-yyyy hh:mm:ss tt").ToUpper() : "null" });
                         }
+                        lstTextNotes.Sort((x, y) => y.CreationDate.CompareTo(x.CreationDate));
                     }
                     var tmpEmailList = await historyEmailService.GetEmailsAsync(latestReviewHistory.ReviewHistoryId);
                     if (tmpEmailList != null)
@@ -754,7 +755,9 @@
                     await notificationService.Success("An email has been sent.");
                     await historyEmailService.SaveNewEmailAsync(activeUserId, latestReviewHistory.ReviewHistoryId, emailTo, emailDescription);
                     lstEmailDetails.Insert(0, new EmailDetails { Body = emailDescription, EmailTo = emailTo, CreationDate = DateTime.Now.ToString("dd-MMM-yyyy hh:mm:ss tt").ToUpper() });
+                    await GenerateAuditTrail();
                     await emailDataGrid.Reload();
+                    await auditDataGrid.Reload();
                 }
                 else
                 {
