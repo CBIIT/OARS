@@ -88,7 +88,9 @@
             </Column>
             <Column ColumnSize="ColumnSize.Is8">
                 <Row>
-                    <MemoEdit Rows="10" @bind-Text="@noteText" Placeholder="Enter new notes..." />
+                    <Div Class="pr-2">
+                        <MemoEdit Rows="10" @bind-Text="@noteText" Placeholder="Enter new notes..." />
+                    </Div>
                 </Row>
             </Column>
         </Row>
@@ -100,7 +102,7 @@
                 <Button Color="Color.Primary" Clicked="@ShowChangeDurationModal">Adjust Review Duration</Button>
             </Column>
             <Column Flex="Flex.JustifyContent.End">
-                <Button Color="Color.Warning" Disabled="@submitIsDisabled" Clicked="@ShowSubmitReviewModal" Style="text-align: right;">Provide Review Sign Off</Button>
+                <Button Color="Color.Primary" Disabled="@submitIsDisabled" Clicked="@ShowSubmitReviewModal" Style="text-align: right;">Provide Review Sign Off</Button>
             </Column>
         </Row>
         <Row>
