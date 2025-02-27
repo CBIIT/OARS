@@ -81,6 +81,24 @@ namespace TheradexPortal.Data.Services
             return true;
         }
 
+        public async Task<bool> ResetReviewAsync(int userId, int protocolId, string reviewType)
+        {
+            Review reviewToReset =  await context.Reviews
+                .Where(p =>
+                p.ProtocolId == protocolId &&
+                p.UserId == userId &&
+                p.ReviewType == reviewType)
+                .FirstOrDefaultAsync();
+            reviewToReset.UpdateDate = DateTime.Now;
+            reviewToReset.ReviewStatus = "Ongoing";
+            reviewToReset.MissedReviewCount = 0;
+
+            var primaryTable = context.Model.FindEntityType(typeof(Review)).ToString().Replace("EntityType: ", "");
+            context.SaveChangesAsync(userId, primaryTable);
+
+            return true;
+        }
+
         public async Task<List<int>> GetAllAuthorizedUsersAsync(int protocolId)
         {
             return await context.Reviews
