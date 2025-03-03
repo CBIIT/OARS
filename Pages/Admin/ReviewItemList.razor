@@ -11,6 +11,13 @@
 @page "/admin/review-item"
 <AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })"></AdminRoleCheck>
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>Add/Edit Review Items</h2></Div>
+<Row>
+    <Div Flex="Flex.JustifyContent.Center" Class="pt-3">
+        <Div Class="rounded p-2 border border-primary" Style="padding-bottom: 20px;">
+            Warning: Any changes made here will have an immediate impact on ALL existing reviews.
+        </Div>
+    </Div>
+</Row>
 <Row Background="Background.Light">
     <Column ColumnSize="ColumnSize.IsFull">
         <Tabs SelectedTab="@selectedTab" SelectedTabChanged="@OnSelectedTabChanged">
