@@ -101,7 +101,7 @@ jobs:
         with:
           script: |
             const version = '${{ github.event.inputs.version  }}';
-            const runId = '${{ context.runId }}';
+            const runId = '${{ steps.get_run_id.outputs.run_id }}';
             core.summary.addHeading("Deployment to QA").addTable([
               [{ data: "Version", header: true }, { data: "Run ID", header: true }],
               [version, runId],
