@@ -1,5 +1,7 @@
 name: Promote Image to Production
 
+run-name: Promote Image to Production - Version (${{ inputs.version }}) and Workflow Run Id (${{ inputs.run_id }})
+
 on:
   workflow_dispatch:
     inputs:

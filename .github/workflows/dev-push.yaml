@@ -156,8 +156,6 @@ jobs:
                 run_id: runId
               }
             });
-
-      # Add a summary
       - name: Add Summary
         if: ${{ always() }}
         uses: actions/github-script@v6
@@ -165,18 +163,10 @@ jobs:
           script: |
             const version = '${{ steps.semver.outputs.version }}';
             const runId = '${{ steps.get_run_id.outputs.run_id }}';
-            github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'qa-push.yaml',
-              ref: 'main',
-              inputs: {
-                version: version,
-                run_id: runId
-              }
-            });
-            github.rest.actions.summary.addHeading("Deployment to DEV").addTable([
+            // ... your existing code ... 
+
+            core.summary.addHeading("Deployment to DEV").addTable([
               [{ data: "Version", header: true }, { data: "Run ID", header: true }],
               [version, runId],
             ])
-            await github.rest.actions.summary.write()
+            await core.summary.write()
