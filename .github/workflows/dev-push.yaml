@@ -125,11 +125,6 @@ jobs:
           container-image-tag: ${{  steps.semver.outputs.version }}
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
           role-to-assume:  ${{ secrets.AWS_ARN_DEV }}
-        run: |
-          echo "2. ecr-uri: ${{ secrets.ECR_URI_DEV }}"
-          echo "2. aws-region: ${{ secrets.AWS_DEFAULT_REGION }}"
-          echo "2. role-to-assume: ${{ secrets.AWS_ARN_DEV }}"
-
 
       # Build Docker Image
       - name: Build Docker Image
