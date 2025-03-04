@@ -112,19 +112,24 @@ jobs:
       # Echo ECR URI DEV
       - name: Echo ECR_URI_DEV
         run: |
-          echo "1. ecr-uri: ${{ secrets.ECR_URI_DEV }}"
-          echo "1. aws-region: ${{ secrets.AWS_DEFAULT_REGION }}"
-          echo "1. role-to-assume: ${{ secrets.AWS_ARN_DEV }}"
-        
+          echo "ecr-uri: ${{ vars.ECR_URI_DEV }}"
+          echo "aws-region: ${{ vars.AWS_DEFAULT_REGION }}"
+          echo "role-to-assume: ${{ vars.AWS_ARN_DEV }}"
+
       # Check if image exists in ECR DEV
       - name: Check if image exists in ECR DEV
         id: image-ecr-dev
         uses: theradex/action-container-tools/check-image-tag-ecr@v1
         with:
-          container-repository-name: ${{ secrets.ECR_URI_DEV }}
+          container-repository-name: ${{ vars.ECR_URI_DEV }}
           container-image-tag: ${{  steps.semver.outputs.version }}
-          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
-          role-to-assume:  ${{ secrets.AWS_ARN_DEV }}
+          aws-region: ${{ vars.AWS_DEFAULT_REGION }}
+          role-to-assume:  ${{ vars.AWS_ARN_DEV }}
+      
+      # Echo Image tag found
+      - name: Echo Image tag found
+        run: |
+          echo "image-tag-exists: ${{ steps.image-ecr-dev.outputs.image-tag-exists }} "
 
       # Build Docker Image
       - name: Build Docker Image
