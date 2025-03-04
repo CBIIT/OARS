@@ -85,6 +85,19 @@ jobs:
           cluster: nci-oars-production-cluster
           wait-for-service-stability: true
 
+      - name: Add Summary
+        if: ${{ always() }}
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const version = '${{ github.event.inputs.version  }}';
+            const runId = '${{ context.runId }}';
+            core.summary.addHeading("Deployment to PROD").addTable([
+              [{ data: "Version", header: true }, { data: "Run ID", header: true }],
+              [version, runId],
+            ])
+            await core.summary.write()
+
       # Output Success Message
       - name: Promotion Successful
         run: echo "Image version ${{ github.event.inputs.version }} has been promoted to Production ECR."

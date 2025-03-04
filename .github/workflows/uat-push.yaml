@@ -97,6 +97,19 @@ jobs:
             const runId = context.runId;
             core.setOutput('run_id', runId);
 
+      - name: Add Summary
+        if: ${{ always() }}
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const version = '${{ github.event.inputs.version  }}';
+            const runId = '${{ context.runId }}';
+            core.summary.addHeading("Deployment to UAT").addTable([
+              [{ data: "Version", header: true }, { data: "Run ID", header: true }],
+              [version, runId],
+            ])
+            await core.summary.write()
+
       # Trigger Approval Workflow for Next Environment
       - name: Trigger Approval for Next Environment
         if: ${{ always() }}

@@ -137,6 +137,19 @@ jobs:
           echo "Version: ${{ steps.semver.outputs.version }}"
           echo "Run ID: ${{ steps.get_run_id.outputs.run_id }}"
 
+      - name: Add Summary
+        if: ${{ always() }}
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const version = '${{ steps.semver.outputs.version }}';
+            const runId = '${{ steps.get_run_id.outputs.run_id }}';
+            core.summary.addHeading("Deployment to DEV").addTable([
+              [{ data: "Version", header: true }, { data: "Run ID", header: true }],
+              [version, runId],
+            ])
+            await core.summary.write()
+
       # Trigger Approval Workflow for Next Environment
       - name: Trigger Approval for Next Environment
         if: ${{ always() }}
@@ -156,17 +169,3 @@ jobs:
                 run_id: runId
               }
             });
-      - name: Add Summary
-        if: ${{ always() }}
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const version = '${{ steps.semver.outputs.version }}';
-            const runId = '${{ steps.get_run_id.outputs.run_id }}';
-            // ... your existing code ... 
-
-            core.summary.addHeading("Deployment to DEV").addTable([
-              [{ data: "Version", header: true }, { data: "Run ID", header: true }],
-              [version, runId],
-            ])
-            await core.summary.write()

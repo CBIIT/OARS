@@ -1,4 +1,6 @@
-name: Promote Image to QA - Version (${{ github.event.inputs.version }}) and Workflow Run Id (${{ github.event.inputs.run_id }})
+name: Promote Image to QA
+
+run-name: Promote Image to QA - Version (${{ inputs.version }}) and Workflow Run Id (${{ inputs.run_id }})
 
 run-name: Promote Image to QA - Version (${{ inputs.version }}) and Workflow Run Id (${{ inputs.run_id }})
 
@@ -94,6 +96,19 @@ jobs:
           script: |
             const runId = context.runId;
             core.setOutput('run_id', runId);
+
+      - name: Add Summary
+        if: ${{ always() }}
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const version = '${{ github.event.inputs.version  }}';
+            const runId = '${{ context.runId }}';
+            core.summary.addHeading("Deployment to QA").addTable([
+              [{ data: "Version", header: true }, { data: "Run ID", header: true }],
+              [version, runId],
+            ])
+            await core.summary.write()
 
       # Trigger Approval Workflow for Next Environment
       - name: Trigger Approval for Next Environment
