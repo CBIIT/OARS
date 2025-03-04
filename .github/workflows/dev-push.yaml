@@ -71,6 +71,20 @@ jobs:
         with:
           major_pattern: "major"
           minor_pattern: "minor"
+          version_format: ${major}.${minor}.${patch}
+
+      - name: Setup git config
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Create trunk tag for current HEAD
+        env:
+          NEXT_TAG: ${{ steps.semver.outputs.version_tag }}
+        run: |
+          git tag $NEXT_TAG
+          git push origin $NEXT_TAG
+
       - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1
@@ -94,6 +108,16 @@ jobs:
       - name: Log in to Amazon ECR
         run: |
           aws ecr get-login-password --region ${{ secrets.AWS_DEFAULT_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_URI_DEV }}
+
+      # Check if image exists in ECR DEV
+      - name: Check if image exists in ECR DEV
+        id: image-ecr-dev
+        uses: theradex/action-container-tools/check-image-tag-ecr@v1
+        with:
+          container-repository-name: ${{ secrets.ECR_URI_DEV }}
+          container-image-tag: ${{  steps.semver.outputs.version }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+          role-to-assume:  ${{ secrets.AWS_ARN_DEV }}
 
       # Build Docker Image
       - name: Build Docker Image
