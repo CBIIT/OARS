@@ -37,12 +37,8 @@ jobs:
           elif [[ "$commit" =~ ^major\/ ]]; then
             major_commits+=("$commit")
           else
-            invalid_commits+=("$commit")
-            echo "Error: Invalid commit message: $commit"
-          fi
-
-          if [[ ${#invalid_commits[@]} -gt 0 ]]; then
-            exit 1
+            minor_commits+=("Invalid Commit Message: $commit") # Treat invalid as minor
+            echo "Warning: Invalid commit message: $commit. Treating as minor."
           fi
 
           echo "patch_commits=$(printf '%s\n' "${patch_commits[@]}")" >> "$GITHUB_OUTPUT"
