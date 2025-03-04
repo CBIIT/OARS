@@ -12,6 +12,13 @@ jobs:
     permissions: write-all
     environment: dev
     steps:
+      # Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      #Check commit messages and categorize
       - name: Check commit messages and categorize
         id: commit_check
         run: |
@@ -41,12 +48,6 @@ jobs:
           echo "minor_commits=$(printf '%s\n' "${minor_commits[@]}")" >> "$GITHUB_OUTPUT"
           echo "major_commits=$(printf '%s\n' "${major_commits[@]}")" >> "$GITHUB_OUTPUT"
         shell: bash
-
-      # Checkout code
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       # Setup .NET
       - name: Setup .NET
