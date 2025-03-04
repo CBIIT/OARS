@@ -1,5 +1,4 @@
-name: Promote Image to UAT
-
+name: Promote Image to UAT - Version (${{ github.event.inputs.version }}) and Workflow Run Id (${{ github.event.inputs.run_id }})
 on:
   workflow_dispatch:
     inputs:

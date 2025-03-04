@@ -12,6 +12,15 @@ jobs:
     permissions: write-all
     environment: dev
     steps:
+      # Check commit messages
+      - name: Check commit messages
+        run: |
+          git log --pretty=%s | while read commit; do
+            if [[ ! "$commit" =~ ^(feat|fix|docs|style|refactor|test|chore)(\\([a-z]+\\))?:.*$ ]]; then
+              echo "Error: Invalid commit message: $commit"
+              exit 1
+            fi
+          done
       # Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
@@ -78,12 +87,12 @@ jobs:
         run: |
           docker push ${{ secrets.ECR_URI_DEV }}:${{ steps.semver.outputs.version }}
           docker push ${{ secrets.ECR_URI_DEV }}:latest
-     
+      
       # Save Docker Image as Artifact
       - name: Save Docker Image as Artifact
         env:
-            VERSION: ${{ steps.semver.outputs.version }}
-            ECR_URI_DEV: ${{ secrets.ECR_URI_DEV }}
+          VERSION: ${{ steps.semver.outputs.version }}
+          ECR_URI_DEV: ${{ secrets.ECR_URI_DEV }}
         run: |
           echo "Saving Docker image $ECR_URI_DEV:$VERSION as an artifact"
           docker save $ECR_URI_DEV:$VERSION | gzip > web-reporting_$VERSION.tar.gz
@@ -96,8 +105,8 @@ jobs:
 
       - name: Download task definition
         run: |
-            aws ecs describe-task-definition --task-definition nci-oars-dev-taskdefinition --query taskDefinition > task-definition.json
-            
+          aws ecs describe-task-definition --task-definition nci-oars-dev-taskdefinition --query taskDefinition > task-definition.json
+          
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
@@ -121,7 +130,13 @@ jobs:
           script: |
             const runId = context.runId;
             core.setOutput('run_id', runId);
-            
+      
+      # Print Version and Run ID in comments
+      - name: Print Version and Run ID
+        run: |
+          echo "Version: ${{ steps.semver.outputs.version }}"
+          echo "Run ID: ${{ steps.get_run_id.outputs.run_id }}"
+
       # Trigger Approval Workflow for Next Environment
       - name: Trigger Approval for Next Environment
         if: ${{ always() }}
@@ -141,3 +156,27 @@ jobs:
                 run_id: runId
               }
             });
+
+      # Add a summary
+      - name: Add Summary
+        if: ${{ always() }}
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const version = '${{ steps.semver.outputs.version }}';
+            const runId = '${{ steps.get_run_id.outputs.run_id }}';
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'qa-push.yaml',
+              ref: 'main',
+              inputs: {
+                version: version,
+                run_id: runId
+              }
+            });
+            github.rest.actions.summary.addHeading("Deployment to DEV").addTable([
+              [{ data: "Version", header: true }, { data: "Run ID", header: true }],
+              [version, runId],
+            ])
+            await github.rest.actions.summary.write()

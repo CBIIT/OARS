@@ -1,4 +1,4 @@
-name: Promote Image to QA
+name: Promote Image to QA - Version (${{ github.event.inputs.version }}) and Workflow Run Id (${{ github.event.inputs.run_id }})
 
 on:
   workflow_dispatch:
