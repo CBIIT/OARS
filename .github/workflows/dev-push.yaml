@@ -18,7 +18,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      #Check commit messages and categorize
+      # Check commit messages and categorize
       - name: Check commit messages and categorize
         id: commit_check
         run: |
@@ -27,18 +27,19 @@ jobs:
           major_commits=()
           invalid_commits=()
 
-          git log --pretty=%s --merges --invert-grep | while read commit; do
-            if [[ "$commit" =~ ^patch\/ ]]; then
-              patch_commits+=("$commit")
-            elif [[ "$commit" =~ ^minor\/ ]]; then
-              minor_commits+=("$commit")
-            elif [[ "$commit" =~ ^major\/ ]]; then
-              major_commits+=("$commit")
-            else
-              invalid_commits+=("$commit")
-              echo "Error: Invalid commit message: $commit"
-            fi
-          done
+          # Get the last commit message from the pull request
+          commit=$(git log -1 --pretty=%s)
+
+          if [[ "$commit" =~ ^patch\/ ]]; then
+            patch_commits+=("$commit")
+          elif [[ "$commit" =~ ^minor\/ ]]; then
+            minor_commits+=("$commit")
+          elif [[ "$commit" =~ ^major\/ ]]; then
+            major_commits+=("$commit")
+          else
+            invalid_commits+=("$commit")
+            echo "Error: Invalid commit message: $commit"
+          fi
 
           if [[ ${#invalid_commits[@]} -gt 0 ]]; then
             exit 1
