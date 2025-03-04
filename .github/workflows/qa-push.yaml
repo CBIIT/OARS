@@ -2,8 +2,6 @@ name: Promote Image to QA
 
 run-name: Promote Image to QA - Version (${{ inputs.version }}) and Workflow Run Id (${{ inputs.run_id }})
 
-run-name: Promote Image to QA - Version (${{ inputs.version }}) and Workflow Run Id (${{ inputs.run_id }})
-
 on:
   workflow_dispatch:
     inputs:
