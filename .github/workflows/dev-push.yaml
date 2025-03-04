@@ -12,15 +12,36 @@ jobs:
     permissions: write-all
     environment: dev
     steps:
-      # Check commit messages
-      - name: Check commit messages
+      - name: Check commit messages and categorize
+        id: commit_check
         run: |
-          git log --pretty=%s | while read commit; do
-            if [[ ! "$commit" =~ ^(feat|fix|docs|style|refactor|test|chore)(\\([a-z]+\\))?:.*$ ]]; then
+          patch_commits=()
+          minor_commits=()
+          major_commits=()
+          invalid_commits=()
+
+          git log --pretty=%s --merges --invert-grep | while read commit; do
+            if [[ "$commit" =~ ^patch\/ ]]; then
+              patch_commits+=("$commit")
+            elif [[ "$commit" =~ ^minor\/ ]]; then
+              minor_commits+=("$commit")
+            elif [[ "$commit" =~ ^major\/ ]]; then
+              major_commits+=("$commit")
+            else
+              invalid_commits+=("$commit")
               echo "Error: Invalid commit message: $commit"
-              exit 1
             fi
           done
+
+          if [[ ${#invalid_commits[@]} -gt 0 ]]; then
+            exit 1
+          fi
+
+          echo "patch_commits=$(printf '%s\n' "${patch_commits[@]}")" >> "$GITHUB_OUTPUT"
+          echo "minor_commits=$(printf '%s\n' "${minor_commits[@]}")" >> "$GITHUB_OUTPUT"
+          echo "major_commits=$(printf '%s\n' "${major_commits[@]}")" >> "$GITHUB_OUTPUT"
+        shell: bash
+
       # Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
