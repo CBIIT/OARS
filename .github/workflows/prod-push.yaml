@@ -52,6 +52,25 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN_PROD }}
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
 
+      # Check if image exists in ECR Production
+      - name: Check if image exists in ECR Production
+        id: image-ecr-prod
+        uses: theradex/action-container-tools/check-image-tag-ecr@v1
+        with:
+          container-repository-name: ${{ vars.CONTAINER_REPOSITORY_NAME_PROD }}
+          container-image-tag: ${{ steps.semver.outputs.version }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+          role-to-assume:  ${{ secrets.AWS_ARN_PROD }}
+      
+      # Echo Image tag found
+      - name: Echo Image tag found
+        run: |
+          if [ "${{ steps.image-ecr-prod.outputs.image-tag-exists }}" = "true" ]; then
+            echo "::warning::Image tag exists: ${{ steps.image-ecr-prod.outputs.image-tag-exists }}"
+          else
+            echo "Image tag does not exist: ${{ steps.image-ecr-prod.outputs.image-tag-exists }}"
+          fi
+
       # Log in to Amazon ECR (Production)
       - name: Log in to Amazon ECR (Production)
         run: |

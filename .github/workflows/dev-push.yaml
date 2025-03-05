@@ -111,19 +111,12 @@ jobs:
         run: |
           aws ecr get-login-password --region ${{ secrets.AWS_DEFAULT_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_URI_DEV }}
 
-      # # Echo ECR URI DEV
-      # - name: Echo ECR_URI_DEV
-      #   run: |
-      #     echo "ecr-uri: ${{ vars.ECR_URI_DEV }}"
-      #     echo "aws-region: ${{ vars.AWS_DEFAULT_REGION }}"
-      #     echo "role-to-assume: ${{ vars.AWS_ARN_DEV }}"
-
       # Check if image exists in ECR DEV
       - name: Check if image exists in ECR DEV
         id: image-ecr-dev
         uses: theradex/action-container-tools/check-image-tag-ecr@v1
         with:
-          container-repository-name: ${{ vars.CONTAINER_REPOSITORY_NAME }}
+          container-repository-name: ${{ vars.CONTAINER_REPOSITORY_NAME_DEV }}
           container-image-tag: ${{ steps.semver.outputs.version }}
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
           role-to-assume:  ${{ secrets.AWS_ARN_DEV }}
@@ -131,7 +124,12 @@ jobs:
       # Echo Image tag found
       - name: Echo Image tag found
         run: |
-          echo "image-tag-exists: ${{ steps.image-ecr-dev.outputs.image-tag-exists }} "
+          if [ "${{ steps.image-ecr-dev.outputs.image-tag-exists }}" = "true" ]; then
+            echo "::warning::Image tag exists: ${{ steps.image-ecr-dev.outputs.image-tag-exists }}"
+          else
+            echo "Image tag does not exist: ${{ steps.image-ecr-dev.outputs.image-tag-exists }}"
+          fi
+
 
       # Build Docker Image
       - name: Build Docker Image

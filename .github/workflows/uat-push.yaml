@@ -57,6 +57,25 @@ jobs:
         run: |
           aws ecr get-login-password --region ${{ secrets.AWS_DEFAULT_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_URI_UAT }}
 
+      # Check if image exists in ECR UAT
+      - name: Check if image exists in ECR UAT
+        id: image-ecr-uat
+        uses: theradex/action-container-tools/check-image-tag-ecr@v1
+        with:
+          container-repository-name: ${{ vars.CONTAINER_REPOSITORY_NAME_UAT }}
+          container-image-tag: ${{ steps.semver.outputs.version }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+          role-to-assume:  ${{ secrets.AWS_ARN_UAT }}
+      
+      # Echo Image tag found
+      - name: Echo Image tag found
+        run: |
+          if [ "${{ steps.image-ecr-uat.outputs.image-tag-exists }}" = "true" ]; then
+            echo "::warning::Image tag exists: ${{ steps.image-ecr-uat.outputs.image-tag-exists }}"
+          else
+            echo "Image tag does not exist: ${{ steps.image-ecr-uat.outputs.image-tag-exists }}"
+          fi
+
       # Tag and Push Docker Image to ECR (UAT)
       - name: Tag and Push Docker Image to ECR (UAT)
         run: |
