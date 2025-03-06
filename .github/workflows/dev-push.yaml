@@ -142,7 +142,7 @@ jobs:
         uses: theradex/action-container-tools/check-image-tag-ecr@v1
         with:
           container-repository-name: ${{ vars.CONTAINER_REPOSITORY_NAME_DEV }}
-          container-image-tag: ${{NEW_TAG}}
+          container-image-tag: ${{ env.NEW_TAG }}
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
           role-to-assume:  ${{ secrets.AWS_ARN_DEV }}
       
@@ -159,19 +159,19 @@ jobs:
       # Build Docker Image
       - name: Build Docker Image
         run: |
-          docker build -t ${{ secrets.ECR_URI_DEV }}:${{NEW_TAG}} .
+          docker build -t ${{ secrets.ECR_URI_DEV }}:${{ env.NEW_TAG }} .
           docker build -t ${{ secrets.ECR_URI_DEV }}:latest .
 
       # Push Docker Image to ECR
       - name: Push Docker Image to ECR
         run: |
-          docker push ${{ secrets.ECR_URI_DEV }}:${{NEW_TAG}}
+          docker push ${{ secrets.ECR_URI_DEV }}:${{ env.NEW_TAG }}
           docker push ${{ secrets.ECR_URI_DEV }}:latest
       
       # Save Docker Image as Artifact
       - name: Save Docker Image as Artifact
         env:
-          VERSION: ${{NEW_TAG}}
+          VERSION: ${{ env.NEW_TAG }}
           ECR_URI_DEV: ${{ secrets.ECR_URI_DEV }}
         run: |
           echo "Saving Docker image $ECR_URI_DEV:$VERSION as an artifact"
@@ -180,8 +180,8 @@ jobs:
       - name: Upload Docker Image Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: docker-image-${{NEW_TAG}}
-          path: web-reporting_${{NEW_TAG}}.tar.gz
+          name: docker-image-${{ env.NEW_TAG }}
+          path: web-reporting_${{ env.NEW_TAG }}.tar.gz
 
       - name: Download task definition
         run: |
@@ -214,7 +214,7 @@ jobs:
       # Print Version and Run ID in comments
       - name: Print Version and Run ID
         run: |
-          echo "Version: ${{NEW_TAG}}"
+          echo "Version: ${{ env.NEW_TAG }}"
           echo "Run ID: ${{ steps.get_run_id.outputs.run_id }}"
 
       - name: Add Summary
@@ -222,7 +222,7 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const version = '${{NEW_TAG}}';
+            const version = '${{ env.NEW_TAG }}';
             const runId = '${{ steps.get_run_id.outputs.run_id }}';
             core.summary.addHeading("Deployment to DEV").addTable([
               [{ data: "Version", header: true }, { data: "Run ID", header: true }],
@@ -236,7 +236,7 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const version = '${{NEW_TAG}}';
+            const version = '${{ env.NEW_TAG }}';
             const runId = '${{ steps.get_run_id.outputs.run_id }}';
             console.log(`Version: ${version}, Run ID: ${runId}`);
             github.rest.actions.createWorkflowDispatch({
