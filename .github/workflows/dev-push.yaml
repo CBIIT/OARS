@@ -54,7 +54,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '9.0.x' 
 
       # Install dependencies
       - name: Install dependencies
@@ -77,12 +77,12 @@ jobs:
           version_format: "${major}.${minor}.${patch}"
 
       - name: Download release artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           path: artifacts/
 
       - name: Create release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           name: ${{ steps.generate-version.outputs.version_tag }}
           tag_name: ${{ steps.generate-version.outputs.version_tag }}
