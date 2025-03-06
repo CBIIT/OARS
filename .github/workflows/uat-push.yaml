@@ -63,7 +63,7 @@ jobs:
         uses: theradex/action-container-tools/check-image-tag-ecr@v1
         with:
           container-repository-name: ${{ vars.CONTAINER_REPOSITORY_NAME_UAT }}
-          container-image-tag: ${{ steps.semver.outputs.version }}
+          container-image-tag: ${{ github.event.inputs.version }}
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
           role-to-assume:  ${{ secrets.AWS_ARN_UAT }}
       
@@ -135,7 +135,7 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const version = '${{ steps.semver.outputs.version }}';
+            const version = '${{ github.event.inputs.version }}';
             const runId = '${{ steps.get_run_id.outputs.run_id }}';
             console.log(`Version: ${version}, Run ID: ${runId}`);
             github.rest.actions.createWorkflowDispatch({

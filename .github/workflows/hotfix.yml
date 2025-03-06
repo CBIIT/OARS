@@ -51,14 +51,17 @@ jobs:
         run: dotnet test --no-build --verbosity normal
 
       # Generate Semantic Version
-      - name: Generate Semantic Version
+      - name: Generate semantic version
         id: semver
-        uses: paulhatch/semantic-version@v5.4.0
+        uses: paulhatch/semantic-version@v5.3.0
         with:
-          major_pattern: "major"
-          minor_pattern: "minor"
+          tag_prefix: "v"
           version_format: "${major}.${minor}.${patch}-hotfix"
-          
+          major_pattern: "(feat!)"
+          minor_pattern: "(feat|fix|chore|docs|ci|perf|refactor|style|test)"
+          major_regexp_flags: ""
+          minor_regexp_flags: ""
+
       # Create GitHub Release
       - name: Create GitHub Release
         id: create_release
@@ -66,8 +69,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.semver.outputs.version }}
-          release_name: hotfix-${{ steps.semver.outputs.version }}
+          tag_name: ${{ steps.semver.outputs.version_tag  }}
+          release_name: hotfix-${{ steps.semver.outputs.version_tag  }}
           draft: false
           prerelease: true
         continue-on-error: true
@@ -123,13 +126,13 @@ jobs:
       # Build Docker Image
       - name: Build Docker Image
         run: |
-          docker build -t ${{ steps.ecr-uri.outputs.uri }}:${{ steps.semver.outputs.version }} .
+          docker build -t ${{ steps.ecr-uri.outputs.uri }}:${{ steps.semver.outputs.version_tag  }} .
           docker build -t ${{ steps.ecr-uri.outputs.uri }}:hotfix-latest .
 
       # Push Docker Image to ECR
       - name: Push Docker Image to ECR
         run: |
-          docker push ${{ steps.ecr-uri.outputs.uri }}:${{ steps.semver.outputs.version }}
+          docker push ${{ steps.ecr-uri.outputs.uri }}:${{ steps.semver.outputs.version_tag  }}
           docker push ${{ steps.ecr-uri.outputs.uri }}:hotfix-latest
 
       # Update ECS Task Definition
