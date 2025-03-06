@@ -1,5 +1,9 @@
 name: CI/CD Pipeline(DEV)
 
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: false
+
 on:
   push:
     branches:
@@ -30,11 +34,11 @@ jobs:
           # Get the last commit message from the pull request
           commit=$(git log -1 --pretty=%s)
 
-          if [[ "$commit" =~ ^patch\/ ]]; then
+          if [[ "$commit" =~ \(patch\).* ]]; then
             patch_commits+=("$commit")
-          elif [[ "$commit" =~ ^minor\/ ]]; then
+          elif [[ "$commit" =~ \(minor\).* ]]; then
             minor_commits+=("$commit")
-          elif [[ "$commit" =~ ^major\/ ]]; then
+          elif [[ "$commit" =~ \(major\).* ]]; then
             major_commits+=("$commit")
           else
             minor_commits+=("Invalid Commit Message: $commit") # Treat invalid as minor
@@ -65,13 +69,25 @@ jobs:
         run: dotnet test --no-build --verbosity normal
 
       # Generate Semantic Version
-      - name: Generate Semantic Version
-        id: semver
-        uses: paulhatch/semantic-version@v5.4.0
+      - name: Generate semantic version
+        id: generate-version
+        uses: paulhatch/semantic-version@v5.3.0
         with:
-          major_pattern: "major"
-          minor_pattern: "minor"
-          version_format: ${major}.${minor}.${patch}
+          tag_prefix: "v"
+          version_format: "${major}.${minor}.${patch}"
+
+      - name: Download release artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: artifacts/
+
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: ${{ steps.generate-version.outputs.version_tag }}
+          tag_name: ${{ steps.generate-version.outputs.version_tag }}
+          fail_on_unmatched_files: true
+          generate_release_notes: true
 
       # - name: Setup git config
       #   run: |
@@ -85,19 +101,7 @@ jobs:
       #     git tag $NEXT_TAG
       #     git push origin $NEXT_TAG
 
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.semver.outputs.version }}
-          release_name: v${{ steps.semver.outputs.version }}
-          draft: false
-          prerelease: false
-        continue-on-error: true
-
-      # Configure AWS Credentials
+       # Configure AWS Credentials
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
