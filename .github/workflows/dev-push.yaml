@@ -105,7 +105,10 @@ jobs:
         with:
           tag_prefix: "v"
           version_format: "${major}.${minor}.${patch}"
-          version_type: ${{ steps.versioning.outputs.version_type }}
+          major_pattern: "(feat!)"
+          minor_pattern: "(feat|fix|chore|docs|ci|perf|refactor|style|test)"
+          major_regexp_flags: ""
+          minor_regexp_flags: ""
 
       - name: Create release
         uses: softprops/action-gh-release@v2
