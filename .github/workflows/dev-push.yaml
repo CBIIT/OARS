@@ -22,6 +22,7 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Fetch tags and get the latest version
       - name: Fetch tags and get the latest version
         id: version
         run: |
@@ -33,6 +34,7 @@ jobs:
           echo "Latest tag version: $LATEST_TAG"
           echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
 
+      # Determine the new version based on commit types
       - name: Determine the new version based on commit types
         id: versioning
         run: |
@@ -100,7 +102,7 @@ jobs:
 
       # Generate Semantic Version
       - name: Generate semantic version
-        id: generate-version
+        id: semver
         uses: paulhatch/semantic-version@v5.3.0
         with:
           tag_prefix: "v"
@@ -110,25 +112,22 @@ jobs:
           major_regexp_flags: ""
           minor_regexp_flags: ""
 
+        # Create release
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
-          name: ${{ steps.generate-version.outputs.version_tag }}
-          tag_name: ${{ steps.generate-version.outputs.version_tag }}
+          name: ${{ steps.semver.outputs.version }}
+          tag_name: ${{ steps.semver.outputs.version }}
           fail_on_unmatched_files: true
           generate_release_notes: true
 
-      # - name: Setup git config
-      #   run: |
-      #     git config user.name 'github-actions[bot]'
-      #     git config user.email 'github-actions[bot]@users.noreply.github.com'
-
-      # - name: Create trunk tag for current HEAD
-      #   env:
-      #     NEXT_TAG: ${{ steps.semver.outputs.version_tag }}
-      #   run: |
-      #     git tag $NEXT_TAG
-      #     git push origin $NEXT_TAG
+        # Setup git config
+      - name: Setup git config
+        env:
+          NEXT_TAG: ${{ steps.semver.outputs.version }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
 
        # Configure AWS Credentials
       - name: Configure AWS Credentials
