@@ -22,34 +22,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Check commit messages and categorize
-      - name: Check commit messages and categorize
-        id: commit_check
-        run: |
-          patch_commits=()
-          minor_commits=()
-          major_commits=()
-          invalid_commits=()
-
-          # Get the last commit message from the pull request
-          commit=$(git log -1 --pretty=%s)
-
-          if [[ "$commit" =~ \(patch\).* ]]; then
-            patch_commits+=("$commit")
-          elif [[ "$commit" =~ \(minor\).* ]]; then
-            minor_commits+=("$commit")
-          elif [[ "$commit" =~ \(major\).* ]]; then
-            major_commits+=("$commit")
-          else
-            minor_commits+=("Invalid Commit Message: $commit") # Treat invalid as minor
-            echo "Warning: Invalid commit message: $commit. Treating as minor."
-          fi
-
-          echo "patch_commits=$(printf '%s\n' "${patch_commits[@]}")" >> "$GITHUB_OUTPUT"
-          echo "minor_commits=$(printf '%s\n' "${minor_commits[@]}")" >> "$GITHUB_OUTPUT"
-          echo "major_commits=$(printf '%s\n' "${major_commits[@]}")" >> "$GITHUB_OUTPUT"
-        shell: bash
-
       # Setup .NET
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -68,26 +40,75 @@ jobs:
       - name: Run Unit Tests
         run: dotnet test --no-build --verbosity normal
 
-      # Generate Semantic Version
-      - name: Generate semantic version
-        id: generate-version
-        uses: paulhatch/semantic-version@v5.3.0
-        with:
-          tag_prefix: "v"
-          version_format: "${major}.${minor}.${patch}"
+      - name: Install semantic-version CLI
+        run: |
+          # Install the semantic-version CLI directly
+          curl -sSL https://github.com/PaulHatch/semantic-version/releases/download/v1.0.0/semantic-version_1.0.0_linux_amd64.tar.gz | tar xz
+          sudo mv semantic-version /usr/local/bin
 
-      - name: Download release artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts/
+      - name: Fetch tags and get the latest version
+        id: version
+        run: |
+          # Fetch all tags to ensure we have access to the latest tag
+          git fetch --tags
 
-      - name: Create release
-        uses: softprops/action-gh-release@v2
-        with:
-          name: ${{ steps.generate-version.outputs.version_tag }}
-          tag_name: ${{ steps.generate-version.outputs.version_tag }}
-          fail_on_unmatched_files: true
-          generate_release_notes: true
+          # Get the latest tag (current version)
+          LATEST_TAG=$(git describe --tags --abbrev=0)
+          echo "Latest tag version: $LATEST_TAG"
+          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
+
+      - name: Determine the new version based on commit types
+        id: versioning
+        run: |
+          # Analyze the last commit message
+          LAST_COMMIT=$(git log -1 --pretty=%B)
+        
+          if [[ "$LAST_COMMIT" =~ feat! ]]; then
+            VERSION_TYPE="major"
+          elif [[ "$LAST_COMMIT" =~ feat ]]; then
+            VERSION_TYPE="minor"
+          elif [[ "$LAST_COMMIT" =~ fix ]]; then
+            VERSION_TYPE="patch"
+          elif [[ "$LAST_COMMIT" =~ chore|docs|ci|perf|refactor|style|test ]]; then
+            VERSION_TYPE="patch"
+          else
+            VERSION_TYPE="patch"  # Default to patch if no match
+          fi
+
+          echo "Determined version bump type: $VERSION_TYPE"
+
+          # Bump the version using PaulHatch's semantic-version CLI
+          semantic-version --bump $VERSION_TYPE
+
+      - name: Tag the new version
+        run: |
+          # Create a new tag with the bumped version
+          NEW_TAG=$(git describe --tags --abbrev=0)
+          echo "New version: $NEW_TAG"
+          git tag $NEW_TAG
+          git push --tags
+
+      - name: Push version bump commit
+        run: |
+          # Commit the changes and push them
+          git commit -am "chore: bump version to $NEW_TAG"
+          git push origin main
+
+      # # Generate Semantic Version
+      # - name: Generate semantic version
+      #   id: generate-version
+      #   uses: paulhatch/semantic-version@v5.3.0
+      #   with:
+      #     tag_prefix: "v"
+      #     version_format: "${major}.${minor}.${patch}"
+
+      # - name: Create release
+      #   uses: softprops/action-gh-release@v2
+      #   with:
+      #     name: ${{ NEW_TAG }}
+      #     tag_name: ${{ NEW_TAG }}
+      #     fail_on_unmatched_files: true
+      #     generate_release_notes: true
 
       # - name: Setup git config
       #   run: |
@@ -121,7 +142,7 @@ jobs:
         uses: theradex/action-container-tools/check-image-tag-ecr@v1
         with:
           container-repository-name: ${{ vars.CONTAINER_REPOSITORY_NAME_DEV }}
-          container-image-tag: ${{ steps.generate-version.outputs.version_tag }}
+          container-image-tag: ${{  $NEW_TAG }}
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
           role-to-assume:  ${{ secrets.AWS_ARN_DEV }}
       
@@ -138,19 +159,19 @@ jobs:
       # Build Docker Image
       - name: Build Docker Image
         run: |
-          docker build -t ${{ secrets.ECR_URI_DEV }}:${{ steps.generate-version.outputs.version_tag }} .
+          docker build -t ${{ secrets.ECR_URI_DEV }}:${{  $NEW_TAG }} .
           docker build -t ${{ secrets.ECR_URI_DEV }}:latest .
 
       # Push Docker Image to ECR
       - name: Push Docker Image to ECR
         run: |
-          docker push ${{ secrets.ECR_URI_DEV }}:${{ steps.generate-version.outputs.version_tag }}
+          docker push ${{ secrets.ECR_URI_DEV }}:${{  $NEW_TAG }}
           docker push ${{ secrets.ECR_URI_DEV }}:latest
       
       # Save Docker Image as Artifact
       - name: Save Docker Image as Artifact
         env:
-          VERSION: ${{ steps.generate-version.outputs.version_tag }}
+          VERSION: ${{  $NEW_TAG }}
           ECR_URI_DEV: ${{ secrets.ECR_URI_DEV }}
         run: |
           echo "Saving Docker image $ECR_URI_DEV:$VERSION as an artifact"
@@ -159,8 +180,8 @@ jobs:
       - name: Upload Docker Image Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: docker-image-${{ steps.generate-version.outputs.version_tag }}
-          path: web-reporting_${{ steps.generate-version.outputs.version_tag }}.tar.gz
+          name: docker-image-${{  $NEW_TAG }}
+          path: web-reporting_${{  $NEW_TAG }}.tar.gz
 
       - name: Download task definition
         run: |
@@ -193,7 +214,7 @@ jobs:
       # Print Version and Run ID in comments
       - name: Print Version and Run ID
         run: |
-          echo "Version: ${{ steps.generate-version.outputs.version_tag }}"
+          echo "Version: ${{  $NEW_TAG }}"
           echo "Run ID: ${{ steps.get_run_id.outputs.run_id }}"
 
       - name: Add Summary
@@ -201,7 +222,7 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const version = '${{ steps.generate-version.outputs.version_tag }}';
+            const version = '${{  $NEW_TAG }}';
             const runId = '${{ steps.get_run_id.outputs.run_id }}';
             core.summary.addHeading("Deployment to DEV").addTable([
               [{ data: "Version", header: true }, { data: "Run ID", header: true }],
@@ -215,7 +236,7 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const version = '${{ steps.generate-version.outputs.version_tag }}';
+            const version = '${{  $NEW_TAG }}';
             const runId = '${{ steps.get_run_id.outputs.run_id }}';
             console.log(`Version: ${version}, Run ID: ${runId}`);
             github.rest.actions.createWorkflowDispatch({
