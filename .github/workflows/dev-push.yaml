@@ -40,11 +40,14 @@ jobs:
       - name: Run Unit Tests
         run: dotnet test --no-build --verbosity normal
 
-      - name: Install semantic-version CLI
+      - name: Install the semantic-version CLI directly
         run: |
-          # Install the semantic-version CLI directly
-          curl -sSL https://github.com/PaulHatch/semantic-version/releases/download/v1.0.0/semantic-version_1.0.0_linux_amd64.tar.gz | tar xz
+          curl -sSL https://github.com/PaulHatch/semantic-version/releases/download/v1.0.0/semantic-version_1.0.0_linux_amd64.tar.gz -o semantic-version.tar.gz
+          tar -xzf semantic-version.tar.gz
           sudo mv semantic-version /usr/local/bin
+        shell: /usr/bin/bash -e {0}
+        env:
+          DOTNET_ROOT: /usr/share/dotnet
 
       - name: Fetch tags and get the latest version
         id: version
