@@ -11,11 +11,6 @@
 @page "/admin/reviewitem/{reviewitemid:int?}"
 <AdminRoleCheck AllowedRoles="@(new List<string> { "IT", "Biz" })"></AdminRoleCheck>
 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1 mb-3"><h2>@AddOrEdit</h2></Div>
-<Div Flex="Flex.JustifyContent.Center" Class="pt-3">
-    <Div Class="rounded p-2 border border-primary" Style="padding-bottom: 20px;">
-        Warning: Any changes made here will have an immediate impact on ALL existing reviews.
-    </Div>
-</Div>
 <Steps @ref="stepsRef" SelectedStep="@selectedStep" SelectedStepChanged="@OnSelectedStepChanged" NavigationAllowed="NavigationAllowed">
     <Items>
         <Step Name="step1">Review Item info</Step>

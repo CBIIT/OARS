@@ -20,12 +20,14 @@ namespace TheradexPortal.Data.Services
         {
             var queryResult = await context.ReviewHistoryItems
                 .Where(r => r.ReviewHistoryId == reviewHistoryID)
-                .ToDictionaryAsync(
+                .ToListAsync();
+
+            Dictionary<int, bool> res = queryResult.ToDictionary(
                 r => r.ReviewItemId,
                 r => r.IsCompleted == 'T'
                 );
 
-            return queryResult;
+            return res;
         }
 
         public async Task<List<int>> GetReviewHistoryItemIdsAsync(int reviewHistoryID)
@@ -36,6 +38,20 @@ namespace TheradexPortal.Data.Services
                 .ToListAsync();
 
             return queryResult;
+        }
+
+        public async Task<List<ReviewItem>> GetReviewHistoryItemsAsync(int reviewHistoryID)
+        {
+            List<int> queryResult = await context.ReviewHistoryItems
+                .Where(r => r.ReviewHistoryId == reviewHistoryID)
+                .Select(r => r.ReviewItemId)
+                .ToListAsync();
+
+            List<ReviewItem> result = await context.ReviewItems
+                .Where(r => queryResult.Contains(r.ReviewItemId))
+                .ToListAsync();
+
+            return result;
         }
 
         public async Task<bool> CheckHistoryItemChangedAsync(int reviewHistoryItemId)

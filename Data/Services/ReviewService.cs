@@ -90,7 +90,7 @@ namespace TheradexPortal.Data.Services
                 p.ReviewType == reviewType)
                 .FirstOrDefaultAsync();
             reviewToReset.UpdateDate = DateTime.Now;
-            reviewToReset.ReviewStatus = "Ongoing";
+            reviewToReset.ReviewStatus = "Active";
             reviewToReset.MissedReviewCount = 0;
 
             var primaryTable = context.Model.FindEntityType(typeof(Review)).ToString().Replace("EntityType: ", "");

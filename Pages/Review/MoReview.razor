@@ -734,7 +734,6 @@
 
         protected override async Task OnInitializedAsync()
         {
-            lstReviewItems = await reviewItemService.GetReviewItemListAsync("MO", 'T');
             activeUserId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
 
             bool activeReviewCheck;
@@ -763,6 +762,16 @@
                     {
                         await reviewHistoryService.StartNewReviewAsync(activeUserId, AgentId, "MO", reviewHistoryId);
                         latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(AgentId, activeUserId, "MO");
+                        lstReviewItems = await reviewItemService.GetReviewItemListAsync("MO", 'T');
+                        foreach(var item in lstReviewItems)
+                        {
+                            reviewHistoryItemService.SaveReviewHistoryItemAsync(activeUserId, latestReviewHistory.ReviewHistoryId, item.ReviewItemId, false);
+                        }
+                    }
+                    else
+                    {
+                        // If there IS an active review, grab the list of review items from the DB
+                        lstReviewItems = await reviewHistoryItemService.GetReviewHistoryItemsAsync(reviewHistoryId);
                     }
                     (mo_duration, pi_duration)= await reviewService.GetReviewDurationsAsync(currentReview.ProtocolId);
                     original_mo_duration = mo_duration;

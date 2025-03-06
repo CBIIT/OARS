@@ -137,7 +137,7 @@ namespace TheradexPortal.Data.Services
             newHistory.DueDate = previousReview.NextDueDate;
 
             newHistory.ReviewLate = 'F';
-            newHistory.ReviewStatus = "Ongoing";
+            newHistory.ReviewStatus = "Active";
 
             newHistory.DaysLate = 0;
             newHistory.UpdateDate = DateTime.Now;

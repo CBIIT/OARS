@@ -40,7 +40,7 @@
         <Row>
             <Column ColumnSize="ColumnSize.Is12">
                 <Div Background="Background.Primary" TextColor="TextColor.Light" Class="px-2 py-1">
-                    
+
                     <Div Style="display: inline-grid; grid-template-columns: 1fr 1fr 1fr; width: 100%">
                         <Div Style="display: inline-block;"> </Div>
                         <Div Style="display: inline-block; text-align: center;"> 
@@ -563,7 +563,6 @@
 
         protected override async Task OnInitializedAsync()
         {
-            lstReviewItems = await reviewItemService.GetActiveReviewItemsAsync();
             activeUserId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
 
             bool activeReview;
@@ -589,8 +588,19 @@
 
                     if (!activeReview)
                     {
+                        // If there is not an active Review right now, start a new review, create a new review history, snapshot the current review items
                         await reviewHistoryService.StartNewReviewAsync(activeUserId, ProtocolId, "PI", reviewHistoryId);
                         latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(ProtocolId, activeUserId, "PI");
+                        lstReviewItems = await reviewItemService.GetActiveReviewItemsAsync();
+                        foreach(var item in lstReviewItems)
+                        {
+                            reviewHistoryItemService.SaveReviewHistoryItemAsync(activeUserId, latestReviewHistory.ReviewHistoryId, item.ReviewItemId, false);
+                        }
+                    }
+                    else
+                    {
+                        // If there IS an active review, grab the list of review items from the DB
+                        lstReviewItems = await reviewHistoryItemService.GetReviewHistoryItemsAsync(reviewHistoryId);
                     }
 
                     reviewName = latestReviewHistory.ReviewPeriodName ?? "";
