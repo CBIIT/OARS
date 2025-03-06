@@ -1012,7 +1012,7 @@
             {
                 navTo = result.Value ?? "/";
             }
-            CloseTab();
+            await CloseTab();
             Navigation.NavigateTo(navTo, true);
         }
 }
