@@ -266,37 +266,37 @@
                                     <DataGridCommandColumn />
                                     @if(pi != null)
                                     {
-                                    <DataGridColumn TItem="AuditTrailDTO" Caption="User">
-                                        <DisplayTemplate>
-                                            <Div Style="white-space: nowrap;">
-                                                @context.userName
-                                            </Div>
-                                        </DisplayTemplate>
-                                    </DataGridColumn>
-                                    <DataGridColumn TItem="AuditTrailDTO" Field="@nameof(AuditTrailDTO.userEmail)" Caption="User Email" />
-                                    <DataGridColumn TItem="AuditTrailDTO" Caption="Date Of Change">
-                                        <DisplayTemplate>
-                                            <Div Style="white-space: nowrap;">
-                                                @context.dateOfChange
-                                            </Div>
-                                        </DisplayTemplate>
-                                    </DataGridColumn>
-                                    <DataGridColumn TItem="AuditTrailDTO" Field="@nameof(AuditTrailDTO.typeOfChange)" Caption="Type Of Change" />
-                                    <DataGridColumn TItem="AuditTrailDTO" Field="@nameof(AuditTrailDTO.changeField)" Caption="Changed Field" />
-                                    <DataGridColumn TItem="AuditTrailDTO" Caption="Previous Value">
-                                        <DisplayTemplate>
-                                            <Div Style="white-space: pre-wrap;">
-                                                @context.previousValue
-                                            </Div>
-                                        </DisplayTemplate>
-                                    </DataGridColumn>
-                                    <DataGridColumn TItem="AuditTrailDTO" Caption="New Value" >
-                                        <DisplayTemplate>
-                                            <Div Style="display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; word-wrap: break-word; white-space: pre-wrap;">
-                                                @context.newValue
-                                            </Div>
-                                        </DisplayTemplate>
-                                    </DataGridColumn>
+                                        <DataGridColumn TItem="AuditTrailDTO" Caption="User">
+                                            <DisplayTemplate>
+                                                <Div Style="white-space: nowrap;">
+                                                    @context.userName
+                                                </Div>
+                                            </DisplayTemplate>
+                                        </DataGridColumn>
+                                        <DataGridColumn TItem="AuditTrailDTO" Field="@nameof(AuditTrailDTO.userEmail)" Caption="User Email" />
+                                        <DataGridColumn TItem="AuditTrailDTO" Caption="Date Of Change">
+                                            <DisplayTemplate>
+                                                <Div Style="white-space: nowrap;">
+                                                    @context.dateOfChange
+                                                </Div>
+                                            </DisplayTemplate>
+                                        </DataGridColumn>
+                                        <DataGridColumn TItem="AuditTrailDTO" Field="@nameof(AuditTrailDTO.typeOfChange)" Caption="Type Of Change" />
+                                        <DataGridColumn TItem="AuditTrailDTO" Field="@nameof(AuditTrailDTO.changeField)" Caption="Changed Field" />
+                                        <DataGridColumn TItem="AuditTrailDTO" Caption="Previous Value">
+                                            <DisplayTemplate>
+                                                <Div Style="white-space: pre-wrap;">
+                                                    @context.previousValue
+                                                </Div>
+                                            </DisplayTemplate>
+                                        </DataGridColumn>
+                                        <DataGridColumn TItem="AuditTrailDTO" Caption="New Value" >
+                                            <DisplayTemplate>
+                                                <Div Style="display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; word-wrap: break-word; white-space: pre-wrap;">
+                                                    @context.newValue
+                                                </Div>
+                                            </DisplayTemplate>
+                                        </DataGridColumn>
                                     }
                                     else
                                     {
@@ -783,37 +783,37 @@
                     original_mo_duration = mo_duration;
                     original_pi_duration = pi_duration;
 
-                        var activeReview = await reviewHistoryService.isReviewActive(latestReviewHistory.ReviewHistoryId);
-                        if (!activeReview)
-                        {
-                            reviewHistoryService.StartNewReviewAsync(activeUserId, AgentId, "MO", latestReviewHistory.ReviewHistoryId);
-                            latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(AgentId, activeUserId, "MO");
-                        }
-                        reviewName = latestReviewHistory.ReviewPeriodName ?? "";
-                        lstPiDetails = await reviewService.GetPiInfoAsync(AgentId);
-                        foreach(var pi in lstPiDetails)
-                        {
-                            pi.lstPiAuditTrail = await GenerateAuditTrail(pi.piIdNumber, pi.lstPiAuditTrail, "PI");
-                        }
-                        var user = await userService.GetUserAsync(latestReviewHistory.UserId);
-                        if (user != null)
-                        {
-                            userFullName = user.FirstName + " " + user.LastName;
-                            userFirstName = user.FirstName;
-                            userLastName = user.LastName;
-                        }
-                        studyDescription = await studyService.GetStudyTitleAsync(AgentId);
-                        dctReviewItemSettings = await reviewHistoryItemService.GetCurrentReviewHistoryItemStatusAsync(latestReviewHistory.ReviewHistoryId);
-                        foreach (var item in lstReviewItems)
-                        {
-                            dctReviewItemSettings.TryGetValue(item.ReviewItemId, out checkedStatus);
+                    var activeReview = await reviewHistoryService.isReviewActive(latestReviewHistory.ReviewHistoryId);
+                    if (!activeReview)
+                    {
+                        reviewHistoryService.StartNewReviewAsync(activeUserId, AgentId, "MO", latestReviewHistory.ReviewHistoryId);
+                        latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(AgentId, activeUserId, "MO");
+                    }
+                    reviewName = latestReviewHistory.ReviewPeriodName ?? "";
+                    lstPiDetails = await reviewService.GetPiInfoAsync(AgentId);
+                    foreach(var pi in lstPiDetails)
+                    {
+                        pi.lstPiAuditTrail = await GenerateAuditTrail(pi.piIdNumber, pi.lstPiAuditTrail, "PI");
+                    }
+                    var user = await userService.GetUserAsync(latestReviewHistory.UserId);
+                    if (user != null)
+                    {
+                        userFullName = user.FirstName + " " + user.LastName;
+                        userFirstName = user.FirstName;
+                        userLastName = user.LastName;
+                    }
+                    studyDescription = await studyService.GetStudyTitleAsync(AgentId);
+                    dctReviewItemSettings = await reviewHistoryItemService.GetCurrentReviewHistoryItemStatusAsync(latestReviewHistory.ReviewHistoryId);
+                    foreach (var item in lstReviewItems)
+                    {
+                        dctReviewItemSettings.TryGetValue(item.ReviewItemId, out checkedStatus);
 
-                            lstManagers.Add(new CheckBoxManager { BoxName = item.ReviewItemName, ReviewItemNumber = item.ReviewItemId, IsChecked = checkedStatus });
-                            if (checkedStatus == false)
-                            {
-                                submitIsDisabled = true;
-                            }
+                        lstManagers.Add(new CheckBoxManager { BoxName = item.ReviewItemName, ReviewItemNumber = item.ReviewItemId, IsChecked = checkedStatus });
+                        if (checkedStatus == false)
+                        {
+                            submitIsDisabled = true;
                         }
+                    }
 
                     if(daysRemaining >= 0)
                     {
@@ -849,50 +849,83 @@
                         }
                     }
 
-                        leadAgentName = await reviewService.GetLeadAgentByIdAsync(AgentId);
-                        var tmpLst = await historyNoteService.GetNotesAsync(latestReviewHistory.ReviewHistoryId);
-                        if (tmpLst != null)
+                    leadAgentName = await reviewService.GetLeadAgentByIdAsync(AgentId);
+                    var tmpLst = await historyNoteService.GetNotesAsync(latestReviewHistory.ReviewHistoryId);
+                    if (tmpLst != null)
+                    {
+                        if (reviewNote.Contains("No previous notes."))
+                            reviewNote.Remove("No previous notes.");
+                        foreach (var tmp in tmpLst)
                         {
-                            if (reviewNote.Contains("No previous notes."))
-                                reviewNote.Remove("No previous notes.");
-                            foreach (var tmp in tmpLst)
-                            {
-                                lstTextNotes.Add(new TextNotes { Name = tmp.UserName, Note = tmp.Notes, CreationDate = tmp.CreationDate.HasValue ? tmp.CreationDate.Value.ToString("dd-MMM-yyyy hh:mm:ss tt").ToUpper() : "null" });
-                            }
-                            lstTextNotes.Sort((x, y) => y.CreationDate.CompareTo(x.CreationDate));
+                            lstTextNotes.Add(new TextNotes { Name = tmp.UserName, Note = tmp.Notes, CreationDate = tmp.CreationDate.HasValue ? tmp.CreationDate.Value.ToString("dd-MMM-yyyy hh:mm:ss tt").ToUpper() : "null" });
                         }
-                        var tmpEmailList = await historyEmailService.GetEmailsAsync(latestReviewHistory.ReviewHistoryId);
-                        if (tmpEmailList != null)
+                        lstTextNotes.Sort((x, y) => y.CreationDate.CompareTo(x.CreationDate));
+                    }
+                    var tmpEmailList = await historyEmailService.GetEmailsAsync(latestReviewHistory.ReviewHistoryId);
+                    if (tmpEmailList != null)
+                    {
+                        if (reviewEmail.Contains("No previous emails."))
+                            reviewEmail.Remove("No previous emails.");
+                        foreach (var email in tmpEmailList)
                         {
-                            if (reviewEmail.Contains("No previous emails."))
-                                reviewEmail.Remove("No previous emails.");
-                            foreach (var email in tmpEmailList)
-                            {
-                                reviewEmail.Add(email.Body);
-                                lstEmailDetails.Add(new EmailDetails { Body = email.Body, EmailTo = email.Recipient, CreationDate = email.CreationDate.HasValue ? email.CreationDate.Value.ToString("dd-MMM-yyyy hh:mm:ss tt").ToUpper() : "null" });
-                            }
+                            reviewEmail.Add(email.Body);
+                            lstEmailDetails.Add(new EmailDetails { Body = email.Body, EmailTo = email.Recipient, CreationDate = email.CreationDate.HasValue ? email.CreationDate.Value.ToString("dd-MMM-yyyy hh:mm:ss tt").ToUpper() : "null" });
                         }
-                        lstMoAudits = await GenerateAuditTrail(activeUserId, lstMoAudits, "MO");
+                    }
+                    lstMoAudits = await GenerateAuditTrail(activeUserId, lstMoAudits, "MO");
                 }
             }
         }
 
         private async Task<List<AuditTrailDTO>> GenerateAuditTrail(int piUserId, List<AuditTrailDTO> lstAudits, string userRole)
         {
+            // We need to get Audit history for all MO's for the current ReviewID/Review Name for which this logged in user is looking
+            // We can use the current user to get the Review#
+            // We can use the Review# to get the AgentID & ReviewName ex: 10036, 001-2025-01
+            // We can then query the DB for All review histories (list) for this set ^
+            // Then loop through current auditService functionality for each reviewHistory. - done
             try
             {
                 var piCurrentReview = await reviewService.GetCurrentReviewAsync(AgentId, piUserId, userRole);
-                var piLatestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(AgentId, piUserId, userRole);
-                if (piCurrentReview != null && piLatestReviewHistory != null)
+                if (piCurrentReview != null)
                 {
-                    lstAudits = await auditService.GetFullAuditTrailAsync(
-                            piUserId,
-                            piCurrentReview.ReviewId,
-                            piLatestReviewHistory.ReviewHistoryId,
-                            await reviewHistoryItemService.GetReviewHistoryItemIdsAsync(piLatestReviewHistory.ReviewHistoryId),
-                            await historyNoteService.GetReviewHistoryNoteIdsAsync(piLatestReviewHistory.ReviewHistoryId),
-                            await historyEmailService.GetReviewHistoryEmailIdsAsync(piLatestReviewHistory.ReviewHistoryId));
-                    lstAudits.Sort((x, y) => y.dateOfChange.CompareTo(x.dateOfChange));
+                    if (userRole == "PI")
+                    {
+                        var piLatestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(AgentId, piUserId, userRole);
+                        if (piLatestReviewHistory != null)
+                        {
+                            lstAudits = await auditService.GetFullAuditTrailAsync(
+                                    piUserId,
+                                    piCurrentReview.ReviewId,
+                                    piLatestReviewHistory.ReviewHistoryId,
+                                    userRole,
+                                    await reviewHistoryItemService.GetReviewHistoryItemIdsAsync(piLatestReviewHistory.ReviewHistoryId),
+                                    await historyNoteService.GetReviewHistoryNoteIdsAsync(piLatestReviewHistory.ReviewHistoryId),
+                                    await historyEmailService.GetReviewHistoryEmailIdsAsync(piLatestReviewHistory.ReviewHistoryId));
+                            lstAudits.Sort((x, y) => y.dateOfChange.CompareTo(x.dateOfChange));
+                        }
+                    }
+                    else
+                    {
+                        List<int> reviewHistoryIdsToCheck = await reviewHistoryService.GetAllReviewHistoryIdsByNameAsync(piCurrentReview.ReviewId, piCurrentReview.ReviewPeriodName);
+
+                        if (reviewHistoryIdsToCheck.Count > 0)
+                        {
+                            foreach (var id in reviewHistoryIdsToCheck)
+                            {
+                                var tmp = await auditService.GetFullAuditTrailAsync(
+                                        piUserId,
+                                        piCurrentReview.ReviewId,
+                                        id,
+                                        userRole,
+                                        await reviewHistoryItemService.GetReviewHistoryItemIdsAsync(id),
+                                        await historyNoteService.GetReviewHistoryNoteIdsAsync(id),
+                                        await historyEmailService.GetReviewHistoryEmailIdsAsync(id));
+                                lstAudits = lstAudits.Concat(tmp).ToList();
+                            }
+                            lstAudits.Sort((x, y) => y.dateOfChange.CompareTo(x.dateOfChange));
+                        }
+                    }
                 }
             }
             catch (Exception ex)

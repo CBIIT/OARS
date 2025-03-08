@@ -694,10 +694,14 @@
                         activeUserId,
                         currentReview.ReviewId,
                         latestReviewHistory.ReviewHistoryId,
+                        "PI",
                         await reviewHistoryItemService.GetReviewHistoryItemIdsAsync(latestReviewHistory.ReviewHistoryId),
                         await historyNoteService.GetReviewHistoryNoteIdsAsync(latestReviewHistory.ReviewHistoryId),
                         await historyEmailService.GetReviewHistoryEmailIdsAsync(latestReviewHistory.ReviewHistoryId));
-                lstAudits.Sort((x, y) => y.dateOfChange.CompareTo(x.dateOfChange));
+                if (lstAudits.Count > 0)
+                {
+                    lstAudits.Sort((x, y) => y.dateOfChange.CompareTo(x.dateOfChange));
+                }
             }
             catch (Exception ex)
             {

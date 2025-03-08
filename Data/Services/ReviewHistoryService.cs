@@ -50,6 +50,14 @@ namespace TheradexPortal.Data.Services
                 .FirstOrDefaultAsync();
         }
 
+        public async Task<List<int>> GetAllReviewHistoryIdsByNameAsync(int reviewId, string ReviewPeriodName)
+        {
+            return await context.ReviewHistories
+                .Where(r => r.ReviewId == reviewId && r.ReviewPeriodName == ReviewPeriodName)
+                .Select(r => r.ReviewHistoryId)
+                .ToListAsync();
+        }
+
         public int GetNextReviewHistoryId()
         {
             return context.ReviewHistories.Max(p => p.ReviewHistoryId) + 1;

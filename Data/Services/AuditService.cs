@@ -11,6 +11,7 @@ using Newtonsoft.Json.Linq;
 using DocumentFormat.OpenXml.Spreadsheet;
 using System.Collections.Generic;
 using RestSharp.Serialization.Json;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace TheradexPortal.Data.Services
 {
@@ -34,8 +35,8 @@ namespace TheradexPortal.Data.Services
             _reviewHistoryItemService = reviewHistoryItemService;
             _userService = userService;
         }
-        public async Task<List<AuditTrailDTO>> GetFullAuditTrailAsync(int userId, int reviewId, int reviewHistoryId, List<int> reviewHistoryItemIds,
-            List<int> reviewHistoryNoteIds, List<int> reviewHistoryEmailIds)
+        public async Task<List<AuditTrailDTO>> GetFullAuditTrailAsync(int userId, int reviewId, int reviewHistoryId, string reviewType,
+            List<int> reviewHistoryItemIds, List<int> reviewHistoryNoteIds, List<int> reviewHistoryEmailIds)
         {
             List<AuditTrailDTO> auditTrail = new List<AuditTrailDTO>();
             var currentUser = await _userService.GetUserAsync(userId);
@@ -44,56 +45,62 @@ namespace TheradexPortal.Data.Services
 
             if (reviewHistoryId != 0)
             {
-                IList<Audit> reviewHistoryAuditTrail = await GetReviewHistoryAuditTrailAsync(userId, reviewHistoryId);
+                IList<Audit> reviewHistoryAuditTrail = await GetReviewHistoryAuditTrailAsync(userId, reviewHistoryId, reviewType);
                 if (reviewHistoryAuditTrail != null)
                 {
                     foreach (var riAudit in reviewHistoryAuditTrail)
                     {
-                        ProcessAuditEntry(riAudit, userName, userEmail, auditTrail);
+                        ProcessAuditEntry(riAudit, userName, userEmail, auditTrail, reviewType);
                     }
                 }
             }
 
             if (reviewHistoryItemIds.Count > 0)
             {
-                IList<Audit> reviewItemAuditTrail = await GetReviewHistoryItemAuditTrailAsync(userId, reviewHistoryId, reviewHistoryItemIds);
+                IList<Audit> reviewItemAuditTrail = await GetReviewHistoryItemAuditTrailAsync(userId, reviewHistoryId, reviewHistoryItemIds, reviewType);
                 if (reviewItemAuditTrail != null)
                 {
                     foreach (var riAudit in reviewItemAuditTrail)
                     {
-                        ProcessAuditEntry(riAudit, userName, userEmail, auditTrail);
+                        ProcessAuditEntry(riAudit, userName, userEmail, auditTrail, reviewType);
                     }
                 }
             }
             if (reviewHistoryNoteIds.Count > 0)
             {
-                IList<Audit> reviewNoteAuditTrail = await GetReviewNoteAuditTrailAsync(userId, reviewHistoryId, reviewHistoryNoteIds);
+                IList<Audit> reviewNoteAuditTrail = await GetReviewNoteAuditTrailAsync(userId, reviewHistoryId, reviewHistoryNoteIds, reviewType);
                 if (reviewNoteAuditTrail != null)
                 {
                     foreach (var riAudit in reviewNoteAuditTrail)
                     {
-                        ProcessAuditEntry(riAudit, userName, userEmail, auditTrail);
+                        ProcessAuditEntry(riAudit, userName, userEmail, auditTrail, reviewType);
                     }
                 }
             }
             if (reviewHistoryEmailIds.Count > 0)
             {
-                IList<Audit> reviewEmailAuditTrail = await GetReviewEmailAuditTrailAsync(userId, reviewHistoryId, reviewHistoryEmailIds);
+                IList<Audit> reviewEmailAuditTrail = await GetReviewEmailAuditTrailAsync(userId, reviewHistoryId, reviewHistoryEmailIds, reviewType);
                 if (reviewEmailAuditTrail != null)
                 {
                     foreach (var riAudit in reviewEmailAuditTrail)
                     {
-                        ProcessAuditEntry(riAudit, userName, userEmail, auditTrail);
+                        ProcessAuditEntry(riAudit, userName, userEmail, auditTrail, reviewType);
                     }
                 }
             }
             return auditTrail;
         }
 
-        private void ProcessAuditEntry(Audit auditEntry, string userName, string userEmail, List<AuditTrailDTO> auditTrail)
+        private async void ProcessAuditEntry(Audit auditEntry, string userName, string userEmail, List<AuditTrailDTO> auditTrail, string reviewType)
         {
             if (auditEntry != null)
             {
+                if (reviewType == "MO")
+                {
+                    var currentUser = await _userService.GetUserAsync(auditEntry.UserId ?? 0);
+                    userName = currentUser.FirstName + " " + currentUser.LastName;
+                    userEmail = currentUser.EmailAddress;
+                }
                 if (auditEntry.AuditType == "Update")
                 {
                     auditTrail.Add(
@@ -125,15 +132,20 @@ namespace TheradexPortal.Data.Services
             }
         }
 
-        private async Task<IList<Audit>> GetReviewEmailAuditTrailAsync(int userId, int reviewHistoryId, List<int> reviewHistoryEmailIds)
+        private async Task<IList<Audit>> GetReviewEmailAuditTrailAsync(int userId, int reviewHistoryId, List<int> reviewHistoryEmailIds, string reviewType)
         {
             IList<Audit> localAuditCopy = null;
             string numberList = string.Join(",", reviewHistoryEmailIds);
             string sqlInts = "(" + string.Join(",", reviewHistoryEmailIds) + ")";
-            string sqlQuery = "SELECT * FROM \"AUDIT\" WHERE USERID = {0} AND TABLENAME = 'ReviewHistoryEmail' AND JSON_VALUE(PRIMARYKEY, '$.ReviewHistoryEmailId') IN " + sqlInts;
+            string sqlQuery = "SELECT * FROM \"AUDIT\" WHERE ";
+            if (reviewType == "PI")
+            {
+                sqlQuery += "USERID = " + userId + " AND ";
+            }
+            sqlQuery += "TABLENAME = 'ReviewHistoryEmail' AND JSON_VALUE(PRIMARYKEY, '$.ReviewHistoryEmailId') IN " + sqlInts;
 
             var ret = await context.Audits
-                    .FromSqlRaw(sqlQuery, userId)
+                    .FromSqlRaw(sqlQuery)
                     .ToListAsync();
 
             if (ret != null)
@@ -164,15 +176,21 @@ namespace TheradexPortal.Data.Services
             return localAuditCopy;
         }
 
-        private async Task<IList<Audit>> GetReviewNoteAuditTrailAsync(int userId, int reviewHistoryId, List<int> reviewHistoryNoteIds)
+        private async Task<IList<Audit>> GetReviewNoteAuditTrailAsync(int userId, int reviewHistoryId, List<int> reviewHistoryNoteIds, string reviewType)
         {
             IList<Audit> localAuditCopy = null;
             string numberList = string.Join(",", reviewHistoryNoteIds);
             string sqlInts = "(" + string.Join(",", reviewHistoryNoteIds) + ")";
-            string sqlQuery = "SELECT * FROM \"AUDIT\" WHERE USERID = {0} AND TABLENAME = 'ReviewHistoryNote' AND JSON_VALUE(PRIMARYKEY, '$.ReviewHistoryNoteId') IN " + sqlInts;
+            string sqlQuery = "SELECT * FROM \"AUDIT\" WHERE ";
+            if (reviewType == "PI")
+            {
+                sqlQuery += "USERID = " + userId + " AND ";
+            }
+            sqlQuery += "TABLENAME = 'ReviewHistoryNote' AND JSON_VALUE(PRIMARYKEY, '$.ReviewHistoryNoteId') IN " + sqlInts;
+
 
             var ret = await context.Audits
-                    .FromSqlRaw(sqlQuery, userId)
+                    .FromSqlRaw(sqlQuery)
                     .ToListAsync();
 
             if (ret != null)
@@ -202,15 +220,21 @@ namespace TheradexPortal.Data.Services
             return localAuditCopy;
         }
 
-        private async Task<IList<Audit>> GetReviewHistoryItemAuditTrailAsync(int userId, int reviewHistoryId, List<int> reviewHistoryItemIds)
+        private async Task<IList<Audit>> GetReviewHistoryItemAuditTrailAsync(int userId, int reviewHistoryId, List<int> reviewHistoryItemIds, string reviewType)
         {
             IList<Audit> localAuditCopy = null;
             string numberList = string.Join(",", reviewHistoryItemIds);
             string sqlInts = "(" + string.Join(",", reviewHistoryItemIds) + ")";
-            string sqlQuery = "SELECT * FROM \"AUDIT\" WHERE USERID = {0} AND TABLENAME = 'ReviewHistoryItem' AND JSON_VALUE(PRIMARYKEY, '$.ReviewHistoryItemId') IN " + sqlInts;
+
+            string sqlQuery = "SELECT * FROM \"AUDIT\" WHERE ";
+            if (reviewType == "PI")
+            {
+                sqlQuery += "USERID = " + userId + " AND ";
+            }
+            sqlQuery += "TABLENAME = 'ReviewHistoryItem' AND JSON_VALUE(PRIMARYKEY, '$.ReviewHistoryItemId') IN " + sqlInts;
 
             var ret = await context.Audits
-                    .FromSqlRaw(sqlQuery, userId)
+                    .FromSqlRaw(sqlQuery)
                     .ToListAsync();
             string itemName;
 
@@ -254,13 +278,18 @@ namespace TheradexPortal.Data.Services
             return localAuditCopy;
         }
 
-        private async Task<IList<Audit>> GetReviewHistoryAuditTrailAsync(int userId, int reviewHistoryId)
+        private async Task<IList<Audit>> GetReviewHistoryAuditTrailAsync(int userId, int reviewHistoryId, string reviewType)
         {
             IList<Audit> localAuditCopy = null;
-            string sqlQuery = "SELECT * FROM \"AUDIT\" WHERE USERID = {0} AND JSON_VALUE(PRIMARYKEY, '$.ReviewHistoryId') = {1}";
+            string sqlQuery = "SELECT * FROM \"AUDIT\" WHERE ";
+            if (reviewType == "PI")
+            {
+                sqlQuery += "USERID = " + userId + " AND ";
+            }
+            sqlQuery += "JSON_VALUE(PRIMARYKEY, '$.ReviewHistoryId') = {0}";
 
             var ret = await context.Audits
-                    .FromSqlRaw(sqlQuery, userId, reviewHistoryId)
+                    .FromSqlRaw(sqlQuery, reviewHistoryId)
                     .ToListAsync();
 
             if (ret != null)
@@ -304,13 +333,18 @@ namespace TheradexPortal.Data.Services
         }
 
         /* There should only ever be 1 "review" Audit per audit history we pull, the most recent. */
-        private async Task<Audit> GetReviewAuditTrailAsync(int userId, int reviewId)
+        private async Task<Audit> GetReviewAuditTrailAsync(int userId, int reviewId, string reviewType)
         {
             Audit localAuditCopy = null;
-            string sqlQuery = "SELECT * FROM \"AUDIT\" WHERE USERID = {0} AND AFFECTEDCOLUMNS LIKE '%\"NextDueDate\"%' AND JSON_VALUE(PRIMARYKEY, '$.ReviewId') = {1} ORDER BY CREATEDATE DESC FETCH FIRST 1 ROWS ONLY";
+            string sqlQuery = "SELECT * FROM \"AUDIT\" WHERE ";
+            if (reviewType == "PI")
+            {
+                sqlQuery += "USERID = " + userId + " AND ";
+            }
+            sqlQuery += "AFFECTEDCOLUMNS LIKE '%\"NextDueDate\"%' AND JSON_VALUE(PRIMARYKEY, '$.ReviewId') = {0} ORDER BY CREATEDATE DESC FETCH FIRST 1 ROWS ONLY";
 
             var ret = await context.Audits
-                    .FromSqlRaw(sqlQuery, userId, reviewId)
+                    .FromSqlRaw(sqlQuery, reviewId)
                     .FirstOrDefaultAsync();
 
             if (ret != null)
