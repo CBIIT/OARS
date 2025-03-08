@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using TheradexPortal.Data.Models;
+using TheradexPortal.Data.Models.ADDR;
 
 namespace TheradexPortal.Data.Services.Abstract
 {
@@ -23,5 +24,8 @@ namespace TheradexPortal.Data.Services.Abstract
 
         Task<List<PathologyEvaluationReportFileData>?> GetAllPathologyEvaluationReportData(string requestId);
 
+        Task<bool> SaveAddrNotes<T>(AddrNotes<T> notes);
+
+        Task<List<AddrNotes<T>>> GetAllAddrNotes<T>(string userId, string searchKey);
     }
 }

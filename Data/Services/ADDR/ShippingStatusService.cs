@@ -26,7 +26,7 @@ using System.Text.Json.Nodes;
 
 namespace TheradexPortal.Data.Services
 {
-    public class ShippingStatusService : BaseService, IShippingStatusService, INotesService<ShippingStatus>
+    public class ShippingStatusService : BaseService, IShippingStatusService , INotesService<ShippingStatus>
     {
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
@@ -142,21 +142,14 @@ namespace TheradexPortal.Data.Services
 
         }
 
-        public Task SaveNotesAsync(int statusId, Note<ShippingStatus> note)
+        public async Task<List<AddrNotes<ShippingStatus>>> GetAllNotesAsync(string userId, string searchKey)
         {
-            throw new NotImplementedException();
+            return await _dynamoDbService.GetAllAddrNotes<ShippingStatus>(userId, searchKey);
         }
 
-        public Task<ShippingStatus> GetNoteByIdAsync(int id)
+        public async Task<bool> SaveNotesAsync(AddrNotes<ShippingStatus> notes)
         {
-            return Task.FromResult(new ShippingStatus());
+            return await _dynamoDbService.SaveAddrNotes(notes);
         }
-
-        public Task<List<Note<ShippingStatus>>> GetNotesByStatusIdAsync(int statusId)
-        {
-            return Task.FromResult(new List<Note<ShippingStatus>>());
-        }
-
-
     }
 }

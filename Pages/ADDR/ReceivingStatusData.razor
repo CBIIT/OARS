@@ -95,7 +95,7 @@
                         <DisplayTemplate>
                             <Div Flex="Flex.Column.JustifyContent.Center">
                                 <Span Flex="Flex.JustifyContent.Center.AlignItems.Center">
-                                    <Button Size="Size.ExtraSmall" Clicked="@(()=>OnViewClicked(context as ReceivingStatus))">
+                                    <Button Size="Size.ExtraSmall" Clicked="@(()=>OnViewNotesClicked(context as ReceivingStatus))">
                                         <Figure Size="FigureSize.Is32x32" Class="mx-auto">
                                             <FigureImage Source="img/notes.png" Class="mx-auto" AlternateText="Recently Selected" />
                                         </Figure>
@@ -281,6 +281,8 @@
     bool includeAll;
     string currentStudies;
 
+    string userName = string.Empty;
+
     // Initialize component and set user-specific time zone information
     protected override async Task OnInitializedAsync()
     {
@@ -288,6 +290,8 @@
         User curUser = await userService.GetUserAsync(userId);
         timeZoneAbbrev = curUser.TimeZoneAbbreviation;
         timeOffset = TimeSpan.FromMinutes((double)curUser.TimeOffset);
+
+        userName = curUser.FirstName + " " + curUser.LastName;
 
         // Fetch protocols
         //Protocols = await service.GetProtocols();
@@ -377,11 +381,10 @@
         this.data = await service.GetReceivingStatus(ProtocolNumber);
     }
 
-    // Handle view button click
-    private Task OnViewClicked(ReceivingStatus request)
+    // Handle Notes view button click
+    private Task OnViewNotesClicked(ReceivingStatus request)
     {
-        string titleData = $"DataSource: {request.DataSource}| SubjectKey: {request.SubjectKey}| SpecimenID: {request.SpecimenSponsorGroupSpecimenId}| SubSpecimenID: {request.SubSpecimenId}| Status: RECEIVING_STATUS";
-        return NotesModelDataModal.Show(titleData, request.DataSource, request.SubjectKey, request.SpecimenSponsorGroupSpecimenId, request.SubSpecimenId, "RECEIVING_STATUS", "", IsAdminDisplay);
+        return NotesModelDataModal.Show(request.ProtocolNumber, request.DataSource, request.SubjectKey, request.SpecimenId, request.SubSpecimenId, "RECEIVING_STATUS", "Receiving Status", IsAdminDisplay, userName);
     }
 
     // Handle download button click

@@ -12,16 +12,19 @@
 <Modal @ref="notesModel">
     <ModalContent Size="ModalSize.ExtraLarge">
         <ModalHeader Background="Background.Primary">
-            <ModalTitle TextColor="TextColor.White">@crfDescription - @requestIdToFetch</ModalTitle>
+            <ModalTitle TextColor="TextColor.White">@title</ModalTitle>
             <CloseButton TextColor="TextColor.White" />
         </ModalHeader>
         <ModalBody Class="upload-Modal-Body">
+
             <Div Display="@receivingStatusVisible">
-                <Notes T=ReceivingStatus Id=-1 Source="@source" SubjectKey="@subjectKey" SpecimenId="@specimenId" SubSpecimenId="@subSpecimenId"></Notes>
+                <Notes T=ReceivingStatus Protocol="@Protocol" Crf="@Crf" CrfDescription="@CrfDescription" DataSource="@DataSource" SubjectId="@SubjectKey" SpecimenId="@SpecimenId" SubSpecimenId="@SubSpecimenId"></Notes>
             </Div>
-             <Div Display="@shippingStatusVisible">
-                <Notes T=ShippingStatus Id=-1 Source="@source" SubjectKey="@subjectKey" SpecimenId="@specimenId" SubSpecimenId="@subSpecimenId"></Notes>
+
+            <Div Display="@shippingStatusVisible">
+                <Notes T=ShippingStatus Protocol="@Protocol" Crf="@Crf" CrfDescription="@CrfDescription" DataSource="@DataSource" SubjectId="@SubjectKey" SpecimenId="@SpecimenId" SubSpecimenId="@SubSpecimenId" UserName="@UserName"></Notes>
             </Div>
+
         </ModalBody>
         <ModalFooter>
         </ModalFooter>
@@ -30,34 +33,41 @@
 
 @code {
     private Modal notesModel;
-    private string source = string.Empty;
-    private string subjectKey = string.Empty;
-    private string specimenId = string.Empty;
-    private string subSpecimenId = string.Empty;
 
-    private string requestIdToFetch = string.Empty;
+    private string DataSource = string.Empty;
+    private string SubjectKey = string.Empty;
+    private string SpecimenId = string.Empty;
+    private string SubSpecimenId = string.Empty;
+    private string Protocol = string.Empty;
+    private string UserName = string.Empty;
+    private string Crf = string.Empty;
+    private string CrfDescription = string.Empty;
     private bool isAdminDisplay = false;
+    private string title = string.Empty;
+
     private IFluentDisplay receivingStatusVisible = Display.None;
     private IFluentDisplay shippingStatusVisible = Display.None;
     private string crfDescription = string.Empty;
-    public int Id { get; set; }
 
-    public async Task Show(string requestId, string Source, string SubjectKey, string SpecimenId, string SubSpecimenId, string crf, string crfDescription, bool isAdmin)
+    public async Task Show(string protocol, string dataSource, string subjectKey, string specimenId, string subSpecimenId, string crf, string crfDescription, bool isAdmin, string userName)
     {
-        this.requestIdToFetch = requestId;
-        this.source = Source;
-        this.subjectKey = SubjectKey;
-        this.specimenId = SpecimenId;
-        this.subSpecimenId = SubSpecimenId;
-
+        this.DataSource = dataSource;
+        this.SubjectKey = subjectKey;
+        this.SpecimenId = specimenId;
+        this.SubSpecimenId = subSpecimenId;
+        this.Protocol = protocol;
         this.isAdminDisplay = isAdmin;
-        this.crfDescription = crfDescription;
+        this.UserName = userName;
+        this.Crf = crf;
+        this.CrfDescription = crfDescription;
+
         this.receivingStatusVisible = (crf == "RECEIVING_STATUS") ? Display.Block : Display.None;
         this.shippingStatusVisible = (crf == "SHIPPING_STATUS") ? Display.Block : Display.None;
-        this.Id = 2222;
+
+        this.title = $"Notes";
+
         StateHasChanged();
 
         notesModel!.Show();
     }
-
 }

@@ -5,6 +5,12 @@ using TheradexPortal.Data.Models;
 using TheradexPortal.Data.Services.Abstract;
 using Amazon.DynamoDBv2.Model;
 using Amazon.Runtime;
+using TheradexPortal.Data.Models.ADDR;
+using System;
+using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
+using DocumentFormat.OpenXml.Office2010.Excel;
+using DocumentFormat.OpenXml.Wordprocessing;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace TheradexPortal.Data.Services
 {
@@ -292,5 +298,29 @@ namespace TheradexPortal.Data.Services
             return result?.OrderBy(p => p.RowNo).ToList();
         }
 
+
+        public async Task<bool> SaveAddrNotes<T>(AddrNotes<T> notes)
+        {
+            notes.Id = Guid.NewGuid().ToString();
+            notes.IsActive = true;
+            notes.CreatedOn = DateTime.Now;
+            notes.IsDeleted = false;
+            notes.SearchKey = AddrNotes<T>.GenerateSearchKey(notes.DataSource, notes.Protocol, notes.FormId, notes.SubjectId);
+
+            await _dynamoDbContext.SaveAsync(notes);
+
+            return true;
+        }
+
+        public async Task<List<AddrNotes<T>>> GetAllAddrNotes<T>(string userId, string searchKey)
+        {
+            var conditions = new List<ScanCondition>();
+
+            var search = _dynamoDbContext.QueryAsync<AddrNotes<T>>(searchKey, new DynamoDBOperationConfig { IndexName = "SearchKey-index" });
+
+            var result = await search.GetRemainingAsync();
+
+            return result?.OrderByDescending(p => p.CreatedOn).ToList();
+        }
     }
 }

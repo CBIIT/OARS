@@ -25,7 +25,7 @@ using Microsoft.Extensions.Hosting.Internal;
 
 namespace TheradexPortal.Data.Services
 {
-    public class ReceivingStatusService : BaseService, IReceivingStatusService, INotesService<ReceivingStatus>
+    public class ReceivingStatusService : BaseService, IReceivingStatusService , INotesService<ReceivingStatus>
     {
         private readonly IErrorLogService _errorLogService;
         private readonly NavigationManager _navManager;
@@ -53,6 +53,12 @@ namespace TheradexPortal.Data.Services
             _webHostEnvironment = webHostEnvironment;
             this.logger = logger; // Initialize logger
         }
+
+        public Task<ReceivingStatus> GetAllNotes(int id)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<List<ReceivingStatus>?> GetReceivingStatus(string protocalNumber)
         {
             var data = await GetReceivingStatusExcel();
@@ -135,21 +141,14 @@ namespace TheradexPortal.Data.Services
 
         }
 
-        public Task SaveNotesAsync(int statusId, Note<ReceivingStatus> note)
+        public async Task<List<AddrNotes<ReceivingStatus>>> GetAllNotesAsync(string userId, string searchKey)
         {
-            throw new NotImplementedException();
+            return await _dynamoDbService.GetAllAddrNotes<ReceivingStatus>(userId, searchKey);
         }
 
-        public Task<ReceivingStatus> GetNoteByIdAsync(int id)
+        public async Task<bool> SaveNotesAsync(AddrNotes<ReceivingStatus> notes)
         {
-            return Task.FromResult(new ReceivingStatus());
-        }
-
-        public Task<List<Note<ReceivingStatus>>> GetNotesByStatusIdAsync(int statusId)
-        {
-            return Task.FromResult(new List<Note<ReceivingStatus>>());
-        }
-
-
+            return await _dynamoDbService.SaveAddrNotes(notes);
+        } 
     }
 }
