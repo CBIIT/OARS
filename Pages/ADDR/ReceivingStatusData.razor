@@ -384,7 +384,7 @@
     // Handle Notes view button click
     private Task OnViewNotesClicked(ReceivingStatus request)
     {
-        return NotesModelDataModal.Show(request.ProtocolNumber, request.DataSource, request.SubjectKey, request.SpecimenId, request.SubSpecimenId, "RECEIVING_STATUS", "Receiving Status", IsAdminDisplay, userName);
+        return NotesModelDataModal.Show(request.ProtocolNumber, request.DataSource, request.SubjectKey, request.SpecimenSponsorGroupSpecimenId, request.SubSpecimenId, "RECEIVING_STATUS", "Receiving Status", IsAdminDisplay, userName);
     }
 
     // Handle download button click
