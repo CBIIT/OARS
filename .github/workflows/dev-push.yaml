@@ -108,7 +108,7 @@ jobs:
           tag_prefix: "v"
           version_format: "${major}.${minor}.${patch}"
           major_pattern: "(feat!)"
-          minor_pattern: "^feat([a-z]+)?: "
+          minor_pattern: "^feat:"
           major_regexp_flags: ""
           minor_regexp_flags: ""
 
