@@ -100,24 +100,24 @@ jobs:
       - name: Run Unit Tests
         run: dotnet test --no-build --verbosity normal
 
-      # Generate Semantic Version
-      - name: Generate semantic version
+       # Generate Semantic Version
+      - name: Generate Semantic Version
         id: semver
         uses: paulhatch/semantic-version@v5.4.0
         with:
           tag_prefix: "v"
           version_format: "${major}.${minor}.${patch}"
-          major_pattern: "(feat!)"
-          minor_pattern: "feat:"
-          major_regexp_flags: ""
-          minor_regexp_flags: ""
+          major_pattern: "/^feat!:|^BREAKING CHANGE:/"
+          minor_pattern: "/^feat:|^minor:/"
+          major_regexp_flags: "i"
+          minor_regexp_flags: "i"
 
         # Create release
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
-          name: ${{ steps.semver.outputs.version_tag  }}
-          tag_name: ${{ steps.semver.outputs.version_tag  }}
+          name: v${{ steps.semver.outputs.version_tag  }}
+          tag_name: v${{ steps.semver.outputs.version_tag  }}
           fail_on_unmatched_files: true
           generate_release_notes: true
 
