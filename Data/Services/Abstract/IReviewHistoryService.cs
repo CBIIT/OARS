@@ -5,19 +5,19 @@ namespace TheradexPortal.Data.Services.Abstract
 {
     public interface IReviewHistoryService
     {
-        public Task<int> GetDaysLateAsync(int protocolId);
+        public Task<int> GetDaysLateAsync(string protocolId);
 
-        public Task<IList<int>> GetHistoryRecordsByProtocolAsync(int protocolId);
+        public Task<IList<int>> GetHistoryRecordsByProtocolAsync(string protocolId);
 
         public int GetNextReviewHistoryId();
 
-        public Task<ReviewHistory> GetLatestReviewHistoryByProtocolAsync(int protocolId, int userId, string reviewType);
+        public Task<ReviewHistory> GetLatestReviewHistoryByProtocolAsync(string protocolId, int userId, string reviewType);
         public Task<List<int>> GetAllReviewHistoryIdsByNameAsync(int reviewId, string ReviewPeriodName);
         public Task<bool> SaveNewReviewHistoryAsync(ReviewHistory reviewHistory);
         public Task<bool> CloseCurrentReviewAsync(int userId, int reviewHistoryID);
         public Task<bool> isReviewActive(int reviewHistoryID);
-        public Task<bool> StartNewReviewAsync(int userId, int protocolId, string reviewType, int reviewHistoryID);
-        public Task<bool> SetReviewHistoryLateStatusAsync(int userId, int protocolId, string reviewType, int daysLate);
-        public Task<bool> SetMissedReviewHistoryCountAsync(int userId, int protocolId, string reviewType, int missedReviewCount);
+        public Task<bool> StartNewReviewAsync(int userId, string protocolId, string reviewType, int reviewHistoryID);
+        public Task<bool> SetReviewHistoryLateStatusAsync(int userId, string protocolId, string reviewType, int daysLate);
+        public Task<bool> SetMissedReviewHistoryCountAsync(int userId, string protocolId, string reviewType, int missedReviewCount);
     }
 }

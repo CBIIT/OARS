@@ -28,7 +28,7 @@ namespace TheradexPortal.Data.Models
         [Column("UPDATE_DATE")]
         public DateTime? UpdateDate { get; set; }
         [Column("PROTOCOL_ID")]
-        public int? ProtocolId { get; set; }
+        public string? ProtocolId { get; set; }
         [Column("REVIEW_ID")]
         public int? ReviewId { get; set; }
         [Column("REVIEW_PERIOD_NAME")]

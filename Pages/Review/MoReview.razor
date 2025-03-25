@@ -20,7 +20,7 @@
 @inject ProtectedSessionStorage SessionData
 @inject IJSRuntime JSRuntime
 
-@page "/moreview/{agentid:int?}"
+@page "/moreview/{agentid:string?}"
 
 <script>
     function closeTab(){
@@ -33,7 +33,7 @@
     <title>MO Review Dashboard</title>
 </head>
 <body>
-    @if (AgentId != 0 && authorizedUsers.Contains(activeUserId))
+    @if (!String.IsNullOrEmpty(AgentId) && AgentId != "0" && authorizedUsers.Contains(activeUserId))
     {
         <Row>
             <Column Style="background-image: Review-Bar.png" ColumnSize="ColumnSize.Is12">
@@ -531,7 +531,7 @@
         private List<AuditTrailDTO> lstMoAudits = new List<AuditTrailDTO>();
 
         [Parameter]
-        public int AgentId { get; set; } = 0;
+        public string AgentId { get; set; } = String.Empty;
         public bool changesSaved = true;
         string selectedTab = "notehistory";
 
@@ -589,7 +589,7 @@
 
         private async void SaveChanges()
         {
-            if (AgentId > 0)
+            if (!String.IsNullOrEmpty(AgentId) && AgentId != "0")
             {
                 bool itemUpdateNeeded = false;
                 bool itemWasUpdated = false;
@@ -743,7 +743,7 @@
             activeUserId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
 
             bool activeReviewCheck;
-            if (AgentId > 0)
+            if (!String.IsNullOrEmpty(AgentId) && AgentId != "0")
             {
                 currentReview = await reviewService.GetCurrentReviewAsync(AgentId, activeUserId, "MO");
 
