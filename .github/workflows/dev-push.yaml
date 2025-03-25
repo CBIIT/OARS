@@ -116,8 +116,8 @@ jobs:
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
-          name: v${{ steps.semver.outputs.version_tag  }}
-          tag_name: v${{ steps.semver.outputs.version_tag  }}
+          name: ${{ steps.semver.outputs.version_tag  }}
+          tag_name: ${{ steps.semver.outputs.version_tag  }}
           fail_on_unmatched_files: true
           generate_release_notes: true
 
