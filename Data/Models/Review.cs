@@ -9,7 +9,7 @@ namespace TheradexPortal.Data.Models
         [Key, Column("REVIEW_ID")]
         public int ReviewId { get; set; }
         [Column("PROTOCOL_ID")]
-        public int ProtocolId { get; set; }
+        public string ProtocolId { get; set; }
         [Column("REVIEW_TYPE")]
         public string? ReviewType { get; set; }
         public int UserId { get; set; }

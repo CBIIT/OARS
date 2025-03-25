@@ -24,7 +24,7 @@ namespace TheradexPortal.Data.Services
             _reviewService = reviewService;
             _userService = userService;
         }
-        public async Task<int> GetDaysLateAsync(int protocolId)
+        public async Task<int> GetDaysLateAsync(string protocolId)
         {
             return await context.ReviewHistories
                 .Where(p=>p.ProtocolId == protocolId)
@@ -33,7 +33,7 @@ namespace TheradexPortal.Data.Services
                 .FirstOrDefaultAsync() ?? 0;
         }
 
-        public async Task<IList<int>> GetHistoryRecordsByProtocolAsync(int protocolId)
+        public async Task<IList<int>> GetHistoryRecordsByProtocolAsync(string protocolId)
         {
             return await context.ReviewHistories
                 .Where(p => p.ProtocolId == protocolId)
@@ -41,7 +41,7 @@ namespace TheradexPortal.Data.Services
                 .ToListAsync();
         }
 
-        public async Task<ReviewHistory> GetLatestReviewHistoryByProtocolAsync(int protocolId, int userId, string reviewType)
+        public async Task<ReviewHistory> GetLatestReviewHistoryByProtocolAsync(string protocolId, int userId, string reviewType)
         {
             return await context.ReviewHistories
                 .AsNoTracking()
@@ -126,7 +126,7 @@ namespace TheradexPortal.Data.Services
             return newPeriodName;
         }
 
-        public async Task<bool> StartNewReviewAsync(int userId, int protocolId, string reviewType, int reviewHistoryID)
+        public async Task<bool> StartNewReviewAsync(int userId, string protocolId, string reviewType, int reviewHistoryID)
         {
             var previousReviewHistory = await context.ReviewHistories
                 .FirstOrDefaultAsync(r => r.ReviewHistoryId == reviewHistoryID);
@@ -169,7 +169,7 @@ namespace TheradexPortal.Data.Services
             return true;
         }
 
-        public async Task<bool> SetReviewHistoryLateStatusAsync(int userId, int protocolId, string reviewType, int daysLate)
+        public async Task<bool> SetReviewHistoryLateStatusAsync(int userId, string protocolId, string reviewType, int daysLate)
         {
             char lateStatus = (daysLate > 0) ? 'T' : 'F';
 
@@ -186,7 +186,7 @@ namespace TheradexPortal.Data.Services
             return true;
         }
 
-        public async Task<bool> SetMissedReviewHistoryCountAsync (int userId, int protocolId, string reviewType, int missedReviewCount)
+        public async Task<bool> SetMissedReviewHistoryCountAsync (int userId, string protocolId, string reviewType, int missedReviewCount)
         {
             ReviewHistory res = await context.ReviewHistories
                 .Where(rh => rh.ReviewType == reviewType && rh.UserId == userId && rh.ProtocolId == protocolId && rh.ReviewCompleteDate == null)

@@ -16,7 +16,7 @@ namespace TheradexPortal.Data.Services
             _errorLogService = errorLogService;
             _navManager = navigationManager;
         }
-        public async Task<string> GetLeadAgentByIdAsync(int protocolId)
+        public async Task<string> GetLeadAgentByIdAsync(string protocolId)
         {
             return await context.Reviews
                 .Where(p => p.ProtocolId == protocolId)
@@ -24,7 +24,7 @@ namespace TheradexPortal.Data.Services
                 .FirstOrDefaultAsync() ?? "";
         }
 
-        public async Task<List<int>> GetActivePIReviewsAsync(int protocolId)
+        public async Task<List<int>> GetActivePIReviewsAsync(string protocolId)
         {
             return await context.Reviews
                 .Where(p => p.ProtocolId == protocolId && p.ReviewType == "PI" && p.ReviewStatus == "Active")
@@ -32,7 +32,7 @@ namespace TheradexPortal.Data.Services
                 .ToListAsync();
         }
 
-        public async Task<Review> GetCurrentReviewAsync(int protocolId, int userId, string type)
+        public async Task<Review> GetCurrentReviewAsync(string protocolId, int userId, string type)
         {
             return await context.Reviews
                 .Where(p =>
@@ -42,7 +42,7 @@ namespace TheradexPortal.Data.Services
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<(int, int)> GetReviewDurationsAsync(int protocolId)
+        public async Task<(int, int)> GetReviewDurationsAsync(string protocolId)
         {
             var reviewPeriods = await context.Reviews
                 .Where(r => r.ProtocolId == protocolId && (r.ReviewType == "MO" || r.ReviewType == "PI"))
@@ -57,7 +57,7 @@ namespace TheradexPortal.Data.Services
 
         }
 
-        public async Task<bool> SetReviewDurationsAsync(int userId, int protocolId, int MOReviewPeriod, int PIReviewPeriod)
+        public async Task<bool> SetReviewDurationsAsync(int userId, string protocolId, int MOReviewPeriod, int PIReviewPeriod)
         {
             List<Review> reviewItem = await context.Reviews
                 .Where(r => r.ProtocolId == protocolId)
@@ -81,7 +81,7 @@ namespace TheradexPortal.Data.Services
             return true;
         }
 
-        public async Task<bool> ResetReviewAsync(int userId, int protocolId, string reviewType)
+        public async Task<bool> ResetReviewAsync(int userId, string protocolId, string reviewType)
         {
             Review reviewToReset =  await context.Reviews
                 .Where(p =>
@@ -99,7 +99,7 @@ namespace TheradexPortal.Data.Services
             return true;
         }
 
-        public async Task<List<int>> GetAllAuthorizedUsersAsync(int protocolId)
+        public async Task<List<int>> GetAllAuthorizedUsersAsync(string protocolId)
         {
             return await context.Reviews
                 .Where(p => p.ProtocolId == protocolId)
@@ -107,7 +107,7 @@ namespace TheradexPortal.Data.Services
                 .ToListAsync();
         }
 
-        public async Task<List<ReviewPiDTO>> GetPiInfoAsync(int protocolId)
+        public async Task<List<ReviewPiDTO>> GetPiInfoAsync(string protocolId)
         {
             var lstPiReviews = await GetActivePIReviewsAsync(protocolId);
 
@@ -120,7 +120,7 @@ namespace TheradexPortal.Data.Services
                     {
                         PiName = u.FirstName + " " + u.LastName,
                         piIdNumber = u.UserId,
-                        caseNumber = r.ProtocolId.ToString(),
+                        caseNumber = r.ProtocolId,
                         dueDate = r.NextDueDate.ToString(),
                         updateDate = r.UpdateDate,
                         currentStatus = r.ReviewStatus,
@@ -132,7 +132,7 @@ namespace TheradexPortal.Data.Services
             return ret;
         }
 
-        public async Task<bool> SetMissedReviewCountAsync(int userId, int protocolId, string reviewType, int missedReviewCount)
+        public async Task<bool> SetMissedReviewCountAsync(int userId, string protocolId, string reviewType, int missedReviewCount)
         {
             Review reviewItem = await context.Reviews
                 .Where(r => r.ProtocolId == protocolId && r.UserId == userId && r.ReviewType == reviewType)

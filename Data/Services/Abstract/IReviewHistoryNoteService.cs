@@ -5,8 +5,8 @@ namespace TheradexPortal.Data.Services.Abstract
 {
     public interface IReviewHistoryNoteService
     {
-        public Task<List<ReviewHistoryNoteDTO>> GetNotesAsync(int protocolId);
-        public Task<string> GetAllNotesAsync(int protocolId);
+        public Task<List<ReviewHistoryNoteDTO>> GetNotesAsync(int reviewHistoryID);
+        public Task<string> GetAllNotesAsync(int reviewHistoryID);
         public Task<bool> SaveNoteAsync(int userId, ReviewHistoryNote note);
         public Task<List<int>> GetReviewHistoryNoteIdsAsync(int reviewHistoryID);
 
