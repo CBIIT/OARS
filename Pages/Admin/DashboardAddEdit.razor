@@ -45,6 +45,12 @@
                     </Field>
                 </Div>
                 <Div Padding="Padding.Is4" Style="@flexContainerStyle">
+                    <Field Horizontal>
+                        <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Special Dashboard</FieldLabel>
+                        <FieldBody ColumnSize="ColumnSize.Is6">
+                            <Switch TValue="bool" Checked="@specialDash" CheckedChanged="@OnSpecialDashChanged" Color="Color.Primary"></Switch>
+                        </FieldBody>
+                    </Field>
                     <Fields>
                         <Field ColumnSize="ColumnSize.Is6">
                             <FieldLabel ColumnSize="ColumnSize.Is6" TextWeight="TextWeight.Bold">Current Help File</FieldLabel>
@@ -125,7 +131,7 @@
                                                 ReportFilter foundFilter = reportFilterList.Find(r => r.ReportFilterId == repFilterId);
                                                 if (foundFilter != null)
                                                     @(foundFilter.FilterName);
-                                        }
+                                            }
                                         </DisplayTemplate>
                                     </DataGridColumn>
                                     <DataGridColumn Field="@nameof(Report.CustomPagePath)" Caption="Site Page" Width="130px" />
@@ -352,6 +358,8 @@
     string dashboardName = "";
     string description = "";
     string pageName = "";
+    bool specialDash = false;
+    bool specialDashChanged = false;
     Validations validations;
     Validations validationsPowerBI;
     Validations validationsSitePage;
@@ -462,6 +470,7 @@
         pageName = curDashboard.CustomPagePath;
         this.helpFileName = curDashboard.HelpFileName;
         this.currentHelpFileName = curDashboard.HelpFileName;
+        specialDash = curDashboard.SpecialDash;
 
         if (this.currentHelpFileName == null || this.currentHelpFileName.Equals(string.Empty))
         {
@@ -654,6 +663,7 @@
             saveDashboard.Name = dashboardName;
             saveDashboard.Description = description;
             saveDashboard.CustomPagePath = pageName;
+            saveDashboard.SpecialDash = specialDash;
 
             if (String.IsNullOrEmpty(pageName))
             {
@@ -901,6 +911,14 @@
         // just set Cancel to prevent modal from closing
         e.Cancel = cancelClose 
             || e.CloseReason != CloseReason.UserClosing;
+
+        return Task.CompletedTask;
+    }
+
+    private Task OnSpecialDashChanged(bool value)
+    {
+        specialDash = value;
+        specialDashChanged = true;
 
         return Task.CompletedTask;
     }

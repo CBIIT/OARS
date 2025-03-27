@@ -220,6 +220,7 @@ namespace TheradexPortal.Data.Services
                         dbDashboard.Description = dashboard.Description;
                         dbDashboard.CustomPagePath = dashboard.CustomPagePath;
                         dbDashboard.HelpFileName = dashboard.HelpFileName;
+                        dbDashboard.SpecialDash = dashboard.SpecialDash;
                         //context.Dashboards.Update(dbDashboard);
 
                         // Insert or udpate each report in the list
