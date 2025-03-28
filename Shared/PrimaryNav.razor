@@ -26,8 +26,17 @@
     <BarItem>
         <BarLink Match="Match.Prefix" To="@GetLink(dashboard)">
             @if (RenderButtons)
-            {
-                <Button Color="Color.Primary" TextWeight="TextWeight.Bold" Outline Class="text-nowrap">@dashboard.Name</Button>
+            {   
+                if(dashboard.SpecialDash) 
+                {
+                    <Button Color="Color.Primary" Style="border-style: dashed; border-width: 2px;" TextWeight="TextWeight.Bold" Outline Class="text-nowrap">
+                        @dashboard.Name
+                    </Button>
+                }
+                else 
+                {
+                    <Button Color="Color.Primary" TextWeight="TextWeight.Bold" Outline Class="text-nowrap">@dashboard.Name</Button>
+                }
             }
             else
             {
