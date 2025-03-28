@@ -24,6 +24,8 @@ namespace TheradexPortal.Data.Models
         public string? PowerBIReportId { get; set; }
         [Column("Help_FileName")]
         public string? HelpFileName { get; set; }
+        [Column("SpecialDash")]
+        public Boolean SpecialDash {  get; set; }
 
         public ICollection<Report> Reports { get; } = new List<Report>();
     }
