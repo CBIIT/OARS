@@ -1,0 +1,54 @@
+${jsonencode([{
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "${log_group_name}",
+          "awslogs-region": current_region,
+          "awslogs-stream-prefix": "nci-web-reporting-dev-service",
+          "awslogs-create-group": "true"
+        }
+      },
+      "portMappings": [
+        {
+          "hostPort": host_port,
+          "protocol": "tcp",
+          "containerPort": container_port
+        }
+      ],
+      "cpu": 0,
+      "environment": [
+              {
+          "name": "ASPNETCORE_ENVIRONMENT",
+          "value": "${ASPNETCORE_ENVIRONMENT}"
+      },
+      {
+          "name": "ENVIRONMENT",
+          "value": "${ENVIRONMENT}"
+      }
+      ],
+      "image": ecr_image_endpoint,
+      "name": container_definition_name,
+      "secrets": [
+      {
+        "name": "PowerBICredentials__ClientId",
+        "valueFrom": "${powerbi_clientid}"
+      },
+      {
+        "name": "PowerBICredentials__TenantId",
+        "valueFrom": "${powerbi_tenantid}"
+      },
+      {
+        "name": "PowerBICredentials__ClientSecret",
+        "valueFrom": "${powerbi_clientsecret}"
+      },
+      {
+        "name": "ConnectionStrings__DefaultConnection",
+        "valueFrom": "${db_connection_string}"
+      },
+      {
+        "name": "Okta__ClientSecret",
+        "valueFrom": "${okta_clientsecret}"
+      }
+    ]
+    }]
+)}
