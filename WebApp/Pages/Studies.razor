@@ -1,0 +1,33 @@
+﻿@page "/studies"
+@page "/studies/{dashboardid:int?}"
+@inject IHttpContextAccessor httpContextAccessor
+
+<StudyGrid />
+
+@using OARS.Data.Services.Abstract;
+@using OARS.Data.Static;
+
+@code
+{
+    [Inject] private IUserService userService { get; set; } = null!;
+
+    [Parameter] public int DashboardId { get; set; }
+
+    [CascadingParameter]
+    public PrimaryNavLayout PrimaryNavLayout { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+            userService.SaveActivityLog(userId, ThorActivityType.Navigation, "My Studies");
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await PrimaryNavLayout.UpdateDashboard(new Data.Models.Dashboard() { DashboardId = 0 });
+    }
+
+}

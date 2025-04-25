@@ -1,0 +1,411 @@
+@using System.Diagnostics.CodeAnalysis
+@using Microsoft.Extensions.Options
+@using Newtonsoft.Json
+@using OARS.Data.Models;
+@using OARS.Data.Models.ADDR;
+@using OARS.Data.Services
+@using OARS.Data.Services.Abstract;
+@using OARS.Data.Static;
+@using OARS.Data.Models.Configuration;
+@using OARS.Data.Services.Abstract.ADDR;
+@using Microsoft.AspNetCore.Mvc;
+@using System.Collections.Generic;
+@using System.Linq;
+
+@page "/addr/shippingstatus/{dashboardid:int?}/{reportid:int?}"
+
+@inject IHttpContextAccessor httpContextAccessor;
+@inject IConfiguration configuration;
+@inject IOptions<EmailSettings> emailSettings;
+@inject IJSRuntime JS;
+
+<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>Automated Data Discrepancy Report - Shipping Status (@currentStudies)</h2></Div>
+<Div Padding="Padding.Is2" Margin="Margin.Is3.FromBottom">
+    <Row Background="Background.Light">
+        <Column ColumnSize="ColumnSize.Is9">
+            <Row Padding="Padding.Is2">
+                <Column ColumnSize="ColumnSize.Is1" TextAlignment="TextAlignment.End">
+                    <Text>* Protocol:</Text>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <!-- Protocol Selection Dropdown -->
+                    <Autocomplete TItem="Protocol"
+                                  TValue="string"
+                                  Data="@Protocols"
+                                  Validator="IsValidProtocol"
+                                  TextField="@(( item ) => item.StudyId)"
+                                  ValueField="@(( item ) => item.StudyId)"
+                                  SelectedValue="@SelectedProtocol"
+                                  SelectedValueChanged="@(async (v) => await OnProtocolChanged(v))"
+                                  Placeholder="Select Protocol..."
+                                  Filter="AutocompleteFilter.StartsWith"
+                                  FreeTyping
+                                  HighlightSearch
+                                  CustomFilter="@(( item, searchValue ) => item.StudyId.IndexOf( searchValue, 0, StringComparison.CurrentCultureIgnoreCase ) >= 0 )">
+                        <NotFoundContent> Sorry... @context was not found! :( </NotFoundContent>
+                        <ItemContent>
+                            <Div Flex="Flex.InlineFlex.JustifyContent.Between" Width="Width.Is33">
+                                <Heading Margin="Margin.Is2.FromBottom">@context.Value</Heading>
+                            </Div>
+                            <Paragraph Margin="Margin.Is2.FromBottom"><Small>@context.Item.Institution</Small></Paragraph>
+                        </ItemContent>
+                    </Autocomplete>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3"><Check TValue="bool" Checked="@includeAll" CheckedChanged="@OnIncludeAllChanged">Include All</Check></Column>
+
+            </Row>
+        </Column>
+    </Row>
+</Div>
+<Row Background="Background.Light">
+    <Column ColumnSize="ColumnSize.IsFull">
+        <DataGrid Class="addr-data-grid" @ref="dataGridRef"
+                  TItem="ShippingStatus"
+                  Data="@filteredData"
+                  PageSize="50"
+                  Responsive
+                  Groupable
+                  ShowGrouping
+                  Hoverable
+                  Narrow
+                  Filterable
+                  RowStyling="@OnRowStyling"
+                  ShowPager
+                  ShowPageSizes
+                  ShowColumnChooser
+                  MaxPaginationLinks="5"
+                  PagerPosition="DataGridPagerPosition.Bottom"
+                  PagerOptions="new(){ButtonSize=Blazorise.Size.Default,
+                                PaginationPosition=PagerElementPosition.Default,
+                                TotalItemsPosition=PagerElementPosition.End,
+                                }"
+                  FixedHeader
+                  FixedHeaderDataGridHeight="calc(100vh - 240px)"
+                  FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
+                  FilterMode="DataGridFilterMode.Menu"
+                  Resizable
+                  SortMode="DataGridSortMode.Multiple"
+                  ResizeMode="TableResizeMode.Columns"
+                  SelectedRowStyling="@OnSelectedRowStyling"
+                  CommandMode="DataGridCommandMode.ButtonRow">
+            <DataGridColumns>
+                <DataGridColumn Sortable="false" Filterable="false" Width="45px">
+                    <DisplayTemplate>
+                        <Div Flex="Flex.Column.JustifyContent.Center">
+                            <Span Flex="Flex.JustifyContent.Center.AlignItems.Center">
+                                <Button Size="Size.ExtraSmall" Clicked="@(()=>OnViewNotesClicked(context as ShippingStatus))">
+                                    <Figure Size="FigureSize.Is32x32" Class="mx-auto">
+                                        <FigureImage Source="img/notes.png" Class="mx-auto" AlternateText="Recently Selected" />
+                                    </Figure>
+                                </Button>
+                            </Span>
+                        </Div>
+                    </DisplayTemplate>
+                </DataGridColumn>
+                <DataGridColumn Field="@nameof(ShippingStatus.Id)" Caption="#" Displayable="false" />
+                <DataGridColumn Field="DataSource" Caption="Data Source" />
+                <DataGridColumn Field="SystemComments" Caption="Vari Comments" Groupable>
+                    <DisplayTemplate >
+                        @foreach (var comment in ((context as ShippingStatus).SystemComments.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)))
+                        {
+                            <Badge Color="@GetStatusColor(comment)" Pill class="m-1">
+                                <Tooltip Text="@comment">
+                                    @comment
+                                </Tooltip>
+                            </Badge>
+                        }
+                        </DisplayTemplate>
+                </DataGridColumn>
+                <DataGridColumn Caption="Subject Key" Groupable>
+                    <DisplayTemplate Context="context">
+                        @{
+                            if (context.DataSource == "RAVE")
+                            {
+                                <a href="@(string.Format("{0}", context.SubjectUrl))" target="_blank">
+                                    @context.SubjectKey
+                                </a>
+
+                            }
+                            else
+                            {
+                                <span>@context.SubjectKey</span>
+                            }
+                        }
+                    </DisplayTemplate>
+                </DataGridColumn>
+                <DataGridColumn Caption="Form Url">
+                    <DisplayTemplate Context="context">
+                        @{
+                            if (context.DataSource == "RAVE")
+                            {
+                                <a href="@(string.Format("{0}", context.PageUrl))" target="_blank">
+                                    Click Here
+                                </a>
+
+                            }
+                            else
+                            {
+                                <span>Not Available</span>
+                            }
+                        }
+
+                    </DisplayTemplate>
+                </DataGridColumn>
+                <DataGridColumn Field="SiteId" Caption="Site Id" Displayable="false" />
+                <DataGridColumn Field="SpecimenId" Caption="Specimen Id" Groupable />
+                <DataGridColumn Field="SubSpecimenId" Caption="Sub Specimen Id" Groupable />
+                <DataGridDateColumn Field="ShippedDate" Caption="Shipped Date">
+                    <DisplayTemplate Context="context">
+                        @{
+                            var status = context as ShippingStatus; // Cast context to ShippingStatus
+                            DateTime date;
+                            if (DateTime.TryParse(status?.ShippedDate, out date))
+                            {
+                                // Apply time offset and display the time zone abbreviation
+                                @(date.Add(timeOffset).ToString("dd-MMM-yyyy hh:mm:ss tt ") + timeZoneAbbrev)
+                            }
+                        }
+                    </DisplayTemplate>
+                </DataGridDateColumn>
+                <DataGridColumn Field="CourierName" Caption="Carrier Name" />
+                <DataGridColumn Field="TrackingNumber" Caption="Carrier Tracking No">
+                    <DisplayTemplate Context="context">
+                        @{
+                            if (context.CourierName?.ToUpper() == "FEDEX" || context.CourierName?.ToUpper() == "FEDEX EXPEDITED")
+                            {
+                                <a href="@(string.Format("https://www.fedex.com/fedextrack/?trknbr={0}",context.TrackingNumber))" target="_blank">
+                                    @context.TrackingNumber
+                                </a>
+
+                            }
+                            else
+                            {
+                                <span>@context.TrackingNumber</span>
+                            }
+                        }
+                    </DisplayTemplate>
+                </DataGridColumn>
+                <DataGridColumn Field="Source" Caption="Source" />
+                <DataGridColumn Field="Destination" Caption="Destination" />
+                <DataGridColumn Field="NumberOfSamples" Caption="Number Of Samples" />
+                <DataGridColumn Field="SenderPhone" Caption="Sender Phone" />
+                <DataGridColumn Field="NoticeSentTo" Caption="Notice Sent To" />
+                <DataGridColumn Field="ShippingConditions" Caption="Shipping Conditions" />
+                <DataGridColumn Field="SenderName" Caption="SenderName" />
+                <DataGridColumn Field="SpecimenReturnedToSourceSite" Caption="Specimen Returned To Source Site" />
+                <DataGridColumn Field="Notes" Caption="Notes" Displayable="false" />
+                <DataGridColumn Field="Action" Caption="Action" Displayable="false" />
+                <DataGridColumn Field="StudyEventRepeatKey" Caption="Study Event repeat Key" />
+                <DataGridColumn Field="ItemGroupRepeatKey" Caption="Item Group Repeat Key" />
+                <DataGridColumn Field="TransactionType" Caption="Transaction Type" Displayable="false" />
+                <DataGridColumn Field="Active" Caption="Active" Displayable="false" />
+            </DataGridColumns>
+            <ButtonRowTemplate>
+                <Button Color="Blazorise.Color.Primary" Clicked="@OnRefresh">Refresh</Button>
+                <Button Color="Blazorise.Color.Primary" Clicked="@(() => dataGridRef.ExpandAllGroups())">Expand All</Button>
+                <Button Color="Blazorise.Color.Secondary" Clicked="@(() => dataGridRef.CollapseAllGroups())">Collapse All</Button>
+                <Button Color="Blazorise.Color.Link" Clicked="context.ClearFilterCommand.Clicked">Clear Filter</Button>
+            </ButtonRowTemplate>
+            <EmptyTemplate>
+                <div class="box">
+                    No Rows were found!
+                </div>
+            </EmptyTemplate>
+        </DataGrid>
+    </Column>
+</Row>
+<NotesModel @ref="NotesModelDataModal" />
+
+@code {
+
+    [Inject] IShippingStatusService service { get; set; } = null!;
+    [Inject] private NavigationManager navigation { get; set; } = null!;
+    [Inject] IUserService userService { get; set; } = null!;
+    [Inject] INotificationService NotificationService { get; set; }
+    [Inject] TimeZoneService timeZoneService { get; set; } = null!;
+    [Inject] IOktaService oktaService { get; set; } = null!;
+    [Inject] IEmailService emailService { get; set; } = null;
+    [Inject] IStudyService studyService { get; set; }
+    [Inject] IProfileService profileService { get; set; } = null!;
+
+    [Parameter] public bool IsAdminDisplay { get; set; } = false;
+    [Parameter] public string ProtocolNumber { get; set; } = string.Empty;
+    [Parameter] public int DashboardId { get; set; }
+    [Parameter] public int ReportId { get; set; }
+
+    private List<ShippingStatus> data { get; set; } = new List<ShippingStatus>();
+
+    private List<ShippingStatus> filteredData => data?
+    .Where(d => string.IsNullOrEmpty(SelectedProtocol) || d.ProtocolNumber == SelectedProtocol)
+    .Where(d => d.Comments?.Trim().ToLower() != "match found")
+    .ToList() ?? new List<ShippingStatus>();
+
+    private IList<Protocol> Protocols { get; set; } = new List<Protocol>();
+    private string SelectedProtocol { get; set; } = string.Empty;
+    private TimeSpan timeOffset;
+    private string timeZoneAbbrev = "";
+    private DataGrid<ShippingStatus> dataGridRef;
+    private ShippingStatus SelectedItem { get; set; }
+    private string NewNote { get; set; }
+    private NotesModel? NotesModelDataModal;
+    string currentStudies;
+
+    private bool includeAll { get; set; } = false;
+
+    string userName = string.Empty;
+
+
+    // Initialize component and set user-specific time zone information
+    protected override async Task OnInitializedAsync()
+    {
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+        User curUser = await userService.GetUserAsync(userId);
+        timeZoneAbbrev = curUser.TimeZoneAbbreviation;
+        timeOffset = TimeSpan.FromMinutes((double)curUser.TimeOffset);
+
+        userName = curUser.FirstName + " " + curUser.LastName;
+
+        // Fetch protocols
+        //Protocols = await service.GetProtocols();
+        //Protocols = studyService.GetProtocolsForUserAsync(userId, true).ToList().Where(i => i.STS != null && i.STS.ToLower() == "yes" && i.CDASH != null && i.CDASH.ToLower() == "yes").ToList();
+
+        // Retrieve protocols for the user and apply the initial filters for STS and CDASH.
+        var protocols = studyService.GetProtocolsForUserAsync(userId, true)
+            .ToList()
+            .Where(i => i.STS != null && i.STS.ToLower() == "yes" &&
+                        i.CDASH != null && i.CDASH.ToLower() == "yes");
+
+        // Retrieve current studies for the user
+        currentStudies = studyService.GetCurrentStudiesForUser(userId);
+
+        // If there are any current studies selected, filter the protocols accordingly.
+        if (!string.IsNullOrEmpty(currentStudies))
+        {
+            // Assuming currentStudies is a comma-separated list of study identifiers.
+            var currentStudiesList = currentStudies
+                .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => s.Trim())
+                .ToList();
+
+            protocols = protocols.Where(p => currentStudiesList.Contains(p.StudyId)); // Replace 'StudyId' with the actual property name.
+        }
+        else
+            protocols = new List<Protocol>();
+
+        // Convert the filtered protocols back to a list.
+        Protocols = protocols.ToList();
+
+    }
+
+    // Fetch data when parameters are set
+    protected override async Task OnParametersSetAsync()
+    {
+        data = await service.GetShippingStatus(ProtocolNumber);
+    }
+
+    // Method to style rows conditionally
+    private void OnRowStyling(ShippingStatus shippingStatus, DataGridRowStyling styling)
+    {
+        if (shippingStatus == null)
+        {
+            // Log the issue or set a default styling
+            Console.WriteLine("shippingStatus is null");
+            return;
+        }
+
+        if (styling == null)
+        {
+            // Handle or initialize default styling
+            Console.WriteLine("styling is null");
+            return;
+        }
+
+        // Set the background color to red if SystemComments are not "Match Found"
+        if (shippingStatus.SystemComments.Trim().ToLower() != "match found")
+        {
+            styling.Style = "background-color:#e39696; color:black; font-weight:bold;";
+        }
+        else
+        {
+            styling.Style = "background-color:#ade396; color:black;";
+        }
+    }
+
+    // Adjust the method to accept both parameters: ShippingStatus and DataGridRowStyling
+    private void OnSelectedRowStyling(ShippingStatus shippingStatus, DataGridRowStyling styling)
+    {
+        styling.Background = Background.Info;
+    }
+
+    // Get the color based on the status
+    private Blazorise.Color GetStatusColor(string status)
+    {
+        if (status.Trim().ToLower() == "match found")
+        {
+            return Blazorise.Color.Success;
+        }
+        else return Blazorise.Color.Danger;
+    }
+
+    // Refresh the data grid
+    private async Task OnRefresh()
+    {
+        this.data = await service.GetShippingStatus(ProtocolNumber);
+    }
+
+    // Handle Notes view button click
+    private Task OnViewNotesClicked(ShippingStatus request)
+    {
+        return NotesModelDataModal.Show(request.ProtocolNumber, request.DataSource, request.SubjectKey, request.SpecimenId, request.SubSpecimenId, "SHIPPING_STATUS", "Shipping Status", IsAdminDisplay, userName);
+    }
+
+    // Handle download button click
+    private async Task OnDownloadClicked(ShippingStatus request)
+    {
+        var preSignedUrl = "";
+
+        string[] values = { preSignedUrl, "_blank" };
+        CancellationToken token = new CancellationToken(false);
+        await JS.InvokeAsync<object>("open", token, values);
+    }
+
+    // Handle protocol change
+    public async Task OnProtocolChanged(string value)
+    {
+        SelectedProtocol = value;
+        if (!string.IsNullOrEmpty(value))
+        {
+            data = await service.GetShippingStatus(value);
+            data = data.Where(D => D.SystemComments?.Trim().ToLower() != "match found").ToList();
+        }
+        else data = new List<ShippingStatus>();
+    }
+    void IsValidProtocol(ValidatorEventArgs e)
+    {
+        Console.WriteLine(e.Value);
+
+        e.Status = !string.IsNullOrEmpty(e.Value?.ToString())
+            ? ValidationStatus.Success
+            : ValidationStatus.Error;
+
+        if (e.Status == ValidationStatus.Error)
+        {
+            e.ErrorText = "Protocol is required!!!";
+        }
+        else
+        {
+            e.ErrorText = "OK";
+        }
+    }
+    public async Task OnIncludeAllChanged(bool value)
+    {
+        includeAll = value;
+        if (!string.IsNullOrEmpty(SelectedProtocol))
+        {
+            data = await service.GetShippingStatus(SelectedProtocol);
+            if (value == false)
+                data = data.Where(D => D.SystemComments?.Trim().ToLower() != "match found").ToList();
+        }
+
+    }
+}

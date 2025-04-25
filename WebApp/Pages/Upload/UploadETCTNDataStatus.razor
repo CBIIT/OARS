@@ -1,0 +1,193 @@
+﻿@using System.Diagnostics.CodeAnalysis
+@using Microsoft.Extensions.Options
+@using Newtonsoft.Json
+@using OARS.Data.Models;
+@using OARS.Data.Services.Abstract;
+@using OARS.Data.Static;
+@using OARS.Data.Models.Configuration;
+
+@page "/upload/status/{dashboardid:int?}/{reportid:int?}"
+@inject IHttpContextAccessor httpContextAccessor
+@inject IOptions<UploadSettings> uploadSettings;
+
+<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>ETCTN Data Upload Status</h2></Div>
+<Divider />
+
+<Row Background="Background.Light">
+    <Column ColumnSize="ColumnSize.IsFull">
+        <DataGrid TItem="FileIngestRequest"
+                  Class="admindatagrid"
+                  Data="@fileIngestRequests"
+                  Responsive
+                  Groupable
+                  ShowGrouping
+                  ShowColumnChooser
+                  Hoverable
+                  Narrow
+                  ShowPager
+                  ShowPageSizes
+                  Filterable
+                  FilterMode="DataGridFilterMode.Menu"
+                  Sortable
+                  Resizable
+                  MaxPaginationLinks="5"
+                  PagerPosition="DataGridPagerPosition.Bottom"
+                  PagerOptions="new(){ButtonSize=Size.Default,
+                                PaginationPosition=PagerElementPosition.Default,
+                                TotalItemsPosition=PagerElementPosition.End,
+                                ColumnChooserPosition = PagerElementPosition.Start
+                                }"
+                  PageSize="100"
+                  FixedHeader
+                  FixedHeaderDataGridHeight="calc(100vh - 240px)"
+                  FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
+                  RowStyling="@OnRowStyling"
+                  SelectedRowStyling="@OnSelectedRowStyling"
+                  ResizeMode="TableResizeMode.Columns"
+                  CommandMode="DataGridCommandMode.ButtonRow">
+            <DataGridColumns>
+                <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.Protocol)" Groupable Caption="Protocol" />
+                <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.UserId)" Groupable Displayable="@IsAdminDisplay" Caption="UserId" />
+                <DataGridColumn Width="100px" Field="Metadata.CRFDescription" Groupable Caption="CRF" />
+                <DataGridColumn Width="100px" Field="Metadata.SourceSite" Caption="Source Site" />
+                <DataGridColumn Width="100px" Field="Metadata.ReceivingSite" Caption="Receiving Site" />
+                <DataGridColumn Width="100px" Field="Metadata.Assay" Caption="Assay" />
+                <DataGridColumn Width="100px" Field="Metadata.OriginalFileName" Caption="File Name" />
+                <DataGridColumn Width="100px" Field="@nameof(FileIngestRequest.CreatedDate)" Caption="Uploaded Date" />
+                <DataGridColumn Width="100px" Caption="Internal Status" Editable="false" Displayable="@IsAdminDisplay" Filterable="false">
+                    <DisplayTemplate>
+                        <Badge Color="@GetStatusColor((context as FileIngestRequest).ClientStatus)" Pill>
+                            <Tooltip Text="@((context as FileIngestRequest).Error)">
+                                @((context as FileIngestRequest).InternalStatus)
+                            </Tooltip>
+                        </Badge>
+                    </DisplayTemplate>
+                </DataGridColumn>
+                <DataGridColumn Width="100px" Caption="Status" Editable="false" Filterable="false">
+                    <DisplayTemplate>
+                        <Badge Color="@GetStatusColor((context as FileIngestRequest).ClientStatus)" Pill>
+                            <Tooltip Text="@((context as FileIngestRequest).ClientError)">
+                                @((context as FileIngestRequest).ClientStatus)
+                            </Tooltip>
+                        </Badge>
+                    </DisplayTemplate>
+                </DataGridColumn>
+                <DataGridColumn Sortable="false" Filterable="false" Width="45px" Caption="Actions">
+                    <DisplayTemplate>
+                        <Div Flex="Flex.Column.JustifyContent.Center">
+                            <Span Flex="Flex.JustifyContent.Center.AlignItems.Center">
+                                <Button Color="Color.Info" Size="Size.ExtraSmall" Clicked="@(()=>OnViewClicked(context as FileIngestRequest))">
+                                    View
+                                </Button>&nbsp;&nbsp;&nbsp;
+                                <Button Color="Color.Info" Size="Size.ExtraSmall" Clicked="@(()=>OnDownloadClicked(context as FileIngestRequest))">
+                                    Download
+                                </Button>
+                            </Span>
+                        </Div>
+                    </DisplayTemplate>
+                </DataGridColumn>
+            </DataGridColumns>
+            <ButtonRowTemplate>
+                <Button Color="Color.Primary" Clicked="@OnRefresh">Refresh</Button>
+            </ButtonRowTemplate>
+            <EmptyTemplate>
+                <div class="box">
+                    No Upload requests were found!
+                </div>
+            </EmptyTemplate>
+        </DataGrid>
+    </Column>
+</Row>
+
+<UploadETCTNFileData @ref="UploadETCTNFileDataModal" />
+
+@code {
+
+    string flexContainerStyle = $"width:75%;";
+
+    [Inject] IUploadService uploadService { get; set; } = null!;
+    [Inject] IErrorLogService errorLogService { get; set; } = null!;
+    [Inject] NavigationManager Navigation { get; set; }
+    [Inject] IEmailService emailService { get; set; } = null!;
+    [Inject] INotificationService NotificationService { get; set; }
+
+    @inject IJSRuntime JS
+    @inject IConfiguration configuration
+
+    [Parameter] public int DashboardId { get; set; }
+    [Parameter] public int ReportId { get; set; }
+
+    private IList<FileIngestRequest> fileIngestRequests = new List<FileIngestRequest>();
+    private int? userId = null;
+    private bool IsAdminDisplay = false;
+    private string currentEnvironment = string.Empty;
+
+    private Modal ETCTNFileDataModal;
+
+    private UploadETCTNFileData? UploadETCTNFileDataModal;
+
+    protected override async Task OnInitializedAsync()
+    {
+        userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+
+        IsAdminDisplay = Convert.ToBoolean(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.IsAdmin).Value);
+
+        currentEnvironment = configuration.GetValue<string>("System:Environment");
+
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await OnRefresh();
+
+            StateHasChanged();
+        }
+    }
+
+    private Task OnViewClicked(FileIngestRequest request)
+    {
+        return UploadETCTNFileDataModal.Show(request.RequestId, request.Metadata.CRF, request.Metadata.CRFDescription, IsAdminDisplay);
+    }
+
+    private async Task OnDownloadClicked(FileIngestRequest request)
+    {
+        var preSignedUrl = await uploadService.GetCsvFileDownloadUrl(request);
+
+        string[] values = { preSignedUrl, "_blank" };
+        CancellationToken token = new CancellationToken(false);
+        await JS.InvokeAsync<object>("open", token, values);
+    }
+
+    private async Task OnRefresh()
+    {
+        this.fileIngestRequests = await uploadService.GetAllRequestsOfUser(userId.Value, IsAdminDisplay, currentEnvironment);
+    }
+
+    private void OnRowStyling(FileIngestRequest request, DataGridRowStyling styling)
+    {
+        if (request.ClientStatus == RequestStatusV2.Failed.ToString() || request.ClientStatus == RequestStatusV2.PartialSuccess.ToString())
+            styling.Style = "color:red;";
+        else if (request.ClientStatus == RequestStatusV2.Success.ToString())
+            styling.Style = "color:#0f880f;";
+        else
+            styling.Style = "color:#0755d4;";
+    }
+
+    private Blazorise.Color GetStatusColor(string status)
+    {
+        if (status == RequestStatusV2.Failed.ToString() || status == RequestStatusV2.PartialSuccess.ToString())
+            return Color.Danger;
+        else if (status == RequestStatusV2.Success.ToString())
+            return Color.Success;
+        else
+            return Color.Secondary;
+    }
+
+    private void OnSelectedRowStyling(FileIngestRequest request, DataGridRowStyling styling)
+    {
+        styling.Background = Background.Info;
+    }
+}

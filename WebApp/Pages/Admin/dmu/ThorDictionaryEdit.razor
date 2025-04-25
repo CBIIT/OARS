@@ -1,0 +1,175 @@
+﻿@using OARS.Data.Models;
+@using OARS.Data.Services.Abstract;
+@inject IHttpContextAccessor httpContextAccessor
+@layout AdminLayout
+@page "/admin/dmu/dictionary-edit"
+
+<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })" AllowedTHORRoles="@(new List<string> { "DMU Global Admin" })"></AdminRoleCheck>
+<DataGrid @ref=dataGridRef
+          TItem="ThorDictionary"
+          Class="admindatagrid"
+          Data="@dictionaryList"
+          Editable
+
+          Responsive
+          Striped
+          Sortable
+          SortMode="DataGridSortMode.Single"
+          ShowPager
+          ShowPageSizes
+          Filterable
+          FilterMethod="DataGridFilterMethod.Contains"
+          NewItemDefaultSetter="@SetActive"
+          MaxPaginationLinks="5"
+          PagerPosition="DataGridPagerPosition.Bottom"
+          PagerOptions="new(){ButtonSize=Size.Default,
+                                PaginationPosition=PagerElementPosition.Default,
+                                TotalItemsPosition=PagerElementPosition.End,
+                                }"
+          FixedHeader
+          FixedHeaderDataGridHeight="calc(100vh - 240px)"
+          FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
+          EditMode="DataGridEditMode.Inline"
+          EditItemCreator="@CreatEditItem"
+          NewItemCreator="@CreateNewItem"
+          RowUpdated="@Save"
+          RowUpdating="@Verify"
+          RowInserted="@Save"
+          RowInserting="@Verify"
+          HeaderRowStyling="@(new DataGridRowStyling() { Style="color=rgba(250, 141, 40, 1);" })">
+    <DataGridColumns>
+        <DataGridColumn Width="35%" Field="@nameof(ThorDictionary.DictionaryName)" Caption="OARS Dictionary Name" Editable Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
+        </DataGridColumn>
+        <DataGridColumn Field="@nameof(ThorDictionary.DictionaryOption)" Width="35%" Caption="OARS Dictionary Option" Editable Filterable="true" Sortable="true">
+        </DataGridColumn>
+        <DataGridColumn Field="@nameof(ThorDictionary.DictionaryValue)" Caption="OARS Dictionary Value" Editable Filterable="true" Sortable="true" Width="20%">>
+        </DataGridColumn>
+        <DataGridColumn Field="@nameof(ThorDictionary.SortOrder)" Caption="Order" Editable Filterable="true" Sortable="true" Width="8%">
+        </DataGridColumn>
+         <DataGridCheckColumn Field="@nameof(ThorDictionary.IsActive)" Caption="Active" Filterable="true" Sortable="true" Editable Width="7%">
+            <DisplayTemplate>
+                <Check TValue="bool" Checked="context.IsActive" Disabled="true" ReadOnly="true" />
+            </DisplayTemplate>
+        </DataGridCheckColumn>
+        <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="false">
+            <EditCommandTemplate>
+                <Button><Icon Name="IconName.Edit" Clicked="@context.Clicked" /></Button>
+            </EditCommandTemplate>
+            <SaveCommandTemplate>
+                <Button><Icon Name="IconName.Save" Clicked="@context.Clicked" /></Button>
+            </SaveCommandTemplate>
+            <CancelCommandTemplate>
+                <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
+            </CancelCommandTemplate>
+            <ClearFilterCommandTemplate>
+                <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
+            </ClearFilterCommandTemplate>
+        </DataGridCommandColumn>
+    </DataGridColumns>
+    <ButtonRowTemplate>
+        <Button Color="Color.Primary" Clicked="context.NewCommand.Clicked">Add</Button>
+    </ButtonRowTemplate>
+    <EmptyTemplate>
+        <div class="box">
+            No dictionaries were found.
+        </div>
+    </EmptyTemplate>
+</DataGrid>
+
+
+@code {
+    [Inject] IThorDictionaryService dictionaryService { get; set; } = null!;
+    [Inject] private NavigationManager navigation { get; set; } = null!;
+    [Inject] INotificationService notificationService { get; set; }
+
+    private DataGrid<ThorDictionary> dataGridRef;
+    private IList<ThorDictionary> dictionaryList;
+
+    private ThorDictionary? selectedDictionary;
+
+    protected override async Task OnInitializedAsync()
+    {
+        this.dictionaryList = await dictionaryService.GetDictionaries();
+    }
+
+    public void SetActive(ThorDictionary item)
+    {
+        item.IsActive = true;
+    }
+
+    public ThorDictionary CreateNewItem()
+    {
+        selectedDictionary = null;
+        return new ThorDictionary();
+    }
+
+    public ThorDictionary CreatEditItem(ThorDictionary thorDictionary)
+    {
+        selectedDictionary = thorDictionary;
+        return thorDictionary;
+    }
+
+
+    public async Task<CancellableRowChange<ThorDictionary>> Verify(CancellableRowChange<ThorDictionary, Dictionary<string, object>> e)
+    {
+        await notificationService.Info("Validating...");
+
+        e.Values.TryGetValue("DictionaryName", out var dictName);
+        e.Values.TryGetValue("DictionaryOption", out var dictOption);
+        e.Values.TryGetValue("DictionaryValue", out var dictValue);
+        e.Values.TryGetValue("SortOrder", out var order);
+
+
+        List<string> missingFields = new List<string>();
+        if (string.IsNullOrWhiteSpace((string)dictName))
+        {
+            missingFields.Add("Dictionary Name");
+        }
+        if (string.IsNullOrWhiteSpace((string)dictOption))
+        {
+            missingFields.Add("Dictionary Option");
+        }
+        if (string.IsNullOrWhiteSpace((string)dictValue))
+        {
+            missingFields.Add("Dictionary Value");
+        }
+        if (order == null)
+        {
+            missingFields.Add("Order");
+        }
+        if (missingFields.Count > 0)
+        {
+            await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
+            e.Cancel = true;
+            return e;
+        }
+
+        await notificationService.Info("Validating uniqueness...");
+        if (dictName != null && dictOption != null && selectedDictionary?.DictionaryName != (string)dictName && selectedDictionary?.DictionaryOption != (string)dictOption && dictionaryList.Any(x => x.DictionaryName == (string)dictName && x.DictionaryOption == (string)dictOption))
+        {
+            await notificationService.Error($"Dictionary option {dictName} - {dictOption} already exists");
+            e.Cancel = true;
+        }
+
+        return e;
+	}
+
+    public async void Save(SavedRowItem<ThorDictionary, Dictionary<string, object>> e)
+    {
+        var newItem = e.Item;
+
+        bool saved = await dictionaryService.SaveDictionary(newItem);
+
+        if (saved)
+        {
+            await notificationService.Success("Dictionary successfully saved");
+            this.dictionaryList = await dictionaryService.GetDictionaries();
+            return;
+        }
+        else
+        {
+            await notificationService.Error("Error saving dictionary");
+            return;
+        }
+    }
+}

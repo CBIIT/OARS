@@ -1,0 +1,808 @@
+﻿@using Amazon;
+@using Amazon.Auth;
+@using Amazon.SimpleEmail;
+@using Amazon.SimpleEmail.Model;
+@using Amazon.S3;
+@using Amazon.S3.Transfer;
+@using System.Text.RegularExpressions;
+@using System.Web;
+@using OARS.Data;
+@using OARS.Data.Identity;
+@using OARS.Data.Models;
+@using OARS.Data.Models.DTO;
+@using OARS.Data.Services;
+@using OARS.Data.Services.Abstract;
+@using OARS.Data.Static;
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inherits LayoutComponentBase
+@inject IConfiguration configuration
+@inject IHttpContextAccessor httpContextAccessor
+@inject ProtectedSessionStorage SessionData
+@inject IJSRuntime JSRuntime
+
+
+@page "/pireview/{protocolid}"
+
+<script>
+    function closeTab(){
+    window.close();
+    }
+</script>
+
+<html>
+<head>
+    <title>PI Review Dashboard</title>
+</head>
+<body>
+    @if (!String.IsNullOrEmpty(ProtocolId) && ProtocolId != "0" && authorizedUsers.Contains(activeUserId))
+    {
+
+        <Row>
+            <Column ColumnSize="ColumnSize.Is12">
+                <Div Background="Background.Primary" TextColor="TextColor.Light" Class="px-2 py-1">
+
+                    <Div Style="display: inline-grid; grid-template-columns: 1fr 1fr 1fr; width: 100%">
+                        <Div Style="display: inline-block;"> </Div>
+                        <Div Style="display: inline-block; text-align: center;"> 
+                            <h4>Perform PI Review #@reviewName </h4>
+                        </Div>
+                        <Div Style="display: inline-block; text-align: right;">
+                            <h4> PI Name: @userFirstName @userLastName </h4>
+                        </Div>
+                    </Div>
+
+                    <Div Flex="Flex.JustifyContent.Between">
+                        <Div>
+                            <b>Status:</b> @GetReviewStatus()
+                        </Div>
+                        <Div style="text-align: center;"> 
+                            <b>Due Date:</b> @DueDate 
+                        </Div>
+                        @if (daysRemaining >= 0) 
+                        { 
+                            <Div><b>Days Remaining:</b> @daysRemaining</Div> 
+                        } 
+                        else 
+                        { 
+                            <Div><b>Days Overdue:</b> @(daysRemaining * -1)</Div> 
+                        }
+                    </Div>        
+                </Div>
+            </Column>
+        </Row>
+        <Row>
+            <Div Flex="Flex.JustifyContent.Center" Class="pt-2">
+                <Div> 
+                    @ProtocolId : @studyDescription
+                </Div>
+            </Div>
+        </Row>
+        <Row>
+            <Div Flex="Flex.JustifyContent.Center" Class="pt-3">
+                <Div Class="rounded p-2 border border-primary">
+                    Please go through each item in the checklist below, complete the necessary actions as instructed, and check the box next to each item. The 'Provide Review Sign Off' button will remain disabled until all items are checked off.
+                </Div>
+            </Div>
+
+        </Row>
+        <Row HorizontalGutter="32" VerticalGutter="16">
+            <br/>
+            <Div></Div>
+            <Column ColumnSize="ColumnSize.Is4">
+                @foreach (var item in lstManagers)
+                {
+                    <Check CheckedChanged="@((bool value) => checkboxChanged(item.BoxName, value))" TValue="bool" Checked="@item.IsChecked">
+                        @($"{item.BoxName}") 
+                    </Check>
+                }
+            </Column>
+            <Column ColumnSize="ColumnSize.Is8">
+                <Row>
+                    <Div Class="pr-2">
+                        <MemoEdit Rows="10" @bind-Text="@noteText" Placeholder="Enter new notes..." />
+                    </Div>
+                </Row>
+            </Column>
+        </Row>
+        <Row Class="pt-2">
+            <Column>
+                <Button Color="Color.Primary" Clicked="@SaveChanges">Save Changes</Button>
+                <Button Color="Color.Primary" Clicked="@DiscardChanges">Discard Changes</Button>
+                <Button Color="Color.Primary" Clicked="@ShowContactUsModal" >Send Email</Button>
+            </Column>
+            <Column Flex="Flex.JustifyContent.End">
+                <Button Color="Color.Primary" Disabled="@submitIsDisabled" Clicked="@ShowSubmitReviewModal" Style="text-align: right;">Provide Review Sign Off</Button>
+            </Column>
+        </Row>
+        <Row>
+            <Div><br /></Div>
+            <Div><br /></Div>
+            <Div><br /></Div>
+        </Row>
+        <Row>
+            <Column>
+                <Tabs SelectedTab="@selectedTab" SelectedTabChanged="@OnSelectedTabChanged">
+                    <Items>
+                        <Tab Name="notehistory">Note History</Tab>
+                        <Tab Name="emailhistory">Email History</Tab>
+                        <Tab Name="auditTrail">Audit Trail #@reviewName</Tab>
+                    </Items>
+                    <Content>
+                        <TabPanel Name="notehistory">
+                            <DataGrid 
+                            @ref="noteDataGrid"
+                            Class="admindatagrid" 
+                            TItem="TextNotes" 
+                            Data="@lstTextNotes" 
+                            AltBordered="true"
+                            Responsive
+                            Filterable
+                            Striped
+                            ShowPager
+                            ShowPageSizes
+                            MaxPaginationLinks="5"
+                            PagerPosition="DataGridPagerPosition.Bottom"
+                            PagerOptions="new(){ButtonSize=Size.Default,
+                                PaginationPosition=PagerElementPosition.Default,
+                                TotalItemsPosition=PagerElementPosition.End,
+                                }"
+                            FixedHeader
+                            FixedHeaderDataGridHeight="calc(100vh - 240px)"
+                            FixedHeaderDataGridMaxHeight="calc(100vh - 240px)">
+                                <DataGridCommandColumn />
+                                <DataGridColumn TItem="TextNotes" Field="@nameof(TextNotes.Name)" Caption="User" />
+                                <DataGridColumn TItem="TextNotes" Field="@nameof(TextNotes.CreationDate)" Caption="Creation Date" />
+                                <DataGridColumn TItem="TextNotes" Field="@nameof(TextNotes.Note)" Caption="Note Text" />
+                            </DataGrid>
+                        </TabPanel>
+                        <TabPanel Name="emailhistory">
+                            <DataGrid 
+                            @ref="emailDataGrid"
+                            TItem="EmailDetails" 
+                            Class="admindatagrid" 
+                            Data="@lstEmailDetails" 
+                            Bordered="true"
+                            AltBordered="true"
+                            Responsive
+                            Filterable
+                            Striped
+                            ShowPager
+                            ShowPageSizes
+                            MaxPaginationLinks="5"
+                            PagerPosition="DataGridPagerPosition.Bottom"
+                            PagerOptions="new(){ButtonSize=Size.Default,
+                                PaginationPosition=PagerElementPosition.Default,
+                                TotalItemsPosition=PagerElementPosition.End,
+                                }"
+                            FixedHeader
+                            FixedHeaderDataGridHeight="calc(100vh - 240px)"
+                            FixedHeaderDataGridMaxHeight="calc(100vh - 240px)">
+                                <DataGridCommandColumn />
+                                <DataGridColumn TItem="EmailDetails" Field="@nameof(EmailDetails.EmailTo)" Caption="Recipient" />
+                                <DataGridColumn TItem="EmailDetails" Field="@nameof(EmailDetails.Body)" Caption="Email Body" />
+                                <DataGridColumn TItem="EmailDetails" Field="@nameof(EmailDetails.CreationDate)" Caption="Email Sent Date" />
+                            </DataGrid>
+                        </TabPanel>
+                        <TabPanel Name="auditTrail">
+                            <DataGrid @ref="auditDataGrid"
+                            TItem="AuditTrailDTO"
+                            Class="admindatagrid"
+                            Data="@lstAudits"
+                            Bordered="true"
+                            AltBordered="true"
+                            Responsive
+                            Filterable
+                            Striped
+                            ShowPager
+                            ShowPageSizes
+                            MaxPaginationLinks="5"
+                            PagerPosition="DataGridPagerPosition.Bottom"
+                            PagerOptions="new(){ButtonSize=Size.Default,
+                                PaginationPosition=PagerElementPosition.Default,
+                                TotalItemsPosition=PagerElementPosition.End,
+                                }"
+                            FixedHeader
+                            FixedHeaderDataGridHeight="calc(100vh - 240px)"
+                            FixedHeaderDataGridMaxHeight="calc(100vh - 240px)">
+                                <DataGridCommandColumn />
+                                <DataGridColumn TItem="AuditTrailDTO" Caption="User">
+                                    <DisplayTemplate>
+                                        <Div Style="white-space: nowrap;">
+                                            @context.userName
+                                        </Div>
+                                    </DisplayTemplate>
+                                </DataGridColumn>
+                                <DataGridColumn TItem="AuditTrailDTO" Field="@nameof(AuditTrailDTO.userEmail)" Caption="User Email" />
+                                <DataGridColumn TItem="AuditTrailDTO" Caption="Date Of Change">
+                                    <DisplayTemplate>
+                                        <Div Style="white-space: nowrap;">
+                                            @context.dateOfChange
+                                        </Div>
+                                    </DisplayTemplate>
+                                </DataGridColumn>
+                                <DataGridColumn TItem="AuditTrailDTO" Field="@nameof(AuditTrailDTO.typeOfChange)" Caption="Type Of Change" />
+                                <DataGridColumn TItem="AuditTrailDTO" Field="@nameof(AuditTrailDTO.changeField)" Caption="Changed Field" />
+                                <DataGridColumn TItem="AuditTrailDTO" Caption="Previous Value">
+                                    <DisplayTemplate>
+                                        <Div Style="white-space: pre-wrap;">
+                                            @context.previousValue
+                                        </Div>
+                                    </DisplayTemplate>
+                                </DataGridColumn>
+                                <DataGridColumn TItem="AuditTrailDTO" Caption="New Value" >
+                                    <DisplayTemplate>
+                                        <Div Style="display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; word-wrap: break-word; white-space: pre-wrap;">
+                                            @context.newValue
+                                        </Div>
+                                    </DisplayTemplate>
+                                </DataGridColumn>
+                            </DataGrid>
+                        </TabPanel>
+                    </Content>
+                </Tabs>
+            </Column>
+        </Row>
+    }
+    else
+    {
+        <Row>
+            <Column ColumnSize="ColumnSize.Is12">
+                <Div Background="Background.Primary" TextColor="TextColor.Light" style="display: flex; justify-content: center; align-items: center; width: 100%; text-align: center; flex-direction: column;">
+                    <span><h3>You are not authorized to view this review. </h3></span>
+                    <span><h4>If you feel you have reached this page in error, please contact tech support. </h4/></span>
+                </Div>
+            </Column>
+        </Row>
+    }
+    <Modal @ref="modalSubmitEmail" Closing="@OnModalClosing" Opened="@OnModalOpen">
+        <ModalContent Centered Size="ModalSize.Large">
+            <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
+                <ModalTitle>Email</ModalTitle>
+                <CloseButton />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="validations" Mode="ValidationMode.Auto" ValidateOnLoad="false">
+                    <Field>
+                        <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">To</FieldLabel>
+                        <Validation Validator="@ValidationRule.IsEmail">
+                            <TextEdit Placeholder="Enter recipient" @bind-Text="@emailTo">
+                                <Feedback>
+                                    <ValidationError>Invalid Email</ValidationError>
+                                </Feedback>
+                            </TextEdit>
+                        </Validation>
+                    </Field>
+                    <Validation Validator="@ValidationRule.IsNotEmpty">
+                        <Field>
+                            <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Subject</FieldLabel>
+                            <TextEdit Placeholder="Enter subject" @bind-Text="@emailTitle">
+                                <Feedback>
+                                    <ValidationError>Subject can't be empty</ValidationError>
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation Validator="@ValidationRule.IsNotEmpty">
+                        <Field>
+                            <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Description</FieldLabel>
+                            <FieldBody>
+                                <MemoEdit @bind-Text="@emailDescription" MaxLength="4000" Rows="3" Placeholder="Email body"
+                                onkeydown="@OnDescriptionChanged">
+                                    <Feedback>
+                                        <ValidationError>Email body can't be empty</ValidationError>
+                                    </Feedback>
+                                </MemoEdit>
+                                <FieldLabel ColumnSize="ColumnSize.Is5">@emailDescriptionLabel</FieldLabel>
+                            </FieldBody>
+                        </Field>
+                    </Validation>
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Primary" Clicked="@HideContactUsModal">Cancel</Button>
+                <Button Color="Color.Primary" Disabled="!emailFormIsValid" Clicked="@SendContactUsEmail">Send Email</Button>
+            </ModalFooter>
+        </ModalContent>
+    </Modal>
+
+    <Modal @ref="modalSubmitReview" Closing="@OnModalClosing">
+        <ModalContent Centered Size="ModalSize.Large">
+            <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
+                <ModalTitle>Submit review for @ProtocolId - #@reviewName</ModalTitle>
+                <CloseButton Clicked="@OnModalClosed" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="submitValidations" Mode="ValidationMode.Manual">
+                    <Field>
+                        <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Completed Review Tasks:</FieldLabel>
+                        @foreach (var item in lstReviewItems)
+                        {
+                            <Check Checked="true" Disabled="true" TValue="bool">
+                                @($"{item.ReviewItemName}")
+                            </Check>
+                        }
+                    </Field>
+                    <Field>
+                        <FieldBody>
+                            <Div Class="rounded p-4 border border-primary">
+                                <Check @bind-Checked="eSig">I attest that I have completed all the above Review Tasks.</Check>
+                            </Div>
+                        </FieldBody>
+                    </Field>
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Primary" Clicked="@HideSubmitReviewModal">Cancel</Button>
+                <Button Color="Color.Primary" Disabled="@(!eSig)" Clicked="@CompleteReview">Submit Review</Button>
+            </ModalFooter>
+        </ModalContent>
+    </Modal>
+
+    @code {
+        private bool isSelected { get; set; }
+        private string? noteText { get; set; }
+        private string? savedNoteText { get; set; }
+        private bool emailFormIsValid => emailTo != null && emailTo.Contains('@') && emailTo.Contains('.');
+        private bool submitIsDisabled = false;
+        private DataGrid<TextNotes> noteDataGrid;
+        private DataGrid<EmailDetails> emailDataGrid;
+        private DataGrid<AuditTrailDTO> auditDataGrid;
+        private string userFullName = "No Name Found";
+        private string userFirstName = "Error";
+        private string userLastName = "No Name";
+        private string reviewName = "No Name";
+        private string studyDescription = "No description found";
+
+        public class TextNotes
+        {
+            public string Name { get; set; }
+            public string Note { get; set; }
+            public string CreationDate { get; set; }
+        }
+
+        public class EmailDetails
+        {
+            public string Body { get; set; }
+            public string EmailTo { get; set; }
+            public string CreationDate { get; set;}
+        }
+
+        public class CheckBoxManager
+        {
+            public string BoxName { get; set; }
+            public int ReviewItemNumber { get; set; }
+            public bool IsChecked { get; set; }
+        }
+
+        private List<TextNotes> lstTextNotes = new List<TextNotes>();
+        private List<EmailDetails> lstEmailDetails = new List<EmailDetails>();
+        private List<CheckBoxManager> lstManagers = new List<CheckBoxManager>();
+        private List<AuditTrailDTO> lstAudits = new List<AuditTrailDTO>();
+        [Parameter]
+        public string ProtocolId { get; set; } = String.Empty;
+        public bool changesSaved = true;
+        string selectedTab = "notehistory";
+
+        public void checkboxChanged(string checkboxName, bool value)
+        {
+            bool allCheckd = true;
+            foreach(var item in lstManagers)
+            {
+                if (checkboxName == item.BoxName)
+                    item.IsChecked = value;
+                if (item.IsChecked == false)
+                    allCheckd = false;
+            }
+            if (allCheckd)
+                submitIsDisabled = false;
+            else
+                submitIsDisabled = true;
+        }
+
+        public void OnDescriptionChanged(KeyboardEventArgs e)
+        {
+            if (emailDescription.Trim().Length == 0)
+            {
+                emailDescriptionLabel = "Max 4000 characters.";
+            }
+            else
+            {
+                emailDescriptionLabel = "Max 4000 characters. Currently " + emailDescription.Trim().Length + " characters";
+            }
+        }
+
+        private Task OnSelectedTabChanged(string name)
+        {
+            selectedTab = name;
+
+            return Task.CompletedTask;
+        }
+
+        private async Task CloseTab()
+        {
+            await JSRuntime.InvokeVoidAsync("closeTab");
+        }
+
+        private async Task DiscardChanges()
+        {
+            string navTo = "/";
+            var result = await SessionData.GetAsync<string>("dashboardUrl");
+            await CloseTab();
+            if (result.Success)
+            {
+                navTo = result.Value ?? "/";
+            }
+            Navigation.NavigateTo(navTo, true);
+        }
+
+        private async void SaveChanges()
+        {
+            if (!String.IsNullOrEmpty(ProtocolId) && ProtocolId != "0")
+            {
+                bool itemUpdateNeeded = false;
+                bool itemWasUpdated = false;
+                bool noteAdded = false;
+                foreach (var box in lstManagers)
+                {
+                    // if the box's Number doesn't exist, in the dictionary, then we need to add a new record to the table
+                    if (!dctReviewItemSettings.TryGetValue(box.ReviewItemNumber, out checkedStatus))
+                    {
+                        reviewHistoryItemService.SaveReviewHistoryItemAsync(activeUserId, latestReviewHistory.ReviewHistoryId, box.ReviewItemNumber, box.IsChecked);
+                        itemUpdateNeeded = true;
+                        itemWasUpdated = true;
+                    }
+                    else if (box.IsChecked != checkedStatus)
+                    {
+                        await reviewHistoryItemService.UpdateReviewHistoryItemAsync(activeUserId, latestReviewHistory.ReviewHistoryId, box.ReviewItemNumber, box.IsChecked);
+                        dctReviewItemSettings[box.ReviewItemNumber] = box.IsChecked;
+                        itemWasUpdated = true;
+                    }
+                }
+                if(itemUpdateNeeded)
+                {
+                    dctReviewItemSettings = await reviewHistoryItemService.GetCurrentReviewHistoryItemStatusAsync(latestReviewHistory.ReviewHistoryId);
+                }
+
+                if (changesSaved == true && !string.IsNullOrWhiteSpace(noteText))
+                {
+                    var newNote = new ReviewHistoryNote();
+                    newNote.NoteText = noteText;
+                    newNote.CreateDate = DateTime.Now;
+                    newNote.ReviewHistoryId = latestReviewHistory.ReviewHistoryId;
+                    newNote.ReviewHistoryNoteId = historyNoteService.GetNextReviewHistoryNoteId();
+                    noteAdded = await historyNoteService.SaveNoteAsync(activeUserId, newNote);
+                    var user = await userService.GetUserAsync(latestReviewHistory.UserId);
+                    var userName = user.FirstName + " " + user.LastName;
+                    if(noteAdded) {
+                        lstTextNotes.Add(new TextNotes { Name = userName, Note = noteText, CreationDate = newNote.CreateDate.Value.ToString("dd-MMM-yyyy hh:mm:ss tt").ToUpper() });
+                    }
+                    noteText = "";
+                    await noteDataGrid.Reload();
+                }
+
+                if (itemWasUpdated || noteAdded)
+                {
+                    await GenerateAuditTrail();
+                    await notificationService.Success("Changes have been saved.");
+                }
+            }
+            else{
+                await notificationService.Error("UI Demo mode. No changes to save.");
+            }
+        }
+
+        Task OnSendEmailClicked()
+        {
+
+            return Task.CompletedTask;
+        }
+
+        Validations validations;
+        Validations submitValidations;
+        private int iconHeight = 30;
+        private string DueDate;
+        private int daysRemaining;
+        private int systemAlertsCount;
+        private int systemNotesCount;
+        private bool systemAlertsDropdownVisible = false;
+        private bool systemNotesDropdownVisible = false;
+        private string systemAlertsTooltip = string.Empty;
+        private string systemNotesTooltip = string.Empty;
+        private string leadAgentName = "Demo Page";
+        private readonly string noSystemAlertsMessage = "No current System Alerts";
+        private readonly string noSystemNotesMessage = "No current System Notes";
+        private readonly string currentSystemAlertsMessage = "System Alerts: ";
+        private readonly string currentSystemNotesMessage = "System Notes: ";
+        private readonly string dismissed = "dismissed";
+        private readonly string visible = "visible";
+        private int activeUserId;
+        public string DashboardName { get; set; }
+        public string ReportName { get; set; }
+        private bool eSig = false;
+
+        IFluentDisplay adminDisplay = Display.None;
+
+        [Inject] IContactUsService contactUsCategoryService { get; set; } = null!;
+        [Inject] IErrorLogService errorLogService { get; set; } = null!;
+        [Inject] IReviewItemService reviewItemService { get; set; } = null!;
+        [Inject] IReviewHistoryService reviewHistoryService { get; set; } = null!;
+        [Inject] IReviewHistoryNoteService historyNoteService { get; set; } = null!;
+        [Inject] IReviewHistoryEmailService historyEmailService { get; set; } = null!;
+        [Inject] IReviewHistoryItemService reviewHistoryItemService { get; set; } = null!;
+        [Inject] public NavigationManager Navigation { get; set; }
+        [Inject] private IUserService userService { get; set; } = null!;
+        [Inject] private IAlertService alertService { get; set; } = null!;
+        [Inject] private IStudyService studyService { get; set; } = null!;
+        [Inject] INotificationService notificationService { get; set; }
+        [Inject] IEmailService emailService { get; set; } = null!;
+        [Inject] IReviewService reviewService { get; set; } = null!;
+        [Inject] IAuditService auditService { get; set; } = null!;
+
+        private Modal modalSubmitEmail;
+        private Modal modalSubmitReview;
+        private bool cancelClose;
+
+        private string contactUsCategoryID = "", emailTo = "", emailCategory = "", emailDescription = "", emailDescriptionLabel = "";
+        private string emailTitle = "";
+        private List<ContactUsCategory> lstContactUsCategory;
+        private List<ContactUsCategorySelectItemList> lstContactUsItems;
+        private IList<ReviewItem> lstReviewItems;
+        private IList<int> lstReviewHistories;
+        private ReviewHistory latestReviewHistory;
+        private Review currentReview;
+        private int reviewHistoryId;
+        private List<string> reviewNote = new List<string> { "No previous notes." };
+        private List<string> reviewEmail = new List<string> { "No previous emails." };
+        FileEdit fileEditRef;
+        string uploadFileName = "";
+        List<string> lstAttachments = new List<string>();
+        Dictionary<int, bool> dctReviewItemSettings = new Dictionary<int, bool>();
+        private IList<int> authorizedUsers;
+        IFileEntry selectedFile;
+        private bool checkedStatus;
+
+        protected override async Task OnInitializedAsync()
+        {
+            activeUserId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+
+            bool activeReview;
+            if (!String.IsNullOrEmpty(ProtocolId) && ProtocolId != "0")
+            {
+                currentReview = await reviewService.GetCurrentReviewAsync(ProtocolId, activeUserId, "PI");
+                latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(ProtocolId, activeUserId, "PI");
+                authorizedUsers = await reviewService.GetAllAuthorizedUsersAsync(ProtocolId);
+                if (authorizedUsers.Contains(activeUserId))
+                {
+                    DueDate = ((DateTime)currentReview.NextDueDate).Date.ToString("dd-MMM-yyyy");
+                    daysRemaining = (((DateTime)currentReview.NextDueDate) - DateTime.Now).Days;
+                    if (latestReviewHistory == null)
+                    {
+                        reviewHistoryId = reviewHistoryService.GetNextReviewHistoryId();
+                        activeReview = false;
+                    }
+                    else
+                    {
+                        reviewHistoryId = latestReviewHistory.ReviewHistoryId;
+                        activeReview = await reviewHistoryService.isReviewActive(reviewHistoryId);
+                    }
+
+                    if (!activeReview)
+                    {
+                        // If there is not an active Review right now, start a new review, create a new review history, snapshot the current review items
+                        await reviewHistoryService.StartNewReviewAsync(activeUserId, ProtocolId, "PI", reviewHistoryId);
+                        latestReviewHistory = await reviewHistoryService.GetLatestReviewHistoryByProtocolAsync(ProtocolId, activeUserId, "PI");
+                        lstReviewItems = await reviewItemService.GetActiveReviewItemsAsync();
+                        foreach(var item in lstReviewItems)
+                        {
+                            reviewHistoryItemService.SaveReviewHistoryItemAsync(activeUserId, latestReviewHistory.ReviewHistoryId, item.ReviewItemId, false);
+                        }
+                    }
+                    else
+                    {
+                        // If there IS an active review, grab the list of review items from the DB
+                        lstReviewItems = await reviewHistoryItemService.GetReviewHistoryItemsAsync(reviewHistoryId);
+                    }
+
+                    reviewName = latestReviewHistory.ReviewPeriodName ?? "";
+                    var user = await userService.GetUserAsync(latestReviewHistory.UserId);
+                    if (user != null)
+                    {
+                        userFullName = user.FirstName + " " + user.LastName;
+                        userFirstName = user.FirstName;
+                        userLastName = user.LastName;
+                    }
+                    studyDescription = await studyService.GetStudyTitleAsync(ProtocolId);
+                    dctReviewItemSettings = await reviewHistoryItemService.GetCurrentReviewHistoryItemStatusAsync(latestReviewHistory.ReviewHistoryId);
+                    foreach (var item in lstReviewItems)
+                    {
+                        dctReviewItemSettings.TryGetValue(item.ReviewItemId, out checkedStatus);
+
+                        lstManagers.Add(new CheckBoxManager { BoxName = item.ReviewItemName, ReviewItemNumber = item.ReviewItemId, IsChecked = checkedStatus });
+                        if (checkedStatus == false)
+                        {
+                            submitIsDisabled = true;
+                        }
+                    }
+
+                    if(daysRemaining >= 0)
+                    {
+                        // Not late yet, make sure current review is not late
+                        if(currentReview.MissedReviewCount > 0)
+                        {
+                            await reviewService.SetMissedReviewCountAsync(activeUserId, ProtocolId, "PI", 0);
+                            await reviewHistoryService.SetMissedReviewHistoryCountAsync(activeUserId, ProtocolId, "PI", 0);
+                        }
+                        // Also make sure reviewHistory is not late
+                        if(latestReviewHistory.ReviewLate == 'T' || latestReviewHistory.DaysLate > 0)
+                        {
+                            await reviewHistoryService.SetReviewHistoryLateStatusAsync(activeUserId, ProtocolId, "PI", 0);
+                        }
+                    }
+                    else
+                    {
+                        int daysLate = daysRemaining * -1;
+                        // Review is late! Make sure we're reporting it correctly
+                        if(daysLate > currentReview.ReviewPeriod )
+                        {
+                            int cyclesMissed = daysLate / currentReview.ReviewPeriod;
+                            if (currentReview.MissedReviewCount != cyclesMissed)
+                            {
+                                await reviewService.SetMissedReviewCountAsync(activeUserId, ProtocolId, "PI", cyclesMissed);
+                                await reviewHistoryService.SetMissedReviewHistoryCountAsync(activeUserId, ProtocolId, "PI", cyclesMissed);
+                            }
+                        }
+                        // Also make sure reviewHistory is set late
+                        if(latestReviewHistory.ReviewLate == 'F' || latestReviewHistory.DaysLate != daysLate)
+                        {
+                            await reviewHistoryService.SetReviewHistoryLateStatusAsync(activeUserId, ProtocolId, "PI", daysLate);
+                        }
+                    }
+
+                    leadAgentName = await reviewService.GetLeadAgentByIdAsync(ProtocolId);
+                    var tmpLst = await historyNoteService.GetNotesAsync(latestReviewHistory.ReviewHistoryId);
+                    if (tmpLst != null)
+                    {
+                        if (reviewNote.Contains("No previous notes."))
+                            reviewNote.Remove("No previous notes.");
+                        foreach (var tmp in tmpLst)
+                        {
+                            lstTextNotes.Add(new TextNotes { Name = tmp.UserName, Note = tmp.Notes, CreationDate = tmp.CreationDate.HasValue ? tmp.CreationDate.Value.ToString("dd-MMM-yyyy hh:mm:ss tt").ToUpper() : "null" });
+                        }
+                        lstTextNotes.Sort((x, y) => y.CreationDate.CompareTo(x.CreationDate));
+                    }
+                    var tmpEmailList = await historyEmailService.GetEmailsAsync(latestReviewHistory.ReviewHistoryId);
+                    if (tmpEmailList != null)
+                    {
+                        if (reviewEmail.Contains("No previous emails."))
+                            reviewEmail.Remove("No previous emails.");
+                        foreach (var email in tmpEmailList)
+                        {
+                            reviewEmail.Add(email.Body);
+                            lstEmailDetails.Add(new EmailDetails { Body = email.Body, EmailTo = email.Recipient, CreationDate = email.CreationDate.HasValue ? email.CreationDate.Value.ToString("dd-MMM-yyyy hh:mm:ss tt").ToUpper() : "null" });
+                        }
+                    }
+                    await GenerateAuditTrail();
+                }
+            }
+        }
+
+        private async Task GenerateAuditTrail()
+        {
+            try
+            {
+                lstAudits = await auditService.GetFullAuditTrailAsync(
+                        activeUserId,
+                        currentReview.ReviewId,
+                        latestReviewHistory.ReviewHistoryId,
+                        "PI",
+                        await reviewHistoryItemService.GetReviewHistoryItemIdsAsync(latestReviewHistory.ReviewHistoryId),
+                        await historyNoteService.GetReviewHistoryNoteIdsAsync(latestReviewHistory.ReviewHistoryId),
+                        await historyEmailService.GetReviewHistoryEmailIdsAsync(latestReviewHistory.ReviewHistoryId));
+                if (lstAudits.Count > 0)
+                {
+                    lstAudits.Sort((x, y) => y.dateOfChange.CompareTo(x.dateOfChange));
+                }
+            }
+            catch (Exception ex)
+            {
+                await JSRuntime.InvokeVoidAsync("console.error", "Error in Audit Trail: " + ex.Message);
+            }            
+        }
+
+        private void OnModalClosed()
+        {
+            cancelClose = false;
+            eSig = false;
+        }
+
+        private Task OnModalClosing(ModalClosingEventArgs e)
+        {
+            e.Cancel = cancelClose
+            || e.CloseReason != CloseReason.UserClosing;
+
+            return Task.CompletedTask;
+        }
+
+        private Task OnModalOpen()
+        {
+            validations.ClearAll();
+            return Task.CompletedTask;
+        }
+
+        private Task ShowContactUsModal()
+        {
+            emailTitle = $"Study {ProtocolId} - PI Review - {currentReview.ReviewPeriodName} - ";
+            emailDescription = string.Empty;
+            emailTo = string.Empty;
+
+            return modalSubmitEmail.Show();
+        }
+
+        private Task ShowSubmitReviewModal()
+        {
+            return modalSubmitReview.Show(); 
+        }
+
+        private string GetReviewStatus()
+        {
+            return daysRemaining < 0 ? "Late" : "On Time";
+        }
+
+        private Task HideContactUsModal()
+        {
+            cancelClose = false;
+            return modalSubmitEmail.Hide();
+        }
+
+        private Task HideSubmitReviewModal()
+        {
+            cancelClose = false;
+            eSig = false;
+            return modalSubmitReview.Hide();
+        }
+
+        private async void SendContactUsEmail()
+        {
+            if (await validations.ValidateAll())
+            {
+                bool sendEmailResult = await emailService.SendReviewEmail(userFullName, emailTo, emailTitle, emailDescription, configuration.GetValue<string>("System:SystemColor"));
+                if (sendEmailResult)
+                {
+                    await notificationService.Success("An email has been sent.");
+                    await historyEmailService.SaveNewEmailAsync(activeUserId, latestReviewHistory.ReviewHistoryId, emailTo, emailDescription);
+                    lstEmailDetails.Insert(0, new EmailDetails { Body = emailDescription, EmailTo = emailTo, CreationDate = DateTime.Now.ToString("dd-MMM-yyyy hh:mm:ss tt").ToUpper() });
+                    await GenerateAuditTrail();
+                    await emailDataGrid.Reload();
+                    await auditDataGrid.Reload();
+                }
+                else
+                {
+                    await notificationService.Error("Error sending the email.");
+                }
+
+                cancelClose = false;
+                modalSubmitEmail.Hide();
+            }
+        }
+
+        private async void CompleteReview()
+        {
+            eSig = false;
+            // Add DB record for next review
+            // We need the current date for complete and for updated
+            SaveChanges();
+            await notificationService.Success("Review Successfully Completed.");
+            reviewHistoryService.CloseCurrentReviewAsync(activeUserId, latestReviewHistory.ReviewHistoryId);
+            modalSubmitReview.Hide();
+            string navTo = "/";
+            var result = await SessionData.GetAsync<string>("dashboardUrl");
+            if (result.Success)
+            {
+                navTo = result.Value ?? "/";
+            }
+            await CloseTab();
+            Navigation.NavigateTo(navTo, true);
+        }
+}
+    </body>
+</html>

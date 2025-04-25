@@ -1,0 +1,231 @@
+﻿@using OARS.Data.Models;
+@using OARS.Data.Services.Abstract;
+@using OARS.Data.Static;
+@inject IHttpContextAccessor httpContextAccessor
+@layout AdminLayout
+<LoadingIndicator @ref=loading>
+<DataGrid @ref=dataGridRef
+          TItem="ProtocolEDCField"
+          Class="admindatagrid"
+          Data="@protocolFields"
+          Editable
+          Responsive
+          Striped
+              Sortable
+              SortMode="DataGridSortMode.Single"
+          ShowPager
+          ShowPageSizes
+          Filterable
+           FilterMethod="DataGridFilterMethod.Contains"
+           MaxPaginationLinks="5"
+           PagerPosition="DataGridPagerPosition.Bottom"
+           PagerOptions="new(){ButtonSize=Size.Default,
+                                PaginationPosition=PagerElementPosition.Default,
+                                TotalItemsPosition=PagerElementPosition.End,
+                                }"
+          FixedHeader
+           FixedHeaderDataGridHeight="calc(100vh - 240px)"
+           FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
+           EditMode="DataGridEditMode.Inline"
+           RowUpdated="@Save"
+           RowInserted="@Save"
+           RowRemoving="@ConfirmDelete"
+              RowRemoved="@Delete"
+              RowUpdating="@Verify"
+              RowInserting="@Verify">
+     <DataGridColumns>
+            <!-- Forgien Key columns should not be sortable because the sort value will be the integer value that does not create a meaningfull sort. -->
+            <DataGridColumn Field="@nameof(ProtocolEDCField.ProtocolEDCFormId)" Width="15%" Caption="EDC Form ID" Filterable="false" Sortable="false" Editable>
+             <DisplayTemplate>
+                 @(context.ProtocolEDCFormDisplay)
+            </DisplayTemplate>
+            <EditTemplate>
+                    <SelectList 
+                        TItem="ProtocolEDCForm" 
+                        TValue="int?" 
+                        Data="@protocolForms" 
+                        TextField="@((item)=>item.EDCFormDisplay)"
+                        ValueField="@((item)=>item.ProtocolEDCFormId)"
+                        SelectedValueChanged="@( v =>{context.CellValue = v; context.UpdateCell(nameof(ProtocolEDCField.ProtocolEDCFormId),v); dataGridRef.Refresh();})"
+                        SelectedValue="@((int?)context.CellValue ?? context.Item.ProtocolEDCFormId)"
+                        DefaultItemText="Select a Form" 
+                        DefaultItemValue="0">
+                    </SelectList>
+            </EditTemplate>
+         </DataGridColumn>
+            <DataGridColumn Field="@nameof(ProtocolEDCField.ProtocolEDCFormDisplay)" Width="15%" Caption="Form Name Search" Filterable="true" Sortable="true" SortDirection="SortDirection.Ascending">
+             <DisplayTemplate>
+                    @context.ProtocolEDCFormDisplay
+			 </DisplayTemplate>
+         </DataGridColumn>
+            <DataGridColumn Field="@nameof(ProtocolEDCField.EDCFieldIdentifier)" Caption="EDC Field ID" Width="15%" Filterable="true" Sortable="true" Editable></DataGridColumn>
+            <DataGridColumn Field="@nameof(ProtocolEDCField.EDCFieldName)" Caption="EDC Field Label" Width="15%" Filterable="true" Sortable="true" Editable></DataGridColumn>
+         <DataGridColumn Field="@nameof(ProtocolEDCField.EDCDictionaryName)" Caption="EDC Dictionary Name" Width="15%" Filterable="true" Editable></DataGridColumn>
+         <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="true" DeleteCommandAllowed="true">
+             <EditCommandTemplate>
+                 <Button Disabled="@preventEdit"><Icon Name="IconName.Edit" Clicked="@context.Clicked" /></Button>
+             </EditCommandTemplate>
+             <SaveCommandTemplate>
+                 <Button><Icon Name="IconName.Save" Clicked="@context.Clicked" /></Button>
+             </SaveCommandTemplate>
+             <CancelCommandTemplate>
+                 <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
+             </CancelCommandTemplate>
+             <ClearFilterCommandTemplate>
+                 <Button><Icon Name="IconName.Times" Clicked="@context.Clicked" /></Button>
+             </ClearFilterCommandTemplate>
+             <DeleteCommandTemplate>
+                    <Button Disabled="@preventEdit"><Icon Name="IconName.Delete" Clicked="@context.Clicked" /></Button>
+             </DeleteCommandTemplate>
+         </DataGridCommandColumn>
+     </DataGridColumns>
+     <ButtonRowTemplate>
+         <Button Color="Color.Primary" Clicked="@context.NewCommand.Clicked" Disabled="@preventEdit">Add</Button>
+     </ButtonRowTemplate>
+     <EmptyTemplate>
+         <div class="box">
+             No fields were found.
+         </div>
+     </EmptyTemplate>
+ </DataGrid>
+</LoadingIndicator>
+@code {
+    [Inject] IProtocolEDCFieldService protocolFieldService { get; set; } = null!;
+    [Inject] IProtocolEDCFormService protocolEDCFormService { get; set; } = null!;
+    [Inject] private NavigationManager navigation { get; set; } = null!;
+    [Inject] INotificationService notificationService { get; set; }
+    [Inject] private IMessageService messageService { get; set; } = null!;
+    [Parameter] public int protocolMappingId { get; set; }
+    [Parameter] public bool preventEdit { get; set; }
+
+    private DataGrid<ProtocolEDCField> dataGridRef;
+    private IList<ProtocolEDCField> protocolFields = new List<ProtocolEDCField>();
+    private IList<ProtocolEDCForm> protocolForms = new List<ProtocolEDCForm>();
+    private ProtocolEDCForm? selectedForm;
+    private LoadingIndicator loading;
+
+    protected override async Task OnInitializedAsync()
+    {
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await loading.Show();
+            await notificationService.Info("Loading EDC fields...");
+            this.protocolForms = await protocolEDCFormService.GetFormsForMappingId(this.protocolMappingId);
+            this.protocolFields = await protocolFieldService.GetFieldsByProtocolMappingId(this.protocolMappingId);
+            StateHasChanged();
+            await loading.Hide();
+        }
+        return;
+    }
+
+
+    public async Task<CancellableRowChange<ProtocolEDCField>> Verify(CancellableRowChange<ProtocolEDCField, Dictionary<string, object>> e)
+    {
+        await notificationService.Info("Validating...");
+
+        e.Values.TryGetValue("ProtocolEDCFormId", out var ProtocolEDCFormId);
+        e.Values.TryGetValue("EDCFieldIdentifier", out var EDCFieldIdentifier);
+        e.Values.TryGetValue("EDCFieldName", out var EDCFieldName);
+
+        var protocolEDCFieldId = e.Item.ProtocolEDCFieldId;
+
+        List<string> missingFields = new List<string>();
+
+        if (ProtocolEDCFormId is null || (int)ProtocolEDCFormId == 0)
+        {
+            missingFields.Add("EDC Form ID");
+        }
+
+        if (string.IsNullOrWhiteSpace((string?)EDCFieldIdentifier))
+        {
+            missingFields.Add("EDC Field ID");
+        }
+
+        if (string.IsNullOrWhiteSpace((string?)EDCFieldName))
+        {
+            missingFields.Add("EDC Field Label");
+        }
+
+        if (missingFields.Count > 0)
+        {
+            await notificationService.Error("Missing fields: " + string.Join(", ", missingFields));
+            e.Cancel = true;
+            return e;
+        }
+
+        await notificationService.Info("Validating uniqueness...");
+        var currentProtocolFields = protocolFields.Where(x =>
+            x.ProtocolEDCFormId == (int)ProtocolEDCFormId &&
+            x.EDCFieldIdentifier == (string)EDCFieldIdentifier && 
+            x.ProtocolEDCFieldId != protocolEDCFieldId).ToList();
+        if (currentProtocolFields.Count() > 0)
+        {
+            var protocolEDCFormDisplay = GetFormName((int)ProtocolEDCFormId);
+            await notificationService.Error($"The field {EDCFieldIdentifier} already exists for the form {protocolEDCFormDisplay}");
+            e.Cancel = true;
+        }
+
+        return e;
+    }
+
+    public async void Save(SavedRowItem<ProtocolEDCField, Dictionary<string, object>> savedRowItem)
+    {
+        var toSave = savedRowItem.Item;
+        bool saved = await protocolFieldService.SaveField(toSave);
+
+        if (saved)
+        {
+            await notificationService.Success("Field successfully saved");
+            this.protocolForms = await protocolEDCFormService.GetFormsForMappingId(this.protocolMappingId);
+            this.protocolFields = await protocolFieldService.GetFieldsByProtocolMappingId(this.protocolMappingId);
+            return;
+        }
+        else
+        {
+            await notificationService.Error("Error saving field");
+            return;
+        }
+    }
+
+    public async Task<CancellableRowChange<ProtocolEDCField>> ConfirmDelete(CancellableRowChange<ProtocolEDCField> item)
+    {
+        if (!await messageService.Confirm("Are you sure you want to delete this field?", "Confirmation"))
+        {
+            item.Cancel = true;
+        }
+
+        return item;
+    }
+
+    public async void Delete(ProtocolEDCField item)
+    {
+        bool deleted = await protocolFieldService.DeleteField(item);
+        if (deleted)
+        {
+            await notificationService.Success("Field successfully deleted");
+            return;
+        }
+        else
+        {
+            await notificationService.Error("Error deleting field");
+            return;
+        }
+    }
+
+    public string GetFormName(int? formId)
+    {
+        if (formId != null)
+        {
+            var form = this.protocolForms.FirstOrDefault(x => x.ProtocolEDCFormId == formId);
+            if (form != null)
+			{
+				return form.EDCFormDisplay;
+			}
+        }
+		return "";
+	}
+}

@@ -1,0 +1,73 @@
+﻿@using System.Diagnostics.CodeAnalysis
+@using Microsoft.Extensions.Options
+@using Newtonsoft.Json
+@using OARS.Data.Models;
+@using OARS.Data.Models.ADDR
+@using OARS.Data.Services.Abstract;
+@using OARS.Data.Static;
+@using OARS.Data.Models.Configuration;
+
+@inject IHttpContextAccessor httpContextAccessor
+
+<Modal @ref="notesModel">
+    <ModalContent Size="ModalSize.ExtraLarge">
+        <ModalHeader Background="Background.Primary">
+            <ModalTitle TextColor="TextColor.White">@title</ModalTitle>
+            <CloseButton TextColor="TextColor.White" />
+        </ModalHeader>
+        <ModalBody Class="upload-Modal-Body">
+
+            <Div Display="@receivingStatusVisible">
+                <Notes T=ReceivingStatus Protocol="@Protocol" Crf="@Crf" CrfDescription="@CrfDescription" DataSource="@DataSource" SubjectId="@SubjectKey" SpecimenId="@SpecimenId" SubSpecimenId="@SubSpecimenId" UserName="@UserName"></Notes>
+            </Div>
+
+            <Div Display="@shippingStatusVisible">
+                <Notes T=ShippingStatus Protocol="@Protocol" Crf="@Crf" CrfDescription="@CrfDescription" DataSource="@DataSource" SubjectId="@SubjectKey" SpecimenId="@SpecimenId" SubSpecimenId="@SubSpecimenId" UserName="@UserName"></Notes>
+            </Div>
+
+        </ModalBody>
+        <ModalFooter>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+@code {
+    private Modal notesModel;
+
+    private string DataSource = string.Empty;
+    private string SubjectKey = string.Empty;
+    private string SpecimenId = string.Empty;
+    private string SubSpecimenId = string.Empty;
+    private string Protocol = string.Empty;
+    private string UserName = string.Empty;
+    private string Crf = string.Empty;
+    private string CrfDescription = string.Empty;
+    private bool isAdminDisplay = false;
+    private string title = string.Empty;
+
+    private IFluentDisplay receivingStatusVisible = Display.None;
+    private IFluentDisplay shippingStatusVisible = Display.None;
+    private string crfDescription = string.Empty;
+
+    public async Task Show(string protocol, string dataSource, string subjectKey, string specimenId, string subSpecimenId, string crf, string crfDescription, bool isAdmin, string userName)
+    {
+        this.DataSource = dataSource;
+        this.SubjectKey = subjectKey;
+        this.SpecimenId = specimenId;
+        this.SubSpecimenId = subSpecimenId;
+        this.Protocol = protocol;
+        this.isAdminDisplay = isAdmin;
+        this.UserName = userName;
+        this.Crf = crf;
+        this.CrfDescription = crfDescription;
+
+        this.receivingStatusVisible = (crf == "RECEIVING_STATUS") ? Display.Block : Display.None;
+        this.shippingStatusVisible = (crf == "SHIPPING_STATUS") ? Display.Block : Display.None;
+
+        this.title = $"Notes";
+
+        StateHasChanged();
+
+        notesModel!.Show();
+    }
+}

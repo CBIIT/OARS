@@ -1,0 +1,102 @@
+﻿@using OARS.Data.Models;
+@using OARS.Data.Services.Abstract;
+@using OARS.Data.Static;
+@using OARS.Data.Identity
+@inject IHttpContextAccessor httpContextAccessor
+@layout SecondaryNavLayout
+@page "/dmu/study-mapping/{dashboardid:int?}"
+<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })" AllowedTHORRoles="@(new List<string> { "DMU Study Mapping", "DMU Study Admin", "DMU Global Admin" })"></AdminRoleCheck>
+<LayoutContent>
+    <Container Fluid>
+        <Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>DMU Study Mapping</h2></Div>
+        <Row Background="Background.Light">
+            <Column ColumnSize="ColumnSize.IsFull">
+                    <DataGrid @ref=dataGridRef
+                                TItem="ProtocolMapping"
+                                Class="admindatagrid"
+                                Data="@studyList"
+                                Responsive
+                                Sortable
+                                SortMode="DataGridSortMode.Single"
+                                Striped
+                                ShowPager
+                                ShowPageSizes
+                                Filterable
+                                FilterMethod="DataGridFilterMethod.Contains"
+                                MaxPaginationLinks="5"
+                                PagerPosition="DataGridPagerPosition.Bottom"
+                                PagerOptions="new(){ButtonSize=Size.Default,
+                                                    PaginationPosition=PagerElementPosition.Default,
+                                                    TotalItemsPosition=PagerElementPosition.End,
+                                                    }"
+                                FixedHeader
+                                FixedHeaderDataGridHeight="calc(100vh - 240px)"
+                                FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
+                                SelectionMode="DataGridSelectionMode.Single"
+                                @bind-SelectedRows="selectedProtocols">
+                        <DataGridColumns>
+                            <DataGridMultiSelectColumn Width="30px"></DataGridMultiSelectColumn>
+                            <DataGridColumn Width="10%" Caption="Version" Field="@nameof(ProtocolMapping.MappingVersion)" Editable Filterable="true" Sortable="true">
+                            </DataGridColumn>
+                            <DataGridColumn Width="20%" Field="THORStudyId" Sortable="true" Filterable="true" Caption="Study ID" SortDirection="SortDirection.Ascending">
+                            </DataGridColumn>
+                            <DataGridColumn Width="50%" Field="ProtocolTitle" Sortable="true" Filterable="true" Caption="Title">
+                            </DataGridColumn>
+                            <DataGridColumn Width="10%" Field="Status.StatusName" Sortable="true" Filterable="true" Caption="Status">
+                            </DataGridColumn>
+                            <DataGridColumn Sortable="false" Filterable="false" Width="140px">
+                                <DisplayTemplate>
+                                    <Button><Icon Name="IconName.Edit" Clicked="@(()=>EditMapping(context as ProtocolMapping))" /></Button>
+                                </DisplayTemplate>
+                            </DataGridColumn>
+                        </DataGridColumns>
+                        <EmptyTemplate>
+                            <div class="box">
+                                No studies were found.
+                            </div>
+                        </EmptyTemplate>
+                    </DataGrid>
+            </Column>
+        </Row>
+    </Container>
+</LayoutContent>
+
+ @code {
+    [Inject] private NavigationManager navigation { get; set; } = null!;
+    [Inject] INotificationService notificationService { get; set; }
+    [Inject] IProtocolMappingService protocolMappingService { get; set; }
+    [Inject] IStudyService studyService { get; set; }
+    [Inject] private IMessageService messageService { get; set; } = null!;
+    [Inject] IUserService userService { get; set; } = null!;
+
+    [Parameter] public int DashboardId { get; set; }
+    [Parameter] public int ReportId { get; set; }
+
+    private DataGrid<ProtocolMapping> dataGridRef;
+    private IList<ProtocolMapping> studyList;
+
+    private List<ProtocolMapping> selectedProtocols;
+
+    protected override async Task OnInitializedAsync()
+    {
+        List<string> allowed = new List<string> { "DMU Study Admin", "DMU Global Admin" };
+        List<string> adminRole = new List<string> { "IT" };
+        if (httpContextAccessor?.HttpContext?.User.HasAnyTHORRole(allowed.ToArray()) == false && httpContextAccessor?.HttpContext?.User.HasAnyAdminRole(adminRole.ToArray()) == false)
+        {
+            var studyIds = userService.GetProtocolAccessForUser(httpContextAccessor.HttpContext.User.GetUserId());
+            studyList = await protocolMappingService.GetExistingProtocolMappings();
+            studyList = studyList.Where(x => studyIds.Contains(x.THORStudyId)).ToList();
+        }
+        else
+        {
+            studyList = await protocolMappingService.GetExistingProtocolMappings();
+        }
+
+    }
+
+    private async Task EditMapping(ProtocolMapping mapping)
+    {
+        navigation.NavigateTo($"/dmu/category-list-map/{mapping.ProtocolMappingId}");
+    }
+}
+

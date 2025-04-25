@@ -1,0 +1,40 @@
+﻿@using System.Security.Claims;
+@using Microsoft.AspNetCore.Authentication;
+@using Microsoft.AspNetCore.Authentication.Cookies;
+@using OARS.Data.Identity
+@inject IHttpContextAccessor httpContextAccessor
+
+@code {
+    [Parameter] public List<string> AllowedRoles { get; set; } = null;
+    [Parameter] public List<string> AllowedTHORRoles { get; set; } = null;
+    [Inject] private NavigationManager navigation { get; set; } = null!;
+
+    protected override Task OnParametersSetAsync()
+    {
+        return base.OnParametersSetAsync();
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        // Check if user has any roles in the AllowedRoles array
+        if (httpContextAccessor?.HttpContext?.User == null)
+        {
+            navigation.NavigateTo("/admin");
+            return;
+        }
+        bool hasPermissions = false;
+        if (AllowedRoles != null)
+        {
+            hasPermissions = httpContextAccessor.HttpContext.User.HasAnyAdminRole(AllowedRoles.ToArray());
+        }
+        bool hasThorPermissions = false;
+        if (AllowedTHORRoles != null)
+        {
+            hasThorPermissions = httpContextAccessor.HttpContext.User.HasAnyTHORRole(AllowedTHORRoles.ToArray());
+        }
+
+        if (!hasPermissions && !hasThorPermissions)
+            navigation.NavigateTo("/admin");
+
+        await base.OnInitializedAsync();
+    }
+}

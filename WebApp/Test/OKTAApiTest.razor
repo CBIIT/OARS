@@ -1,0 +1,128 @@
+﻿@using OARS.Data.Services;
+@using OARS.Data.Static;
+@using OARS.Data.Services.Abstract;
+@using OARS.Data.Models;
+
+@layout AdminLayout
+
+@page "/test/oktaapitest"
+<Button Color="Color.Primary" Margin="Margin.Is5.FromTop" Clicked="@GetGroupsClicked">
+    Get Groups
+</Button>
+<Divider/>
+<Field>
+    <FieldLabel ColumnSize="ColumnSize.Is10" TextWeight="TextWeight.Bold">First Name</FieldLabel>
+        <FieldBody ColumnSize="ColumnSize.Is6">
+        <TextEdit Placeholder="First Name" MaxLength="50" @bind-Text="@firstName"/>
+        </FieldBody>
+</Field>
+<Field>
+    <FieldLabel ColumnSize="ColumnSize.Is10" TextWeight="TextWeight.Bold">Last Name</FieldLabel>
+        <FieldBody ColumnSize="ColumnSize.Is6">
+        <TextEdit Placeholder="First Name" MaxLength="50" @bind-Text="@lastName"/>
+        </FieldBody>
+</Field>
+<Field>
+    <FieldLabel ColumnSize="ColumnSize.Is10" TextWeight="TextWeight.Bold">Email Address</FieldLabel>
+        <FieldBody ColumnSize="ColumnSize.Is6">
+        <TextEdit Placeholder="Email Address" MaxLength="50" @bind-Text="@emailAddress"/>
+        </FieldBody>
+</Field>
+<Field>
+    <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">Is CTEP</FieldLabel>
+    <FieldBody ColumnSize="ColumnSize.Is6">
+        <Switch TValue="bool" @bind-Checked="@isCTEP"></Switch>
+    </FieldBody>
+</Field>
+<Button Color="Color.Primary" Margin="Margin.Is5.FromTop" Clicked="@CreateUserClicked">
+    Save User
+</Button>
+<Button Color="Color.Primary" Margin="Margin.Is5.FromTop" Clicked="@FindUserClicked">
+    Find User
+</Button>
+<Divider/>
+<Button Color="Color.Primary" Margin="Margin.Is5.FromTop" Clicked="@PasswordClicked">
+    Generate Password
+</Button>
+<Button Color="Color.Primary" Margin="Margin.Is5.FromTop" Clicked="@ShowApiClicked">
+    Check Key
+</Button>
+<Text TextColor="TextColor.Dark">@resultMessage</Text>
+@code {
+    [Inject] IOktaService oktaService { get; set; } = null!;
+    [Inject] NavigationManager navigation { get; set; } = null!;
+    [Inject] IConfiguration configuration { get; set; } = null!;
+
+    string firstName = "";
+    string lastName = "";
+    string emailAddress = "";
+    bool isCTEP = false;
+
+    string resultMessage = "";
+    TextColor resultColor = TextColor.Dark;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+
+    private async void CreateUserClicked()
+    {
+        string baseURL = navigation.BaseUri;
+        string initialSite = "NCI Oncology Data Hub-" + configuration.GetValue<string>("System:Environment");
+        bool isProd = !initialSite.Contains('-');
+
+        User curUser = new User();
+        curUser.FirstName = firstName;
+        curUser.LastName = lastName;
+        curUser.EmailAddress = emailAddress;
+
+        Tuple<bool, string> results = await oktaService.CreateUser(isProd, curUser, true, isCTEP, baseURL, initialSite);
+        if (results.Item1)
+            resultColor = TextColor.Dark;
+        else
+            resultColor = TextColor.Danger;
+
+        resultMessage = results.Item2;
+        StateHasChanged();
+    }
+
+    private async void FindUserClicked()
+    {
+        Tuple<bool, string> results = await oktaService.FindUser(emailAddress);
+        if (results.Item1)
+            resultColor = TextColor.Dark;
+        else
+            resultColor = TextColor.Danger;
+
+        resultMessage = results.Item2;
+        StateHasChanged();
+    }
+
+    private async void GetGroupsClicked()
+    {
+        Tuple<bool, string> results = await oktaService.GetGroupList();
+        if (results.Item1)
+            resultColor = TextColor.Dark;
+        else
+            resultColor = TextColor.Danger;
+
+        resultMessage = results.Item2;
+        StateHasChanged();
+    }
+
+    private void PasswordClicked()
+    {
+        resultColor = TextColor.Dark;
+        //resultMessage = oktaService.GeneratedPassword();
+        StateHasChanged();
+    }
+
+    private void ShowApiClicked()
+    {
+        resultMessage = configuration.GetValue<string>("Okta:ApiKey");
+        resultColor = TextColor.Dark;
+        //resultMessage = oktaService.GeneratedPassword();
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,626 @@
+﻿@using Amazon;
+@using Amazon.Auth;
+@using Amazon.SimpleEmail;
+@using Amazon.SimpleEmail.Model;
+@using Amazon.S3;
+@using Amazon.S3.Transfer;
+@using System.Text.RegularExpressions;
+@using System.Web;
+@using OARS.Data;
+@using OARS.Data.Identity;
+@using OARS.Data.Models;
+@using OARS.Data.Services;
+@using OARS.Data.Services.Abstract;
+@using OARS.Data.Static;
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inherits LayoutComponentBase
+@inject IConfiguration configuration
+@inject IHttpContextAccessor httpContextAccessor
+@inject ProtectedSessionStorage SessionData
+@layout AuthLayout
+
+<Div Class="nci-main-wrapper">
+    <Layout Class="nci-main-layout">
+        <LayoutHeader>
+            <Bar Breakpoint="Breakpoint.Desktop" NavigationBreakpoint="Breakpoint.Desktop" Style="@GetHeaderColor()" Class="nci-navbar px-4">
+                <BarBrand >
+                    <Image Source="img/OarsLogo.svg" AlternateText="NCI-OARS" /><span class="navbar-sitename">@environment</span>
+                </BarBrand>
+                <BarToggler />
+                <BarMenu>
+                    <BarStart Display="Display.None.OnDesktop">
+                        <PrimaryNav />
+                    </BarStart>
+                    <BarEnd>
+                        <BarItem>
+                            <Tooltip Text="@systemAlertsTooltip">
+                                <BarDropdown RightAligned AutoPostBack="false" @ref="@alertBarDropDown" Visible="@systemAlertsDropdownVisible">
+                                    <BarDropdownToggle AutoPostBack="false" Class="nci-bar-dropdown" onclick="@ToggleSystemAlertsDropdown">
+                                        <Badge Class="nci-alert-badge" Pill Position="Position.Absolute.Top.Is50.Start.Is100.Translate.Middle">@systemAlertsCount</Badge>
+                                        <Image Source="img/alert-icon.png"  Class="nci-alert-icon" />
+                                    </BarDropdownToggle>
+                                    <BarDropdownMenu Class="nci-alert-dropdown">
+                                        <AlertBar @ref="@systemAlerts" Alert System NoAlertsMessage Toggleable AlertsCountChanged=SystemAlertsCountChanged AlertBarToggled=ToggleSystemAlertsDropdown CSS="nci-alert-component" />
+                                    </BarDropdownMenu>
+                                </BarDropdown>
+                            </Tooltip>
+                        </BarItem>
+                        <BarItem>
+                            <Tooltip Text="@systemNotesTooltip">
+                                 <BarDropdown RightAligned @ref="@noteBarDropDown" Visible="@systemNotesDropdownVisible">
+                                    <BarDropdownToggle Class="nci-bar-dropdown" onclick="@ToggleSystemNotesDropdown">
+                                        <Badge Class="nci-note-badge" Pill Position="Position.Absolute.Top.Is50.Start.Is100.Translate.Middle">@systemNotesCount</Badge>
+                                        <Image Source="img/notification-icon.png"  Class="nci-alert-icon" />
+                                    </BarDropdownToggle>
+                                    <BarDropdownMenu Class="nci-alert-dropdown">
+                                         <AlertBar @ref="@systemNotes" Note System NoAlertsMessage Toggleable AlertsCountChanged=SystemNotesCountChanged AlertBarToggled=ToggleSystemNotesDropdown CSS="nci-alert-component" />
+                                    </BarDropdownMenu>
+                                </BarDropdown>
+                            </Tooltip>
+                        </BarItem>
+                        <BarItem>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        </BarItem>
+                        <BarItem>
+                            <Tooltip Text="Contact Us">
+                                <Button Flex="Flex.JustifyContent.Center" Type="ButtonType.Button" Clicked="@ShowContactUsModal">
+                                    <Image Source="img/contact.png" Class="nci-alert-icon" />
+                                </Button>
+                            </Tooltip>
+                        </BarItem>
+                        <BarItem>
+                            <Tooltip Text="Administration">
+                                <Button Flex="Flex.JustifyContent.Center" Display="@adminDisplay" Type="ButtonType.Link" To="admin">
+                                    <Image Source="img/admin.png" Class="nci-alert-icon"  />
+                                </Button>
+                            </Tooltip>
+                        </BarItem>
+                        <BarItem>
+                            <Tooltip Text="Logout">
+                                <Button Flex="Flex.JustifyContent.Center" Block Clicked="@OnButtonClicked">
+                                    <Image Source="img/logout.png" Class="nci-alert-icon" />
+                                </Button>
+                            </Tooltip>
+                        </BarItem>
+                    </BarEnd>
+                </BarMenu>
+            </Bar>
+            <Bar Breakpoint="Breakpoint.Desktop" Display="Display.None.Block.OnDesktop" Background="Background.White" Class="px-4 nci-dashboard-navbar">
+                <BarStart>
+                    <PrimaryNav @ref="@primaryNav" RenderButtons />
+                </BarStart>
+            </Bar>
+            <Div Class="nci-alert-overlap">
+                <AlertBar @ref="@dashboardAlerts" Alert Dashboard Dismissable CSS="nci-alert-component" />
+            </Div>
+            <Divider Class="mt-1 mb-0"/>
+        </LayoutHeader>
+        <LayoutContent>
+            <CascadingValue Value="this">
+                <LoadingIndicator>
+                    @Body
+                </LoadingIndicator>
+            </CascadingValue>
+        </LayoutContent>
+        <LayoutFooter>
+            <Footer />
+        </LayoutFooter>
+    </Layout>
+</Div>
+
+ <Modal @ref="modalContactUs" Closing="@OnModalClosing">
+     <ModalContent Centered Size="ModalSize.Large" >
+         <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
+            <ModalTitle>Contact Us</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            <Validations @ref="validations" Mode="ValidationMode.Manual">
+                <Validation Validator="@ValidationRule.IsNotEmpty">
+                    <Field>
+                         <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Subject</FieldLabel>
+                        <TextEdit Placeholder="Enter subject"  @bind-Text="@emailTitle">
+                             <Feedback>
+                                 <ValidationError>Subject can't be empty</ValidationError>
+                             </Feedback>
+                            </TextEdit>
+                    </Field>
+                </Validation>
+                 <Validation Validator="@ValidationRule.IsNotEmpty">
+                 <Field>
+                     <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Categories</FieldLabel>
+                     <FieldBody ColumnSize="ColumnSize.Is4" Margin="Margin.IsAuto">
+                             <Select TValue="string" @bind-SelectedValue="@contactUsCategoryID">
+                                   @{
+                                    foreach (var cuTopItem in lstContactUsItems)
+                                       {
+                                           if (cuTopItem.IsGroupLevel)
+                                           {
+                                                <SelectGroup Label="@cuTopItem.Name" Class="categorySelectGroup">
+                                                @foreach (var cuItem in cuTopItem.SecondLevel)
+                                                {
+                                                    <SelectItem Value="@cuItem.CategoryID">@cuItem.Name</SelectItem>
+                                                }
+                                                </SelectGroup>
+                                           }
+                                           else
+                                           {
+                                            <SelectItem Value="@cuTopItem.CategoryID">@cuTopItem.Name</SelectItem>
+                                           }
+                                       }
+                                   }
+                             </Select>
+                     </FieldBody>
+                 </Field>
+                 </Validation>
+                <Validation Validator="@ValidationRule.IsNotEmpty">
+                <Field>
+                    <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Description</FieldLabel>
+                    <FieldBody>
+                            <MemoEdit @bind-Text="@emailDescription" MaxLength="250" Rows="3" Placeholder="Enter description"  
+                            onkeydown="@OnDescriptionChanged">
+                            <Feedback>
+                                <ValidationError>Description can't be empty</ValidationError>
+                            </Feedback>
+                            </MemoEdit>
+                           
+                            <FieldLabel ColumnSize="ColumnSize.Is5">@emailDescriptionLabel</FieldLabel>
+                    </FieldBody>
+                </Field>
+                </Validation>
+                <Field>                    
+                    <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Attach File</FieldLabel>
+                    <FieldLabel>Accepted File Types: PDF, DOC/DOCX, ODT, RTF, TXT, CSV, JPG/JPEG, PNG, GIF, BMP, TIFF and XLS/XLSX</FieldLabel>
+                    <Validation Validator="@ValidateFileExtension">
+                        <FileEdit @ref="@fileEditRef" AutoReset="false" Changed="@OnChanged" MaxFileSize="4194304"
+                            Filter=".jpeg, .jpg, .gif, .pdf, .pdc, .docx, .odt, .rtf, .txt, .csv, .png, .bmp, .tiff, .xls, .xlsx">                          
+                            <Feedback>
+                                <ValidationError>Wrong File Type</ValidationError>                                  
+                            </Feedback>
+                        </FileEdit>
+                     </Validation>
+                </Field>           
+            </Validations>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Primary" Clicked="@HideContactUsModal">Cancel</Button>
+            <Button Color="Color.Primary" Clicked="@SendContactUsEmail">Send Request</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+    <MessageProvider />
+
+    @code {
+    private string environment = "";
+    private PrimaryNav? primaryNav;
+    private AlertBar? systemAlerts;
+    private AlertBar? systemNotes;
+    private AlertBar? dashboardAlerts;
+    private BarDropdown? alertBarDropDown;
+    private BarDropdown? noteBarDropDown;
+    public string DashboardName { get; set; }
+    public string ReportName { get; set; }
+
+    [Inject] public NavigationManager Navigation { get; set; }
+    [Inject] private IUserService userService { get; set; } = null!;
+    [Inject] private IAlertService alertService { get; set; } = null!;
+    [Inject] INotificationService notificationService { get; set; }
+    [Inject] IContactUsService contactUsCategoryService { get; set; } = null!;
+    [Inject] IEmailService emailService { get; set; } = null!;
+    [Inject] IErrorLogService errorLogService { get; set; } = null!;
+
+    Validations validations;
+    private int iconHeight = 30;
+    private int systemAlertsCount;
+    private int systemNotesCount; 
+    private bool systemAlertsDropdownVisible = false;
+    private bool systemNotesDropdownVisible = false;
+    private string systemAlertsTooltip = string.Empty;
+    private string systemNotesTooltip = string.Empty;
+    private readonly string noSystemAlertsMessage = "No current System Alerts";
+    private readonly string noSystemNotesMessage = "No current System Notes";
+    private readonly string currentSystemAlertsMessage = "System Alerts: ";
+    private readonly string currentSystemNotesMessage = "System Notes: ";
+    private readonly string dismissed = "dismissed";
+    private readonly string visible = "visible";
+
+    IFluentDisplay adminDisplay = Display.None;
+
+    private Modal modalContactUs;
+    private bool cancelClose;
+
+    private string contactUsCategoryID ="", emailTo = "", emailCategory="", emailDescription = "", emailTitle = "", emailDescriptionLabel="";
+    private List<ContactUsCategory> lstContactUsCategory;
+    private List<ContactUsCategorySelectItemList> lstContactUsItems;
+    FileEdit fileEditRef;
+    string uploadFileName = "";
+    List<string> lstAttachments = new List<string>();
+    IFileEntry selectedFile;
+
+    async Task OnChanged(FileChangedEventArgs e)
+    {
+        try
+        {
+            selectedFile = e.Files.FirstOrDefault();           
+        }
+        catch (Exception ex)
+        {
+            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+            errorLogService.SaveErrorLogAsync(userId, Navigation.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+        }
+        finally
+        {
+            this.StateHasChanged();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        environment = configuration.GetValue<string>("System:Environment") == "Prod" ? "" : configuration.GetValue<string>("System:Environment");
+
+        // Display or Hide Admin button
+        bool isAdmin = Convert.ToBoolean(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.IsAdmin).Value);
+        bool isDMUAdmin = Convert.ToBoolean(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.IsDMUAdmin).Value);
+        if (isAdmin || isDMUAdmin)
+            adminDisplay = Display.Block;
+        else
+            adminDisplay = Display.None;
+
+        lstContactUsCategory = contactUsCategoryService.GetContactUsCategories();
+        lstContactUsItems = contactUsCategoryService.GetContactUsCategoriesSelectItems();
+
+        this.systemAlertsTooltip = this.noSystemAlertsMessage;
+        this.systemNotesTooltip = this.noSystemNotesMessage;
+
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            this.getVisibleAlertDropdowns();
+        }
+    }
+
+    private string GetHeaderColor()
+    {
+        string color = configuration.GetValue<string>("System:SystemColor");
+        return "background-color:" + color  + ";";    
+    }
+
+    Task OnButtonClicked()
+    {
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+        userService.SaveActivityLog(userId, ThorActivityType.Logout);
+        Navigation.NavigateTo($"Signout", true);
+
+        return Task.CompletedTask;
+    }
+
+    public async Task UpdateDashboard(Dashboard dashboard)
+    {
+        this.dashboardAlerts?.UpdateDashboard(dashboard);
+    }
+
+    public async Task ClearDashboardAlerts()
+    {
+        this.dashboardAlerts?.Clear();
+    }
+
+    public async Task UpdateFavoriteMenu()
+    {
+        primaryNav.RefreshMenu();
+    }
+
+    protected async Task SystemAlertsCountChanged(int count)
+    {
+        this.systemAlertsCount = count;
+
+        if (this.systemAlertsCount < 1)
+        {
+            await this.alertBarDropDown!.Hide();
+            this.systemAlertsTooltip = this.noSystemAlertsMessage;
+            this.systemAlertsDropdownVisible = false;
+        }
+        else
+        {
+            this.systemAlertsTooltip = this.currentSystemAlertsMessage + this.systemAlertsCount;
+
+            var alertsDismissedTask = await SessionData.GetAsync<string>("systemAlertsDropdownDismissed");
+            var alertsDismissed = alertsDismissedTask.Success ? alertsDismissedTask.Value : "";
+            if (!alertsDismissed.Equals(dismissed))
+            {
+                await this.alertBarDropDown!.Show();
+                this.systemAlertsDropdownVisible = true;
+            }
+        }
+    }
+
+    protected async Task SystemNotesCountChanged(int count)
+    {
+        this.systemNotesCount = count;
+
+        if (this.systemNotesCount < 1)
+        {
+            await this.noteBarDropDown!.Hide();
+            this.systemNotesTooltip = this.noSystemNotesMessage;
+        }
+        else
+        {
+            this.systemNotesTooltip = this.currentSystemNotesMessage + this.systemNotesCount;
+        }
+    }
+
+    protected async Task ToggleSystemAlertsDropdown()
+    {
+        if (this.systemAlertsDropdownVisible)
+        {
+            await this.HideSystemAlertsDropdown();
+        }
+        else
+        {
+            if (this.systemNotesDropdownVisible)
+            {
+                await this.HideSystemNotesDropdown();
+            }
+
+            await this.ShowSystemAlertsDropdown();
+        }
+    }
+
+    protected async Task ToggleSystemNotesDropdown()
+    {
+        if (this.systemNotesDropdownVisible)
+        {
+            await this.HideSystemNotesDropdown();
+        }
+        else
+        {
+            if (this.systemAlertsDropdownVisible)
+            {
+                await this.HideSystemAlertsDropdown();
+            }
+
+            await this.ShowSystemNotesDropdown();
+        }
+    }
+
+    protected async Task ToggleSystemAlertsDropdownFromAlertBar()
+    {
+        await this.ToggleSystemAlertsDropdown();
+    }
+
+    protected async Task ToggleSystemNotesDropdownFromAlertBar()
+    {
+        await this.ToggleSystemNotesDropdown();
+    }
+
+    protected async Task ShowSystemAlertsDropdown()
+    {
+        this.systemAlertsDropdownVisible = true;
+        await SessionData.SetAsync("systemAlertsDropdownVisible", visible);
+        await this.alertBarDropDown!.Show();
+    }
+
+    protected async Task HideSystemAlertsDropdown()
+    {
+        this.systemAlertsDropdownVisible = false;
+        await SessionData.SetAsync("systemAlertsDropdownDismissed", dismissed);
+        await this.alertBarDropDown!.Hide();
+    }
+
+    protected async Task ShowSystemNotesDropdown()
+    {
+        this.systemNotesDropdownVisible = true;
+        await SessionData.SetAsync("systemNotesDropdownVisible", visible);
+        await this.noteBarDropDown!.Show();
+    }
+
+    protected async Task HideSystemNotesDropdown()
+    {
+        this.systemNotesDropdownVisible = false;
+        await SessionData.SetAsync("systemNotesDropdownVisible", dismissed);
+        await this.noteBarDropDown!.Hide();
+    }
+
+    private Task OnModalClosing(ModalClosingEventArgs e)
+    {
+        e.Cancel = cancelClose
+            || e.CloseReason != CloseReason.UserClosing;
+
+        return Task.CompletedTask;
+    }
+
+    private Task ShowContactUsModal()
+    {
+        emailTitle = string.Empty;
+        emailDescription = string.Empty;
+        lstAttachments = new List<string>();
+        uploadFileName = string.Empty;
+        selectedFile = null;
+        fileEditRef.Reset().AsTask();
+        if( lstContactUsItems.Count >0)
+        {
+            if (lstContactUsItems[0].IsGroupLevel && lstContactUsItems[0].SecondLevel!= null && lstContactUsItems[0].SecondLevel.Count > 0)
+            {
+                contactUsCategoryID = lstContactUsItems[0].SecondLevel[0].CategoryID.ToString();
+            }
+        }
+        validations.ClearAll();
+        return modalContactUs.Show();
+    }
+
+    private Task HideContactUsModal()
+    {
+        cancelClose = false;
+        return modalContactUs.Hide();
+    }
+
+    void ValidateFileExtension(ValidatorEventArgs e)
+    {
+        if (selectedFile != null)
+        {
+            try
+            {
+                string allowedFileExtension = ".jpeg, .jpg, .gif, .pdf, .pdc, .docx, .odt, .rtf, .txt, .csv, .png, .bmp, .tiff, .xls, .xlsx";
+                var fileExtension = Path.GetExtension(selectedFile.Name);
+                if (allowedFileExtension.IndexOf(fileExtension) < 0)
+                {
+                    e.Status = ValidationStatus.Error;
+                    notificationService.Error("Please upload the file with the extension in the list.");
+                }
+            }
+            catch (Exception ex)
+            {
+                int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+                errorLogService.SaveErrorLogAsync(userId, Navigation.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+            }
+        }
+    }
+
+    public void OnDescriptionChanged(KeyboardEventArgs e)
+    {
+        if (emailDescription.Trim().Length == 0)
+        {
+            emailDescriptionLabel = "Max 250 characters.";
+        }
+        else
+        {
+            emailDescriptionLabel = "Max 250 characters. Currently " + emailDescription.Trim().Length+" characters";
+        }
+    }
+
+    private async void SendContactUsEmail()
+    {
+        bool uploadResult = true;
+        bool s3TagResult = true;
+        List<string> unattachedFiles = new List<string>();
+
+        if (await validations.ValidateAll())
+        {
+            emailTo = string.Empty;
+            emailCategory = string.Empty;
+            bool isProd = configuration.GetValue<string>("System:Environment").StartsWith("Prod");
+            string siteName = "NCI Oncology Automated Reporting System";
+            if (!isProd)
+                siteName = siteName + "-" + configuration.GetValue<string>("System:Environment");
+            string baseURL = Navigation.BaseUri;
+            string color = configuration.GetValue<string>("System:SystemColor");
+            string dateTime = DateTime.Now.ToString("d-MMM-yyyy hh:mm tt");
+            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+            User curUser = await userService.GetUserAsync(userId);
+            string userName = curUser.FirstName + " " + curUser.LastName;
+
+            ContactUsCategory category = lstContactUsCategory.Where(l => l.ContactUsCategoryID == Convert.ToInt32(contactUsCategoryID)).FirstOrDefault();
+            if (category != null)
+            {
+                if (category.ParentCategoryId != null)
+                {
+                    ContactUsCategory parentCategory = lstContactUsCategory.Where(l => l.ContactUsCategoryID == Convert.ToInt32(category.ParentCategoryId)).FirstOrDefault();
+                    if (parentCategory != null)
+                    {
+                        emailCategory = parentCategory.Name + "-";
+                    }
+                }
+                emailCategory += category.Name;
+                emailTo = category.EmailTo;
+            }
+
+            if (selectedFile != null)
+            {
+                try
+                {
+                    var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(selectedFile.Name);
+                    string allowedFileExtension = ".jpeg, .jpg, .gif, .pdf, .pdc, .docx, .odt, .rtf, .txt, .csv, .png, .bmp, .tiff, .xls, .xlsx";
+                    var fileExtension = Path.GetExtension(selectedFile.Name);
+                    if (allowedFileExtension.IndexOf(fileExtension) >= 0)
+                    {
+                        uploadFileName = fileNameWithoutExtension + "_" + Guid.NewGuid() + fileExtension;
+                        lstAttachments.Add(uploadFileName);
+                        using (var stream = new MemoryStream())
+                        {
+                            await selectedFile.WriteToStreamAsync(stream);
+                            uploadResult = await emailService.UploadFileToS3(uploadFileName, stream);
+                            //if (!uploadResult)
+                            //{
+                            //    unattachedFiles.Add(selectedFile.Name);
+                            //    lstAttachments.Remove(uploadFileName);
+                            //}
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    await errorLogService.SaveErrorLogAsync(userId, Navigation.Uri, ex.InnerException, ex.Source, ex.Message, ex.StackTrace);
+                }
+            }
+
+            ContactUs contactUsLog = new ContactUs();
+            contactUsLog.ContactUsID = 0;
+            contactUsLog.Subject = emailTitle;
+            contactUsLog.Description = emailDescription; ;
+            contactUsLog.CategoryID = Convert.ToInt32(contactUsCategoryID);
+            contactUsLog.UserID = userId;
+            contactUsLog.AttachmentName = uploadFileName;
+            //if (string.IsNullOrEmpty(DashboardName))
+            if (!Navigation.Uri.Contains("dashboard"))
+                contactUsLog.Location = Navigation.ToBaseRelativePath(Navigation.Uri);
+            else
+                contactUsLog.Location = "dashboard/" + DashboardName + "/" + ReportName;
+
+            contactUsCategoryService.SaveContactUs(userId, contactUsLog);
+
+            if (selectedFile != null)
+            {
+                s3TagResult = await emailService.CheckS3FileTag(uploadFileName);
+                if (!s3TagResult)
+                {
+                    unattachedFiles.Add(selectedFile.Name);
+                    lstAttachments.Remove(uploadFileName);
+                }
+            }
+
+            bool sendEmailResult = await emailService.SendContactUsEmail(siteName, baseURL, color, emailTo, emailTitle, emailCategory, emailDescription,
+                userName, dateTime, contactUsLog.Location, lstAttachments, unattachedFiles);
+            if (sendEmailResult)
+            {
+                await notificationService.Success("An email to support has been sent.");
+            }
+            else
+            {
+                await notificationService.Error("Error sending the email to support.");
+            }
+
+            cancelClose = false;
+            modalContactUs.Hide();
+        }
+    }
+
+    private async void getVisibleAlertDropdowns()
+    {
+        var alertsDismissedTask = await SessionData.GetAsync<string>("systemAlertsDropdownDismissed");
+        var alertsDismissed = alertsDismissedTask.Success ? alertsDismissedTask.Value : "";
+        if (alertsDismissed.Equals(dismissed))
+        {
+            this.systemAlertsDropdownVisible = false;
+        }
+        else
+        {
+            this.systemAlertsDropdownVisible = true;
+            await SessionData.SetAsync("systemAlertsDropdownVisible", visible);
+        }
+
+        // var notesDismissedTask = await SessionData.GetAsync<string>("systemNotessDropdownDismissed");
+        // var notesDismissed = notesDismissedTask.Success ? notesDismissedTask.Value : "";
+        // if (notesDismissed.Equals(dismissed))
+        // {
+        //     this.systemNotesDropdownVisible = false;
+        // }
+        // else
+        // {
+        //     this.systemNotesDropdownVisible = true;
+        // }
+    }
+
+}

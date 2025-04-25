@@ -1,0 +1,130 @@
+﻿@using System.Diagnostics.CodeAnalysis
+@using Microsoft.Extensions.Options
+@using Newtonsoft.Json
+@using OARS.Data.Models;
+@using OARS.Data.Services.Abstract;
+@using OARS.Data.Static;
+@using OARS.Data.Models.Configuration;
+
+@inject IHttpContextAccessor httpContextAccessor
+
+<DataGrid TItem="TSO500SequencingQCFileData"
+          Class="admindatagrid"
+          Data="@fileData"
+          Responsive
+          ShowColumnChooser
+          ShowPager
+          ShowPageSizes
+          MaxPaginationLinks="5"
+          PageSize="100"
+          FixedHeader
+          Filterable
+          FilterMode="DataGridFilterMode.Menu"
+          RowStyling="@OnRowStyling"
+          SelectedRowStyling="@OnSelectedRowStyling"
+          CommandMode="DataGridCommandMode.ButtonRow">
+    <DataGridColumns>
+        <DataGridColumn Width="100px" Field="@nameof(TSO500SequencingQCFileData.RowNo)" Caption="#" />
+        <DataGridColumn Width="100px" Field="RowData.Protocol" Caption="Protocol" />
+        <DataGridColumn Width="100px" Field="RowData.RunID" Caption="Run ID" />
+        <DataGridColumn Width="100px" Field="RowData.SubspecimenID" Caption="Subspecimen ID" />
+        <DataGridColumn Width="100px" Field="RowData.SequencingID" Caption="Sequencing ID" />
+        <DataGridColumn Width="100px" Field="RowData.ContaminationScore" Caption="Contamination Score" />
+        <DataGridColumn Width="100px" Field="RowData.ContaminationLevel" Caption="Contamination Level" />
+        <DataGridColumn Width="100px" Field="RowData.MeanFamilyDepth" Caption="Mean Family Depth" />
+        <DataGridColumn Width="100px" Field="RowData.PassFilterReads" Caption="Pass Filter Reads" />
+        <DataGridColumn Width="100px" Field="RowData.noiseAF" Caption="noiseAF" />
+        <DataGridColumn Width="100px" Field="RowData.MAD" Caption="MAD" />
+        <DataGridColumn Width="100px" Field="RowData.MedianInsertSize" Caption="Median Insert Size" />
+        <DataGridColumn Width="100px" Field="RowData.Uniformity20Percent" Caption="Uniformity 20%" />
+        <DataGridColumn Width="100px" Field="RowData.PercentExonGreaterthan500X" Caption="Percent Exon Greater than 500X" />
+        <DataGridColumn Width="100px" Field="RowData.MedianExonCoverage" Caption="Median Exon Coverage" />
+        <DataGridColumn Width="100px" Field="RowData.TumorMutationBurden" Caption="Tumor Mutation Burden" />
+        <DataGridColumn Width="100px" Field="RowData.UsableMSISites_QC" Caption="Usable MSI Sites (QC)" />
+        <DataGridColumn Width="100px" Field="RowData.PercentMSISitesUnstable" Caption="%MSI Sites Unstable" />
+        <DataGridColumn Width="100px" Field="RowData.MedianBinCount" Caption="Median Bin Count" />
+        <DataGridColumn Width="100px" Field="RowData.QCResult" Caption="QC Result" />
+        <DataGridColumn Width="100px" Field="RowData.Comments" Caption="Comments" />
+        <DataGridColumn Width="100px" Field="RowData.Input_ng" Caption="Input (ng)" />
+        <DataGridColumn Width="100px" Field="RowData.PercentcfDNA" Caption="%cfDNA" />
+        <DataGridColumn Width="100px" Field="RowData.Active" Caption="Active" />
+        <DataGridColumn Width="100px" Caption="Internal Status" Editable="false" Displayable="@IsAdminDisplay" Filterable="false">
+            <DisplayTemplate>
+                <Badge Color="@GetStatusColor((context as TSO500SequencingQCFileData).ClientStatus)" Pill>
+                    <Tooltip Text="@((context as TSO500SequencingQCFileData).Error)">
+                        @{
+                            if ((context as TSO500SequencingQCFileData).RetryCount > 0)
+                                @((context as TSO500SequencingQCFileData).InternalStatus + " (" + (context as TSO500SequencingQCFileData).RetryCount + ")")
+                            else
+                                @((context as TSO500SequencingQCFileData).InternalStatus)
+                        }
+                    </Tooltip>
+                </Badge>
+            </DisplayTemplate>
+        </DataGridColumn>
+        <DataGridColumn Width="100px" Caption="Status" Editable="false" Filterable="false">
+            <DisplayTemplate>
+                <Badge Color="@GetStatusColor((context as TSO500SequencingQCFileData).ClientStatus)" Pill>
+                    <Tooltip Text="@((context as TSO500SequencingQCFileData).ClientError)">
+                        @((context as TSO500SequencingQCFileData).ClientStatus)
+                    </Tooltip>
+                </Badge>
+            </DisplayTemplate>
+        </DataGridColumn>
+    </DataGridColumns>
+    <ButtonRowTemplate>
+        <Button Color="Color.Primary" Clicked="@OnRefresh">Refresh</Button>
+    </ButtonRowTemplate>
+    <EmptyTemplate>
+        <div class="box">
+            No Rows were found!
+        </div>
+    </EmptyTemplate>
+</DataGrid>
+
+@code {
+
+    [Inject] IUploadService uploadService { get; set; } = null!;
+
+    [Parameter] public bool IsAdminDisplay { get; set; } = false;
+    [Parameter] public string RequestId { get; set; } = string.Empty;
+
+    private List<TSO500SequencingQCFileData> fileData { get; set; } = new List<TSO500SequencingQCFileData>();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (RequestId != string.Empty)
+            fileData = await uploadService.GetTSO500SequencingQCFileData(RequestId);
+    }
+
+    private void OnRowStyling(TSO500SequencingQCFileData fileData, DataGridRowStyling styling)
+    {
+        if (fileData.ClientStatus == RequestItemStatusV2.Failed.ToString())
+            styling.Style = "color:red;";
+        else if (fileData.ClientStatus == RequestItemStatusV2.Success.ToString())
+            styling.Style = "color:#0f880f;";
+        else
+            styling.Style = "color:#0755d4;";
+    }
+
+    private void OnSelectedRowStyling(TSO500SequencingQCFileData fileData, DataGridRowStyling styling)
+    {
+        styling.Background = Background.Info;
+    }
+
+    private Blazorise.Color GetStatusColor(string status)
+    {
+        if (status == RequestStatusV2.Failed.ToString() || status == RequestStatusV2.PartialSuccess.ToString())
+            return Color.Danger;
+        else if (status == RequestStatusV2.Success.ToString())
+            return Color.Success;
+        else
+            return Color.Secondary;
+    }
+
+    private async Task OnRefresh()
+    {
+        this.fileData = await uploadService.GetTSO500SequencingQCFileData(RequestId);
+    }
+
+}

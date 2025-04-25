@@ -1,0 +1,49 @@
+﻿@using Microsoft.AspNetCore.Components.Web
+@inject IConfiguration configuration
+@namespace OARS.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="~/" />
+    <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
+
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=2">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=2">
+
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="_content/Blazorise.Icons.FontAwesome/v6/css/all.min.css" rel="stylesheet">
+    <link href="_content/Blazorise/blazorise.css" rel="stylesheet" />
+    <link href="_content/Blazorise.Snackbar/blazorise.snackbar.css" rel="stylesheet" />
+    <link href="_content/Blazorise.Bootstrap5/blazorise.bootstrap5.css" rel="stylesheet" />
+    <link href="_content/Blazorise.LoadingIndicator/blazorise.loadingindicator.css" rel="stylesheet" />
+    <link href="_content/Blazorise.TreeView/blazorise.treeview.css" rel="stylesheet" />
+
+    <link href="css/site.css" rel="stylesheet" />
+</head>
+<body>
+    @RenderBody()
+
+    <div id="blazor-error-ui">
+        <environment include="Staging,Production">
+            An error has occurred. This application may no longer respond until reloaded.
+        </environment>
+        <environment include="Development">
+            An unhandled exception has occurred. See browser dev tools for details.
+        </environment>
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+
+    <script src="js/powerbi.min.js"></script>
+    <script src="js/bootstrap.bundle.min.js" integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ" crossorigin="anonymous"></script>
+    <script src="js/media-embed.js"></script>
+    <script src="js/timezone-info.js"></script>
+    <script src="js/timeout-user.js"></script>
+    <script src="js/helper-utility.js"></script>
+    <script src="_framework/blazor.server.js"></script>
+</body>
+</html>

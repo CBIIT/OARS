@@ -1,0 +1,121 @@
+﻿@using System.Diagnostics.CodeAnalysis
+@using Microsoft.Extensions.Options
+@using Newtonsoft.Json
+@using OARS.Data.Models;
+@using OARS.Data.Services.Abstract;
+@using OARS.Data.Static;
+@using OARS.Data.Models.Configuration;
+
+@inject IHttpContextAccessor httpContextAccessor
+
+<DataGrid TItem="ShippingStatusFileData"
+          Class="admindatagrid"
+          Data="@fileData"
+          Responsive
+          ShowColumnChooser
+          ShowPager
+          ShowPageSizes
+          MaxPaginationLinks="5"
+          PageSize="100"
+          FixedHeader
+          Filterable
+          FilterMode="DataGridFilterMode.Menu"
+          RowStyling="@OnRowStyling"
+          SelectedRowStyling="@OnSelectedRowStyling"
+          CommandMode="DataGridCommandMode.ButtonRow">
+    <DataGridColumns>
+        <DataGridColumn Width="100px" Field="@nameof(ShippingStatusFileData.RowNo)" Caption="#" />
+        <DataGridColumn Width="100px" Field="RowData.Protocol" Caption="Protocol" />
+        <DataGridColumn Width="100px" Field="RowData.SubjectID" Caption="Subject ID" />
+        <DataGridColumn Width="100px" Field="RowData.SpecimenID" Caption="Specimen ID" />
+        <DataGridColumn Width="100px" Field="RowData.SubspecimenID" Caption="Subspecimen ID" />
+        <DataGridColumn Width="100px" Field="RowData.CourierName" Caption="Courier Name" />
+        <DataGridColumn Width="100px" Field="RowData.ShippingTrackingNumber" Caption="Shipping Tracking Number" />
+        <DataGridColumn Width="100px" Field="RowData.SendersName" Caption="Sender's Name (as per CTEP-IAM account)" />
+        <DataGridColumn Width="100px" Field="RowData.SendersTelephoneNumber" Caption="Sender's Telephone Number" />
+        <DataGridColumn Width="100px" Field="RowData.SendersEmailAddress" Caption="Sender's Email Address" />
+        <DataGridColumn Width="100px" Field="RowData.NumberOfSamplesSent" Caption="Number of Samples Sent" />
+        <DataGridColumn Width="100px" Field="RowData.ShippingConditions" Caption="Shipping Conditions" />
+        <DataGridColumn Width="100px" Field="RowData.ShippedDate" Caption="Shipped Date" />        
+        <DataGridColumn Width="100px" Field="RowData.RecipientsEmailAddress" Caption="Recipient's Email Address" />
+        <DataGridColumn Width="100px" Field="RowData.RecipientsName" Caption="Recipient's Name" />
+        <DataGridColumn Width="100px" Caption="Internal Status" Editable="false" Displayable="@IsAdminDisplay" Filterable="false">
+            <DisplayTemplate>
+                <Badge Color="@GetStatusColor((context as ShippingStatusFileData).ClientStatus)" Pill>
+                    <Tooltip Text="@((context as ShippingStatusFileData).Error)">
+                        @{
+                            if ((context as ShippingStatusFileData).RetryCount > 0)
+                                @((context as ShippingStatusFileData).InternalStatus + " (" + (context as ShippingStatusFileData).RetryCount + ")")
+                            else
+                                @((context as ShippingStatusFileData).InternalStatus)
+                        }
+                    </Tooltip>
+                </Badge>
+            </DisplayTemplate>
+        </DataGridColumn>
+        <DataGridColumn Width="100px" Caption="Status" Editable="false" Filterable="false">
+            <DisplayTemplate>
+                <Badge Color="@GetStatusColor((context as ShippingStatusFileData).ClientStatus)" Pill>
+                    <Tooltip Text="@((context as ShippingStatusFileData).ClientError)">
+                        @((context as ShippingStatusFileData).ClientStatus)
+                    </Tooltip>
+                </Badge>
+            </DisplayTemplate>
+        </DataGridColumn>
+    </DataGridColumns>
+    <ButtonRowTemplate>
+        <Button Color="Color.Primary" Clicked="@OnRefresh">Refresh</Button>
+    </ButtonRowTemplate>
+    <EmptyTemplate>
+        <div class="box">
+            No Rows were found!
+        </div>
+    </EmptyTemplate>
+</DataGrid>
+
+@code {
+
+    [Inject] IUploadService uploadService { get; set; } = null!;
+
+    [Parameter] public bool IsAdminDisplay { get; set; } = false;
+    [Parameter] public string RequestId { get; set; } = string.Empty;
+
+    private List<ShippingStatusFileData> fileData { get; set; } = new List<ShippingStatusFileData>();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (RequestId != string.Empty)
+            fileData = await uploadService.GetShippingStatusFileData(RequestId);
+    }
+
+    private void OnRowStyling(ShippingStatusFileData fileData, DataGridRowStyling styling)
+    {
+        if (fileData.ClientStatus == RequestItemStatusV2.Failed.ToString())
+            styling.Style = "color:red;";
+        else if (fileData.ClientStatus == RequestItemStatusV2.Success.ToString())
+            styling.Style = "color:#0f880f;";
+        else
+            styling.Style = "color:#0755d4;";
+    }
+
+    private void OnSelectedRowStyling(ShippingStatusFileData fileData, DataGridRowStyling styling)
+    {
+        styling.Background = Background.Info;
+    }
+
+    private Blazorise.Color GetStatusColor(string status)
+    {
+        if (status == RequestStatusV2.Failed.ToString() || status == RequestStatusV2.PartialSuccess.ToString())
+            return Color.Danger;
+        else if (status == RequestStatusV2.Success.ToString())
+            return Color.Success;
+        else
+            return Color.Secondary;
+    }
+
+    private async Task OnRefresh()
+    {
+        this.fileData = await uploadService.GetShippingStatusFileData(RequestId);
+    }
+
+}

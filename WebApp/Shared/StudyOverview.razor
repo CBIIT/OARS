@@ -1,0 +1,356 @@
+﻿@using OARS.Data.Models
+@using OARS.Data
+@using OARS.Data.Services
+@using Newtonsoft.Json
+@using Microsoft.JSInterop;
+@using OARS.Data.Services.Abstract;
+@using OARS.Data.Static;
+@inject IHttpContextAccessor httpContextAccessor
+@inject IConfiguration configuration
+
+<Modal @ref="overviewModal" >
+    <ModalContent Size="ModalSize.ExtraLarge" Centered Scrollable Class="overview-Modal-Body">
+        <ModalHeader Background="Background.Primary">
+            <ModalTitle TextColor="TextColor.White">Overview</ModalTitle>
+            <CloseButton TextColor="TextColor.White" />
+        </ModalHeader>
+        <ModalBody>
+            <Table Hoverable Narrow>
+                <TableBody>
+                    <TableRow>
+                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Study ID</TableRowHeader>
+                        @foreach (var study in SelectedStudies)
+                        {
+                            <TableRowCell Class="overview-Modal-Cell">@(getDefaultValueIfEmpty(study.StudyId!))</TableRowCell>
+                        }
+                    </TableRow>
+                    <TableRow>
+                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Title</TableRowHeader>
+                        @foreach (var study in SelectedStudies)
+                        {
+                            <TableRowCell>@(getDefaultValueIfEmpty(study.ProtocolTitle!))</TableRowCell>
+                        }
+                    </TableRow>
+                    <TableRow>
+                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Status</TableRowHeader>
+                        @foreach (var study in SelectedStudies)
+                        {
+                            <TableRowCell>@(getDefaultValueIfEmpty(study.CurrentStatus!))</TableRowCell>
+                        }
+                    </TableRow>
+                    <TableRow>
+                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Primary Investigator</TableRowHeader>
+                        @foreach (var study in SelectedStudies)
+                        {
+                            <TableRowCell>@(getDefaultValueIfEmpty(study.Investigator!))</TableRowCell>
+                        }
+                    </TableRow>
+                    <TableRow>
+                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Monitoring Method</TableRowHeader>
+                        @foreach (var study in SelectedStudies)
+                        {
+                            <TableRowCell>@(getDefaultValueIfEmpty(study.MonitoringMethod!))</TableRowCell>
+                        }
+                    </TableRow>
+                    <TableRow>
+                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Medical Monitor</TableRowHeader>
+                        @foreach (var study in SelectedStudies)
+                        {
+                            <TableRowCell>@(getDefaultValueIfEmpty(""))</TableRowCell>
+                        }
+                    </TableRow>
+                    <TableRow>
+                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Accrual (Screening/Intervention/Other)</TableRowHeader>
+                        @foreach (var study in SelectedStudies)
+                        {
+                            <TableRowCell>@(getDefaultValueIfEmpty(accrualDisplayText(study.TotalScreeningCount!, study.TotalInterventionCount!, study.TotalOtherCount!)))</TableRowCell>
+                        }
+                    </TableRow>
+                    <TableRow>
+                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Primary Agent</TableRowHeader>
+                        @foreach (var study in SelectedStudies)
+                        {
+                            <TableRowCell>@getDefaultValueIfEmpty(study.PrimaryAgent!)</TableRowCell>
+                        }
+                    </TableRow>
+                    <TableRow>
+                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Other Agents</TableRowHeader>
+                        @foreach (var study in SelectedStudies)
+                        {
+                            <TableRowCell>
+                                @if (study.OtherAgents != null)
+                                {
+                                    var otherAgentsList = study.OtherAgents.Split(',').ToList();
+                                    @if (otherAgentsList.Count > 1)
+                                    {
+                                        <Accordion>
+                                            <Collapse>
+                                                <CollapseHeader>
+                                                    <AccordionToggle Class="overview-accordion-header">
+                                                        @otherAgentsList.Count Other Agents
+                                                    </AccordionToggle>
+                                                </CollapseHeader>
+                                                <CollapseBody Class="overview-accordion-body">
+                                                    <Table Hoverable Narrow>
+                                                        <TableBody>
+                                                            @foreach (var agent in otherAgentsList)
+                                                            {
+                                                                <TableRow>
+                                                                    <TableRowCell>@agent</TableRowCell>
+                                                                </TableRow>
+                                                            }
+                                                        </TableBody>
+                                                    </Table>
+                                                </CollapseBody>
+                                            </Collapse>
+                                        </Accordion>
+                                    }
+                                    else
+                                    {
+                                        var agent = otherAgentsList.FirstOrDefault();
+                                        @(getDefaultValueIfEmpty(agent!))
+                                    }
+                                }
+                                else
+                                {
+                                    @this.defaultValue
+                                }
+                            </TableRowCell>
+                        }
+                    </TableRow>
+                    <TableRow>
+                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Start Date</TableRowHeader>
+                        @foreach (var study in SelectedStudies)
+                        {
+                            <TableRowCell>
+                                @{
+                                    if (study.ActivationDT != null)
+                                    {
+                                        @(study.ActivationDT.Value.ToString("dd-MMM-yyyy"))
+                                    }
+                                    else
+                                    {
+                                        @defaultValue
+                                    }
+                                }
+                            </TableRowCell>
+                        }
+                    </TableRow>
+                    <TableRow>
+                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Date of Last EDC Update</TableRowHeader>
+                        @foreach (var study in SelectedStudies)
+                        {
+                            <TableRowCell>
+                                @if (study.DateOfEDCUpdate != null)
+                                {
+                                    @(study.DateOfEDCUpdate.Value.ToString("dd-MMM-yyyy"))
+                                }
+                                else
+                                {
+                                    @defaultValue
+                                }
+                            </TableRowCell>
+                        }
+                    </TableRow>
+                    <TableRow>
+                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">End Date</TableRowHeader>
+                        @foreach (var study in SelectedStudies)
+                        {
+                            <TableRowCell>
+                                @{
+                                    if (study.CompletedDT != null)
+                                    {
+                                        @(study.CompletedDT.Value.ToString("dd-MMM-yyyy"))
+                                    }
+                                    else
+                                    {
+                                        @defaultValue
+                                    }
+                                }
+                            </TableRowCell>
+                        }
+                    </TableRow>
+                    <TableRow>
+                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Total Patients</TableRowHeader>
+                        @foreach (var study in SelectedStudies)
+                        {
+                            <TableRowCell>@(getDefaultValueIfEmpty(study.PatientsEnrolled!))</TableRowCell>
+                        }
+                    </TableRow>
+                    <TableRow>
+                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Total Patients Treated</TableRowHeader>
+                        @foreach (var study in SelectedStudies)
+                        {
+                            <TableRowCell>@(getDefaultValueIfEmpty(study.PatientTreated!))</TableRowCell>
+                        }
+                    </TableRow>
+                    <TableRow>
+                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Recent Enrollment</TableRowHeader>
+                        @foreach (var study in SelectedStudies)
+                        {
+                            <TableRowCell>
+                                @{
+                                    if (study.DateOfLastRegistration != null)
+                                    {
+                                        @(study.DateOfLastRegistration.Value.ToString("dd-MMM-yyyy"))
+                                    }
+                                    else
+                                    {
+                                        @defaultValue
+                                    }
+                                }
+                            </TableRowCell>
+                        }
+                    </TableRow>
+                    <TableRow>
+                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Subsequent Phase Activation Date</TableRowHeader>
+                        @foreach (var study in SelectedStudies)
+                        {
+                            <TableRowCell>
+                                @{
+                                    if (study.PhaseActivationDate != null)
+                                    {
+                                        @(getDefaultValueIfEmpty(study.PhaseActivationDate.Value.ToString("dd-MMM-yyyy")))
+                                    }
+                                    else
+                                    {
+                                        @defaultValue
+                                    }
+                                }
+                            </TableRowCell>
+                        }
+                    </TableRow>
+                    <!--<TableRow>
+                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Subgroup</TableRowHeader>
+                        @foreach (var study in SelectedStudies)
+                        {
+                            <TableRowCell>
+                                @if (study.Enrollments != null)
+                                {
+                                    @if (study.Enrollments.Count > 1)
+                                    {
+                                        <Accordion>
+                                            <Collapse>
+                                                <CollapseHeader>
+                                                    <AccordionToggle Class="overview-accordion-header">
+                                                        @study.Enrollments.Count Subgroups
+                                                    </AccordionToggle>
+                                                </CollapseHeader>
+                                                <CollapseBody Class="overview-accordion-body">
+                                                    <Table Hoverable Narrow>
+                                                     <TableBody>
+                                                         @foreach (var enrollment in study.Enrollments)
+                                                            {
+                                                                <TableRow>
+                                                                    <TableRowCell>Subgroup @enrollment.SubgroupCode</TableRowCell>
+                                                                    <TableRowCell>@enrollment.SubgroupDescription</TableRowCell>
+                                                                </TableRow>
+                                                            }
+                                                        </TableBody>
+                                                    </Table>
+                                                </CollapseBody>
+                                            </Collapse>
+                                        </Accordion>
+                                    }
+                                    else
+                                    {
+                                        var enrollment = study.Enrollments!.FirstOrDefault();
+                                        @(getDefaultValueIfEmpty(subgroupDisplayText(getDefaultValueIfEmpty(enrollment!.SubgroupCode!), getDefaultValueIfEmpty(enrollment!.SubgroupDescription!))))
+                                    }
+                                }
+                                else
+                                {
+                                    @this.defaultValue
+                                }
+                            </TableRowCell>
+                        }
+                    </TableRow>
+                    <TableRow>
+                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">TAC</TableRowHeader>
+                        @foreach (var study in SelectedStudies)
+                        {
+                            <TableRowCell>@getDefaultValueIfEmpty("")</TableRowCell>
+                        }
+                    </TableRow>
+                    <TableRow>
+                        <TableRowHeader Background="Background.Light" Class="overview-Row-Header">Count</TableRowHeader>
+                        @foreach (var study in SelectedStudies)
+                        {
+                            <TableRowCell>@getDefaultValueIfEmpty("")</TableRowCell>
+                        }
+                    </TableRow>-->
+                </TableBody>
+            </Table>
+        </ModalBody>
+        <ModalFooter></ModalFooter>
+    </ModalContent>
+</Modal>
+
+@code {
+    [Parameter] public List<Protocol> SelectedStudies { get; set; } = new List<Protocol>();
+    private Modal? overviewModal;
+    private string defaultValue = "N/A";
+
+    private List<string> subgroupExample = new List<string>() { };
+
+    public void ShowStudy(Protocol study)
+    {
+        SelectedStudies.Clear();
+        SelectedStudies.Add(study);
+        showModal();
+    }
+
+    public void ShowStudies(List<Protocol> studies)
+    {
+        this.SelectedStudies.Clear();
+        this.SelectedStudies = studies;
+        showModal();
+    }
+
+    private void showModal()
+    {
+        StateHasChanged();
+        overviewModal!.Show();
+    }
+
+    private string getDefaultValueIfEmpty(string field)
+    {
+        if (field == null || field.Equals(string.Empty))
+        {
+            field = defaultValue;
+        }
+
+        return field;
+    }
+
+    private string accrualDisplayText(string screening, string intervention, string other)
+    {
+        var accrual = string.Empty;
+        if ((screening != null && !screening.Equals(string.Empty)) && (intervention != null && !intervention.Equals(string.Empty))
+            && (other != null && !other.Equals(string.Empty)))
+        {
+            accrual = screening + '/' + intervention + '/' + other;
+        }
+        return accrual;
+    }
+
+    private string subgroupDisplayText(string subgroup, string subgroupDescription)
+    {
+        var subgroupString = string.Empty;
+        if ((subgroup != null && !subgroup.Equals(string.Empty)) && (subgroupDescription != null && !subgroupDescription.Equals(string.Empty)))
+        {
+            subgroupString = $"{subgroup}: {subgroupDescription}";
+        }
+        return subgroupString;
+    }
+
+    private string drugAgentsDisplayText(string drug, string agents)
+    {
+        var drugAgents = string.Empty;
+        if ((drug != null && !drug.Equals(string.Empty)) && (agents != null && !agents.Equals(string.Empty)))
+        {
+            drugAgents = $"{drug}: {agents}";
+        }
+        return drugAgents;
+    }
+}

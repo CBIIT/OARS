@@ -1,0 +1,84 @@
+﻿@using OARS.Data.Models;
+@using OARS.Data.Services;
+@using OARS.Data;
+@using OARS.Data.Services.Abstract;
+@using OARS.Data.Static;
+@using Microsoft.AspNetCore.Http; 
+@inject IHttpContextAccessor httpContextAccessor
+
+@if (hasUserFavoriteItems)
+{
+<BarItem>
+    <BarLink Match="Match.Prefix" To="/myfavorites">
+        @if (RenderButtons)
+        {
+            <Button Color="Color.Primary" TextWeight="TextWeight.Bold" Outline Class="text-nowrap">My Favorites</Button>
+        }
+        else
+        {
+            <Span>My Favorites</Span>
+        }
+    </BarLink>
+</BarItem>
+}
+@foreach(var dashboard in dashboards)
+{
+    <BarItem>
+        <BarLink Match="Match.Prefix" To="@GetLink(dashboard)">
+            @if (RenderButtons)
+            {   
+                if(dashboard.SpecialDash) 
+                {
+                    <Button Color="Color.Primary" Style="border-style: dashed; border-width: 2px;" TextWeight="TextWeight.Bold" Outline Class="text-nowrap">
+                        @dashboard.Name
+                    </Button>
+                }
+                else 
+                {
+                    <Button Color="Color.Primary" TextWeight="TextWeight.Bold" Outline Class="text-nowrap">@dashboard.Name</Button>
+                }
+            }
+            else
+            {
+                <Span>@dashboard.Name</Span>
+            }
+        </BarLink>
+    </BarItem>
+}
+
+@code {
+    [Parameter] public bool RenderButtons { get; set; } = false;
+    [Inject] private IDashboardService dashboardService { get; set; } = null!;
+    [Inject] private IUserService userService { get; set; } = null!;
+    private IList<Dashboard> dashboards = new List<Dashboard>();
+    public bool hasUserFavoriteItems;
+
+    protected override async Task OnInitializedAsync()
+    {
+        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(ThorClaimType.IsAdmin, "True");
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+        dashboards = await dashboardService.GetDashboardsForUserAsync(userId, isAdmin);
+        hasUserFavoriteItems = userService.HasUserFavorite(userId, isAdmin);
+        Console.WriteLine(dashboards);
+    }
+
+    public async Task RefreshMenu()
+    {
+        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(ThorClaimType.IsAdmin, "True");
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+        hasUserFavoriteItems = userService.HasUserFavorite(userId, isAdmin);
+        StateHasChanged();
+    }
+
+    protected string GetLink(Dashboard dashboard)
+    {
+        if(!String.IsNullOrEmpty(dashboard.CustomPagePath))
+        {
+            return $"{dashboard.CustomPagePath}/{dashboard.DashboardId}";
+        }
+        else
+        {
+            return $"{ThorConstants.DASHBOARD_PAGE_PATH}/{dashboard.DashboardId}";
+        }
+    }
+}

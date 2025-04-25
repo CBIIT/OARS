@@ -1,0 +1,353 @@
+﻿@attribute [Route(ThorConstants.DASHBOARD_PAGE_PATH + "/{dashboardid:int}/{reportid:int?}")]
+@layout SecondaryNavLayout
+@inject IConfiguration configuration
+@inject IHttpContextAccessor httpContextAccessor
+
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using System.Net.Http
+@using System.Threading.Tasks
+@using OARS.Data;
+@using OARS.Data.Models;
+@using OARS.Data.PowerBI.Abstract;
+@using OARS.Data.Services.Abstract;
+@using OARS.Data.ViewModels;
+@using OARS.Data.Static;
+@using System.Timers
+@inject IJSRuntime JSRuntime
+@inject ProtectedSessionStorage SessionData
+
+@if(notFound)
+{
+    <LayoutContent>
+        <Container Fluid Class="mt-2 text-center">
+            <NotFound />
+        </Container>
+    </LayoutContent>
+}
+else
+{
+    <PageTitle>@dashboard!.Name</PageTitle>
+    <LayoutSider>
+        <SecondaryNav Actions="Actions" Reports="allReports" ReportId="ReportId" />
+    </LayoutSider>
+    <LayoutContent>
+        <Container Fluid Class="mt-2">
+            @if(report != null && report.IsFullPage)
+            {
+                if (report.CustomPagePath != null)
+                {
+                    <DynamicComponent Type="@(Type.GetType($"OARS.{report.CustomPagePath!}") ?? typeof(NotFound))" Parameters="@parameters" />
+                }
+                else
+                {
+                    <PowerBiFullReport Dashboard="dashboard" Report="report" @ref="fullReportRef" />
+                }
+            }
+            else if(report != null) /* Unused as IsFullPage will always be set */
+            {
+                <PowerBiCustomLayout Dashboard="dashboard" Report="report" @ref="customReportRef" />
+            }
+        </Container>
+    </LayoutContent>
+}
+
+<StudyOverview @ref="studyOverview" />
+
+@code {
+    [Inject] private IDashboardService dashboardService { get; set; } = null!;
+    [Inject] private IStudyService studyService { get; set; } = null!;
+    [Inject] private IUserService userService { get; set; } = null!;
+    [Inject] private NavigationManager navigation {get; set; } = null!;
+    [Inject] INotificationService NotificationService { get; set; }
+
+    [Parameter] public int DashboardId { get; set; }
+    [Parameter] public int ReportId { get; set; }
+
+    [CascadingParameter]
+    public PrimaryNavLayout PrimaryNavLayout { get; set; }
+
+    private bool notFound = false;
+    private StudyOverview? studyOverview;
+    private PowerBiCustomLayout? customReportRef;
+    private PowerBiFullReport? fullReportRef;
+
+    //[CascadingParameter]
+    //private Task<AuthenticationState> stateAuthenticate { get; set; }
+    //private Timer timerObj;
+    //[Inject] public NavigationManager Navigation { get; set; }
+    private OARS.Data.Models.Dashboard? dashboard;
+    private IList<Report> allReports = new List<Report>();
+    private Report? report;
+    private string dashboardName;
+    private string reportName;
+    private string helpFileUrl;
+    private bool helpFileFound;
+    private int currentDashboardId;
+    private int userId;
+    private int previousReport = 0;
+    IDictionary<string, object> parameters = new Dictionary<string, object>();
+
+    private int? _dashboardId;
+    private int? _reportId;
+    private bool _saveHistory;
+
+    private IList<SecondaryNavAction> Actions => new List<SecondaryNavAction>
+    {
+        new SecondaryNavAction
+        {
+            IconName = IconName.Eye,
+            Label = "Study Overview",
+            OnClick = ShowOverview
+        },
+        new SecondaryNavAction
+        {
+            IconName = IconName.Download,
+            Label = "Dashboard Help",
+            Target = Target.Blank,
+            To = this.getHelpUrl(),
+            ShowAction = this.helpFileFound
+        },
+        new SecondaryNavAction
+        {
+            IconName = IconName.Star,
+            Label = "Add to Favorites",
+            OnClick = AddFavorite
+        }
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(ThorClaimType.IsAdmin, "True");
+        string userDashboards = httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.Dashboards).Value;
+        dashboard = await dashboardService.GetDashboardByIdAsync(DashboardId, userDashboards, isAdmin);
+
+        parameters.Add("DashboardId", DashboardId);
+        parameters.Add("ReportId", ReportId);
+
+        if (dashboard != null && dashboard.CustomPagePath != null)
+        {
+            navigation.NavigateTo($"{dashboard.CustomPagePath}/{dashboard.DashboardId}", new NavigationOptions
+                {
+                    ReplaceHistoryEntry = true,
+                    ForceLoad = true
+                });
+
+            return;
+        }
+
+        await PrimaryNavLayout.ClearDashboardAlerts();
+
+        if (fullReportRef != null)
+        {
+            _dashboardId = DashboardId;
+            _reportId = ReportId;
+            _saveHistory = true;
+        }
+
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _saveHistory = false;
+        notFound = false;
+
+        if (fullReportRef != null)
+        {
+            if (_dashboardId != DashboardId || _reportId != ReportId)
+            {
+                fullReportRef.RefreshReport = true;
+                _dashboardId = DashboardId;
+                _reportId = ReportId;
+                _saveHistory = true;
+            }
+            else
+                fullReportRef.RefreshReport = false;
+        }
+
+        // Determine if user has access to requested dashboard & report
+        bool isAdmin = httpContextAccessor.HttpContext.User.HasClaim(ThorClaimType.IsAdmin, "True");
+        string userDashboards = httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.Dashboards).Value;
+        string userReports = httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.Reports).Value;
+
+        dashboard = await dashboardService.GetDashboardByIdAsync(DashboardId, userDashboards, isAdmin);
+
+        if(dashboard == null)
+        {
+            notFound = true;
+            return;
+        }
+
+        // if (dashboard.CustomPagePath != null)
+        // {
+        //     navigation.NavigateTo($"{dashboard.CustomPagePath}/{dashboard.DashboardId}", new NavigationOptions
+        //         {
+        //             ReplaceHistoryEntry = true,
+        //             ForceLoad = true
+        //         });
+        // }
+
+        PrimaryNavLayout.DashboardName = dashboard.Name;
+
+        userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+
+        allReports = await dashboardService.GetReportsByDashboardIdForUserAsync(DashboardId, userId, isAdmin);
+        if (ReportId == 0)
+        {
+            report = allReports.FirstOrDefault();
+            if(report == null)
+            {
+                notFound = true;
+                return;
+            }
+            navigation.NavigateTo($"{ThorConstants.DASHBOARD_PAGE_PATH}/{dashboard.DashboardId}/{report.ReportId}", new NavigationOptions
+            {
+                ReplaceHistoryEntry = true,
+                ForceLoad = true
+            });
+
+            _saveHistory = false;
+        }
+        else
+        {
+            report = allReports.FirstOrDefault(r => r.ReportId == ReportId);
+            if (report == null)
+            {
+                notFound = true;
+                return;
+            }
+        }
+
+        if (String.IsNullOrEmpty(report.SubMenuName))
+            PrimaryNavLayout.ReportName = report.Name;
+        else
+            PrimaryNavLayout.ReportName = report.Name + "-" + report.SubMenuName;
+
+        // Check if at least one study has been selected by the user
+        string currentStudies = studyService.GetCurrentStudiesForUser(userId);
+
+        if (currentStudies == null || currentStudies.Length == 0)
+            navigation.NavigateTo("Studies");
+        else
+        {
+            // First navigation to Dashboard creates a duplicate record.
+            if (_saveHistory && report.ReportId != 0)
+            {
+                userService.SaveActivityLog(userId, ThorActivityType.Navigation, dashboard.Name, report.Name + ((String.IsNullOrEmpty(report.SubMenuName)) ? "" : "-" + report.SubMenuName));
+                previousReport = report.ReportId;
+                _saveHistory = false;
+            }
+        }
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            if (dashboard.DashboardId != 0)
+            {
+                await PrimaryNavLayout.UpdateDashboard(dashboard);
+            }
+        }
+
+        var result = await SessionData.GetAsync<string>("dashboardUrl");
+        if (result.Success)
+        {
+            await SessionData.DeleteAsync("dashboardUrl");
+        }
+        await SessionData.SetAsync("dashboardUrl", navigation.Uri);
+
+    }
+
+    // [JSInvokable]
+    // public void TimerInterval()
+    // {
+    //     // Resetting the Timer if the user in active state.
+    //     timerObj.Stop();
+    //     // Call the TimeInterval to logout when the user is inactive.
+    //     timerObj.Start();
+    // }
+
+    // private void UpdateTimer(Object source, ElapsedEventArgs e)
+    // {
+    //     InvokeAsync(async () =>
+    //     {
+    //         // Log out when the user is inactive.
+    //         var authstate = await stateAuthenticate;
+    //         if (authstate.User.Identity.IsAuthenticated)
+    //         {
+    //             Navigation.NavigateTo($"Timeout", true);
+    //             //UriHelper.NavigateTo("/timedout", true);
+    //         }
+    //     });
+    // }
+
+    //// Re-render report components and hide modal
+    //private async void HideFilters(List<Protocol>? selectedStudies)
+    //{
+    //    if (report != null)
+    //    {
+    //        if (!report.IsFullPage && customReportRef != null)
+    //        {
+    //            await customReportRef.Update();
+    //        }
+
+    //        if (report.IsFullPage && fullReportRef != null)
+    //        {
+    //            await fullReportRef.Update();
+    //        }
+    //    }
+    //}
+
+    private async void ShowOverview()
+    {
+        var studies = studyService.GetSelectedStudiesForUser(userId);
+        studyOverview?.ShowStudies(studies);
+    }
+
+    private string getHelpUrl()
+    {
+        // Minimize SQL calls
+        if (this.helpFileUrl == null || this.helpFileUrl.Equals(string.Empty) || currentDashboardId != this.DashboardId)
+        {
+            currentDashboardId = this.DashboardId;
+            this.helpFileUrl = configuration.GetValue<string>("System:DashboardHelpURL");
+            var helpFileName = this.dashboardService.GetDashboardHelpFileName(this.DashboardId).Result;
+            if (!helpFileName.Equals(string.Empty))
+            {
+                this.helpFileFound = true;
+            }
+            else
+            {
+                this.helpFileFound = false;
+                helpFileName = configuration.GetValue<string>("System:DashboardHelpURLDefault");
+            }
+            this.helpFileUrl += helpFileName;
+            this.helpFileUrl = string.Format("javascript:void(window.open('" + this.helpFileUrl + "','_blank'));");
+        }
+
+        return this.helpFileUrl;
+    }
+
+    private async void AddFavorite()
+    {
+        userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+        if (dashboard != null)
+        {
+            string reportName = string.Empty;
+            if (report != null)
+            {
+                reportName = report.Name + "-" + report.SubMenuName;
+            }
+            Tuple<bool, String> result = userService.SaveFavorite(userId, DashboardId, ReportId, reportName);
+            if (result.Item1)
+            {
+                await NotificationService.Success("Report has been added successfully to My Favorites Dashboard");
+                PrimaryNavLayout.UpdateFavoriteMenu();
+            }
+            else if(result.Item2.Length > 0)
+            {
+                await NotificationService.Warning(result.Item2);
+            }
+        }
+    }
+}

@@ -1,0 +1,114 @@
+﻿@using System.Net.Http
+@using System.Threading.Tasks
+@using Microsoft.Extensions.Options;
+@using OARS.Data
+@using OARS.Data.Models;
+@using OARS.Data.PowerBI
+@using OARS.Data.PowerBI.Abstract;
+@using OARS.Data.PowerBI.Models;
+@using OARS.Data.Services;
+@using OARS.Data.Services.Abstract;
+@using OARS.Data.Static;
+@inject IHttpContextAccessor httpContextAccessor;
+
+@implements IAsyncDisposable;
+
+<div @ref="@pbiElement" class="pbi-embed-container" />
+
+
+@code {
+    [Inject] private IJSRuntime js { get; set; } = null!;
+    [Inject] private IOptions<PowerBI> powerBiConfig { get; set; } = null!;
+    [Inject] private IPbiEmbedService pbiEmbedService { get; set; } = null!;
+    [Inject] private IDashboardService dashboardService { get; set; } = null!;
+    [Inject] INotificationService notificationService { get; set; } = null!;
+
+    [Parameter] public Dashboard? Dashboard { get; set; }
+    [Parameter] public Report? Report {get; set;}
+    [CascadingParameter] LoadingIndicator loadingIndicator { get; set; } = null!;
+
+    private IList<Visual> visuals = new List<Visual>();
+    private IList<Visual> slicers = new List<Visual>();
+    private ElementReference pbiElement;
+    private IJSObjectReference? pbiEmbedModule;
+    private IJSObjectReference? reportRef;
+    private DotNetObjectReference<PowerBiCustomLayout>? objRef;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await loadingIndicator.Show();
+        pbiEmbedModule = await js.InvokeAsync<IJSObjectReference>("import", "./js/powerbi-embed.js");
+        objRef = DotNetObjectReference.Create(this);
+        if (Report != null)
+        {
+            // TODO - Filter by user
+            var allVisuals = await dashboardService.GetAllVisualsByReportIdAsync(Report.ReportId);
+            visuals = allVisuals.Where(v => v.VisualType != ThorConstants.PBI_VISUAL_TYPE_SLIICER).ToList();
+            slicers = allVisuals.Where(v => v.VisualType == ThorConstants.PBI_VISUAL_TYPE_SLIICER).ToList();
+        }
+        await EmbedReportJS();
+    }
+
+    [JSInvokable]
+    public async void OnLoad()
+    {
+        if (reportRef != null)
+        {
+            await loadingIndicator.Hide();
+        }
+    }
+
+    [JSInvokable]
+    public async void OnEmbedError(IJSObjectReference error)
+    {
+        await loadingIndicator.Hide();
+        await notificationService.Error("Please reload the page to try again.", "Error Loading Report");
+    }
+
+    public async Task Update()
+    {
+        if (reportRef != null)
+        {
+            await reportRef.InvokeVoidAsync("updateFilters");
+        }
+    }
+
+    public async Task EmbedReportJS()
+    {
+        var userEmail = httpContextAccessor.HttpContext?.User?.FindFirst("preferred_username")?.Value;
+        
+        if (string.IsNullOrEmpty(userEmail))
+            throw new ArgumentNullException("Email address not found");
+
+        EmbedParams embedParams;
+        if (powerBiConfig.Value.UseRowLevelSecurity)
+        {
+            embedParams = pbiEmbedService.GetEmbedParams(new Guid(powerBiConfig.Value.WorkspaceId), new Guid(Dashboard.PowerBIReportId), userEmail, powerBiConfig.Value.IdentityRoles);
+        }
+        else
+        {
+            embedParams = pbiEmbedService.GetEmbedParams(new Guid(powerBiConfig.Value.WorkspaceId), new Guid(Dashboard.PowerBIReportId));
+        }
+
+        reportRef = await pbiEmbedModule.InvokeAsync<IJSObjectReference>(
+            "initCustomLayoutReport",
+            objRef,
+            pbiElement,
+            embedParams.EmbedToken.Token,
+            ThorConstants.PBI_STUDY_FILTER_TARGETS.ToArray(),
+            embedParams.EmbedReport[0].EmbedUrl,
+            embedParams.EmbedReport[0].ReportId.ToString(),
+            Report.PowerBIPageName,
+            visuals.Select(v => v.PowerBIVisualId).ToArray(),
+            slicers.Select(s => s.PowerBIVisualId).ToArray()
+        );
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        pbiEmbedModule?.InvokeVoidAsync("cleanupResizeListener");
+        pbiEmbedModule?.DisposeAsync();
+        reportRef?.DisposeAsync();
+        objRef?.Dispose();
+    }
+}

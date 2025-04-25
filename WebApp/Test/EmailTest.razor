@@ -1,0 +1,315 @@
+﻿@using Amazon;
+@using Amazon.Auth;
+@using System;
+@using System.Collections.Generic;
+@using Amazon.SimpleEmail;
+@using Amazon.SimpleEmail.Model;
+@using System.Net.Mail;
+@using System.Text;
+@using OARS.Data.Services;
+@using OARS.Data.Services.Abstract;
+@using OARS.Data.Models;
+@using Amazon.S3;
+@using Amazon.S3.Transfer;
+@layout AdminLayout
+
+@page "/test/emailtest"
+<h3>Email Test</h3>
+
+<Field>
+    <FieldLabel ColumnSize="ColumnSize.Is10" TextWeight="TextWeight.Bold">Email</FieldLabel>
+        <FieldBody ColumnSize="ColumnSize.Is6">
+        <TextEdit Placeholder="Email Address" MaxLength="50" @bind-Text="@emailAddress"/>
+        </FieldBody>
+</Field>
+<Field>
+    <FileEdit @ref="@fileEditRef" Changed="@OnChanged" />
+</Field>
+<Button Color="Color.Primary" Margin="Margin.Is5.FromTop" Clicked="@SendEmail">
+    Send Email
+</Button>
+<Button Color="Color.Primary" Margin="Margin.Is5.FromTop" Clicked="@AWSSendRawEmail">
+    Send Raw Email
+</Button>
+<Button Color="Color.Primary" Margin="Margin.Is5.FromTop" Clicked="@SendEmail_NonAWS">
+    Send Email - NON AWS
+</Button><BR />
+<Button Color="Color.Primary" Margin="Margin.Is5.FromTop" Clicked="@SendWelcomeEmail">
+    Send Welcome Email
+</Button><BR />
+
+@code {
+
+    [Inject] private IUserService userService { get; set; } = null!;
+    [Inject] IEmailService emailService { get; set; } = null!;
+    [Inject] IOktaService oktaService { get; set; } = null!;
+    [Inject] IConfiguration configuration { get; set; } = null!;
+    [Inject] NavigationManager navigation { get; set; } = null!;
+
+    FileEdit fileEditRef;
+    string uploadFileName = "";
+    string fileContent;
+    FileChangedEventArgs myEventArgs;
+
+    async Task OnChanged(FileChangedEventArgs e)
+    {
+        try
+        {
+            myEventArgs = e;
+
+            foreach (var file in e.Files)
+            {
+                var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file.Name);
+                var fileExtension = Path.GetExtension(file.Name);
+                uploadFileName = fileNameWithoutExtension + "_" + Guid.NewGuid() + fileExtension;
+
+                // A stream is going to be the destination stream we're writing to.
+                using (var stream = new MemoryStream())
+                {
+                    // Here we're telling the FileEdit where to write the upload result
+                    await file.WriteToStreamAsync(stream);
+
+                    await emailService.UploadFileToS3(uploadFileName, stream);
+                    // Once we reach this line it means the file is fully uploaded.
+                    // In this case we're going to offset to the beginning of file
+                    // so we can read it.
+                    //stream.Seek(0, SeekOrigin.Begin);
+
+                    // Use the stream reader to read the content of uploaded file,
+                    // in this case we can assume it is a textual file.
+                    //using (var reader = new StreamReader(stream))
+                    //{
+                    //    fileContent = await reader.ReadToEndAsync();
+                    //}
+                }
+            }
+        }
+        catch (Exception exc)
+        {
+            Console.WriteLine(exc.Message);
+        }
+        finally
+        {
+            this.StateHasChanged();
+        }
+    }
+
+    string emailAddress = "wenjun.webreporting@gmail.com";
+
+    // Replace sender@example.com with your "From" address.
+    // This address must be verified with Amazon SES.
+    static readonly string senderAddress = "local.administrator.webreporting@theradex.com";
+
+    // Replace recipient@example.com with a "To" address. If your account
+    // is still in the sandbox, this address must be verified.
+    static readonly string receiverAddress = "wwu@theradex.com";
+
+    // The configuration set to use for this email. If you do not want to use a
+    // configuration set, comment out the following property and the
+    // ConfigurationSetName = configSet argument below. 
+    static readonly string configSet = "ConfigSet";
+
+    // The subject line for the email.
+    static readonly string subject = "Amazon SES test (AWS SDK for .NET)";
+
+    // The email body for recipients with non-HTML email clients.
+    static readonly string textBody = "Amazon SES Test (.NET)\r\n" 
+                                    + "This email was sent through Amazon SES "
+                                    + "using the AWS SDK for .NET.";
+
+    // The HTML body of the email.
+    static readonly string htmlBody = @"<html>
+<head></head>
+<body>
+  <h1>Amazon SES Test (AWS SDK for .NET)</h1>
+  <p>This email was sent with
+    <a href='https://aws.amazon.com/ses/'>Amazon SES</a> using the
+    <a href='https://aws.amazon.com/sdk-for-net/'>
+      AWS SDK for .NET</a>.</p>
+</body>
+</html>";
+
+    private async void SendEmail()
+    {
+        //Amazon.Runtime.AWSCredentials awsCreds = new Amazon.Runtime.BasicAWSCredentials(_endpoints.EmailUsername, _endpoints.EmailPassword);
+        // Replace USWest2 with the AWS Region you're using for Amazon SES.
+        // Acceptable values are EUWest1, USEast1, and USWest2.
+        //var chain = new Amazon.Runtime.CredentialManagement.CredentialProfileStoreChain();
+        //var result = chain.TryGetAWSCredentials("shared_service_profile", out var credentials);
+        //theradex - development - nci
+        //var result = chain.TryGetAWSCredentials("theradex-shared-service", out var credentials);
+        //var result = chain.TryGetAWSCredentials("theradex-development-nci", out var credentials);
+        //theradex - shared - service
+        using (var client = new AmazonSimpleEmailServiceClient(RegionEndpoint.USEast1))
+        {
+            //var sendReq2 = new SendRawEmailRequest
+            var sendRequest = new SendEmailRequest
+                {
+                    Source = senderAddress,
+                    Destination = new Destination
+                    {
+                        ToAddresses = new List<string> { emailAddress }
+                    },
+                    Message = new Message
+                    {
+                        Subject = new Content(subject),
+                        Body = new Body
+                        {
+                            Html = new Content
+                            {
+                                Charset = "UTF-8",
+                                Data = htmlBody
+                            },
+                            Text = new Content
+                            {
+                                Charset = "UTF-8",
+                                Data = textBody
+                            }
+                        }
+                    }
+                    // If you are not using a configuration set, comment
+                    // or remove the following line 
+                    //ConfigurationSetName = configSet
+                };
+            try
+            {
+                Console.WriteLine("Sending email using Amazon SES...");
+                var response = await client.SendEmailAsync(sendRequest);
+                Console.WriteLine("The email was sent successfully.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("The email was not sent.");
+                Console.WriteLine("Error message: " + ex.Message);
+            }
+        }
+    }
+
+    private async void AWSSendRawEmail()
+    {
+        var sesClient = new AmazonSimpleEmailServiceClient(RegionEndpoint.USEast1);
+
+        var stream = new MemoryStream(
+            Encoding.UTF8.GetBytes("From: johndoe@example.com\n" +
+            "To: wwu@theradex.com\n" +
+            "Subject: You're invited to the meeting\n" +
+            "Content-Type: text/plain\n\n" +
+            "Please join us Monday at 7:00 PM.")
+        );
+
+        var raw = new RawMessage
+        {
+        Data = stream
+        };
+
+        var to = new List<string>() { emailAddress };
+        var from = "localhost.webreporting@theradex.com";
+
+        var request = new SendRawEmailRequest
+        {
+        Destinations = to,
+        RawMessage = raw,
+        Source = from
+        };
+
+        try
+        {
+            Console.WriteLine("Sending email using Amazon SES...");
+            var response = await sesClient.SendRawEmailAsync(request);
+            Console.WriteLine("The email was sent successfully.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("The email was not sent.");
+            Console.WriteLine("Error message: " + ex.Message);
+        }
+    }
+
+    private void SendEmail_NonAWS()
+    {
+        try
+        {
+            using (MailMessage mm = new MailMessage())
+            {
+                mm.From = new MailAddress("local.administrator@theradex.com");
+                mm.To.Add(new MailAddress("wfarbman@theradex.com"));
+                mm.Subject = "Test Subject";
+                mm.Body = "Test Body";
+                mm.IsBodyHtml = false;
+
+                using (SmtpClient smtp = new SmtpClient())
+                {
+                    smtp.Host = "theradex-com.mail.protection.outlook.com";
+                    smtp.Port = 25;
+                    smtp.Send(mm);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("The email was not sent.");
+            Console.WriteLine("Error message: " + ex.Message);
+        }        
+    }
+
+    private async void SendWelcomeEmail()
+    {
+        string baseURL = navigation.BaseUri;
+        string initialSite = "NCI Oncology Data Hub-" + configuration.GetValue<string>("System:Environment");
+        string primaryColor = configuration.GetValue<string>("System:SystemColor");
+
+        // Get the event Args for the file upload
+        //foreach (File file in myEventArgs.Files)
+        //{
+        //        using (var stream = new MemoryStream())
+        //        {
+        //            // Here we're telling the FileEdit where to write the upload result
+        //            await file.WriteToStreamAsync(stream);
+
+        //            await UploadFileToS3(uploadFileName, stream);
+        //        }
+        //}
+        //myEventArgs.Files
+
+        User curUser = await userService.GetUserByEmailAsync(emailAddress);
+        if (curUser != null)
+        {
+            bool sendSuccess = await emailService.SendEmail(new List<string> { curUser.EmailAddress }, new List<string> { "wwu@theradex.com" }, null, "Subject test", $"<B>Test Test</B>", new List<string> { uploadFileName });
+
+            await emailService.SendNewSystemEmail(initialSite, initialSite, "NCI-OARS", baseURL, primaryColor, curUser);
+
+             //sendSuccess = await emailService.SendNewUserEmail(initialSite, baseURL, primaryColor, curUser, "Activation Link");
+            //await emailService.SendEmail(new List<string> { curUser.EmailAddress }, new List<string> { "wfarbman@theradex.com" }, null, "Subject test", $"<B>Test Test</B>", null);
+            //        //bool sendSuccess = await emailService.SendNewUserEmail(initialSite, baseURL, primaryColor, curUser, "Activation Link");
+        }
+    }
+
+    public async Task UploadFileToS3(IFormFile file)
+    {
+        //using (var client = new AmazonS3Client("yourAwsAccessKeyId", "yourAwsSecretAccessKey", RegionEndpoint.USEast1))
+            //var chain = new Amazon.Runtime.CredentialManagement.CredentialProfileStoreChain();
+            //var result = chain.TryGetAWSCredentials("theradex-development-nci", out var credentials);
+
+        using (var client = new AmazonS3Client(RegionEndpoint.USEast1))
+        {
+            using (var newMemoryStream = new MemoryStream())
+            {
+                file.CopyTo(newMemoryStream);
+
+                var uploadRequest = new TransferUtilityUploadRequest
+                    {
+                        InputStream = newMemoryStream,
+                        Key = file.FileName,
+                        BucketName = "theradex-nci-webreporting-dev"
+                        //,
+                        //CannedACL = S3CannedACL.PublicRead
+                    };
+
+                var fileTransferUtility = new TransferUtility(client);
+                await fileTransferUtility.UploadAsync(uploadRequest);
+            }
+        }
+    }
+
+    
+}

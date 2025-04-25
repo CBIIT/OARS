@@ -1,0 +1,1003 @@
+﻿@using OARS.Data.Models;
+@using OARS.Data.Services.Abstract;
+@using OARS.Data.PowerBI
+@using OARS.Data.PowerBI.Abstract;
+@using OARS.Data.PowerBI.Models;
+@using Microsoft.Extensions.Options;
+@using OARS.Data.Static;
+@inject IHttpContextAccessor httpContextAccessor
+@inject IConfiguration configuration
+@layout AdminLayout
+
+@page "/admin/dashboard/{dashboardid:int?}"
+<AdminRoleCheck AllowedRoles="@(new List<string> { "IT" })"></AdminRoleCheck>
+<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1 mb-3"><h2>@AddOrEdit</h2></Div>
+<Steps @ref="stepsRef" SelectedStep="@selectedStep" SelectedStepChanged="@OnSelectedStepChanged" NavigationAllowed="NavigationAllowed">
+    <Items>
+        <Step Name="step1">Dashboard info</Step>
+        <Step Name="step2">Left Menu setup</Step>
+    </Items>
+    <Content>
+        <StepPanel Name="step1">
+            <h4>Dashboard Information</h4>
+            <Divider />
+            <Div Flex="Flex.AlignItems.Start" Margin="Margin.Is3.FromBottom" Background="Background.Light">
+                <Div Padding="Padding.Is4" Style="@flexContainerStyle">
+                    <Field ColumnSize="ColumnSize.Is4">
+                        <FieldLabel ColumnSize="ColumnSize.Is12" TextWeight="TextWeight.Bold">Dashboard Name</FieldLabel>
+                        <FieldBody ColumnSize="ColumnSize.Is4">
+                            <TextEdit Placeholder="Dashboard Name" MaxLength="50" @bind-Text="@dashboardName"></TextEdit>
+                        </FieldBody>
+                        <FieldHelp Display="@dashNameError"><Text TextColor="TextColor.Danger">Please enter a dashboard name</Text></FieldHelp>
+                    </Field>
+                    <Field ColumnSize="ColumnSize.Is6">
+                        <FieldLabel ColumnSize="ColumnSize.Is12" TextWeight="TextWeight.Bold">Description</FieldLabel>
+                        <FieldBody ColumnSize="ColumnSize.Is4">
+                            <MemoEdit @bind-Text="@description" MaxLength="250" Rows="3" Placeholder="Dashboard description" />
+                        </FieldBody>
+                    </Field>
+                    <Field ColumnSize="ColumnSize.Is4">
+                        <FieldLabel ColumnSize="ColumnSize.Is12" TextWeight="TextWeight.Bold">Site Page</FieldLabel>
+                        <FieldBody ColumnSize="ColumnSize.Is4">
+                            <TextEdit Placeholder="Page to navigate to" MaxLength="50" @bind-Text="@pageName" />
+                        </FieldBody>
+                        <FieldHelp>Page to navigate to instead of Power BI Report</FieldHelp>
+                    </Field>
+                </Div>
+                <Div Padding="Padding.Is4" Style="@flexContainerStyle">
+                    <Field Horizontal>
+                        <FieldLabel ColumnSize="ColumnSize.Is4" TextWeight="TextWeight.Bold">Special Dashboard</FieldLabel>
+                        <FieldBody ColumnSize="ColumnSize.Is6">
+                            <Switch TValue="bool" Checked="@specialDash" CheckedChanged="@OnSpecialDashChanged" Color="Color.Primary"></Switch>
+                        </FieldBody>
+                    </Field>
+                    <Fields>
+                        <Field ColumnSize="ColumnSize.Is6">
+                            <FieldLabel ColumnSize="ColumnSize.Is6" TextWeight="TextWeight.Bold">Current Help File</FieldLabel>
+                            <FieldBody ColumnSize="ColumnSize.Is6">
+                                <Label>@currentHelpFileName</Label>
+                            </FieldBody>
+                        </Field>
+                        <Field ColumnSize="ColumnSize.Is3">
+                            <FieldLabel ColumnSize="ColumnSize.Is3" TextWeight="TextWeight.Bold">&nbsp;</FieldLabel>
+                            <FieldBody ColumnSize="ColumnSize.Is3">
+                                <Button Color="Color.Info" Clicked="@OpenCurrentHelpFile">Preview</Button>
+                            </FieldBody>
+                        </Field>
+                    </Fields>
+                    <Field ColumnSize="ColumnSize.Is8">
+                        <FieldLabel ColumnSize="ColumnSize.Is8" TextWeight="TextWeight.Bold">Help File Upload</FieldLabel>
+                        <FieldBody ColumnSize="ColumnSize.Is8">
+                            <FileEdit @ref="@helpFileEditRef" AutoReset="false" Changed="@OnHelpFileChanged" Filter="@allowedFileExtension" />
+                        </FieldBody>
+                        <FieldLabel>Accepted File types: @allowedFileExtension</FieldLabel>
+                    </Field>
+                </Div>
+            </Div>
+        </StepPanel>
+        <StepPanel Name="step2">
+            <h4>Left Menu Setup</h4>
+            <Divider/>
+            <Div Display="@showLeftMenuSetup">
+                <Div Padding="Padding.Is2" Background="Background.Light">
+                    <Row Background="Background.Light">
+                        <Column ColumnSize="ColumnSize.IsFull">
+                            <DataGrid TItem="Report"
+                            @ref="reportGrid"
+                            Class="admindatagrid"
+                            Data="@reportList"
+                            Responsive
+                            Striped
+                            FixedHeader
+                            Sortable="false"
+                            ShowPager
+                            FixedHeaderDataGridHeight="450px"
+                            FixedHeaderDataGridMaxHeight="450px"
+                            PageSize="100"
+                            CommandMode="DataGridCommandMode.ButtonRow">
+                                <DataGridColumns>
+                                    <DataGridMultiSelectColumn Width="30px"> </DataGridMultiSelectColumn>
+                                    <DataGridCommandColumn />
+                                    <DataGridColumn Field="@nameof(Report.Name)" Caption="Menu Name" Width="350px">
+                                        <CaptionTemplate>
+                                            Menu Name<BR />Description
+                                        </CaptionTemplate>
+                                        <DisplayTemplate>
+                                            <Text> @{@((context as Report)?.Name) }
+                                                <BR />
+                                                @{@((context as Report)?.Description) }
+                                            </Text>
+                                        </DisplayTemplate>
+                                    </DataGridColumn>
+                                    <DataGridColumn Field="@nameof(Report.DisplayIconName)" Caption="Icon" Width="100px" />
+                                    <DataGridColumn Field="@nameof(Report.SubMenuName)" Caption="Level 3 Menu" Width="100px" />
+                                    <DataGridColumn Field="@nameof(Report.ReportName)" Width="300px">
+                                        <CaptionTemplate>
+                                            PowerBI Report Name<BR />PowerBI Report Page
+                                        </CaptionTemplate>
+                                        <DisplayTemplate>
+                                            <Text> @{@((context as Report)?.ReportName) }
+                                                <BR />
+                                                @{@((context as Report)?.PageName) }
+                                            </Text>
+                                        </DisplayTemplate>
+                                    </DataGridColumn>
+                                    <DataGridColumn Field="@nameof(Report.PowerBIReportId)" Caption="" Displayable="false" />
+                                    <DataGridColumn Field="@nameof(Report.PowerBIPageName)" Caption="" Displayable="false" />
+                                    <DataGridColumn Field="@nameof(Report.ReportFilterId)" Caption="Custom Filter" Width="200px">
+                                        <DisplayTemplate>
+                                            @{
+                                                var repFilterId = (context as Report)?.ReportFilterId;
+                                                ReportFilter foundFilter = reportFilterList.Find(r => r.ReportFilterId == repFilterId);
+                                                if (foundFilter != null)
+                                                    @(foundFilter.FilterName);
+                                            }
+                                        </DisplayTemplate>
+                                    </DataGridColumn>
+                                    <DataGridColumn Field="@nameof(Report.CustomPagePath)" Caption="Site Page" Width="130px" />
+                                    <DataGridColumn Sortable="false" Filterable="false" Width="120px">
+                                        <DisplayTemplate>
+                                            <Button Color="Color.Info" Clicked="@(()=>EditReportClick(context as Report))">
+                                                Edit
+                                            </Button>
+                                            <Button Color="Color.Danger" Clicked="@(()=>DeleteReportClick(context as Report))">
+                                                Delete
+                                            </Button>
+                                        </DisplayTemplate>
+                                    </DataGridColumn>
+                                </DataGridColumns>
+                                <ButtonRowTemplate>
+                                    <Button Color="Color.Primary" Clicked="@AddReportClick">Add Menu Item</Button>
+                                    <Button Color="Color.Primary" Clicked="@OnOrderReportClicked">Change Display Order</Button>
+                                </ButtonRowTemplate>
+                            </DataGrid>
+                        </Column>
+                    </Row>
+                </Div>
+            </Div>
+            <Div Padding="Padding.Is2" Background="Background.Light" Display="@hideLeftMenuSetup">
+                <Text TextColor="TextColor.Dark">Left Menu Setup has been disabled.  A page has been defined in the Dashboard Info step.</Text>
+            </Div>
+        </StepPanel>
+    </Content>
+</Steps>
+<Divider />
+<Div Display="Display.Flex" Class="justify-content-center pe-5">
+    <Button Color="Color.Light" Display="Display.Block" Clicked="@Cancel">Cancel</Button>
+    <Div Class="pe-2"></Div>
+    <Button Color="Color.Primary" Display="@displayPrev" Clicked="() => stepsRef.PreviousStep()"> Previous</Button>
+    <Div Class="pe-2" Display="displayPrev"></Div>
+    <Button Color="Color.Primary" Display="@displayNext" Clicked="() => stepsRef.NextStep()">Next</Button>
+    <Button Color="Color.Danger" Display="@displaySave" Clicked="@Save">Save Dashboard</Button>
+</Div>
+<Modal @ref="reorderRef" Closing="@OnModalClosing">
+    <ModalContent>
+        <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
+            <ModalTitle>Order Left Menu Items</ModalTitle>
+        </ModalHeader>
+        <ModalBody>
+            <DropContainer @ref="reorderContainer" TItem="DropItem" Items="@items" ItemsFilter="@((item, dropZone) => item.Group == dropZone)" ItemDropped="@ItemDropped" Flex="Flex.Wrap.Grow.Is1">
+                <ChildContent>
+                    <DropZone TItem="DropItem" Name="All" AllowReorder Border="Border.Rounded" Background="Background.Light" Padding="Padding.Is1" Margin="Margin.Is1" Flex="Flex.Grow.Is1">
+                        <Heading Size="HeadingSize.Is5">Drag and drop dashboards to the correct order</Heading>
+                    </DropZone>
+                </ChildContent>
+                <ItemTemplate>
+                    <Card Shadow="Shadow.Small" Background="Background.Light" Margin="Margin.Is1.OnY">
+                        <CardBody>
+                            @context.Name
+                        </CardBody>
+                    </Card>
+                </ItemTemplate>
+            </DropContainer>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Secondary" Clicked="@CancelReorder">Cancel</Button>
+            <Button Color="Color.Primary" Clicked="@UpdateOrder">Update</Button>
+        </ModalFooter>            
+    </ModalContent>
+</Modal>
+<Modal @ref="addEditRepRef" Closing="@OnReportModalClosing">
+    <ModalContent>
+        <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
+            <ModalTitle>@addEditReport</ModalTitle>
+        </ModalHeader>
+        <ModalBody>
+            <Div Padding="Padding.Is2" Background="Background.Light">
+                <Validations @ref="validations" Mode="ValidationMode.Manual">
+                    <Validation Validator="@ValidationRule.IsNotEmpty">
+                        <Field ColumnSize="ColumnSize.Is12">
+                            <FieldLabel ColumnSize="ColumnSize.Is12" TextWeight="TextWeight.Bold">Menu Name</FieldLabel>
+                            <FieldBody ColumnSize="ColumnSize.Is8">
+                                <TextEdit Placeholder="Menu Name" MaxLength="50" @bind-Text="@reportName"></TextEdit>
+                            </FieldBody>
+                        </Field>
+                    </Validation>
+                    <Validation Validator="@ValidationRule.IsNotEmpty">
+                        <Field ColumnSize="ColumnSize.Is12">
+                            <FieldLabel ColumnSize="ColumnSize.Is12" TextWeight="TextWeight.Bold">Icon</FieldLabel>
+                            <FieldBody ColumnSize="ColumnSize.Is12">
+                                <TextEdit Placeholder="Icon to display" MaxLength="50" @bind-Text="@reportIcon" />
+                            </FieldBody>
+                            <FieldHelp>
+                                <Link To="https://blazorise.com/docs/extensions/icons-available" Target="Target.Blank">Available icons</Link>
+                            </FieldHelp>
+                        </Field>
+                    </Validation>
+                </Validations>
+                <Field ColumnSize="ColumnSize.Is12">
+                    <FieldLabel ColumnSize="ColumnSize.Is12" TextWeight="TextWeight.Bold">Description</FieldLabel>
+                    <FieldBody ColumnSize="ColumnSize.Is12">
+                        <MemoEdit @bind-Text="@reportDesc" MaxLength="250" Rows="3" Placeholder="Menu description" />
+                    </FieldBody>
+                </Field>
+                <Field ColumnSize="ColumnSize.Is12">
+                    <FieldLabel ColumnSize="ColumnSize.Is12" TextWeight="TextWeight.Bold">Level 3 Menu Name</FieldLabel>
+                    <FieldBody ColumnSize="ColumnSize.Is8">
+                        <TextEdit Placeholder="Sub menu name"  MaxLength="100" @bind-Text="@reportSubMenu" />
+                    </FieldBody>
+                </Field>
+                <Field ColumnSize="ColumnSize.Is12">
+                    <FieldLabel ColumnSize="ColumnSize.Is12" TextWeight="TextWeight.Bold">Menu Type</FieldLabel>
+                    <FieldBody ColumnSize="ColumnSize.Is8">
+                        <Select TValue="int" SelectedValue="@menuType" SelectedValueChanged="@OnMenuTypeChanged">
+                            <SelectItem Value="1">Site Page</SelectItem>
+                            <SelectItem Value="2">Power BI Report</SelectItem>
+                        </Select>
+                    </FieldBody>
+                </Field>
+                <Div Display="@sitePageDisplay">
+                    <Validations @ref="validationsSitePage" Mode="ValidationMode.Manual">
+                        <Validation Validator="@ValidationRule.IsNotEmpty">
+                            <Field ColumnSize="ColumnSize.Is12">
+                                <FieldLabel ColumnSize="ColumnSize.Is12" TextWeight="TextWeight.Bold">Site Page</FieldLabel>
+                                <FieldBody ColumnSize="ColumnSize.Is8">
+                                    <TextEdit Placeholder="Page to navigate to" MaxLength="50" @bind-Text="@reportPageName"></TextEdit>
+                                </FieldBody>
+                            </Field>
+                        </Validation>
+                    </Validations>
+                </Div>
+                <Div Display="@powerBiDisplay">
+                    <Validations @ref="validationsPowerBI" Mode="ValidationMode.Manual">
+                        <Validation Validator="@ValidationRule.IsNotEmpty">
+                            <Field ColumnSize="ColumnSize.Is12">
+                                <FieldLabel ColumnSize="ColumnSize.Is12" TextWeight="TextWeight.Bold">Power BI Report Name</FieldLabel>
+                                <FieldBody ColumnSize="ColumnSize.Is8">
+                                    <SelectList TItem="PowerBIReport"
+                                    TValue="string"
+                                    Data="@repList"
+                                    TextField="@((item)=>item.Name)"
+                                    ValueField="@((item)=>item.Id)"
+                                    SelectedValue="@selectedReportValue"
+                                    SelectedValueChanged="OnSelectedReportValueChanged" />
+                                </FieldBody>
+                            </Field>
+                        </Validation>
+                        <Validation Validator="@ValidationRule.IsNotEmpty">
+                            <Field ColumnSize="ColumnSize.Is12">
+                                <FieldLabel ColumnSize="ColumnSize.Is12" TextWeight="TextWeight.Bold">Power BI Report Page</FieldLabel>
+                                <FieldBody ColumnSize="ColumnSize.Is8">
+                                    <SelectList TItem="PowerBIReportPage"
+                                    TValue="string"
+                                    Data="@pageList"
+                                    TextField="@((item)=>item.Name)"
+                                    ValueField="@((item)=>item.Id)"
+                                    SelectedValue="@selectedPageValue"
+                                    SelectedValueChanged="OnSelectedPageValueChanged" />                                
+                                </FieldBody>
+                            </Field>
+                        </Validation>
+                    </Validations>
+                    <Field ColumnSize="ColumnSize.Is12">
+                        <FieldLabel ColumnSize="ColumnSize.Is12" TextWeight="TextWeight.Bold">Custom Filter</FieldLabel>
+                        <FieldBody ColumnSize="ColumnSize.Is12">
+                            <SelectList TItem="ReportFilter"
+                            TValue="int"
+                            Data="@reportFilterList"
+                            TextField="@((item)=>item.FilterName)"
+                            ValueField="@((item)=>item.ReportFilterId)"
+                            SelectedValue="@selectedFilterValue"
+                            SelectedValueChanged="OnSelectedFilterValueChanged"/>
+                        </FieldBody>
+                    </Field>
+                </Div>
+            </Div>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Secondary" Clicked="@CancelEditReport">Cancel</Button>
+            <Button Color="Color.Primary" Type="ButtonType.Submit" Clicked="@UpdateEditReport">@addEditReport2</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+<Modal @ref="deleteModalRef">
+    <ModalContent Centered>
+        <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
+            <ModalTitle>Delete Menu: @reportToDelete</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            Warning:  Continuing will delete this menu item.
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Danger" Clicked="@DeleteReportClick">Delete</Button>
+            <Button Color="Color.Light" Clicked="@HideDeleteModal">Cancel</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+@code {
+    [Inject] IDashboardService dashboardService { get; set; } = null!;
+    [Inject] private NavigationManager navigation {get; set; } = null!;
+    [Inject] INotificationService NotificationService { get; set; }
+    [Inject] private IPbiEmbedService pbiService { get; set; } = null!;
+    [Inject] private IOptions<PowerBI> powerBiConfig { get; set; } = null!;
+    [Inject] IUserService userService { get; set; } = null!;
+
+    [Parameter] public int? DashboardId { get; set; }
+
+    public string AddOrEdit { get; set; }
+    string selectedStep = "step1";
+    private Steps stepsRef;
+    IFluentDisplay displayPrev = Display.None;
+    IFluentDisplay displayNext = Display.Block;
+    IFluentDisplay displaySave = Display.None;
+
+    private Modal deleteModalRef;
+    private FileEdit helpFileEditRef;
+    private string reportToDelete;
+    private string helpFileName;
+    private readonly string noFileFound = "No file found";
+    private string currentHelpFileName = "No file found";
+    private int reportToDeleteId;
+    IFileEntry helpFileEntry;
+    List<string> lstAttachments = new List<string>();
+    string allowedFileExtension = ".pdf, .doc, .docx";
+
+    // Step 1 var
+    string dashboardName = "";
+    string description = "";
+    string pageName = "";
+    bool specialDash = false;
+    bool specialDashChanged = false;
+    Validations validations;
+    Validations validationsPowerBI;
+    Validations validationsSitePage;
+    Visibility visibilityDelete = Visibility.Invisible;
+    IFluentDisplay dashNameError = Display.None;
+
+    // Step 2 var
+    public IList<Report> reportList;
+    IFluentDisplay showLeftMenuSetup = Display.None;
+    IFluentDisplay hideLeftMenuSetup = Display.None;
+    private Modal? reorderRef;
+    private bool cancelClose;
+    private DropContainer<DropItem> reorderContainer;
+    List<DropItem> items = new List<DropItem>();
+    List<int> reportIdOrder = new List<int>();
+    private DataGrid<Report> reportGrid;
+
+    private Modal? addEditRepRef;
+    private string addEditReport = "";
+    private string addEditReport2 = "";
+    private int addEditReportId = 0;
+
+    private int menuType = 2;
+    IFluentDisplay sitePageDisplay = Display.None;
+    IFluentDisplay powerBiDisplay = Display.None;
+    private string reportName = "";
+    private string reportIcon = "";
+    private string reportDesc = "";
+    private string selectedReportValue;
+    private string selectedPageValue;
+    private int selectedFilterValue;
+    private string reportPageName = "";
+    private string reportSubMenu = "";
+    private List<PowerBIReport> repList = new List<PowerBIReport>();
+    private List<PowerBIReportPage> pageList = new List<PowerBIReportPage>();
+    private List<ReportFilter> reportFilterList = new List<ReportFilter>();
+
+    string flexContainerStyle = $"width:50%;";
+
+    #region Main Page methods
+    protected override async Task OnInitializedAsync()
+    {
+        if (DashboardId == null )
+        {
+            AddOrEdit = "Create Dashboard";
+            visibilityDelete = Visibility.Invisible;
+        }
+        else
+        {
+            AddOrEdit = "Edit Dashboard";
+            GetDashboard(DashboardId);
+            AddOrEdit = "Edit Dashboard - " + dashboardName;
+            visibilityDelete = Visibility.Visible;
+            SetItemOrder();
+        }
+
+        await GetReportList();
+        await GetReportFilterList();
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+        userService.SaveActivityLog(userId, ThorActivityType.Navigation, "Dashboard", AddOrEdit);
+    }
+
+    private async Task GetReportList()
+    {
+        // Get Power BI Report
+        var pbiReportList = await pbiService.GetPowerBIReportList(new Guid(powerBiConfig.Value.WorkspaceId));
+        foreach(Microsoft.PowerBI.Api.Models.Report report in pbiReportList.Value)
+        {
+            repList.Add(new PowerBIReport() { Id = report.Id.ToString(), Name = report.Name });
+        }
+        repList = repList.OrderBy(r => r.Name).ToList(); 
+        repList.Insert(0, new PowerBIReport() { Id = "", Name = "Please select a report" });
+    }
+
+    private async Task GetPageListFromReport(string powerBIReportId)
+    {
+        // Get Pages from Power BI report selected
+        pageList.Clear();
+        if (!String.IsNullOrEmpty(powerBIReportId))
+        {
+            var reportPages = await pbiService.GetPowerBIReportPages(new Guid(powerBiConfig.Value.WorkspaceId), new Guid(powerBIReportId));
+            foreach (Microsoft.PowerBI.Api.Models.Page page in reportPages.Value)
+            {
+                pageList.Add(new PowerBIReportPage() { Id = page.Name, Name = page.DisplayName });
+            }
+            pageList = pageList.OrderBy(p => p.Name).ToList();
+        }
+        pageList.Insert(0,new PowerBIReportPage() { Id = "", Name = "Please select a page" });
+        StateHasChanged();
+
+    }
+
+    private async Task GetReportFilterList()
+    {
+        reportFilterList.Clear();
+        reportFilterList = await dashboardService.GetReportFilterList();
+        reportFilterList.Insert(0, new ReportFilter() { ReportFilterId = 0, FilterName = "No custom filter" });
+        StateHasChanged();
+    }
+
+    private async void GetDashboard(int? dashboardId)
+    {
+        Dashboard curDashboard = await dashboardService.GetDashboardByIdAsync((int)dashboardId, "|" + dashboardId + "|", true);
+        reportList = await dashboardService.GetReportsByDashboardIdForUserAsync((int)dashboardId, 0, true);
+
+        dashboardName = curDashboard.Name;
+        description = curDashboard.Description;
+        pageName = curDashboard.CustomPagePath;
+        this.helpFileName = curDashboard.HelpFileName;
+        this.currentHelpFileName = curDashboard.HelpFileName;
+        specialDash = curDashboard.SpecialDash;
+
+        if (this.currentHelpFileName == null || this.currentHelpFileName.Equals(string.Empty))
+        {
+            this.currentHelpFileName = this.noFileFound;
+        }
+    }
+
+    private Task OnSelectedStepChanged( string name )
+    {
+        selectedStep = name;
+
+        // Navigation buttons
+        if (stepsRef.SelectedStep == "step1")
+        {
+            displayPrev = Display.None;
+            displayNext = Display.Block;
+            displaySave = Display.None;
+        }
+        else
+        {
+            displayPrev = Display.Block;
+            displayNext = Display.None;
+            displaySave = Display.Block;
+        }
+
+        if (stepsRef.SelectedStep == "step2")
+        {
+            if (!String.IsNullOrEmpty(pageName))
+            {
+                showLeftMenuSetup = Display.None;
+                hideLeftMenuSetup = Display.Block;
+            }
+            else
+            {
+                showLeftMenuSetup = Display.Block;
+                hideLeftMenuSetup = Display.None;                
+            }
+        }
+        return Task.CompletedTask;
+    }
+
+    private bool NavigationAllowed( StepNavigationContext context )
+    {
+        if (context.CurrentStepIndex == 1 && ValidationRule.IsEmpty(dashboardName))
+        {
+            dashNameError = Display.Block;
+            return false;
+        }
+        else if (context.NextStepIndex == 2)
+        {
+            dashNameError = Display.None;
+            return true;
+        }
+        else
+            return true;
+    }
+
+    private Task AddReportClick()
+    {
+        addEditReport = "Add Menu Item";
+        addEditReport2 = "Add";
+        addEditReportId = 0;
+
+        // Reset validations
+        validations.ClearAll();
+        validationsSitePage.ClearAll();
+        validationsPowerBI.ClearAll();
+
+        // Clear out & reset all controls
+        reportName = "";
+        reportIcon = "";
+        reportDesc = "";
+        menuType = 2;
+        OnMenuTypeChanged(2);
+        reportPageName = "";
+        selectedReportValue = "";
+        pageList.Clear();
+        pageList.Add(new PowerBIReportPage() { Id = "", Name = "Please select a report first" });
+        selectedPageValue = "";
+        reportSubMenu = "";
+        selectedFilterValue = 0;
+
+        return addEditRepRef.Show();
+    }
+
+    private Task EditReportClick(Report r)
+    {
+        addEditReport = "Edit " + r.Name;
+        addEditReport2 = "Update";
+        addEditReportId = r.ReportId;
+
+        // Set up the screen and fields
+        reportName = r.Name;
+        reportIcon = r.DisplayIconName;
+        reportDesc = r.Description;
+        reportSubMenu = r.SubMenuName;
+
+        // Determine if showing the Site Page or Power BI sections & populate as needed.
+        if (!String.IsNullOrEmpty(r.PowerBIReportId))
+        {
+            menuType = 2;
+            OnMenuTypeChanged(2);
+            selectedReportValue = r.PowerBIReportId;
+            OnSelectedReportValueChanged(selectedReportValue);
+            selectedPageValue = r.PowerBIPageName;
+            if (r.ReportFilterId != null)
+                selectedFilterValue = (int)r.ReportFilterId;
+            else
+                selectedFilterValue = 0;
+            OnSelectedFilterValueChanged(selectedFilterValue);
+
+            reportPageName = "";
+        }
+        else
+        {
+            menuType = 1;
+            OnMenuTypeChanged(1);
+            reportPageName = r.CustomPagePath;
+
+            selectedReportValue = "";
+            selectedPageValue = "";
+            selectedFilterValue = 0;
+        }
+
+        return addEditRepRef.Show();
+    }
+
+    private async void DeleteReportClick(Report r)
+    {
+        // Check if report is in a role first.  If ok, popup delete confirmation
+        if (dashboardService.CanDeleteReport(r.ReportId))
+        {
+            reportToDelete = r.Name;
+            reportToDeleteId = r.ReportId;
+
+            deleteModalRef.Show();
+        }
+        else
+            await NotificationService.Error("Can not delete menu item. Assigned to role(s).");
+    }
+
+    private async void DeleteReportClick()
+    {
+        // Remove from dashboard and order lists
+        Report repToRemove = reportList.First(r => r.ReportId == reportToDeleteId);
+        reportList.Remove(repToRemove);
+        deleteModalRef.Hide();
+        SetItemOrder();
+        StateHasChanged();
+        reorderContainer.Refresh();
+        await reportGrid.Reload();
+    }
+    private Task HideDeleteModal()
+    {
+        return deleteModalRef.Hide();
+    }
+
+    private Task OnOrderReportClicked()
+    {
+        if (items.Count > 0)
+            return reorderRef.Show();
+        else
+            return Task.CompletedTask;
+    }
+
+    private async void Save()
+    {
+        bool saved = false;
+        var helpFileUploaded = false;
+
+        if (!dashboardService.CheckDashboardName(dashboardName, (int)(DashboardId != null ? DashboardId : 0)))
+        {
+            await NotificationService.Error( "Dashboard name already exists.");
+            return;
+        }
+
+        if (String.IsNullOrEmpty(pageName) && (reportList == null || reportList.Count == 0))
+        {
+            await NotificationService.Error( "Dashboard must navigate to a page or one left menu item must be defined");
+        }
+        else
+        {
+            DateTime curDateTime = DateTime.UtcNow;
+            Dashboard saveDashboard = new Dashboard();
+            if (DashboardId != null)
+                saveDashboard.DashboardId = (int)DashboardId;
+            else
+                saveDashboard.CreateDate = curDateTime;
+
+            saveDashboard.Name = dashboardName;
+            saveDashboard.Description = description;
+            saveDashboard.CustomPagePath = pageName;
+            saveDashboard.SpecialDash = specialDash;
+
+            if (String.IsNullOrEmpty(pageName))
+            {
+                // Set the order for saving.  Order not stored with record
+                foreach (Report report in reportList)
+                {
+                    int repOrder = reportIdOrder.IndexOf(report.ReportId) + 1;
+                    report.DisplayOrder = repOrder;
+                    if (report.ReportId < 0)
+                        report.ReportId = 0;
+                    saveDashboard.Reports.Add(report);
+                }
+            }
+
+            if (this.helpFileEntry != null && (this.currentHelpFileName != null && !this.currentHelpFileName.Equals(noFileFound)))
+            {
+                saveDashboard.HelpFileName = this.currentHelpFileName;
+                helpFileUploaded = (await this.UploadFileToS3());
+                if (helpFileUploaded)
+                {
+                    await NotificationService.Success("Help File uploaded successfully");
+                    saveDashboard.HelpFileName = this.helpFileName;
+                }
+                else
+                {
+                    await NotificationService.Warning("Help File upload failed");
+                }
+            }
+
+            int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+            saved = dashboardService.SaveDashboard(saveDashboard, userId);
+
+            if (saved)
+            {
+                await NotificationService.Success( "Dashboard successfully saved");
+                navigation.NavigateTo("/admin/dashboards");
+            }
+            else
+            {
+                await NotificationService.Error( "Error saving dashboard");
+                navigation.NavigateTo("/admin/dashboards");
+            }
+        }
+    }
+
+    private void Cancel()
+    {
+        navigation.NavigateTo("/admin/dashboards");
+    }
+    #endregion
+
+    #region Re-Order methods
+
+    private void SetItemOrder()
+    {
+        string tempName = "";
+        items.Clear();
+        reportIdOrder.Clear();
+        foreach(Report report in reportList)
+        {
+            tempName = report.Name;
+            if (!String.IsNullOrEmpty(report.SubMenuName))
+                tempName = tempName + " - " + report.SubMenuName;
+            items.Add(new DropItem() { Name = tempName, ReportId = report.ReportId, DisplayOrder = report.DisplayOrder, Group = "All" });
+            reportIdOrder.Add(report.ReportId);
+        }
+    }
+
+    private Task ItemDropped( DraggableDroppedEventArgs<DropItem> dropItem )
+    {
+        // All ordering will be saved in the reportIdOrder list
+        int newIndex = dropItem.IndexInZone;
+        int oldIndex = reportIdOrder.FindIndex( d=> d == dropItem.Item.ReportId);
+        reportIdOrder.RemoveAt(oldIndex);
+        reportIdOrder.Insert(newIndex, dropItem.Item.ReportId);
+
+        return Task.CompletedTask;
+    }
+
+    private Task CancelReorder()
+    {
+        // Re-order back to original
+        SetItemOrder();
+        reorderContainer.Refresh();
+        return reorderRef.Hide();
+    }
+
+    private Task UpdateOrder()
+    {
+        int newOrder = 0;
+        // Iterate through items and re-order
+        foreach (int order in reportIdOrder)
+        {
+            newOrder++;
+            Report foundRep = reportList.First(r => r.ReportId == order);
+            foundRep.DisplayOrder = newOrder;
+        }
+
+        reportList = reportList.OrderBy(r => r.DisplayOrder).ToList();
+        StateHasChanged();
+
+        return reorderRef.Hide();
+
+    }
+
+    private Task OnModalClosing( ModalClosingEventArgs e )
+    {
+        // just set Cancel to prevent modal from closing
+        e.Cancel = cancelClose 
+            || e.CloseReason != CloseReason.UserClosing;
+
+        return Task.CompletedTask;
+    }
+    #endregion
+
+    #region Add/Edit Menu item
+
+    Task OnMenuTypeChanged( int value )
+    {
+        menuType = value;
+        if (menuType == 1)
+        {
+            sitePageDisplay = Display.Block;
+            powerBiDisplay = Display.None;
+        }
+        else
+        {
+            sitePageDisplay = Display.None;
+            powerBiDisplay = Display.Block;            
+        }
+
+        return Task.CompletedTask;
+    }
+
+    Task OnSelectedReportValueChanged( string pbiReportId )
+    {
+        GetPageListFromReport(pbiReportId);
+        selectedReportValue = pbiReportId;
+        selectedPageValue = "";
+        return Task.CompletedTask;
+    }
+
+    Task OnSelectedPageValueChanged ( string pbiPageId )
+    {
+        selectedPageValue = pbiPageId;
+        return Task.CompletedTask;
+    }
+
+    Task OnSelectedFilterValueChanged ( int filterId)
+    {
+        selectedFilterValue = filterId;
+        return Task.CompletedTask;
+    }
+    private Task CancelEditReport()
+    {
+        return addEditRepRef.Hide();
+    }
+
+    private async Task UpdateEditReport()
+    {
+        bool success = false;
+        if (menuType == 1)
+        {
+            if (await validations.ValidateAll() & await validationsSitePage.ValidateAll())
+            {
+                success = StoreDashboardReport();
+                addEditRepRef.Hide();
+            }
+
+        }
+        else
+        {
+            if (await validations.ValidateAll() & await validationsPowerBI.ValidateAll())
+            {
+                success = StoreDashboardReport();
+                addEditRepRef.Hide(); 
+            }
+        }
+        reportGrid.Reload();
+    }
+
+    private bool StoreDashboardReport()
+    {
+        // Determine if we are adding or updating
+        Report curReport;
+
+        if (addEditReportId == 0)
+        {
+            curReport = new Report();
+            if (reportList == null || reportList.Count == 0 || reportIdOrder.Min() > -1)
+                curReport.ReportId = -1;
+            else
+            {
+                int lowestId = reportIdOrder.Min();
+                curReport.ReportId = lowestId - 1;
+            }  
+        }
+        else
+            curReport = reportList.FirstOrDefault(r => r.ReportId == addEditReportId);
+
+        curReport.Name = reportName;
+        curReport.DisplayIconName = reportIcon;
+        curReport.Description = reportDesc;
+        curReport.IsFullPage = true;
+        curReport.SubMenuName = reportSubMenu;
+
+        //if (!String.IsNullOrEmpty(reportPageName))
+        if (menuType == 1)
+        {
+            curReport.CustomPagePath = reportPageName;
+
+            curReport.PowerBIReportId = null;
+            curReport.ReportName = null;
+            curReport.PowerBIPageName = null;
+            curReport.PageName = null;
+            curReport.ReportFilterId = null;
+        }
+        else
+        {
+            curReport.PowerBIReportId = selectedReportValue;
+            PowerBIReport pbiItem = repList.Find(r => r.Id == selectedReportValue);
+            curReport.ReportName = pbiItem.Name;
+            curReport.PowerBIPageName = selectedPageValue;
+            PowerBIReportPage pbiRepItem = pageList.Find(r => r.Id == selectedPageValue);
+            curReport.PageName = pbiRepItem.Name;
+            curReport.ReportFilterId = (selectedFilterValue != 0) ? selectedFilterValue : null;
+            curReport.CustomPagePath = null;
+        }
+
+        if (addEditReportId == 0)  
+        {
+            if (reportList == null || reportList.Count == 0)
+                reportList = new List<Report>();
+            reportList.Add(curReport);
+        }
+
+        SetItemOrder();
+        reorderContainer.Refresh();
+
+        return true;
+    }
+
+    private Task OnReportModalClosing( ModalClosingEventArgs e )
+    {
+        // just set Cancel to prevent modal from closing
+        e.Cancel = cancelClose 
+            || e.CloseReason != CloseReason.UserClosing;
+
+        return Task.CompletedTask;
+    }
+
+    private Task OnSpecialDashChanged(bool value)
+    {
+        specialDash = value;
+        specialDashChanged = true;
+
+        return Task.CompletedTask;
+    }
+
+    private async void OnHelpFileChanged(FileChangedEventArgs e)
+    {
+        this.helpFileEntry = e.Files.FirstOrDefault();
+        this.currentHelpFileName = this.helpFileEntry.Name;
+    }
+
+    private async Task<bool> UploadFileToS3()
+    {
+        var uploadedSuccessfully = false;
+
+        if (this.helpFileEntry != null)
+        {
+            try
+            {
+                var fileExtension = Path.GetExtension(helpFileEntry.Name);
+                if (this.allowedFileExtension.IndexOf(fileExtension) >= 0)
+                {
+                    this.helpFileName = this.dashboardName + fileExtension;
+                    using (var stream = new MemoryStream())
+                    {
+                        await this.helpFileEntry.WriteToStreamAsync(stream);
+                        uploadedSuccessfully = await this.dashboardService.UploadFileToS3(configuration.GetValue<string>("System:DashboardHelpFolder"),
+                            this.helpFileName, configuration.GetValue<string>("AWS:AWSBucketName"), stream);
+                        return uploadedSuccessfully;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await NotificationService.Success($"Failed to upload to S3. {ex.Message}");
+            }
+        }
+
+        return false;
+    }
+
+    private async void OpenCurrentHelpFile()
+    {
+        if (this.helpFileName != null && !this.helpFileName.Equals(string.Empty) && !this.helpFileName.Equals(noFileFound))
+        {
+            var helpFileUrl = configuration.GetValue<string>("System:DashboardHelpURL");
+            helpFileUrl += this.currentHelpFileName;
+            helpFileUrl = string.Format("javascript:void(window.open('" + helpFileUrl + "','_blank'));");
+
+            navigation.NavigateTo(helpFileUrl);
+        }
+        else
+        {
+            await NotificationService.Error("No help file found");
+        }
+    }
+
+    #endregion
+
+    #region Custom objects
+
+    public class DropItem
+    {
+        public string Name { get; init; }
+        public int ReportId { get; init; }
+        public int DisplayOrder { get; set; }
+        public string Group { get; init; }
+    }
+
+    public class PowerBIReport
+    {
+        public string Id { get; init; }
+        public string Name { get;init; }
+
+    }
+
+    public class PowerBIReportPage
+    {
+        public string Id { get; init; }
+        public string Name { get; init; }
+    }
+    #endregion
+}

@@ -1,0 +1,143 @@
+﻿@using OARS.Data.Models;
+@using OARS.Data.Services.Abstract;
+@using OARS.Data.Static;
+@inject IHttpContextAccessor httpContextAccessor
+@layout AdminLayout
+
+@page "/admin/groups"
+<AdminRoleCheck AllowedRoles="@(new List<string> { "IT", "Biz" })"></AdminRoleCheck>
+<Div Background="Background.Primary" TextColor="TextColor.Light" Class="p-1"><h2>Group List</h2></Div>
+<Row Background="Background.Light">
+    <Column ColumnSize="ColumnSize.IsFull">
+        <DataGrid TItem="Group"
+                  Class="admindatagrid"
+                  Data="@groupList"
+                  Responsive
+                  Filterable
+                  Striped
+                  ShowPager
+                  ShowPageSizes
+                  MaxPaginationLinks="5"
+                  PagerPosition="DataGridPagerPosition.Bottom"
+                  PagerOptions="new(){ButtonSize=Size.Default, 
+                                PaginationPosition=PagerElementPosition.Default,
+                                TotalItemsPosition=PagerElementPosition.End,
+                                }"
+                  FixedHeader
+                  FixedHeaderDataGridHeight="calc(100vh - 240px)"
+                  FixedHeaderDataGridMaxHeight="calc(100vh - 240px)"
+                  CommandMode="DataGridCommandMode.ButtonRow">
+            <DataGridColumns>
+                <DataGridMultiSelectColumn Width="30px"> </DataGridMultiSelectColumn>
+                <DataGridCommandColumn />
+                <DataGridColumn Field="@nameof(Group.GroupName)" Caption="Group Name" />
+                <DataGridColumn Caption="Studies" Filterable="false">
+                    <DisplayTemplate>
+                        @{
+                            var groupDisplay = "";
+                            var groupList = (context as Group)?.GroupProtocols.ToList();
+                            foreach (GroupProtocol gp in groupList)
+                            {
+                                groupDisplay = groupDisplay + gp.StudyId + ", ";
+                            }
+                            groupDisplay = groupDisplay.Trim().Trim(',');
+                        }
+                        @groupDisplay
+                    </DisplayTemplate>
+                </DataGridColumn>
+                <DataGridColumn Sortable="false" Filterable="false" Width="140px">
+                    <DisplayTemplate>
+                        <Button Color="Color.Info" Clicked="@(()=>EditGroupClick(context as Group))">Edit</Button>
+                        <Button Color="Color.Secondary" Clicked="@(()=>ShowDeleteModal(context as Group))">Delete</Button>
+                    </DisplayTemplate>
+                </DataGridColumn>
+            </DataGridColumns>
+            <ButtonRowTemplate>
+                <Button Color="Color.Primary" Clicked="@NewGroupClick">Create Group</Button>
+            </ButtonRowTemplate>
+        </DataGrid>
+    </Column>
+</Row>
+<Modal @ref="deleteModalRef">
+    <ModalContent Centered>
+        <ModalHeader Background="Background.Primary" TextColor="TextColor.Light">
+            <ModalTitle>Delete Group: @groupToDelete</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            Warning:  Continuing will delete this group.
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Light" Clicked="@HideDeleteModal">Cancel</Button>
+            <Button Color="Color.Danger" Clicked="@DeleteGroupClick">Delete</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+@code {
+    [Inject] private NavigationManager navigation {get; set; } = null!;
+    [Inject] INotificationService NotificationService { get; set; }
+    [Inject] IGroupService groupService { get; set; } = null!;
+
+    private Modal deleteModalRef;
+    private string groupToDelete;
+    private int groupToDeleteId;
+    private IList<Group> groupList = new List<Group>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        groupList = await groupService.GetAllGroupsAsync();
+    }
+
+    private void GetGroupStudies(Group g)
+    {
+        List<GroupProtocol> gps = g.GroupProtocols.ToList();
+    }
+
+    private async void NewGroupClick()
+    {
+        navigation.NavigateTo("/admin/group");
+    }
+
+    private async void EditGroupClick(Group g)
+    {
+        navigation.NavigateTo($"/admin/group/{g.GroupId}");
+    }
+
+    private async Task ShowDeleteModal(Group g)
+    {
+        bool canDelGroup = groupService.CanDeleteGroup(g.GroupId);
+        if (!canDelGroup)
+            await NotificationService.Error("Can not delete. Group assigned to user(s).");
+        else
+        {
+            groupToDelete = g.GroupName;
+            groupToDeleteId = g.GroupId;
+            await deleteModalRef.Show();
+        }
+    }
+
+    private Task HideDeleteModal()
+    {
+        return deleteModalRef.Hide();
+    }
+
+    private async void DeleteGroupClick()
+    {
+        Group groupToDel;
+        // Check if any users assigned to groups - if not ok to delete
+        int userId = Convert.ToInt32(httpContextAccessor.HttpContext.User.FindFirst(ThorClaimType.UserId).Value);
+        Tuple<bool, string> delGroup = groupService.DeleteGroup(groupToDeleteId, userId);
+
+        await deleteModalRef.Hide();
+        if (delGroup.Item1)
+        {
+            await NotificationService.Success("Group deleted successfully");
+            groupList = await groupService.GetAllGroupsAsync();
+            StateHasChanged();
+        }
+        else
+        {
+             await NotificationService.Error(delGroup.Item2);
+        }
+    }
+}
