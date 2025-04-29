@@ -28,11 +28,18 @@ else
     </LayoutSider>
      <LayoutContent>
         <Container Fluid Class="mt-2">
-             @if (report != null && report.IsFullPage)
+            @if (report != null && report.IsFullPage)
             {
-                <PowerBiFullReport Dashboard="dashboard" Report="report" @ref="fullReportRef" />
+                if (report.CustomPagePath != null)
+                {
+                    <DynamicComponent Type="@(Type.GetType($"OARS.{report.CustomPagePath!}") ?? typeof(NotFound))" Parameters="@parameters" />
+                }
+                else
+                {
+                    <PowerBiFullReport Dashboard="dashboard" Report="report" @ref="fullReportRef" />
+                }
             }
-            else if (report != null)
+            else if (report != null)  /* Unused as IsFullPage will always be set */
             {
                 <PowerBiCustomLayout Dashboard="dashboard" Report="report" @ref="customReportRef" />
             }
@@ -75,6 +82,7 @@ else
     private PowerBiCustomLayout? customReportRef;
     private PowerBiFullReport? fullReportRef;
     private Modal removeModalRef;
+    IDictionary<string, object> parameters = new Dictionary<string, object>();
 
     private OARS.Data.Models.Dashboard? dashboard;
     private IList<Report> allReports = new List<Report>();
@@ -126,6 +134,9 @@ else
             _reportId = ReportId;
             _saveHistory = true;
         }
+
+        parameters.Add("DashboardId", DashboardId);
+        parameters.Add("ReportId", ReportId);
     }
 
     protected override async Task OnParametersSetAsync()
