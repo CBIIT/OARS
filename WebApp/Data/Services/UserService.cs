@@ -649,6 +649,12 @@ namespace OARS.Data.Services
 
         public bool HasUserFavorite(int userId, bool isAdmin)
         {
+            //First, delete UserFavorites which have DashboardIds or ReportIds that don't correspond to data in the respective tables
+            List<UserFavorite> userSavedFavoritesToDelete = (from uf in context.User_Favorite
+                                                             where uf.UserId == userId && (!context.Dashboards.Any(d => d.DashboardId == uf.DashboardId) || !context.Reports.Any(r => r.ReportId == uf.ReportId))
+                                                             select uf).ToList();
+            foreach (UserFavorite favorite in userSavedFavoritesToDelete)
+                RemoveFavorite(userId, favorite.UserFavoriteId);
 
             List<UserFavorite> userSavedFavorites = (from uf in context.User_Favorite
                                                      join dashboardlist in context.Dashboards on uf.DashboardId equals dashboardlist.DashboardId
