@@ -214,21 +214,13 @@
 
     protected string GetReportLink(Report report, FavoriteReportItem favoriteItem)
     {
-        if (report.CustomPagePath != null)
+        int index = favoriteItem.ReportList.IndexOf(report);
+        int ufId = 0;
+        if (index >= 0 && index < favoriteItem.UserFavoriteIdList.Count)
         {
-            return $"{report.CustomPagePath}/{report.DashboardId}/{report.ReportId}";
-            //return report.CustomPagePath;
+            ufId = favoriteItem.UserFavoriteIdList[index];
         }
-        else
-        {
-            int index = favoriteItem.ReportList.IndexOf(report);
-            int ufId = 0;
-            if (index >= 0 && index < favoriteItem.UserFavoriteIdList.Count)
-            {
-                ufId = favoriteItem.UserFavoriteIdList[index];
-            }
-            return $"{ThorConstants.FAVORITE_PAGE_PATH}/{ufId}/{report.DashboardId}/{report.ReportId}";
-        }
+        return $"{ThorConstants.FAVORITE_PAGE_PATH}/{ufId}/{report.DashboardId}/{report.ReportId}";
     }
 
     protected string GetReportIcon(Report report)
