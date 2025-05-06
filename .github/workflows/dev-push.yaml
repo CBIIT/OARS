@@ -15,6 +15,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions: write-all
     environment: dev
+    defaults:
+      run:
+        working-directory: ./WebApp
     steps:
       # Checkout code
       - name: Checkout code
