@@ -15,6 +15,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions: write-all
     environment: dev
+    defaults:
+      run:
+        working-directory: ./WebApp
     steps:
       # Checkout code
       - name: Checkout code
@@ -188,7 +191,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: docker-image-${{ steps.semver.outputs.version_tag  }}
-          path: web-reporting_${{ steps.semver.outputs.version_tag  }}.tar.gz
+          path: ./WebApp/web-reporting_${{ steps.semver.outputs.version_tag  }}.tar.gz
 
       - name: Download task definition
         run: |
@@ -198,7 +201,7 @@ jobs:
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition: task-definition.json
+          task-definition: ./WebApp/task-definition.json
           container-name: web
           image: ${{ secrets.ECR_URI_DEV }}:latest
 
