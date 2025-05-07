@@ -1,0 +1,298 @@
+name: Terraform - Multiple AWS Accounts (OARS)
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform (apply or destroy)'
+        required: true
+        default: 'apply'
+      
+      aws_account:
+        description: 'AWS Account to deploy to'
+        required: true
+        type: choice
+        options:
+          - sandbox
+          - dev
+          - qa
+          - uat
+          - prod
+        default: dev
+      
+      terraform_version:
+        description: 'Version of Terraform to use'
+        required: true
+        default: '1.8.4'
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      issues: write
+      id-token: write # This is required for requesting the JWT
+      contents: write  # This is required for actions/checkout
+    timeout-minutes: 10
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          # Ensures we get full history (optional, but can be helpful in some scenarios)
+          fetch-depth: 0
+
+      # 1) Normalize environment name for directory (Sandbox vs. sandbox)
+      - name: Determine Environment Folder
+        id: env_folder
+        run: |
+          case "${{ github.event.inputs.aws_account }}" in
+            sandbox) ENV_FOLDER="Sandbox" ;;
+            dev)     ENV_FOLDER="Dev" ;;
+            qa)      ENV_FOLDER="Qa" ;;
+            uat)     ENV_FOLDER="Uat" ;;
+            prod)    ENV_FOLDER="Prod" ;;
+            *) echo "❌ ERROR: Unknown environment '${{ github.event.inputs.aws_account }}'"; exit 1 ;;
+          esac
+          echo "ENV_FOLDER=$ENV_FOLDER" >> $GITHUB_ENV
+          echo "Using environment folder: $ENV_FOLDER"
+
+      # 2) Set Terraform path by combining with environment folder
+      - name: Set Terraform Path Dynamically
+        id: set_path
+        run: |
+          TF_PATH="./infra/environments/$ENV_FOLDER/"
+          echo "TF_PATH=$TF_PATH" >> $GITHUB_ENV
+          echo "Terraform Path: $TF_PATH"
+
+      # 3) Print out all parameters for clarity/logging
+      - name: Print Input Parameters
+        run: |
+          echo "Action: ${{ github.event.inputs.action }}"
+          echo "AWS Account: ${{ github.event.inputs.aws_account }}"
+          echo "Terraform Version: ${{ github.event.inputs.terraform_version }}"
+          echo "Environment Folder: $ENV_FOLDER"
+          echo "TF_PATH: $TF_PATH"
+
+      # 4) Configure AWS Credentials with 'if' statements per environment
+      - name: Configure AWS Credentials (Sandbox)
+        if: ${{ github.event.inputs.aws_account == 'sandbox' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_SANDBOX }}
+          aws-region: us-east-1
+
+      - name: Configure AWS Credentials (Dev)
+        if: ${{ github.event.inputs.aws_account == 'dev' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_DEV }}
+          aws-region: us-east-1
+
+      - name: Configure AWS Credentials (QA)
+        if: ${{ github.event.inputs.aws_account == 'qa' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_QA }}
+          aws-region: us-east-1
+
+      - name: Configure AWS Credentials (UAT)
+        if: ${{ github.event.inputs.aws_account == 'uat' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_UAT }}
+          aws-region: us-east-1
+
+      - name: Configure AWS Credentials (Prod)
+        if: ${{ github.event.inputs.aws_account == 'prod' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_PROD }}
+          aws-region: us-east-1
+
+      # 5) Setup Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ github.event.inputs.terraform_version }}
+        env:
+          AWS_DEFAULT_REGION: us-east-1
+
+      # 6) Debug step: verify that the path actually exists
+      - name: Verify Terraform Path
+        run: |
+          echo "Listing files in $TF_PATH..."
+          ls -al "$TF_PATH"
+
+      # 7) Initialize Terraform
+      - name: Initialize Terraform
+        run: terraform init -reconfigure
+        working-directory: ${{ env.TF_PATH }}
+
+      # 8) Plan Terraform changes
+      - name: Plan Terraform changes
+        run: terraform plan -out=tfplan
+        working-directory: ${{ env.TF_PATH }}
+
+      # 9) Check Terraform Formatting
+      - name: Check Terraform Formatting
+        run: terraform fmt -check 
+
+      # 10) Cache Terraform files
+      - name: Cache Terraform files
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.TF_PATH }}/.terraform
+            ${{ env.TF_PATH }}/.terraform.lock.hcl
+          key: ${{ runner.os }}-terraform-${{ hashFiles('**/*.tf') }}
+
+      # 11) Cost Estimation
+      # - name: Terraform Cost Estimation
+      #   uses: infracost/actions/setup@v3
+      #   with:
+      #     api-key: ${{secrets.INFRACOST_API_KEY}}
+
+      # - name: Generate cost estimate
+      #   run: infracost breakdown --path ${{ env.TF_PATH }}
+
+      # 12) Upload Terraform plan (for subsequent stages)
+      - name: Upload Terraform plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: ${{ env.TF_PATH }}/tfplan
+
+  # ─────────────────────────────────────────────────────────────
+  approval:
+    needs: plan
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      issues: write
+      id-token: write
+      contents: write
+    steps:
+      - name: Request Manual Approval
+        uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ secrets.GITHUB_TOKEN }}
+          approvers: gtheradex
+          minimum-approvals: 1
+          additional-approved-words: 'Approve, Approved, approve, approved'
+          issue-title: "Deploying OARS - ${{ github.event.inputs.action }}, AWS Account: ${{ github.event.inputs.aws_account }}"
+          issue-body: "Please approve or deny the deployment of OARS Action: ${{ github.event.inputs.action }}, AWS Account: ${{ github.event.inputs.aws_account }}, Terraform Version: ${{ github.event.inputs.terraform_version }}"
+          timeout-minutes: 10
+
+  # ─────────────────────────────────────────────────────────────
+  deploy:
+    needs: approval
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+    timeout-minutes: 35
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 1) Determine Environment Folder (same as in plan job)
+      - name: Determine Environment Folder
+        id: env_folder
+        run: |
+          case "${{ github.event.inputs.aws_account }}" in
+            sandbox) ENV_FOLDER="Sandbox" ;;
+            dev)     ENV_FOLDER="Dev" ;;
+            qa)      ENV_FOLDER="Qa" ;;
+            uat)     ENV_FOLDER="Uat" ;;
+            prod)    ENV_FOLDER="Prod" ;;
+            *) echo "❌ ERROR: Unknown environment '${{ github.event.inputs.aws_account }}'"; exit 1 ;;
+          esac
+          echo "ENV_FOLDER=$ENV_FOLDER" >> $GITHUB_ENV
+          echo "Using environment folder: $ENV_FOLDER"
+
+      # 2) Set Terraform Path (same as in plan job)
+      - name: Set Terraform Path Dynamically
+        id: set_path
+        run: |
+          TF_PATH="./Infra/OARS/$ENV_FOLDER/"
+          echo "TF_PATH=$TF_PATH" >> $GITHUB_ENV
+          echo "Terraform Path: $TF_PATH"
+
+      # 3) Print out all parameters for clarity/logging
+      - name: Print Input Parameters
+        run: |
+          echo "Action: ${{ github.event.inputs.action }}"
+          echo "AWS Account: ${{ github.event.inputs.aws_account }}"
+          echo "Terraform Version: ${{ github.event.inputs.terraform_version }}"
+          echo "Environment Folder: $ENV_FOLDER"
+          echo "TF_PATH: $TF_PATH"
+
+      # 4) Configure AWS Credentials (deploy stage)
+      - name: Configure AWS Credentials (Sandbox)
+        if: ${{ github.event.inputs.aws_account == 'sandbox' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_SANDBOX }}
+          aws-region: us-east-1
+
+      - name: Configure AWS Credentials (Dev)
+        if: ${{ github.event.inputs.aws_account == 'dev' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_DEV }}
+          aws-region: us-east-1
+
+      - name: Configure AWS Credentials (QA)
+        if: ${{ github.event.inputs.aws_account == 'qa' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_QA }}
+          aws-region: us-east-1
+
+      - name: Configure AWS Credentials (UAT)
+        if: ${{ github.event.inputs.aws_account == 'uat' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_UAT }}
+          aws-region: us-east-1
+
+      - name: Configure AWS Credentials (Prod)
+        if: ${{ github.event.inputs.aws_account == 'prod' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_PROD }}
+          aws-region: us-east-1
+
+      # 5) Setup Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ github.event.inputs.terraform_version }}
+
+      # 6) Download the plan artifact
+      - name: Download repository artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan
+          path: ${{ env.TF_PATH }}/tfplan
+
+      - name: Move Terraform plan
+        run: mv ${{ env.TF_PATH }}/tfplan/tfplan ${{ env.TF_PATH }}/tfplan.tfplan
+
+      # 7) Initialize Terraform
+      - name: Initialize Terraform
+        run: terraform init -reconfigure
+        working-directory: ${{ env.TF_PATH }}
+
+      # 8) Apply or Destroy
+      - name: Apply or Destroy Terraform
+        run: |
+          if [ "${{ github.event.inputs.action }}" == "apply" ]; then
+            terraform apply -auto-approve ./tfplan.tfplan
+          elif [ "${{ github.event.inputs.action }}" == "destroy" ]; then
+            terraform destroy -auto-approve
+          else
+            echo "Invalid action specified: ${{ github.event.inputs.action }}"
+            exit 1
+          fi
+        working-directory: ${{ env.TF_PATH }}
