@@ -274,10 +274,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: tfplan
-          path: ${{ env.TF_PATH }}/tfplan
+          path: ${{ env.TF_PATH }}
 
       - name: Move Terraform plan
-        run: mv ${{ env.TF_PATH }}/tfplan/tfplan ${{ env.TF_PATH }}/tfplan.tfplan
+        run: mv ${{ env.TF_PATH }}/tfplan ${{ env.TF_PATH }}/tfplan.tfplan
 
       # 7) Initialize Terraform
       - name: Initialize Terraform
