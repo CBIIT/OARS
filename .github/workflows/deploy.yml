@@ -214,7 +214,7 @@ jobs:
       - name: Set Terraform Path Dynamically
         id: set_path
         run: |
-          TF_PATH="./Infra/environments/$ENV_FOLDER/"
+          TF_PATH="./Infra/environments/$ENV_FOLDER"
           echo "TF_PATH=$TF_PATH" >> $GITHUB_ENV
           echo "Terraform Path: $TF_PATH"
 
