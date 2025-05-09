@@ -5,10 +5,11 @@
 #     create_before_destroy = true
 #   }
 data "aws_acm_certificate" "oars_cert" {
-  domain      =  var.domain_name_cert  
+  domain      =  "*.cancer.gov" 
   statuses    = ["ISSUED"]     
   types       = ["IMPORTED"]   
   most_recent = true
+
 }
 # resource "aws_acm_certificate_validation" "oars_cert_validate" {
 #   certificate_arn = data.aws_acm_certificate.oars_cert.arn
