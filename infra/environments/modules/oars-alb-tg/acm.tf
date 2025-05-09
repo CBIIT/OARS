@@ -6,7 +6,7 @@
 #   }
 data "aws_acm_certificate" "oars_cert" {
   domain = "*.cancer.gov"  
-  id = "020e8607-4ea0-4366-bcb3-cc672d1d36e8"
+  
 
 }
 # resource "aws_acm_certificate_validation" "oars_cert_validate" {
