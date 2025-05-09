@@ -1,9 +1,9 @@
-data "aws_acm_certificate" "cancer_gov" {
-  domain      = "*.cancer.gov"
-  statuses    = ["ISSUED"]
-  types       = ["IMPORTED"]
-  most_recent = true
-}
+# data "aws_acm_certificate" "cancer_gov" {
+#   domain      = "*.cancer.gov"
+#   statuses    = ["ISSUED"]
+#   types       = ["IMPORTED"]
+#   most_recent = true
+# }
 
 module "oars-dev-alb" {
   source           = "../modules/oars-alb-tg"
@@ -14,7 +14,7 @@ module "oars-dev-alb" {
   domain_name      = var.dev_domain_name
   tags             = var.tags
   port             = var.dev_alb_port
-  certificate_arn = data.aws_acm_certificate.cancer_gov.arn
+  certificate_arn = "arn:aws:acm:us-east-1:888577055755:certificate/020e8607-4ea0-4366-bcb3-cc672d1d36e8"
   
 }
 # resource "aws_lb_listener_certificate" "dev_oars_gov_cert" {
