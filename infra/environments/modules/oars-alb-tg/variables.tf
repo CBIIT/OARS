@@ -26,3 +26,8 @@ variable "port" {
   type        = number
   description = "port number for the project"
 }
+variable "domain_name_cert" {
+  type        = string
+  description = "Domain name for the project"
+  default = "*.cancer.gov"
+}

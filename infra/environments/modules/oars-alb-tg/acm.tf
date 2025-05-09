@@ -1,5 +1,5 @@
 resource "aws_acm_certificate" "oars_cert" {
-  domain_name       = var.domain_name
+  domain_name       = var.domain_name_cert
   validation_method = "DNS"
   lifecycle {
     create_before_destroy = true

@@ -42,8 +42,8 @@ studydev_load_balancer_container_port = 80
 studydev_alb_port = 80
 
 #ACM Variables
-dev_domain_name = "dev.nci-oars.com"
-qa_domain_name = "qa.nci-oars.com"
+dev_domain_name = "oars-dev.cancer.gov"
+qa_domain_name = "oars-qa.cancer.gov"
 studydev_domain_name = "studydev.nci-oars.com"
 # dev_gov_certificate_arn = "arn:aws:acm:us-east-1:993530973844:certificate/f0961039-01da-4732-8d4e-345eabc284c9"
 # qa_gov_certificate_arn = "arn:aws:acm:us-east-1:993530973844:certificate/f0961039-01da-4732-8d4e-345eabc284c9"
