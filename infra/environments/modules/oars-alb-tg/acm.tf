@@ -10,7 +10,6 @@ data "aws_acm_certificate" "oars_cert" {
   types       = ["IMPORTED"]   
   most_recent = true
 }
-}
 resource "aws_acm_certificate_validation" "oars_cert_validate" {
   certificate_arn = aws_acm_certificate.oars_cert.arn
   validation_record_fqdns = [aws_route53_record.oars_cert_dns.fqdn]
