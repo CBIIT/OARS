@@ -60,7 +60,3 @@ ecs_subnet_ids = [ "subnet-0500d8f1148a6b347", "subnet-026bc4c76ad6b3453" ]
 task_def_cpu    = 4096
 task_def_memory = 8192
 desired_count   = 1
-
-# S3 variables
-nci-oars-dev-bucket-name = "nci-oarrs-dev"
-nci-oars-dev-object-name = "DashboardHelp/"
