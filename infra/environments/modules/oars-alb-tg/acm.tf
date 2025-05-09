@@ -4,12 +4,12 @@
 #   lifecycle {
 #     create_before_destroy = true
 #   }
-data "aws_acm_certificate" "oars_cert" {
-  domain    = "*.cancer.gov"
-  statuses  = ["ISSUED"]
-  types     = ["IMPORTED"]
-  provider  = aws.us-east-1  
-}
+# data "aws_acm_certificate" "oars_cert" {
+#   domain    = "*.cancer.gov"
+#   statuses  = ["ISSUED"]
+#   types     = ["IMPORTED"]
+  
+# }
 # resource "aws_acm_certificate_validation" "oars_cert_validate" {
 #   certificate_arn = data.aws_acm_certificate.oars_cert.arn
 #   validation_record_fqdns = [aws_route53_record.oars_cert_dns.fqdn]

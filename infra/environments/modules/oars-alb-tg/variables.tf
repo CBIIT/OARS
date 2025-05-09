@@ -31,3 +31,7 @@ variable "domain_name_cert" {
   description = "Domain name for the project"
   default = "*.cancer.gov"
 }
+variable "certificate_arn" {
+  description = "ARN of the ACM certificate to use for HTTPS listeners"
+  type        = string
+}

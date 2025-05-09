@@ -1,7 +1,3 @@
-provider "aws" {
-  alias  = "us-east-1"
-  region = "us-east-1"
-}
 
 #Application LoadBalancer with its listeners
 resource "aws_lb" "oars_alb" {
@@ -41,7 +37,7 @@ resource "aws_lb_listener" "https" {
   port              = 443
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = data.aws_acm_certificate.oars_cert.arn
+  certificate_arn   = var.certificate_arn
   
   default_action {
     type             = "forward"

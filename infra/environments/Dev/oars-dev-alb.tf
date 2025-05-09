@@ -1,3 +1,10 @@
+data "aws_acm_certificate" "cancer_gov" {
+  domain      = "*.cancer.gov"
+  statuses    = ["ISSUED"]
+  types       = ["IMPORTED"]
+  most_recent = true
+}
+
 module "oars-dev-alb" {
   source           = "../modules/oars-alb-tg"
   project_name     = var.oars_project_name
@@ -7,9 +14,8 @@ module "oars-dev-alb" {
   domain_name      = var.dev_domain_name
   tags             = var.tags
   port             = var.dev_alb_port
-  providers = {
-    aws.us-east-1 = aws.us-east-1
-  }
+  certificate_arn = data.aws_acm_certificate.cancer_gov.arn
+  
 }
 # resource "aws_lb_listener_certificate" "dev_oars_gov_cert" {
 #   certificate_arn = var.dev_gov_certificate_arn
