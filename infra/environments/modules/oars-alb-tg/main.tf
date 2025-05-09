@@ -1,3 +1,7 @@
+provider "aws" {
+  alias  = "us-east-1"
+  region = "us-east-1"
+}
 
 #Application LoadBalancer with its listeners
 resource "aws_lb" "oars_alb" {

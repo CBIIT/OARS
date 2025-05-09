@@ -7,6 +7,9 @@ module "oars-dev-alb" {
   domain_name      = var.dev_domain_name
   tags             = var.tags
   port             = var.dev_alb_port
+  providers = {
+    aws.us-east-1 = aws.us-east-1
+  }
 }
 # resource "aws_lb_listener_certificate" "dev_oars_gov_cert" {
 #   certificate_arn = var.dev_gov_certificate_arn
